@@ -1,0 +1,326 @@
+<?php
+$page_title = 'Hồ sơ cá nhân - Bác sĩ';
+require_once 'Views/layouts/layout_helper.php';
+
+// Lấy thông tin doctor hiện tại
+$doctor = new Doctor();
+$doctor_info = $doctor->getById($_SESSION['user_id']);
+
+ob_start();
+?>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-user-md text-success me-2"></i>
+                    Hồ sơ cá nhân
+                </h2>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Thông tin cơ bản -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Thông tin cơ bản
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Họ và tên:</label>
+                                <p class="form-control-plaintext"><?php echo $doctor_info['ten']; ?></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Email:</label>
+                                <p class="form-control-plaintext"><?php echo $doctor_info['email']; ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Số điện thoại:</label>
+                                <p class="form-control-plaintext">
+                                    <?php echo $doctor_info['so_dien_thoai'] ?: 'Chưa cập nhật'; ?></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Chuyên khoa:</label>
+                                <p class="form-control-plaintext">
+                                    <span
+                                        class="badge bg-success"><?php echo $doctor_info['chuyen_khoa'] ?: 'Chưa cập nhật'; ?></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Số chứng chỉ hành nghề:</label>
+                                <p class="form-control-plaintext">
+                                    <?php echo $doctor_info['license_number'] ?: 'Chưa cập nhật'; ?></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Số năm kinh nghiệm:</label>
+                                <p class="form-control-plaintext">
+                                    <?php echo $doctor_info['experience_years'] ? $doctor_info['experience_years'] . ' năm' : 'Chưa cập nhật'; ?>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Ngày tạo tài khoản:</label>
+                                <p class="form-control-plaintext">
+                                    <?php echo date('d/m/Y', strtotime($doctor_info['created_at'])); ?></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Cập nhật lần cuối:</label>
+                                <p class="form-control-plaintext">
+                                    <?php echo date('d/m/Y H:i', strtotime($doctor_info['updated_at'])); ?></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avatar và thống kê -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <div class="avatar-large mb-3">
+                        <?php echo strtoupper(substr($doctor_info['ten'], 0, 1)); ?>
+                    </div>
+                    <h5 class="mb-1"><?php echo $doctor_info['ten']; ?></h5>
+                    <p class="text-muted mb-2">Bác sĩ</p>
+                    <p class="text-success mb-3">
+                        <?php echo $doctor_info['chuyen_khoa'] ?: 'Chưa cập nhật chuyên khoa'; ?></p>
+                    <div class="d-grid">
+                        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#changePasswordModal">
+                            <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Thống kê hoạt động
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-success mb-1">25</h4>
+                                <small class="text-muted">Lịch hẹn hôm nay</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-primary mb-1">150</h4>
+                                <small class="text-muted">Bệnh nhân</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row text-center mt-3">
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-warning mb-1">45</h4>
+                                <small class="text-muted">Hồ sơ bệnh án</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-item">
+                                <h4 class="text-info mb-1">8.5</h4>
+                                <small class="text-muted">Đánh giá</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal chỉnh sửa profile -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chỉnh sửa thông tin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="/hospital_management/doctor_update_profile">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Họ và tên</label>
+                                <input type="text" class="form-control" name="name"
+                                    value="<?php echo $doctor_info['ten']; ?>" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email"
+                                    value="<?php echo $doctor_info['email']; ?>" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="tel" class="form-control" name="phone"
+                                    value="<?php echo $doctor_info['so_dien_thoai']; ?>">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Chuyên khoa</label>
+                                <select class="form-control" name=?>"specialization">
+                                    <option value="">Chọn chuyên khoa</option>
+                                    <option value="Tim mạch"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Tim mạch' ? 'selected' : ''; ?>>
+                                        Tim mạch</option>
+                                    <option value="Thần kinh"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Thần kinh' ? 'selected' : ''; ?>>
+                                        Thần kinh</option>
+                                    <option value="Nhi khoa"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Nhi khoa' ? 'selected' : ''; ?>>
+                                        Nhi khoa</option>
+                                    <option value="Da liễu"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Da liễu' ? 'selected' : ''; ?>>Da
+                                        liễu</option>
+                                    <option value="Mắt"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Mắt' ? 'selected' : ''; ?>>Mắt
+                                    </option>
+                                    <option value="Tai mũi họng"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Tai mũi họng' ? 'selected' : ''; ?>>
+                                        Tai mũi họng</option>
+                                    <option value="Răng hàm mặt"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Răng hàm mặt' ? 'selected' : ''; ?>>
+                                        Răng hàm mặt</option>
+                                    <option value="Chấn thương chỉnh hình"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Chấn thương chỉnh hình' ? 'selected' : ''; ?>>
+                                        Chấn thương chỉnh hình</option>
+                                    <option value="Sản phụ khoa"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Sản phụ khoa' ? 'selected' : ''; ?>>
+                                        Sản phụ khoa</option>
+                                    <option value="Ung bướu"
+                                        <?php echo $doctor_info['chuyen_khoa'] == 'Ung bướu' ? 'selected' : ''; ?>>
+                                        Ung bướu</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Số chứng chỉ hành nghề</label>
+                                <input type="text" class="form-control" name="license_number"
+                                    value="<?php echo $doctor_info['license_number']; ?>">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Số năm kinh nghiệm</label>
+                                <input type="number" class="form-control" name="experience_years"
+                                    value="<?php echo $doctor_info['experience_years']; ?>" min="0" max="50">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal đổi mật khẩu -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Đổi mật khẩu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="/hospital_management/doctor_change_password">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu hiện tại</label>
+                        <input type="password" class="form-control" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu mới</label>
+                        <input type="password" class="form-control" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="form-control" name="confirm_password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">Đổi mật khẩu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin: 0 auto;
+}
+
+.stat-item {
+    padding: 15px 0;
+}
+
+.stat-item h4 {
+    font-weight: 700;
+}
+</style>
+<?php
+$content = ob_get_clean();
+renderLayout($content, $page_title);
+?>
