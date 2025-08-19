@@ -149,16 +149,43 @@ $patient_info = $patient->getById($_SESSION['user_id']);
     }
 
     .doctor-avatar {
-        width: 60px;
-        height: 60px;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
         border-radius: 50%;
-        background: #28a745;
-        color: white;
+        overflow: hidden;
+        background: #f8f9fa;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
-        margin-bottom: 15px;
+    }
+
+    .doctor-avatar img {
+        transition: all 0.3s ease;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .doctor-card:hover .doctor-avatar img {
+        transform: scale(1.1);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .doctor-info .badge {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+    }
+
+    @media (max-width: 576px) {
+        .doctor-avatar {
+            width: 96px;
+            height: 96px;
+        }
     }
 
     .time-slot {
@@ -557,7 +584,9 @@ $patient_info = $patient->getById($_SESSION['user_id']);
             const avatarText = doctor.ten.split(' ').slice(-2).map(n => n[0]).join('').toUpperCase();
             return `
                 <div class="doctor-card" data-doctor-id="${doctor.id}">
-                    <div class="doctor-avatar">${avatarText}</div>
+                    <div class="doctor-avatar">
+                        <img src="${doctor.hinh_anh}" alt="${doctor.ten}">
+                    </div>
                     <h6>${doctor.ten}</h6>
                     <p class="text-muted small mb-2">${doctor.chuyen_khoa}</p>
                     <p class="text-success small mb-3">${doctor.so_nam_kinh_nghiem || 0} năm kinh nghiệm</p>

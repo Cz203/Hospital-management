@@ -7,7 +7,7 @@
     <title>Đăng ký - Hệ thống Quản lý Bệnh viện</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="././/assets/css/signup.css">
+    <link rel="stylesheet" href="./assets/css/signup.css">
 
 </head>
 
@@ -30,17 +30,11 @@
             <?php endif; ?>
 
             <form method="POST" action="/hospital_management/register" id="registerForm">
-                <div class="role-selector">
-                    <div class="role-option active" data-role="patient">
-                        <i class="fas fa-user fa-2x mb-2"></i><br>
-                        <strong>Bệnh nhân</strong><br>
-                        <small>Khách hàng</small>
-                    </div>
-                </div>
 
-                <input type="hidden" name="role" id="selectedRole" value="patient">
 
                 <!-- Thông tin chung -->
+                <div class="section-title"><i class="fas fa-id-badge"></i> Thông tin chung</div>
+                <hr class="section-divider" />
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
@@ -93,6 +87,8 @@
 
                 <!-- Thông tin riêng cho Doctor -->
                 <div class="form-section" id="doctorFields">
+                    <div class="section-title"><i class="fas fa-user-md"></i> Thông tin bác sĩ</div>
+                    <hr class="section-divider" />
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -138,6 +134,8 @@
 
                 <!-- Thông tin riêng cho Patient -->
                 <div class="form-section active" id="patientFields">
+                    <div class="section-title"><i class="fas fa-user"></i> Thông tin bệnh nhân</div>
+                    <hr class="section-divider" />
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -210,7 +208,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="././assets/js/validate.js"></script>
+    <script src="./assets/js/validate.js"></script>
 </body>
 
 </html>

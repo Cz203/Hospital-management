@@ -335,8 +335,24 @@ body {
   left: 100%;
 }
 
+.doctor-avatar {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .doctor-avatar img {
   transition: all 0.3s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
   border: 4px solid #fff;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
@@ -350,4 +366,11 @@ body {
   font-size: 0.7rem;
   padding: 0.4rem 0.8rem;
   border-radius: 15px;
+}
+
+@media (max-width: 576px) {
+  .doctor-avatar {
+    width: 96px;
+    height: 96px;
+  }
 }

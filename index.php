@@ -9,28 +9,21 @@ $auth = new AuthController();
 $action = $_GET['action'] ?? 'home';
 
 // Nếu không có action trong GET, thử lấy từ REQUEST_URI
-if ($action == 'home' && isset($_SERVER['REQUEST_URI'])) {
-    $uri = $_SERVER['REQUEST_URI'];
-    $path = parse_url($uri, PHP_URL_PATH);
 
-    // Loại bỏ /hospital_management/ khỏi path
-    $path = str_replace('/hospital_management/', '', $path);
-    $path = str_replace('/hospital_management', '', $path);
-    $path = trim($path, '/');
-
-    if (!empty($path)) {
-        $action = $path;
-    } else {
-        // Nếu path rỗng (truy cập /hospital_management/), set action là 'home'
-        $action = 'home';
-    }
-}
 
 
 // Routing
 switch ($action) {
     case 'login':
-        $auth->login();
+        $auth->loginPatient();
+        break;
+
+    case 'login_admin':
+        $auth->loginAdmin();
+        break;
+
+    case 'login_doctor':
+        $auth->loginDoctor();
         break;
 
     case 'register':

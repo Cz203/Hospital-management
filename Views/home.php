@@ -30,7 +30,7 @@ foreach ($doctors as $doctor) {
     <title>Hệ thống Quản lý Bệnh viện</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="./assets/css/home.css">
+    <link rel="stylesheet" href="./assets/css/home.css?v=<?php echo filemtime('assets/css/home.css'); ?>">
 
 </head>
 
@@ -266,14 +266,14 @@ foreach ($doctors as $doctor) {
                 <?php
                         $spec = $doc['chuyen_khoa'] ?? '';
                         $colors = $specialtyColors[$spec] ?? ['text' => 'text-primary', 'bg' => '667eea'];
-                        $avatarBg = $colors['bg'];
+
                         $textClass = $colors['text'];
-                        $imgSrc = "https://via.placeholder.com/120x120/{$avatarBg}/ffffff?text=BS";
+
                         ?>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="doctor-card text-center p-4 bg-light rounded-3 shadow-lg h-100">
                         <div class="doctor-avatar mb-3">
-                            <img src="<?php echo $imgSrc; ?>" alt="Bác sĩ" class="rounded-circle">
+                            <img src="<?php echo $doc['hinh_anh']; ?>" alt="Bác sĩ" class="rounded-circle">
                         </div>
                         <h5 class="mb-2"><?php echo htmlspecialchars($doc['ten']); ?></h5>
                         <p class="<?php echo $textClass; ?> mb-2">Chuyên khoa

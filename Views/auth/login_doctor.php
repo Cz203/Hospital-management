@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập Bệnh nhân - Hệ thống Quản lý Bệnh viện</title>
+    <title>Đăng nhập Bác sĩ - Hệ thống Quản lý Bệnh viện</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/login.css">
@@ -15,8 +15,8 @@
 <body>
     <div class="login-card">
         <div class="login-header">
-            <i class="fas fa-user fa-3x mb-3"></i>
-            <h3>Đăng nhập Bệnh nhân</h3>
+            <i class="fas fa-user-md fa-3x mb-3"></i>
+            <h3>Đăng nhập Bác sĩ</h3>
             <p class="mb-0">Hệ thống Quản lý Bệnh viện</p>
         </div>
 
@@ -39,8 +39,8 @@
             <?php unset($_SESSION['success']); ?>
             <?php endif; ?>
 
-            <form method="POST" action="/hospital_management/login">
-                <input type="hidden" name="role" value="patient">
+            <form method="POST" action="/hospital_management/login_doctor">
+                <input type="hidden" name="role" value="doctor">
 
                 <div class="mb-3">
                     <label for="email" class="form-label">
