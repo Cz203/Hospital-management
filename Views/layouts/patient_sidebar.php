@@ -14,7 +14,7 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo (strpos($_SERVER['REQUEST_URI'], 'patient_dashboard') !== false) ? 'active' : ''; ?>"
-                    href="/hospital_management/patient_dashboard">
+                    href="./patient_dashboard">
                     <i class="fas fa-tachometer-alt me-3"></i>
                     <span>Dashboard</span>
                 </a>
@@ -22,7 +22,7 @@
 
             <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('home'); ?>"
-                    href="/hospital_management/home">
+                    href="./home">
                     <i class="fas fa-calendar-plus me-3"></i>
                     <span>Đặt lịch hẹn</span>
                 </a>
@@ -30,7 +30,7 @@
 
             <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('patient_appointments'); ?>"
-                    href="/hospital_management/patient_appointments">
+                    href="./patient_appointments">
                     <i class="fas fa-calendar-check me-3"></i>
                     <span>Lịch hẹn của tôi</span>
                 </a>
@@ -38,7 +38,7 @@
 
             <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('patient_medical_records'); ?>"
-                    href="/hospital_management/patient_medical_records">
+                    href="./patient_medical_records">
                     <i class="fas fa-file-medical me-3"></i>
                     <span>Hồ sơ bệnh án</span>
                 </a>
@@ -94,44 +94,44 @@
 </div>
 
 <style>
-    .sidebar .nav-link {
-        transition: all 0.3s ease;
-        border-left: 3px solid transparent;
+.sidebar .nav-link {
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: #ffffff;
+}
+
+.sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left-color: #ffffff;
+    font-weight: 600;
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
     }
 
-    .sidebar .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-left-color: #ffffff;
+    .sidebar.show {
+        transform: translateX(0);
     }
-
-    .sidebar .nav-link.active {
-        background-color: rgba(255, 255, 255, 0.2);
-        border-left-color: #ffffff;
-        font-weight: 600;
-        box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
-    }
-
-    .user-avatar {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .sidebar {
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar.show {
-            transform: translateX(0);
-        }
-    }
+}
 </style>

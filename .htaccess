@@ -1,33 +1,33 @@
-# Bật mod_rewrite
-RewriteEngine On
-Options +FollowSymLinks -MultiViews
+    # Bật mod_rewrite
+    RewriteEngine On
+    Options +FollowSymLinks -MultiViews
 
-# Thay đổi RewriteBase nếu dự án không nằm ở thư mục gốc domain
-# Ví dụ:
-#  - Localhost: http://localhost/hospital_management/  => RewriteBase /hospital_management/
-#  - Trên host: https://example.com/                   => RewriteBase /
-RewriteBase /hospital_management/
+    # Thay đổi RewriteBase nếu dự án không nằm ở thư mục gốc domain
+    # Ví dụ:
+    #  - Localhost: http://localhost/hospital_management/  => RewriteBase /hospital_management/
+    #  - Trên host: https://example.com/                   => RewriteBase /
+    RewriteBase /hospital_management/
 
-# Redirect URL dạng index.php?action=ten-trang -> /ten-trang (301 SEO-friendly)
-RewriteCond %{THE_REQUEST} \s/index\.php\?action=([^\s&]+) [NC]
-RewriteRule ^ %1? [R=301,L]
+    # Redirect URL dạng index.php?action=ten-trang -> /ten-trang (301 SEO-friendly)
+    RewriteCond %{THE_REQUEST} \s/index\.php\?action=([^\s&]+) [NC]
+    RewriteRule ^ %1? [R=301,L]
 
-# Nếu file hoặc thư mục không tồn tại -> chuyển về index.php
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php?action=$1 [L,QSA]
+    # Nếu file hoặc thư mục không tồn tại -> chuyển về index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?action=$1 [L,QSA]    
 
-# --- BẢO MẬT ---
+    # --- BẢO MẬT ---
 
-# Chặn truy cập file .htaccess
-<Files ".htaccess">
-    Require all denied
-</Files>
+    # Chặn truy cập file .htaccess
+    <Files ".htaccess">
+        Require all denied
+    </Files>
 
-# Chặn truy cập file cấu hình (trong thư mục config)
-RedirectMatch 403 ^/hospital_management/config/
+    # Chặn truy cập file cấu hình (trong thư mục config)
+    RedirectMatch 403 ^/hospital_management/config/
 
-# Chặn truy cập file database .sql
-<FilesMatch "\.sql$">
-    Require all denied
-</FilesMatch>
+    # Chặn truy cập file database .sql
+    <FilesMatch "\.sql$">
+        Require all denied
+    </FilesMatch>

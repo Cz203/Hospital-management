@@ -13,10 +13,10 @@ $content = '
             <p class="text-muted">Chào mừng ' . $_SESSION['user_name'] . ' - Chăm sóc sức khỏe của bạn</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="/hospital_management/home" class="btn btn-primary">
+            <a href="./home" class="btn btn-primary">
                 <i class="fas fa-calendar-plus me-2"></i>Đặt lịch hẹn
             </a>
-            <a href="/hospital_management/patient_medical_records" class="btn btn-info">
+            <a href="./patient_medical_records" class="btn btn-info">
                 <i class="fas fa-file-medical me-2"></i>Hồ sơ bệnh án
             </a>
         </div>
@@ -107,7 +107,7 @@ $content = '
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <a href="/hospital_management/home" class="btn btn-outline-primary w-100">
+                            <a href="./home" class="btn btn-outline-primary w-100">
                                 <i class="fas fa-calendar-plus fa-2x mb-2"></i><br>
                                 Đặt lịch hẹn mới
                             </a>

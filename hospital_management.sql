@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th8 12, 2025 lúc 11:52 AM
+-- Thời gian đã tạo: Th8 19, 2025 lúc 12:00 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -46,7 +46,7 @@ CREATE TABLE `bac_si` (
 --
 
 INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen_khoa`, `so_giay_phep`, `so_nam_kinh_nghiem`, `ngay_tao`, `ngay_cap_nhat`, `hinh_anh`) VALUES
-(1, 'BS. Phạm Văn Dũng', 'tm.phamdung@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000001', 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/phamvandung.jpg'),
+(1, 'GSTS. Cao Việt', 'viet@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000001', 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-08-19 09:39:52', 'uploads/bacsiviet.png'),
 (2, 'BS. Ngô Thị Giang', 'tm.ngogiang@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000002', 'Tim mạch', 'TM002', 12, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/ngothigiang.jpg'),
 (3, 'BS. Trịnh Văn Khoa', 'tk.trinhkhoa@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000003', 'Thần kinh', 'TK001', 14, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/trinhvankhoa.jpg'),
 (4, 'BS. Nguyễn Văn Minh', 'tk.nguyenminh@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000004', 'Thần kinh', 'TK002', 10, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyenvanminh.jpg'),
@@ -108,7 +108,7 @@ CREATE TABLE `benh_nhan` (
 --
 
 INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 'Quốc Việt', 'caoduongvietquoc@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0123456789', '1990-01-01', 'Nu', 'Ha Noi', 'A+', '2025-08-12 07:44:29', '2025-08-12 09:34:22');
+(2, 'Cao Dương Quốc Việt', 'caoduongvietquoc@gmail.com', '$2y$10$v.5QURJjh8xRfJonLMYhL.MWrNaXWYVirwgvRZekBrg5hGpi22di6', '0913998110', '2003-03-22', 'Nam', 'thị trấn an phú\r\nAn phú', 'A+', '2025-08-17 15:44:52', '2025-08-17 15:44:52');
 
 -- --------------------------------------------------------
 
@@ -169,7 +169,7 @@ CREATE TABLE `quan_tri_vien` (
 --
 
 INSERT INTO `quan_tri_vien` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 'Admin', 'admin@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0123456789', '2025-08-12 07:44:29', '2025-08-12 09:34:53');
+(1, 'admin', 'admin@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0123456789', '2025-08-12 07:44:29', '2025-08-17 15:47:16');
 
 --
 -- Chỉ mục cho các bảng đã đổ
@@ -230,7 +230,7 @@ ALTER TABLE `bac_si`
 -- AUTO_INCREMENT cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT cho bảng `ho_so_benh_an`

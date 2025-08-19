@@ -14,7 +14,7 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('admin_dashboard'); ?>"
-                    href="/hospital_management/admin_dashboard">
+                    href="./admin_dashboard">
                     <i class="fas fa-tachometer-alt me-3"></i>
                     <span>Dashboard</span>
                 </a>

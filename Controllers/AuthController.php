@@ -138,12 +138,12 @@ class AuthController
                 $_SESSION['user_name'] = $user['ten'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_role'] = 'patient';
-                header("Location: /hospital_management/patient_dashboard");
+                header("Location: patient_dashboard");
                 exit();
             }
 
             $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
-            header("Location: /hospital_management/login");
+            header("Location: login");
             exit();
         }
 

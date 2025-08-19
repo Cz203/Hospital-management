@@ -39,7 +39,7 @@
             <?php unset($_SESSION['success']); ?>
             <?php endif; ?>
 
-            <form method="POST" action="/hospital_management/login">
+            <form method="POST" action="./login">
                 <input type="hidden" name="role" value="patient">
 
                 <div class="mb-3">
@@ -70,7 +70,7 @@
 
             <div class="text-center mt-3">
                 <p class="mb-0">Chưa có tài khoản?
-                    <a href="/hospital_management/register" class="text-decoration-none">Đăng ký ngay</a>
+                    <a href="./register" class="text-decoration-none">Đăng ký ngay</a>
                 </p>
             </div>
         </div>

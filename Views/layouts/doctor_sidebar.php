@@ -14,7 +14,7 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('doctor_dashboard'); ?>"
-                    href="/hospital_management/doctor_dashboard">
+                    href="./doctor_dashboard">
                     <i class="fas fa-tachometer-alt me-3"></i>
                     <span>Dashboard</span>
                 </a>
@@ -91,44 +91,44 @@
 </div>
 
 <style>
-.sidebar .nav-link {
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-}
-
-.sidebar .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-left-color: #ffffff;
-}
-
-.sidebar .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-left-color: #ffffff;
-    font-weight: 600;
-    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
-}
-
-.user-avatar {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
+    .sidebar .nav-link {
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
     }
 
-    .sidebar.show {
-        transform: translateX(0);
+    .sidebar .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-left-color: #ffffff;
     }
-}
+
+    .sidebar .nav-link.active {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-left-color: #ffffff;
+        font-weight: 600;
+        box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+    }
 </style>

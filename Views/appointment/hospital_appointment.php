@@ -6,7 +6,7 @@ require_once 'Models/Doctor.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /hospital_management/login");
+    header("Location: ./login");
     exit();
 }
 
@@ -19,7 +19,7 @@ $doctorModel = new Doctor();
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /hospital_management/login");
+    header("Location: ./login");
     exit();
 }
 
@@ -292,7 +292,7 @@ $patient_info = $patient->getById($_SESSION['user_id']);
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="/hospital_management/home">
+            <a class="navbar-brand" href="./home">
                 <i class="fas fa-hospital me-2"></i>Bệnh viện
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -301,7 +301,7 @@ $patient_info = $patient->getById($_SESSION['user_id']);
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/hospital_management/home">Trang chủ</a>
+                        <a class="nav-link" href="./home">Trang chủ</a>
                     </li>
                     <?php if (isset($_SESSION['user_id'])): ?>
                     <li class="nav-item dropdown">
@@ -309,18 +309,16 @@ $patient_info = $patient->getById($_SESSION['user_id']);
                             <i class="fas fa-user"></i> <?php echo $_SESSION['user_name']; ?>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item"
-                                    href="/hospital_management/<?php echo $_SESSION['user_role']; ?>_dashboard">
+                            <li><a class="dropdown-item" href="./<?php echo $_SESSION['user_role']; ?>_dashboard">
                                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                                 </a></li>
-                            <li><a class="dropdown-item"
-                                    href="/hospital_management/<?php echo $_SESSION['user_role']; ?>_profile">
+                            <li><a class="dropdown-item" href="./<?php echo $_SESSION['user_role']; ?>_profile">
                                     <i class="fas fa-user me-2"></i>Hồ sơ
                                 </a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item" href="/hospital_management/logout">
+                            <li><a class="dropdown-item" href="./logout">
                                     <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
                                 </a></li>
                         </ul>
@@ -506,10 +504,10 @@ $patient_info = $patient->getById($_SESSION['user_id']);
                 <p class="mb-2">Chúng tôi đã nhận được yêu cầu đặt lịch khám của bạn.</p>
                 <p class="mb-0"><strong>Mã đặt lịch:</strong> <span id="booking-code"></span></p>
                 <div class="mt-3">
-                    <a href="/hospital_management/patient_dashboard" class="btn btn-outline-success me-2">
+                    <a href="./patient_dashboard" class="btn btn-outline-success me-2">
                         <i class="fas fa-tachometer-alt me-2"></i>Về Dashboard
                     </a>
-                    <a href="/hospital_management/home" class="btn btn-outline-primary">
+                    <a href="./home" class="btn btn-outline-primary">
                         <i class="fas fa-home me-2"></i>Về trang chủ
                     </a>
                 </div>

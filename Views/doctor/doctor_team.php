@@ -59,14 +59,14 @@ $specialties = array_values(array_unique(array_filter(array_map(function ($d) {
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="/hospital_management/home"><i class="fas fa-hospital me-2"></i>Hospital
+            <a class="navbar-brand" href="./home"><i class="fas fa-hospital me-2"></i>Hospital
                 Management</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navMain">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="/hospital_management/home">Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="./home">Trang chủ</a></li>
                 </ul>
             </div>
         </div>
@@ -98,9 +98,9 @@ $specialties = array_values(array_unique(array_filter(array_map(function ($d) {
                         placeholder="Nhập tên bác sĩ hoặc số điện thoại...">
                 </div>
                 <div class="col-md-3 text-md-end">
-                    <a href="/hospital_management/home" class="btn btn-outline-secondary me-2"><i
-                            class="fas fa-arrow-left me-2"></i>Về trang chủ</a>
-                    <a href="/hospital_management/hospital_appointment" class="btn btn-primary"><i
+                    <a href="./home" class="btn btn-outline-secondary me-2"><i class="fas fa-arrow-left me-2"></i>Về
+                        trang chủ</a>
+                    <a href="./hospital_appointment" class="btn btn-primary"><i
                             class="fas fa-calendar-check me-2"></i>Đặt lịch</a>
                 </div>
             </div>
@@ -131,8 +131,8 @@ $specialties = array_values(array_unique(array_filter(array_map(function ($d) {
                             <?php endif; ?>
                         </div>
                         <div class="text-center">
-                            <a href="/hospital_management/hospital_appointment"
-                                class="btn btn-outline-primary btn-sm"><i class="fas fa-calendar-plus me-2"></i>Đặt
+                            <a href="./hospital_appointment" class="btn btn-outline-primary btn-sm"><i
+                                    class="fas fa-calendar-plus me-2"></i>Đặt
                                 lịch</a>
                         </div>
                     </div>

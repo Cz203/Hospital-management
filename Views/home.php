@@ -38,7 +38,7 @@ foreach ($doctors as $doctor) {
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="/hospital_management/home">
+            <a class="navbar-brand" href="./home">
                 <i class="fas fa-hospital"></i> ThinhViet Hospital
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -58,10 +58,10 @@ foreach ($doctors as $doctor) {
                     </li>
                     <?php if (!isset($_SESSION['user_id'])): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="/hospital_management/login">Đăng nhập</a>
+                        <a class="nav-link" href="login">Đăng nhập</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/hospital_management/register">Đăng ký</a>
+                        <a class="nav-link" href="./register">Đăng ký</a>
                     </li>
                     <?php else: ?>
                     <li class="nav-item dropdown">
@@ -69,18 +69,16 @@ foreach ($doctors as $doctor) {
                             <i class="fas fa-user"></i> <?php echo $_SESSION['user_name']; ?>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item"
-                                    href="/hospital_management/<?php echo $_SESSION['user_role']; ?>_dashboard">
+                            <li><a class="dropdown-item" href="./<?php echo $_SESSION['user_role']; ?>_dashboard">
                                     <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                                 </a></li>
-                            <li><a class="dropdown-item"
-                                    href="/hospital_management/<?php echo $_SESSION['user_role']; ?>_profile">
+                            <li><a class="dropdown-item" href="./<?php echo $_SESSION['user_role']; ?>_profile">
                                     <i class="fas fa-user me-2"></i>Hồ sơ
                                 </a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item" href="/hospital_management/logout">
+                            <li><a class="dropdown-item" href="./logout">
                                     <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
                                 </a></li>
                         </ul>
@@ -103,20 +101,19 @@ foreach ($doctors as $doctor) {
                     </p>
                     <?php if (!isset($_SESSION['user_id'])): ?>
                     <div class="hero-buttons">
-                        <a href="/hospital_management/login" class="btn btn-primary btn-hero">
+                        <a href="./login" class="btn btn-primary btn-hero">
                             <i class="fas fa-sign-in-alt"></i> Đăng nhập
                         </a>
-                        <a href="/hospital_management/register" class="btn btn-outline-light btn-hero">
+                        <a href="./register" class="btn btn-outline-light btn-hero">
                             <i class="fas fa-user-plus"></i> Đăng ký
                         </a>
                     </div>
                     <?php else: ?>
                     <div class="hero-buttons">
-                        <a href="/hospital_management/<?php echo $_SESSION['user_role']; ?>_dashboard"
-                            class="btn btn-primary btn-hero">
+                        <a href="./<?php echo $_SESSION['user_role']; ?>_dashboard" class="btn btn-primary btn-hero">
                             <i class="fas fa-tachometer-alt"></i> Vào Dashboard
                         </a>
-                        <a href="/hospital_management/logout" class="btn btn-outline-light btn-hero">
+                        <a href="./logout" class="btn btn-outline-light btn-hero">
                             <i class="fas fa-sign-out-alt"></i> Đăng xuất
                         </a>
                     </div>
@@ -197,7 +194,7 @@ foreach ($doctors as $doctor) {
                             <li><i class="fas fa-check text-success me-2"></i>An toàn, tiện lợi</li>
                             <li><i class="fas fa-check text-success me-2"></i>Chăm sóc tận tâm</li>
                         </ul>
-                        <a href="/hospital_management/home_visit_booking" class="btn btn-warning btn-lg w-100">
+                        <a href="./home_visit_booking" class="btn btn-warning btn-lg w-100">
                             <i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám tại nhà
                         </a>
                     </div>
@@ -218,7 +215,7 @@ foreach ($doctors as $doctor) {
                             <li><i class="fas fa-check text-success me-2"></i>Bác sĩ chuyên môn cao</li>
                             <li><i class="fas fa-check text-success me-2"></i>Xét nghiệm toàn diện</li>
                         </ul>
-                        <a href="/hospital_management/hospital_appointment" class="btn btn-success btn-lg w-100">
+                        <a href="./hospital_appointment" class="btn btn-success btn-lg w-100">
                             <i class="fas fa-calendar-check me-2"></i>Đặt lịch khám tại viện
                         </a>
                     </div>
@@ -238,7 +235,7 @@ foreach ($doctors as $doctor) {
                             <li><i class="fas fa-check text-success me-2"></i>Tiết kiệm chi phí</li>
                             <li><i class="fas fa-check text-success me-2"></i>Bảo mật thông tin</li>
                         </ul>
-                        <a href="/hospital_management/register" class="btn btn-info btn-lg w-100">
+                        <a href="./register" class="btn btn-info btn-lg w-100">
                             <i class="fas fa-video me-2"></i>Đặt lịch tư vấn
                         </a>
                     </div>
@@ -297,7 +294,7 @@ foreach ($doctors as $doctor) {
 
             <div class="row mt-4">
                 <div class="col-12 text-center">
-                    <a class="btn btn-info btn-lg" href="/hospital_management/doctor_team">
+                    <a class="btn btn-info btn-lg" href="./doctor_team">
                         <i class="fas fa-users me-2"></i>Xem tất cả bác sĩ
                     </a>
                 </div>
@@ -383,7 +380,7 @@ foreach ($doctors as $doctor) {
     function showAllDoctors() {
         alert('Chức năng này sẽ hiển thị trang danh sách đầy đủ tất cả bác sĩ với thông tin chi tiết hơn!');
         // Có thể redirect đến trang danh sách bác sĩ chi tiết
-        // window.location.href = '/hospital_management/doctors_list';
+        // window.location.href = './doctors_list';
     }
     </script>
 </body>
