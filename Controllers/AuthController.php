@@ -12,16 +12,16 @@ class AuthController
         if ($this->isLoggedIn()) {
             $role = $_SESSION['user_role'];
             if ($role === 'admin') {
-                header("Location: /hospital_management/admin_dashboard");
+                header("Location: ./admin_dashboard");
                 exit();
             }
             // Nếu đã đăng nhập role khác thì đưa về dashboard tương ứng
             switch ($role) {
                 case 'doctor':
-                    header("Location: /hospital_management/doctor_dashboard");
+                    header("Location: ./doctor_dashboard");
                     exit();
                 case 'patient':
-                    header("Location: /hospital_management/patient_dashboard");
+                    header("Location: ./patient_dashboard");
                     exit();
             }
         }
@@ -32,7 +32,7 @@ class AuthController
 
             if (empty($email) || empty($password)) {
                 $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
-                header("Location: /hospital_management/login_admin");
+                header("Location: ./login_admin");
                 exit();
             }
 
@@ -43,12 +43,12 @@ class AuthController
                 $_SESSION['user_name'] = $user['ten'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_role'] = 'admin';
-                header("Location: /hospital_management/admin_dashboard");
+                header("Location: ./admin_dashboard");
                 exit();
             }
 
             $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
-            header("Location: /hospital_management/login_admin");
+            header("Location: ./login_admin");
             exit();
         }
 
@@ -60,15 +60,15 @@ class AuthController
         if ($this->isLoggedIn()) {
             $role = $_SESSION['user_role'];
             if ($role === 'doctor') {
-                header("Location: /hospital_management/doctor_dashboard");
+                header("Location: ./doctor_dashboard");
                 exit();
             }
             switch ($role) {
                 case 'admin':
-                    header("Location: /hospital_management/admin_dashboard");
+                    header("Location: ./admin_dashboard");
                     exit();
                 case 'patient':
-                    header("Location: /hospital_management/patient_dashboard");
+                    header("Location: ./patient_dashboard");
                     exit();
             }
         }
@@ -79,7 +79,7 @@ class AuthController
 
             if (empty($email) || empty($password)) {
                 $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
-                header("Location: /hospital_management/login_doctor");
+                header("Location: ./login_doctor");
                 exit();
             }
 
@@ -91,12 +91,12 @@ class AuthController
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_role'] = 'doctor';
                 $_SESSION['specialization'] = $user['chuyen_khoa'];
-                header("Location: /hospital_management/doctor_dashboard");
+                header("Location: ./doctor_dashboard");
                 exit();
             }
 
             $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
-            header("Location: /hospital_management/login_doctor");
+            header("Location: ./login_doctor");
             exit();
         }
 
@@ -108,15 +108,15 @@ class AuthController
         if ($this->isLoggedIn()) {
             $role = $_SESSION['user_role'];
             if ($role === 'patient') {
-                header("Location: /hospital_management/patient_dashboard");
+                header("Location: ./patient_dashboard");
                 exit();
             }
             switch ($role) {
                 case 'admin':
-                    header("Location: /hospital_management/admin_dashboard");
+                    header("Location: ./admin_dashboard");
                     exit();
                 case 'doctor':
-                    header("Location: /hospital_management/doctor_dashboard");
+                    header("Location: ./doctor_dashboard");
                     exit();
             }
         }
@@ -127,7 +127,7 @@ class AuthController
 
             if (empty($email) || empty($password)) {
                 $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
-                header("Location: /hospital_management/login");
+                header("Location: ./login");
                 exit();
             }
 
@@ -157,13 +157,13 @@ class AuthController
             $role = $_SESSION['user_role'];
             switch ($role) {
                 case 'admin':
-                    header("Location: /hospital_management/admin_dashboard");
+                    header("Location: ./admin_dashboard");
                     exit();
                 case 'doctor':
-                    header("Location: /hospital_management/doctor_dashboard");
+                    header("Location: ./doctor_dashboard");
                     exit();
                 case 'patient':
-                    header("Location: /hospital_management/patient_dashboard");
+                    header("Location: ./patient_dashboard");
                     exit();
             }
         }
@@ -177,13 +177,13 @@ class AuthController
 
             if (empty($name) || empty($email) || empty($password) || empty($role)) {
                 $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
-                header("Location: /hospital_management/register");
+                header("Location: ./register");
                 exit();
             }
 
             if ($password !== $confirm_password) {
                 $_SESSION['error'] = "Mật khẩu xác nhận không khớp!";
-                header("Location: /hospital_management/register");
+                header("Location: ./register");
                 exit();
             }
 
@@ -233,11 +233,11 @@ class AuthController
 
             if ($success) {
                 $_SESSION['success'] = "Đăng ký thành công! Vui lòng đăng nhập.";
-                header("Location: /hospital_management/login");
+                header("Location: ./login");
                 exit();
             } else {
                 $_SESSION['error'] = "Có lỗi xảy ra khi đăng ký!";
-                header("Location: /hospital_management/register");
+                header("Location: ./register");
                 exit();
             }
         }
@@ -249,7 +249,7 @@ class AuthController
     public function logout()
     {
         session_destroy();
-        header("Location: /hospital_management/");
+        header("Location: ./");
         exit();
     }
 
@@ -261,12 +261,12 @@ class AuthController
     public function requireAuth($role = null)
     {
         if (!$this->isLoggedIn()) {
-            header("Location: /hospital_management/login");
+            header("Location: ./login");
             exit();
         }
 
         if ($role && $_SESSION['user_role'] !== $role) {
-            header("Location: /hospital_management/");
+            header("Location: ./");
             exit();
         }
     }

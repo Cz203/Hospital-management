@@ -6,7 +6,7 @@ if (session_status() == PHP_SESSION_NONE) {
 
 // Kiểm tra user đã đăng nhập
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /hospital_management/login");
+    header("Location: ./login");
     exit();
 }
 var_dump($_SESSION);
@@ -155,7 +155,7 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
             </button>
 
             <!-- Logo -->
-            <a class="navbar-brand" href="/hospital_management/home">
+            <a class="navbar-brand" href="./home">
                 <i class="fas fa-hospital text-primary me-2"></i>
                 Hospital Management
             </a>
@@ -165,7 +165,7 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
                 <ul class="navbar-nav me-auto">
                     <?php if ($user_role == 'admin'): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="/hospital_management/admin_dashboard">
+                        <a class="nav-link" href="./admin_dashboard">
                             <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                         </a>
                     </li>
@@ -181,7 +181,7 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
                     </li>
                     <?php elseif ($user_role == 'doctor'): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="/hospital_management/doctor_dashboard">
+                        <a class="nav-link" href="./doctor_dashboard">
                             <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                         </a>
                     </li>
@@ -197,7 +197,7 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
                     </li>
                     <?php elseif ($user_role == 'patient'): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="/hospital_management/patient_dashboard">
+                        <a class="nav-link" href="./patient_dashboard">
                             <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                         </a>
                     </li>
@@ -251,15 +251,14 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
                             </div>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item"
-                                    href="/hospital_management/<?php echo $user_role; ?>_profile"><i
+                            <li><a class="dropdown-item" href="./<?php echo $user_role; ?>_profile"><i
                                         class="fas fa-user me-2"></i>Hồ sơ</a></li>
                             <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item" href="/hospital_management/logout"><i
-                                        class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                            <li><a class="dropdown-item" href="./logout"><i class="fas fa-sign-out-alt me-2"></i>Đăng
+                                    xuất</a></li>
                         </ul>
                     </div>
                 </div>

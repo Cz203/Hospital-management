@@ -100,13 +100,13 @@ switch ($action) {
             $role = $_SESSION['user_role'];
             switch ($role) {
                 case 'admin':
-                    header("Location: /hospital_management/admin_dashboard");
+                    header("Location: ./admin_dashboard");
                     exit();
                 case 'doctor':
-                    header("Location: /hospital_management/doctor_dashboard");
+                    header("Location: ./doctor_dashboard");
                     exit();
                 case 'patient':
-                    header("Location: /hospital_management/patient_dashboard");
+                    header("Location: ./patient_dashboard");
                     exit();
             }
         }

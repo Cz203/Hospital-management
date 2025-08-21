@@ -29,7 +29,7 @@
             <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
-            <form method="POST" action="/hospital_management/register" id="registerForm">
+            <form method="POST" action="./register" id="registerForm">
 
 
                 <!-- Thông tin chung -->
@@ -201,7 +201,7 @@
 
             <div class="text-center mt-3">
                 <p class="mb-0">Đã có tài khoản?
-                    <a href="/hospital_management/login" class="text-decoration-none">Đăng nhập ngay</a>
+                    <a href="./login" class="text-decoration-none">Đăng nhập ngay</a>
                 </p>
             </div>
         </div>

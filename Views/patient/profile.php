@@ -187,7 +187,7 @@ ob_start();
                 <h5 class="modal-title">Chỉnh sửa thông tin</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="/hospital_management/patient_update_profile">
+            <form method="POST" action="./patient_update_profile">
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
@@ -295,7 +295,7 @@ ob_start();
                 <h5 class="modal-title">Đổi mật khẩu</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="/hospital_management/patient_change_password">
+            <form method="POST" action="./patient_change_password">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Mật khẩu hiện tại</label>
