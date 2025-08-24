@@ -25,24 +25,44 @@ class Patient extends User
         return false;
     }
 
+    public function emailExists($email)
+    {
+        $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE email = :email";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":email", $email);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+
+    public function phoneExists($phone)
+    {
+        $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE so_dien_thoai = :phone";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":phone", $phone);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+
     public function create($data)
     {
         $query = "INSERT INTO " . $this->table_name . " 
-                  (ten, email, mat_khau, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, ngay_tao) 
-                  VALUES (:ten, :email, :mat_khau, :so_dien_thoai, :ngay_sinh, :gioi_tinh, :dia_chi, :nhom_mau, NOW())";
+                  (ten, email, mat_khau, so_dien_thoai, phone_verified, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, ngay_tao) 
+                  VALUES (:ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, :ngay_sinh, :gioi_tinh, :dia_chi, :nhom_mau, NOW())";
 
         $stmt = $this->conn->prepare($query);
 
-        $hashedPassword = $this->hashPassword($data['password']);
+        $hashedPassword = $this->hashPassword($data['mat_khau']);
+        $phone_verified = $data['phone_verified'] ?? 0;
 
-        $stmt->bindParam(":ten", $data['name']);
+        $stmt->bindParam(":ten", $data['ten']);
         $stmt->bindParam(":email", $data['email']);
         $stmt->bindParam(":mat_khau", $hashedPassword);
-        $stmt->bindParam(":so_dien_thoai", $data['phone']);
-        $stmt->bindParam(":ngay_sinh", $data['date_of_birth']);
-        $stmt->bindParam(":gioi_tinh", $data['gender']);
-        $stmt->bindParam(":dia_chi", $data['address']);
-        $stmt->bindParam(":nhom_mau", $data['blood_group']);
+        $stmt->bindParam(":so_dien_thoai", $data['so_dien_thoai']);
+        $stmt->bindParam(":phone_verified", $phone_verified);
+        $stmt->bindParam(":ngay_sinh", $data['ngay_sinh']);
+        $stmt->bindParam(":gioi_tinh", $data['gioi_tinh']);
+        $stmt->bindParam(":dia_chi", $data['dia_chi']);
+        $stmt->bindParam(":nhom_mau", $data['nhom_mau']);
 
         return $stmt->execute();
     }
@@ -57,11 +77,21 @@ class Patient extends User
 
     public function getById($id)
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, ngay_tao FROM " . $this->table_name . " WHERE id = :id";
+        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $id);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function updatePassword($id, $newPassword)
+    {
+        $query = "UPDATE " . $this->table_name . " SET mat_khau = :mat_khau WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $hashedPassword = $this->hashPassword($newPassword);
+        $stmt->bindParam(":mat_khau", $hashedPassword);
+        $stmt->bindParam(":id", $id);
+        return $stmt->execute();
     }
 
     public function updateProfile($id, $data)
@@ -74,13 +104,31 @@ class Patient extends User
         $stmt = $this->conn->prepare($query);
 
         $stmt->bindParam(":id", $id);
-        $stmt->bindParam(":ten", $data['name']);
-        $stmt->bindParam(":so_dien_thoai", $data['phone']);
-        $stmt->bindParam(":ngay_sinh", $data['date_of_birth']);
-        $stmt->bindParam(":gioi_tinh", $data['gender']);
-        $stmt->bindParam(":dia_chi", $data['address']);
-        $stmt->bindParam(":nhom_mau", $data['blood_group']);
+        $stmt->bindParam(":ten", $data['ten']);
+        $stmt->bindParam(":so_dien_thoai", $data['so_dien_thoai']);
+        $stmt->bindParam(":ngay_sinh", $data['ngay_sinh']);
+        $stmt->bindParam(":gioi_tinh", $data['gioi_tinh']);
+        $stmt->bindParam(":dia_chi", $data['dia_chi']);
+        $stmt->bindParam(":nhom_mau", $data['nhom_mau']);
 
+        return $stmt->execute();
+    }
+
+    public function getByPhone($phone)
+    {
+        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE so_dien_thoai = :phone LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":phone", $phone);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function updatePasswordById($id, $hashedPassword)
+    {
+        $query = "UPDATE " . $this->table_name . " SET mat_khau = :mat_khau WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":mat_khau", $hashedPassword);
+        $stmt->bindParam(":id", $id);
         return $stmt->execute();
     }
 }

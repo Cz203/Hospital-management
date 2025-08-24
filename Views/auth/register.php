@@ -1,214 +1,303 @@
-<!DOCTYPE html>
-<html lang="vi">
+<?php
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng ký - Hệ thống Quản lý Bệnh viện</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="./assets/css/signup.css">
+$page_title = 'Đăng ký - ThinhViet Hospital';
 
-</head>
+// Lấy dữ liệu form đã lưu (nếu có)
+$formData = $_SESSION['form_data'] ?? [];
+?>
 
-<body>
-    <div class="register-card">
-        <div class="register-header">
-            <i class="fas fa-hospital fa-3x mb-3"></i>
-            <h3>Đăng ký tài khoản</h3>
-            <p class="mb-0">Hệ thống Quản lý Bệnh viện</p>
-        </div>
+<?php include './Views/layouts/header.php'; ?>
 
-        <div class="register-body">
-            <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle"></i>
-                <?php echo $_SESSION['error']; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php unset($_SESSION['error']); ?>
-            <?php endif; ?>
+<!-- Main Content -->
+<main class="register-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6 mt-5">
+                <div class="card">
+                    <div class="card-header">
 
-            <form method="POST" action="./register" id="registerForm">
+                        <h3 class="text-black mb-0">Đăng ký tài khoản</h3>
 
-
-                <!-- Thông tin chung -->
-                <div class="section-title"><i class="fas fa-id-badge"></i> Thông tin chung</div>
-                <hr class="section-divider" />
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="name" class="form-label">
-                                <i class="fas fa-user"></i> Họ và tên *
-                            </label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">
-                                <i class="fas fa-envelope"></i> Email *
-                            </label>
-                            <input type="email" class="form-control" id="email" name="email" required>
+                    <div class="card-body">
+
+                        <!-- Progress Bar -->
+                        <div class="progress mb-4" style="height: 8px;">
+                            <div class="progress-bar" id="progressBar" role="progressbar" style="width: 50%;"
+                                aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+
+                        <!-- Step Indicators -->
+                        <div class="d-flex justify-content-between mb-4">
+                            <div class="step-indicator active" id="step1Indicator">
+                                <div class="step-number">1</div>
+                                <div class="step-text">Xác thực</div>
+                            </div>
+                            <div class="step-indicator" id="step2Indicator">
+                                <div class="step-number">2</div>
+                                <div class="step-text">Thông tin</div>
+                            </div>
+                        </div>
+
+                        <form id="registerForm" method="POST" action="./register">
+                            <!-- Bước 1: Xác thực số điện thoại và mật khẩu -->
+                            <div id="step1" class="form-step active">
+
+
+                                <!-- Xác thực số điện thoại -->
+                                <div class="mb-3">
+                                    <label for="so_dien_thoai" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>Số điện thoại *
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <img src="./assets/img/vn.png" alt="Vietnam Flag"
+                                                style="width: 20px; height: 20px;" class="me-1">
+                                            +84
+                                        </span>
+                                        <input type="text" class="form-control" id="so_dien_thoai" name="so_dien_thoai"
+                                            maxlength="11" placeholder="Nhập số điện thoại"
+                                            value="<?php echo htmlspecialchars($formData['so_dien_thoai'] ?? ''); ?>"
+                                            required>
+                                        <button type="button" class="btn-outline-primary btn-send-otp" id="sendOtpBtn">
+                                            <i class="fas fa-paper-plane me-1"></i>Gửi OTP
+                                        </button>
+                                    </div>
+
+                                </div>
+
+                                <!-- OTP Verification Section -->
+                                <div class="otp-section" id="otpSection">
+                                    <div class="mb-3">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Mã OTP đã được gửi đến:</strong>
+                                            <span id="targetPhoneDisplay" class="fw-bold"></span>
+                                        </div>
+                                        <div class="alert alert-warning" id="testModeAlert" style="display: none;">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>TEST MODE:</strong>
+                                            <span id="testOtpCode" class="fw-bold fs-5"></span>
+                                            <br><small>Mã OTP này được hiển thị vì tài khoản Vonage hết tiền. Vui
+                                                lòng sử dụng mã này để xác thực.</small>
+                                        </div>
+                                        <div class="alert alert-info" id="otpTimerAlert" style="display: none;">
+                                            <i class="fas fa-clock me-2"></i>
+                                            <strong>Thời gian còn lại:</strong>
+                                            <span id="otpTimer" class="fw-bold fs-5 text-danger"></span>
+                                            <br><small>Mã OTP sẽ hết hạn sau khi hết thời gian.</small>
+                                        </div>
+                                        <label for="otp_code" class="form-label">
+                                            <i class="fas fa-key me-1"></i>Mã OTP *
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="otp_code" name="otp_code"
+                                                pattern="[0-9]{6}" maxlength="6" placeholder="123456"
+                                                value="<?php echo htmlspecialchars($formData['otp_code'] ?? ''); ?>">
+                                            <button type="button" class="btn btn-outline-success" id="verifyOtpBtn">
+                                                <i class="fas fa-check me-1"></i>Xác thực
+                                            </button>
+                                        </div>
+                                        <div class="form-text">
+                                            <i class="fas fa-sms me-1"></i>Nhập mã 6 số đã được gửi qua SMS
+                                        </div>
+                                    </div>
+                                    <div id="otpStatus" class="alert" style="display: none;"></div>
+                                </div>
+
+                                <!-- Mật khẩu -->
+                                <div class="mb-3">
+                                    <label for="mat_khau" class="form-label">
+                                        <i class="fas fa-lock me-1"></i>Mật khẩu *
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="mat_khau" name="mat_khau"
+                                            value="<?php echo htmlspecialchars($formData['mat_khau'] ?? ''); ?>"
+                                            required oninput="validatePassword()">
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            onclick="togglePasswordVisibility('mat_khau', 'matKhauIcon')">
+                                            <i class="fas fa-eye" id="matKhauIcon"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Password Strength Indicator -->
+                                    <div class="password-strength mt-2" id="passwordStrength" style="display: none;">
+                                        <div class="strength-bar">
+                                            <div class="strength-fill" id="strengthFill"></div>
+                                        </div>
+                                        <div class="strength-text" id="strengthText"></div>
+                                    </div>
+
+
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="xac_nhan_mat_khau" class="form-label">
+                                        <i class="fas fa-lock me-1"></i>Xác nhận mật khẩu *
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="xac_nhan_mat_khau"
+                                            name="xac_nhan_mat_khau"
+                                            value="<?php echo htmlspecialchars($formData['xac_nhan_mat_khau'] ?? ''); ?>"
+                                            required oninput="validateConfirmPassword()">
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            onclick="togglePasswordVisibility('xac_nhan_mat_khau', 'xacNhanMatKhauIcon')">
+                                            <i class="fas fa-eye" id="xacNhanMatKhauIcon"></i>
+                                        </button>
+                                    </div>
+                                    <div class="password-match mt-2" id="passwordMatch" style="display: none;">
+                                        <small id="matchText"></small>
+                                    </div>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-primary" id="nextStepBtn" disabled>
+                                        <i class="fas fa-arrow-right me-2"></i>Tiếp tục
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Bước 2: Thông tin cá nhân -->
+                            <div id="step2" class="form-step">
+                                <?php if (isset($_SESSION['error'])): ?>
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <?php echo $_SESSION['error'];
+                                        unset($_SESSION['error']); ?>
+                                </div>
+                                <?php endif; ?>
+
+                                <?php if (isset($_SESSION['success'])): ?>
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <?php echo $_SESSION['success'];
+                                        unset($_SESSION['success']); ?>
+                                </div>
+                                <?php endif; ?>
+
+                                <h5 class="section-title mb-4">
+                                    <i class="fas fa-user me-2"></i>Bước 2: Thông tin cá nhân
+                                </h5>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="ten" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Họ và tên *
+                                        </label>
+                                        <input type="text" class="form-control" id="ten" name="ten"
+                                            value="<?php echo htmlspecialchars($formData['ten'] ?? ''); ?>" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">
+                                            <i class="fas fa-envelope me-1"></i>Email *
+                                        </label>
+                                        <input type="email" class="form-control" id="email" name="email"
+                                            value="<?php echo htmlspecialchars($formData['email'] ?? ''); ?>" required>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="ngay_sinh" class="form-label">
+                                            <i class="fas fa-calendar me-1"></i>Ngày sinh
+                                        </label>
+                                        <input type="date" class="form-control" id="ngay_sinh" name="ngay_sinh"
+                                            value="<?php echo htmlspecialchars($formData['ngay_sinh'] ?? ''); ?>">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="gioi_tinh" class="form-label">
+                                            <i class="fas fa-venus-mars me-1"></i>Giới tính
+                                        </label>
+                                        <select class="form-select" id="gioi_tinh" name="gioi_tinh">
+                                            <option value="">Chọn giới tính</option>
+                                            <option value="Nam"
+                                                <?php echo ($formData['gioi_tinh'] ?? '') === 'Nam' ? 'selected' : ''; ?>>
+                                                Nam</option>
+                                            <option value="Nữ"
+                                                <?php echo ($formData['gioi_tinh'] ?? '') === 'Nữ' ? 'selected' : ''; ?>>
+                                                Nữ</option>
+                                            <option value="Khác"
+                                                <?php echo ($formData['gioi_tinh'] ?? '') === 'Khác' ? 'selected' : ''; ?>>
+                                                Khác</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="nhom_mau" class="form-label">
+                                            <i class="fas fa-tint me-1"></i>Nhóm máu
+                                        </label>
+                                        <select class="form-select" id="nhom_mau" name="nhom_mau">
+                                            <option value="">Chọn nhóm máu</option>
+                                            <option value="A+"
+                                                <?php echo ($formData['nhom_mau'] ?? '') === 'A+' ? 'selected' : ''; ?>>
+                                                A+</option>
+                                            <option value="A-"
+                                                <?php echo ($formData['nhom_mau'] ?? '') === 'A-' ? 'selected' : ''; ?>>
+                                                A-</option>
+                                            <option value="B+"
+                                                <?php echo ($formData['nhom_mau'] ?? '') === 'B+' ? 'selected' : ''; ?>>
+                                                B+</option>
+                                            <option value="B-"
+                                                <?php echo ($formData['nhom_mau'] ?? '') === 'B-' ? 'selected' : ''; ?>>
+                                                B-</option>
+                                            <option value="AB+"
+                                                <?php echo ($formData['nhom_mau'] ?? '') === 'AB+' ? 'selected' : ''; ?>>
+                                                AB+</option>
+                                            <option value="AB-"
+                                                <?php echo ($formData['nhom_mau'] ?? '') === 'AB-' ? 'selected' : ''; ?>>
+                                                AB-</option>
+                                            <option value="O+"
+                                                <?php echo ($formData['nhom_mau'] ?? '') === 'O+' ? 'selected' : ''; ?>>
+                                                O+</option>
+                                            <option value="O-"
+                                                <?php echo ($formData['nhom_mau'] ?? '') === 'O-' ? 'selected' : ''; ?>>
+                                                O-</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="dia_chi" class="form-label">
+                                            <i class="fas fa-map-marker-alt me-1"></i>Địa chỉ
+                                        </label>
+                                        <input type="text" class="form-control" id="dia_chi" name="dia_chi"
+                                            value="<?php echo htmlspecialchars($formData['dia_chi'] ?? ''); ?>">
+                                    </div>
+                                </div>
+
+                                <!-- Hidden role field for patient -->
+                                <input type="hidden" name="role" value="patient">
+
+                                <div class="d-grid gap-2">
+                                    <button type="button" class="btn btn-secondary me-2" id="prevStepBtn">
+                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                    </button>
+                                    <button type="button" class="btn submit-btn" id="submitBtn">
+                                        <i class="fas fa-user-plus me-2"></i>Hoàn tất đăng ký
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <p class="mb-0">
+                                Đã có tài khoản?
+                                <a href="./login" class="login-link">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập ngay
+                                </a>
+                            </p>
                         </div>
                     </div>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="password" class="form-label">
-                                <i class="fas fa-lock"></i> Mật khẩu *
-                            </label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="confirm_password" class="form-label">
-                                <i class="fas fa-lock"></i> Xác nhận mật khẩu *
-                            </label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
-                                required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label for="phone" class="form-label">
-                                <i class="fas fa-phone"></i> Số điện thoại
-                            </label>
-                            <input type="tel" class="form-control" id="phone" name="phone">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Thông tin riêng cho Doctor -->
-                <div class="form-section" id="doctorFields">
-                    <div class="section-title"><i class="fas fa-user-md"></i> Thông tin bác sĩ</div>
-                    <hr class="section-divider" />
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="specialization" class="form-label">
-                                    <i class="fas fa-stethoscope"></i> Chuyên khoa
-                                </label>
-                                <select class="form-control" id="specialization" name="specialization">
-                                    <option value="">Chọn chuyên khoa</option>
-                                    <option value="Tim mạch">Tim mạch</option>
-                                    <option value="Thần kinh">Thần kinh</option>
-                                    <option value="Nhi khoa">Nhi khoa</option>
-                                    <option value="Da liễu">Da liễu</option>
-                                    <option value="Mắt">Mắt</option>
-                                    <option value="Tai mũi họng">Tai mũi họng</option>
-                                    <option value="Răng hàm mặt">Răng hàm mặt</option>
-                                    <option value="Chấn thương chỉnh hình">Chấn thương chỉnh hình</option>
-                                    <option value="Sản phụ khoa">Sản phụ khoa</option>
-                                    <option value="Ung bướu">Ung bướu</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="license_number" class="form-label">
-                                    <i class="fas fa-id-card"></i> Số chứng chỉ hành nghề
-                                </label>
-                                <input type="text" class="form-control" id="license_number" name="license_number">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="experience_years" class="form-label">
-                                    <i class="fas fa-clock"></i> Số năm kinh nghiệm
-                                </label>
-                                <input type="number" class="form-control" id="experience_years" name="experience_years"
-                                    min="0" max="50">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Thông tin riêng cho Patient -->
-                <div class="form-section active" id="patientFields">
-                    <div class="section-title"><i class="fas fa-user"></i> Thông tin bệnh nhân</div>
-                    <hr class="section-divider" />
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="date_of_birth" class="form-label">
-                                    <i class="fas fa-calendar"></i> Ngày sinh
-                                </label>
-                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="gender" class="form-label">
-                                    <i class="fas fa-venus-mars"></i> Giới tính
-                                </label>
-                                <select class="form-control" id="gender" name="gender">
-                                    <option value="">Chọn giới tính</option>
-                                    <option value="Nam">Nam</option>
-                                    <option value="Nữ">Nữ</option>
-                                    <option value="Khác">Khác</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="blood_group" class="form-label">
-                                    <i class="fas fa-tint"></i> Nhóm máu
-                                </label>
-                                <select class="form-control" id="blood_group" name="blood_group">
-                                    <option value="">Chọn nhóm máu</option>
-                                    <option value="A+">A+</option>
-                                    <option value="A-">A-</option>
-                                    <option value="B+">B+</option>
-                                    <option value="B-">B-</option>
-                                    <option value="AB+">AB+</option>
-                                    <option value="AB-">AB-</option>
-                                    <option value="O+">O+</option>
-                                    <option value="O-">O-</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="address" class="form-label">
-                            <i class="fas fa-map-marker-alt"></i> Địa chỉ
-                        </label>
-                        <textarea class="form-control" id="address" name="address" rows="3"></textarea>
-                    </div>
-                </div>
-
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="agree" required>
-                    <label class="form-check-label" for="agree">
-                        Tôi đồng ý với <a href="#" class="text-decoration-none">điều khoản sử dụng</a>
-                    </label>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-register w-100">
-                    <i class="fas fa-user-plus"></i> Đăng ký
-                </button>
-            </form>
-
-            <div class="text-center mt-3">
-                <p class="mb-0">Đã có tài khoản?
-                    <a href="./login" class="text-decoration-none">Đăng nhập ngay</a>
-                </p>
             </div>
         </div>
     </div>
+</main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="./assets/js/validate.js"></script>
-</body>
+<!-- Custom CSS for Register Page -->
+<link rel="stylesheet" href="./assets/css/signup.css">
 
-</html>
+<!-- Custom JS for Register Page -->
+<script src="./assets/js/register.js"></script>
+
+<?php include './Views/layouts/footer.php'; ?>

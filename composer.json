@@ -1,0 +1,17 @@
+{
+    "name": "viet/hospital_management",
+    "autoload": {
+        "psr-4": {
+            "Viet\\HospitalManagement\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Cao Viet",
+            "email": "caoduongvietquoc@gmail.com"
+        }
+    ],
+    "require": {
+        "vonage/client": "^4.2"
+    }
+}

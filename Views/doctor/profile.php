@@ -72,14 +72,14 @@ ob_start();
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">Số chứng chỉ hành nghề:</label>
                                 <p class="form-control-plaintext">
-                                    <?php echo $doctor_info['license_number'] ?: 'Chưa cập nhật'; ?></p>
+                                    <?php echo $doctor_info['so_giay_phep'] ?: 'Chưa cập nhật'; ?></p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">Số năm kinh nghiệm:</label>
                                 <p class="form-control-plaintext">
-                                    <?php echo $doctor_info['experience_years'] ? $doctor_info['experience_years'] . ' năm' : 'Chưa cập nhật'; ?>
+                                    <?php echo $doctor_info['so_nam_kinh_nghiem'] ? $doctor_info['so_nam_kinh_nghiem'] . ' năm' : 'Chưa cập nhật'; ?>
                                 </p>
                             </div>
                         </div>
@@ -89,14 +89,21 @@ ob_start();
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">Ngày tạo tài khoản:</label>
                                 <p class="form-control-plaintext">
-                                    <?php echo date('d/m/Y', strtotime($doctor_info['created_at'])); ?></p>
+                                    <?php echo date('d/m/Y', strtotime($doctor_info['ngay_tao'])); ?></p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">Cập nhật lần cuối:</label>
                                 <p class="form-control-plaintext">
-                                    <?php echo date('d/m/Y H:i', strtotime($doctor_info['updated_at'])); ?></p>
+                                    <?php
+                                    if (isset($doctor_info['ngay_cap_nhat']) && $doctor_info['ngay_cap_nhat']) {
+                                        echo date('d/m/Y H:i', strtotime($doctor_info['ngay_cap_nhat']));
+                                    } else {
+                                        echo 'Chưa cập nhật';
+                                    }
+                                    ?>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -203,7 +210,7 @@ ob_start();
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Chuyên khoa</label>
-                                <select class="form-control" name=?>"specialization">
+                                <select class="form-control" name="chuyen_khoa">
                                     <option value="">Chọn chuyên khoa</option>
                                     <option value="Tim mạch"
                                         <?php echo $doctor_info['chuyen_khoa'] == 'Tim mạch' ? 'selected' : ''; ?>>
@@ -243,15 +250,15 @@ ob_start();
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Số chứng chỉ hành nghề</label>
-                                <input type="text" class="form-control" name="license_number"
-                                    value="<?php echo $doctor_info['license_number']; ?>">
+                                <input type="text" class="form-control" name="so_giay_phep"
+                                    value="<?php echo $doctor_info['so_giay_phep']; ?>">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Số năm kinh nghiệm</label>
-                                <input type="number" class="form-control" name="experience_years"
-                                    value="<?php echo $doctor_info['experience_years']; ?>" min="0" max="50">
+                                <input type="number" class="form-control" name="so_nam_kinh_nghiem"
+                                    value="<?php echo $doctor_info['so_nam_kinh_nghiem']; ?>" min="0" max="50">
                             </div>
                         </div>
                     </div>
@@ -273,24 +280,51 @@ ob_start();
                 <h5 class="modal-title">Đổi mật khẩu</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="./doctor_change_password">
-                <div class="modal-body">
+            <form id="changePasswordForm" onsubmit="return handlePasswordChange(event)">
+                <div class="modal-body mt-3">
                     <div class="mb-3">
                         <label class="form-label">Mật khẩu hiện tại</label>
-                        <input type="password" class="form-control" name="current_password" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="currentPassword" name="currentPassword"
+                                required>
+                            <button type="button" class="btn btn-outline-secondary"
+                                onclick="togglePasswordVisibility('currentPassword', 'currentPasswordIcon')">
+                                <i class="fas fa-eye" id="currentPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <div id="currentPasswordError" class="text-danger mt-1" style="display: none;"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Mật khẩu mới</label>
-                        <input type="password" class="form-control" name="new_password" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" required
+                                oninput="showPasswordStrength(this.value)">
+                            <button type="button" class="btn btn-outline-secondary"
+                                onclick="togglePasswordVisibility('newPassword', 'newPasswordIcon')">
+                                <i class="fas fa-eye" id="newPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <div id="newPasswordError" class="text-danger mt-1" style="display: none;"></div>
+                        <div id="passwordStrength" class="mt-1 small"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Xác nhận mật khẩu mới</label>
-                        <input type="password" class="form-control" name="confirm_password" required>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword"
+                                required>
+                            <button type="button" class="btn btn-outline-secondary"
+                                onclick="togglePasswordVisibility('confirmPassword', 'confirmPasswordIcon')">
+                                <i class="fas fa-eye" id="confirmPasswordIcon"></i>
+                            </button>
+                        </div>
+                        <div id="confirmPasswordError" class="text-danger mt-1" style="display: none;"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-success">Đổi mật khẩu</button>
+                    <button type="submit" class="btn btn-success" id="changePasswordBtn">
+                        <i class="fas fa-key"></i> Đổi mật khẩu
+                    </button>
                 </div>
             </form>
         </div>
@@ -298,29 +332,31 @@ ob_start();
 </div>
 
 <style>
-.avatar-large {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 2.5rem;
-    font-weight: 600;
-    margin: 0 auto;
-}
+    .avatar-large {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin: 0 auto;
+    }
 
-.stat-item {
-    padding: 15px 0;
-}
+    .stat-item {
+        padding: 15px 0;
+    }
 
-.stat-item h4 {
-    font-weight: 700;
-}
+    .stat-item h4 {
+        font-weight: 700;
+    }
 </style>
 <?php
 $content = ob_get_clean();
 renderLayout($content, $page_title);
 ?>
+
+<script src="./assets/js/validate.js"></script>

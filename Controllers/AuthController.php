@@ -169,13 +169,15 @@ class AuthController
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $name = $_POST['name'] ?? '';
+            $name = $_POST['ten'] ?? '';
             $email = $_POST['email'] ?? '';
-            $password = $_POST['password'] ?? '';
-            $confirm_password = $_POST['confirm_password'] ?? '';
+            $password = $_POST['mat_khau'] ?? '';
+            $confirm_password = $_POST['xac_nhan_mat_khau'] ?? '';
             $role = $_POST['role'] ?? '';
+            $phone = $_POST['so_dien_thoai'] ?? '';
+            $otp_code = $_POST['otp_code'] ?? '';
 
-            if (empty($name) || empty($email) || empty($password) || empty($role)) {
+            if (empty($name) || empty($email) || empty($password) || empty($role) || empty($phone)) {
                 $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
                 header("Location: ./register");
                 exit();
@@ -187,51 +189,125 @@ class AuthController
                 exit();
             }
 
+            // Validate độ mạnh mật khẩu
+            if (strlen($password) < 6) {
+                $_SESSION['error'] = "Mật khẩu phải có ít nhất 6 ký tự!";
+                header("Location: ./register");
+                exit();
+            }
+
+            if (strlen($password) > 50) {
+                $_SESSION['error'] = "Mật khẩu không được quá 50 ký tự!";
+                header("Location: ./register");
+                exit();
+            }
+
+            // Kiểm tra ký tự đặc biệt
+            if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password)) {
+                $_SESSION['error'] = "Mật khẩu phải chứa ít nhất một ký tự đặc biệt (!@#$%^&*)!";
+                header("Location: ./register");
+                exit();
+            }
+
+            // Xác thực OTP
+            if (empty($otp_code)) {
+                $_SESSION['error'] = "Vui lòng nhập mã OTP để xác thực số điện thoại!";
+                header("Location: ./register");
+                exit();
+            }
+
+            require_once 'Controllers/SMSController.php';
+            $smsController = new SMSController();
+
+            // Chuẩn hóa số điện thoại trước khi verify
+            $normalized_phone = $smsController->normalizePhoneNumber($phone);
+            $otpResult = $smsController->verifyOTP($normalized_phone, $otp_code);
+
+            if (!$otpResult['success']) {
+                $_SESSION['error'] = $otpResult['message'];
+                header("Location: ./register");
+                exit();
+            }
+
             $success = false;
 
-            switch ($role) {
-                case 'admin':
-                    $admin = new Admin();
-                    $data = [
-                        'ten' => $name,
-                        'email' => $email,
-                        'mat_khau' => $password,
-                        'so_dien_thoai' => $_POST['phone'] ?? ''
-                    ];
-                    $success = $admin->create($data);
-                    break;
+            // Chuẩn hóa số điện thoại để lưu vào database
+            $normalized_phone_for_db = $smsController->normalizePhoneNumber($phone);
 
-                case 'doctor':
-                    $doctor = new Doctor();
-                    $data = [
-                        'ten' => $name,
-                        'email' => $email,
-                        'mat_khau' => $password,
-                        'so_dien_thoai' => $_POST['phone'] ?? '',
-                        'chuyen_khoa' => $_POST['specialization'] ?? '',
-                        'so_giay_phep' => $_POST['license_number'] ?? '',
-                        'so_nam_kinh_nghiem' => $_POST['experience_years'] ?? 0
-                    ];
-                    $success = $doctor->create($data);
-                    break;
+            // Validation ở Controller trước khi gọi Model
+            $patient = new Patient();
 
-                case 'patient':
-                    $patient = new Patient();
-                    $data = [
-                        'ten' => $name,
-                        'email' => $email,
-                        'mat_khau' => $password,
-                        'so_dien_thoai' => $_POST['phone'] ?? '',
-                        'ngay_sinh' => $_POST['date_of_birth'] ?? '',
-                        'gioi_tinh' => $_POST['gender'] ?? '',
-                        'dia_chi' => $_POST['address'] ?? '',
-                        'nhom_mau' => $_POST['blood_group'] ?? ''
-                    ];
-                    $success = $patient->create($data);
-                    break;
+            // Kiểm tra email đã tồn tại chưa
+            if ($patient->emailExists($email)) {
+                $_SESSION['error'] = "Email đã được sử dụng. Vui lòng chọn email khác.";
+                $_SESSION['form_data'] = $_POST; // Lưu lại dữ liệu form
+                header("Location: ./register");
+                exit();
+            }
+
+            // Kiểm tra số điện thoại đã tồn tại chưa
+            if ($patient->phoneExists($normalized_phone_for_db)) {
+                $_SESSION['error'] = "Số điện thoại đã được sử dụng. Vui lòng chọn số khác.";
+                $_SESSION['form_data'] = $_POST; // Lưu lại dữ liệu form
+                header("Location: ./register");
+                exit();
+            }
+
+            try {
+                switch ($role) {
+                    case 'admin':
+                        $admin = new Admin();
+                        $data = [
+                            'ten' => $name,
+                            'email' => $email,
+                            'mat_khau' => $password,
+                            'so_dien_thoai' => $normalized_phone_for_db,
+                            'phone_verified' => 1
+                        ];
+                        $success = $admin->create($data);
+                        break;
+
+                    case 'doctor':
+                        $doctor = new Doctor();
+                        $data = [
+                            'ten' => $name,
+                            'email' => $email,
+                            'mat_khau' => $password,
+                            'so_dien_thoai' => $normalized_phone_for_db,
+                            'phone_verified' => 1,
+                            'chuyen_khoa' => $_POST['chuyen_khoa'] ?? '',
+                            'so_giay_phep' => $_POST['so_giay_phep'] ?? '',
+                            'so_nam_kinh_nghiem' => $_POST['so_nam_kinh_nghiem'] ?? 0
+                        ];
+                        $success = $doctor->create($data);
+                        break;
+
+                    case 'patient':
+                        $data = [
+                            'ten' => $name,
+                            'email' => $email,
+                            'mat_khau' => $password,
+                            'so_dien_thoai' => $normalized_phone_for_db,
+                            'phone_verified' => 1,
+                            'ngay_sinh' => $_POST['ngay_sinh'] ?? '',
+                            'gioi_tinh' => $_POST['gioi_tinh'] ?? '',
+                            'dia_chi' => $_POST['dia_chi'] ?? '',
+                            'nhom_mau' => $_POST['nhom_mau'] ?? ''
+                        ];
+                        $success = $patient->create($data);
+                        break;
+                }
+            } catch (Exception $e) {
+                $_SESSION['error'] = "Có lỗi xảy ra khi đăng ký: " . $e->getMessage();
+                header("Location: ./register");
+                exit();
             }
 
             if ($success) {
+                // Xóa OTP sau khi đăng ký thành công
+                $smsController->clearOTPAfterRegistration();
+                // Xóa form_data session
+                unset($_SESSION['form_data']);
                 $_SESSION['success'] = "Đăng ký thành công! Vui lòng đăng nhập.";
                 header("Location: ./login");
                 exit();
@@ -269,5 +345,180 @@ class AuthController
             header("Location: ./");
             exit();
         }
+    }
+
+    public function changePassword()
+    {
+        // Kiểm tra đăng nhập
+        if (!$this->isLoggedIn()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập trước']);
+            exit();
+        }
+
+        // Chỉ xử lý POST request
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        // Nhận dữ liệu JSON
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $currentPassword = $input['currentPassword'] ?? '';
+        $newPassword = $input['newPassword'] ?? '';
+        $confirmPassword = $input['confirmPassword'] ?? '';
+        $role = $_SESSION['user_role'] ?? '';
+
+        // Validate dữ liệu
+        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin']);
+            exit();
+        }
+
+
+        // Kiểm tra mật khẩu hiện tại và cập nhật
+        $userId = $_SESSION['user_id'];
+        $success = false;
+        $errorMessage = '';
+
+        try {
+            switch ($role) {
+                case 'admin':
+                    $admin = new Admin();
+                    $user = $admin->getById($userId);
+                    if ($user && password_verify($currentPassword, $user['mat_khau'])) {
+                        $success = $admin->updatePassword($userId, $newPassword);
+                    } else {
+                        $errorMessage = 'Mật khẩu hiện tại không đúng';
+                    }
+                    break;
+
+                case 'doctor':
+                    $doctor = new Doctor();
+                    $user = $doctor->getById($userId);
+                    if ($user && password_verify($currentPassword, $user['mat_khau'])) {
+                        $success = $doctor->updatePassword($userId, $newPassword);
+                    } else {
+                        $errorMessage = 'Mật khẩu hiện tại không đúng';
+                    }
+                    break;
+
+                case 'patient':
+                    $patient = new Patient();
+                    $user = $patient->getById($userId);
+                    if ($user && password_verify($currentPassword, $user['mat_khau'])) {
+                        $success = $patient->updatePassword($userId, $newPassword);
+                    } else {
+                        $errorMessage = 'Mật khẩu hiện tại không đúng';
+                    }
+                    break;
+
+                default:
+                    $errorMessage = 'Role không hợp lệ';
+                    break;
+            }
+        } catch (Exception $e) {
+            $errorMessage = 'Có lỗi xảy ra: ' . $e->getMessage();
+        }
+
+        // Trả về kết quả
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Thay đổi mật khẩu thành công']);
+        } else {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => $errorMessage ?: 'Có lỗi xảy ra khi thay đổi mật khẩu']);
+        }
+        exit();
+    }
+
+    public function resetPassword()
+    {
+        // Chỉ xử lý POST request
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        // Nhận dữ liệu JSON
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $phoneNumber = $input['phone_number'] ?? '';
+        $newPassword = $input['new_password'] ?? '';
+
+        // Validate dữ liệu
+        if (empty($phoneNumber) || empty($newPassword)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin']);
+            exit();
+        }
+
+        // Validate mật khẩu mới
+        if (strlen($newPassword) < 6) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Mật khẩu phải có ít nhất 6 ký tự']);
+            exit();
+        }
+
+        if (strlen($newPassword) > 50) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Mật khẩu không được quá 50 ký tự']);
+            exit();
+        }
+
+        // Kiểm tra có ít nhất 1 ký tự đặc biệt
+        if (!preg_match('/[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]/', $newPassword)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt']);
+            exit();
+        }
+
+        // Normalize phone number
+        $normalizedPhone = $phoneNumber;
+        if (strlen($normalizedPhone) === 11 && $normalizedPhone[0] === '0') {
+            $normalizedPhone = substr($normalizedPhone, 1);
+        }
+        if (!str_starts_with($normalizedPhone, '84')) {
+            $normalizedPhone = '84' . $normalizedPhone;
+        }
+
+        // Tìm user theo số điện thoại
+        $patient = new Patient();
+        $user = $patient->getByPhone($normalizedPhone);
+
+        if (!$user) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy tài khoản với số điện thoại này']);
+            exit();
+        }
+
+        // Debug: Log user found
+        error_log("User found for reset password: " . json_encode($user));
+
+        // Cập nhật mật khẩu mới
+        try {
+            $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+            error_log("Attempting to update password for user ID: " . $user['id']);
+            $success = $patient->updatePasswordById($user['id'], $hashedPassword);
+            error_log("Password update result: " . ($success ? 'true' : 'false'));
+
+            if ($success) {
+                // Clear OTP session if exists
+                if (isset($_SESSION['otp_data'])) {
+                    unset($_SESSION['otp_data']);
+                }
+                echo json_encode(['success' => true, 'message' => 'Đặt lại mật khẩu thành công.']);
+            } else {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra khi cập nhật mật khẩu']);
+            }
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
+        }
+        exit();
     }
 }

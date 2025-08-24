@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th8 19, 2025 lúc 12:00 PM
+-- Thời gian đã tạo: Th8 23, 2025 lúc 09:25 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -48,7 +48,7 @@ CREATE TABLE `bac_si` (
 INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen_khoa`, `so_giay_phep`, `so_nam_kinh_nghiem`, `ngay_tao`, `ngay_cap_nhat`, `hinh_anh`) VALUES
 (1, 'GSTS. Cao Việt', 'viet@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000001', 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-08-19 09:39:52', 'uploads/bacsiviet.png'),
 (2, 'BS. Ngô Thị Giang', 'tm.ngogiang@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000002', 'Tim mạch', 'TM002', 12, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/ngothigiang.jpg'),
-(3, 'BS. Trịnh Văn Khoa', 'tk.trinhkhoa@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000003', 'Thần kinh', 'TK001', 14, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/trinhvankhoa.jpg'),
+(3, 'BS. Trịnh Văn Khoa', 'tk.trinhkhoa@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000003', 'Thần kinh', 'TK001', 14, '2025-08-12 09:06:03', '2025-08-23 19:21:05', 'uploads/avt-bac-si-the-truong-1.png'),
 (4, 'BS. Nguyễn Văn Minh', 'tk.nguyenminh@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000004', 'Thần kinh', 'TK002', 10, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyenvanminh.jpg'),
 (5, 'BS. Hoàng Thị Em', 'nhi.hoangem@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000005', 'Nhi khoa', 'NK001', 11, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/hoangthiem.jpg'),
 (6, 'BS. Lý Thị Hoa', 'nhi.lyhoa@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000006', 'Nhi khoa', 'NK002', 9, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/lythihoa.jpg'),
@@ -95,6 +95,7 @@ CREATE TABLE `benh_nhan` (
   `email` varchar(255) NOT NULL,
   `mat_khau` varchar(255) NOT NULL,
   `so_dien_thoai` varchar(20) DEFAULT NULL,
+  `phone_verified` tinyint(1) NOT NULL DEFAULT 0,
   `ngay_sinh` date DEFAULT NULL,
   `gioi_tinh` enum('Nam','Nu','Khac') DEFAULT NULL,
   `dia_chi` text DEFAULT NULL,
@@ -107,8 +108,8 @@ CREATE TABLE `benh_nhan` (
 -- Đang đổ dữ liệu cho bảng `benh_nhan`
 --
 
-INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(2, 'Cao Dương Quốc Việt', 'caoduongvietquoc@gmail.com', '$2y$10$v.5QURJjh8xRfJonLMYhL.MWrNaXWYVirwgvRZekBrg5hGpi22di6', '0913998110', '2003-03-22', 'Nam', 'thị trấn an phú\r\nAn phú', 'A+', '2025-08-17 15:44:52', '2025-08-17 15:44:52');
+INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(13, 'Hoàng Nguyễn Phương Trang', '2001trangmoon@gmail.com', '$2y$10$UZaxqTFMGIyVzz9NPNABM.ah23l2Gx89QevTBqlIvJxvevXpkO.Zi', '84918672152', 1, '2003-01-10', 'Nu', 'Trần Bá GIao', 'AB+', '2025-08-22 15:17:21', '2025-08-22 15:17:21');
 
 -- --------------------------------------------------------
 
@@ -151,6 +152,21 @@ CREATE TABLE `lich_hen` (
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `otp_codes`
+--
+
+CREATE TABLE `otp_codes` (
+  `id` int(11) NOT NULL,
+  `phone_number` varchar(20) NOT NULL,
+  `otp_code` varchar(6) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `is_used` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `quan_tri_vien`
 --
 
@@ -169,7 +185,7 @@ CREATE TABLE `quan_tri_vien` (
 --
 
 INSERT INTO `quan_tri_vien` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 'admin', 'admin@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0123456789', '2025-08-12 07:44:29', '2025-08-17 15:47:16');
+(1, 'admin', 'admin@gmail.com', '$2y$10$Y3M2VBZXljzibsH.q9t2sO2NAcAoxR2WG2D/TYBV6ve6TtCCw7hDm', '0123456789', '2025-08-12 07:44:29', '2025-08-23 11:15:02');
 
 --
 -- Chỉ mục cho các bảng đã đổ
@@ -209,6 +225,15 @@ ALTER TABLE `lich_hen`
   ADD KEY `idx_lich_ngay` (`ngay_hen`);
 
 --
+-- Chỉ mục cho bảng `otp_codes`
+--
+ALTER TABLE `otp_codes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_phone_number` (`phone_number`),
+  ADD KEY `idx_expires_at` (`expires_at`),
+  ADD KEY `idx_is_used` (`is_used`);
+
+--
 -- Chỉ mục cho bảng `quan_tri_vien`
 --
 ALTER TABLE `quan_tri_vien`
@@ -230,7 +255,7 @@ ALTER TABLE `bac_si`
 -- AUTO_INCREMENT cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT cho bảng `ho_so_benh_an`
@@ -243,6 +268,12 @@ ALTER TABLE `ho_so_benh_an`
 --
 ALTER TABLE `lich_hen`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT cho bảng `otp_codes`
+--
+ALTER TABLE `otp_codes`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT cho bảng `quan_tri_vien`

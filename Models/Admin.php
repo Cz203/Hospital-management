@@ -25,20 +25,50 @@ class Admin extends User
         return false;
     }
 
+    public function emailExists($email)
+    {
+        $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE email = :email";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":email", $email);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+
+    public function phoneExists($phone)
+    {
+        $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE so_dien_thoai = :phone";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":phone", $phone);
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+
     public function create($data)
     {
+        // Kiểm tra email đã tồn tại chưa
+        if ($this->emailExists($data['email'])) {
+            throw new Exception("Email đã được sử dụng. Vui lòng chọn email khác.");
+        }
+
+        // Kiểm tra số điện thoại đã tồn tại chưa
+        if ($this->phoneExists($data['so_dien_thoai'])) {
+            throw new Exception("Số điện thoại đã được sử dụng. Vui lòng chọn số khác.");
+        }
+
         $query = "INSERT INTO " . $this->table_name . " 
-                  (ten, email, mat_khau, so_dien_thoai, ngay_tao) 
-                  VALUES (:ten, :email, :mat_khau, :so_dien_thoai, NOW())";
+                  (ten, email, mat_khau, so_dien_thoai, phone_verified, ngay_tao) 
+                  VALUES (:ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, NOW())";
 
         $stmt = $this->conn->prepare($query);
 
-        $hashedPassword = $this->hashPassword($data['password']);
+        $hashedPassword = $this->hashPassword($data['mat_khau']);
+        $phone_verified = $data['phone_verified'] ?? 0;
 
-        $stmt->bindParam(":ten", $data['name']);
+        $stmt->bindParam(":ten", $data['ten']);
         $stmt->bindParam(":email", $data['email']);
         $stmt->bindParam(":mat_khau", $hashedPassword);
-        $stmt->bindParam(":so_dien_thoai", $data['phone']);
+        $stmt->bindParam(":so_dien_thoai", $data['so_dien_thoai']);
+        $stmt->bindParam(":phone_verified", $phone_verified);
 
         return $stmt->execute();
     }
@@ -53,10 +83,20 @@ class Admin extends User
 
     public function getById($id)
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_tao FROM " . $this->table_name . " WHERE id = :id";
+        $query = "SELECT id, ten, email, so_dien_thoai, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $id);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function updatePassword($id, $newPassword)
+    {
+        $query = "UPDATE " . $this->table_name . " SET mat_khau = :mat_khau WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $hashedPassword = $this->hashPassword($newPassword);
+        $stmt->bindParam(":mat_khau", $hashedPassword);
+        $stmt->bindParam(":id", $id);
+        return $stmt->execute();
     }
 }

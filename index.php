@@ -1,5 +1,9 @@
 <?php
 session_start();
+
+// Load Composer autoloader để sử dụng Vonage SDK
+require_once 'vendor/autoload.php';
+
 require_once 'Controllers/AuthController.php';
 
 // Khởi tạo AuthController
@@ -28,6 +32,57 @@ switch ($action) {
 
     case 'register':
         $auth->register();
+        break;
+
+    case 'send_otp':
+        require_once 'Controllers/SMSController.php';
+        $smsController = new SMSController();
+
+        // Nhận JSON data
+        $input = json_decode(file_get_contents('php://input'), true);
+        $phone_number = $input['phone_number'] ?? '';
+        $check_database = $input['check_database'] ?? false;
+        $for_registration = $input['for_registration'] ?? false;
+
+        if (empty($phone_number)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Số điện thoại không được để trống']);
+            exit();
+        }
+
+        $result = $smsController->sendOTP($phone_number, $check_database, $for_registration);
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+        break;
+
+    case 'verify_otp':
+        require_once 'Controllers/SMSController.php';
+        $smsController = new SMSController();
+
+        // Nhận JSON data
+        $input = json_decode(file_get_contents('php://input'), true);
+        $phone_number = $input['phone_number'] ?? '';
+        $otp_code = $input['otp_code'] ?? '';
+
+        if (empty($phone_number) || empty($otp_code)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Số điện thoại và mã OTP không được để trống']);
+            exit();
+        }
+
+        $result = $smsController->verifyOTP($phone_number, $otp_code);
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+        break;
+
+    case 'change_password':
+        $auth->changePassword();
+        break;
+
+    case 'reset_password':
+        $auth->resetPassword();
         break;
 
     case 'logout':
