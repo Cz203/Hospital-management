@@ -14,8 +14,6 @@ $action = $_GET['action'] ?? 'home';
 
 // Nếu không có action trong GET, thử lấy từ REQUEST_URI
 
-
-
 // Routing
 switch ($action) {
     case 'login':
