@@ -125,15 +125,30 @@ class AppointmentController
         }
 
         // Kiểm tra ngày không được là ngày quá khứ
-        if (strtotime($date) < strtotime(date('Y-m-d'))) {
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $today = date('Y-m-d');
+        $now = date('H:i');
+        $selectedDate = date('Y-m-d', strtotime($date));
+
+        if ($selectedDate < $today) {
             echo json_encode([
                 'success' => false,
-                'message' => 'Không thể đặt lịch cho ngày quá khứ'
+                'message' => "Không thể đặt lịch cho ngày quá khứ! Hôm nay: $today, chọn: $selectedDate"
             ]);
             exit();
         }
 
         $timeSlots = $this->appointmentModel->getAvailableTimeSlots($doctorId, $date);
+
+        // Nếu chọn ngày hôm nay, lọc bỏ các giờ đã qua
+        if ($selectedDate == $today && !empty($timeSlots)) {
+            $currentTime = strtotime($now);
+            $timeSlots = array_filter($timeSlots, function ($slot) use ($currentTime) {
+                $slotTime = strtotime($slot['time']);
+                return $slotTime > $currentTime;
+            });
+            $timeSlots = array_values($timeSlots); // Re-index array
+        }
 
         echo json_encode([
             'success' => true,
@@ -191,10 +206,33 @@ class AppointmentController
         }
 
         // Kiểm tra ngày không được là ngày quá khứ
-        if (strtotime($date) < strtotime(date('Y-m-d'))) {
-            $_SESSION['error'] = "Không thể đặt lịch cho ngày quá khứ!";
+        // Set timezone to Vietnam
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $today = date('Y-m-d');
+        $now = date('H:i');
+        $selectedDate = date('Y-m-d', strtotime($date));
+        $selectedTime = $time;
+
+        // Debug: Log để kiểm tra
+        error_log("Appointment validation - Today: $today, Now: $now, Selected Date: $selectedDate, Selected Time: $selectedTime, Raw input: $date");
+
+        // Kiểm tra ngày quá khứ
+        if ($selectedDate < $today) {
+            $_SESSION['error'] = "Không thể đặt lịch cho ngày quá khứ! Ngày hôm nay: $today, ngày chọn: $selectedDate";
             header("Location: ./hospital_appointment?doctor_id=" . $doctorId);
             exit();
+        }
+
+        // Kiểm tra nếu chọn ngày hôm nay thì giờ phải sau giờ hiện tại
+        if ($selectedDate == $today) {
+            $currentTime = strtotime($now);
+            $appointmentTime = strtotime($selectedTime);
+
+            if ($appointmentTime <= $currentTime) {
+                $_SESSION['error'] = "Không thể đặt lịch cho thời gian đã qua! Giờ hiện tại: $now, giờ chọn: $selectedTime";
+                header("Location: ./hospital_appointment?doctor_id=" . $doctorId);
+                exit();
+            }
         }
 
         // Kiểm tra xung đột lịch hẹn (chỉ chặn khi cùng ngày + cùng giờ + cùng bác sĩ,

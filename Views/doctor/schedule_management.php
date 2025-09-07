@@ -94,83 +94,83 @@
             $dayOffset = $weekDays[$day];
             $dayDate = clone $currentWeekStart;
             $dayDate->add(new DateInterval('P' . $dayOffset . 'D'));
-            $formattedDate = $dayDate->format('d/m/Y');
+
         ?>
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="card schedule-card">
-                    <div class="day-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-calendar-day me-2"></i>
-                                <div class="day-title"><?php echo $day; ?></div>
-                                <div class="day-date"><?php echo $formattedDate; ?></div>
-                            </div>
-                            <span class="day-badge"><?php echo count($daySchedules); ?> ca</span>
+        <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
+            <div class="card schedule-card">
+                <div class="day-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-calendar-day me-2"></i>
+                            <div class="day-title"><?php echo $day; ?></div>
+
                         </div>
-                    </div>
-                    <div class="card-body p-3">
-                        <?php if (empty($daySchedules)): ?>
-                            <div class="empty-state">
-                                <i class="fas fa-calendar-times"></i>
-                                <p class="mb-0">Chưa có ca trực</p>
-                            </div>
-                        <?php else: ?>
-                            <?php foreach ($daySchedules as $schedule): ?>
-                                <div class="schedule-item">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <span
-                                                class="shift-badge shift-<?php echo strtolower(str_replace('Ca ', '', $schedule['loai_ca'])); ?>">
-                                                <?php echo $schedule['loai_ca']; ?>
-                                            </span>
-                                            <?php if ($schedule['trang_thai'] === 'inactive'): ?>
-                                                <span class="badge bg-secondary ms-1">Tạm dừng</span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                                                data-bs-toggle="dropdown">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li>
-                                                    <a class="dropdown-item edit-schedule" href="#"
-                                                        data-schedule-id="<?php echo $schedule['id']; ?>">
-                                                        <i class="fas fa-edit me-2"></i>Chỉnh sửa
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <form method="POST" action="./doctor_delete_schedule" class="d-inline">
-                                                        <input type="hidden" name="schedule_id"
-                                                            value="<?php echo $schedule['id']; ?>">
-                                                        <button type="submit" class="dropdown-item text-danger"
-                                                            onclick="return confirm('Bạn có chắc chắn muốn xóa ca trực này?')">
-                                                            <i class="fas fa-trash me-2"></i>Xóa
-                                                        </button>
-                                                    </form>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="time-display">
-                                        <i class="fas fa-clock me-1"></i>
-                                        <?php echo date('H:i', strtotime($schedule['gio_bat_dau'])); ?> -
-                                        <?php echo date('H:i', strtotime($schedule['gio_ket_thuc'])); ?>
-                                    </div>
-                                    <?php if (!empty($schedule['ghi_chu'])): ?>
-                                        <div class="mt-2">
-                                            <small class="text-muted">
-                                                <i class="fas fa-sticky-note me-1"></i>
-                                                <?php echo htmlspecialchars($schedule['ghi_chu']); ?>
-                                            </small>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+
                     </div>
                 </div>
+                <div class="card-body p-3">
+                    <?php if (empty($daySchedules)): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p class="mb-0">Chưa có ca trực</p>
+                    </div>
+                    <?php else: ?>
+                    <?php foreach ($daySchedules as $schedule): ?>
+                    <div class="schedule-item">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span
+                                    class="shift-badge shift-<?php echo strtolower(str_replace('Ca ', '', $schedule['loai_ca'])); ?>">
+                                    <?php echo $schedule['loai_ca']; ?>
+                                </span>
+                                <?php if ($schedule['trang_thai'] === 'inactive'): ?>
+                                <span class="badge bg-secondary ms-1">Tạm dừng</span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item edit-schedule" href="#"
+                                            data-schedule-id="<?php echo $schedule['id']; ?>">
+                                            <i class="fas fa-edit me-2"></i>Chỉnh sửa
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <form method="POST" action="./doctor_delete_schedule" class="d-inline">
+                                            <input type="hidden" name="schedule_id"
+                                                value="<?php echo $schedule['id']; ?>">
+                                            <button type="submit" class="dropdown-item text-danger"
+                                                onclick="return confirm('Bạn có chắc chắn muốn xóa ca trực này?')">
+                                                <i class="fas fa-trash me-2"></i>Xóa
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="time-display">
+                            <i class="fas fa-clock me-1"></i>
+                            <?php echo date('H:i', strtotime($schedule['gio_bat_dau'])); ?> -
+                            <?php echo date('H:i', strtotime($schedule['gio_ket_thuc'])); ?>
+                        </div>
+                        <?php if (!empty($schedule['ghi_chu'])): ?>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-sticky-note me-1"></i>
+                                <?php echo htmlspecialchars($schedule['ghi_chu']); ?>
+                            </small>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
             </div>
+        </div>
         <?php endforeach; ?>
     </div>
 </div>

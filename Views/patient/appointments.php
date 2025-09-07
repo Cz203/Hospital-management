@@ -119,35 +119,35 @@ ob_start();
                             </thead>
                             <tbody>
                                 <?php if (empty($upcomingAppointments)): ?>
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
-                                            <i class="fas fa-calendar-times fa-2x mb-2"></i><br>
-                                            Chưa có lịch hẹn sắp tới
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fas fa-calendar-times fa-2x mb-2"></i><br>
+                                        Chưa có lịch hẹn sắp tới
+                                    </td>
+                                </tr>
                                 <?php else: ?>
-                                    <?php foreach ($upcomingAppointments as $appointment): ?>
-                                        <tr>
-                                            <td><?php echo formatDateTime($appointment['ngay_hen'], $appointment['gio_hen']); ?>
-                                            </td>
-                                            <td><?php echo htmlspecialchars($appointment['ten_bac_si'] ?? 'N/A'); ?></td>
-                                            <td><?php echo htmlspecialchars($appointment['chuyen_khoa'] ?? 'N/A'); ?></td>
-                                            <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
-                                            <td><span
-                                                    class="badge <?php echo getStatusBadgeClass($appointment['trang_thai']); ?>"><?php echo getStatusText($appointment['trang_thai']); ?></span>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-info"
-                                                    onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">Xem chi
-                                                    tiết</button>
-                                                <?php if (in_array($appointment['trang_thai'], ['Chờ xác nhận', 'Đã xác nhận'])): ?>
-                                                    <button class="btn btn-sm btn-warning"
-                                                        onclick="cancelAppointment(<?php echo $appointment['id']; ?>)">Hủy
-                                                        lịch</button>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
+                                <?php foreach ($upcomingAppointments as $appointment): ?>
+                                <tr>
+                                    <td><?php echo formatDateTime($appointment['ngay_hen'], $appointment['gio_hen']); ?>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($appointment['ten_bac_si'] ?? 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['chuyen_khoa'] ?? 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
+                                    <td><span
+                                            class="badge <?php echo getStatusBadgeClass($appointment['trang_thai']); ?>"><?php echo getStatusText($appointment['trang_thai']); ?></span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info"
+                                            onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">Xem chi
+                                            tiết</button>
+                                        <?php if (in_array($appointment['trang_thai'], ['Chờ xác nhận', 'Đã xác nhận'])): ?>
+                                        <button class="btn btn-sm btn-warning"
+                                            onclick="cancelAppointment(<?php echo $appointment['id']; ?>)">Hủy
+                                            lịch</button>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -174,30 +174,30 @@ ob_start();
                             </thead>
                             <tbody>
                                 <?php if (empty($completedAppointments)): ?>
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
-                                            <i class="fas fa-check-circle fa-2x mb-2"></i><br>
-                                            Chưa có lịch hẹn đã hoàn thành
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fas fa-check-circle fa-2x mb-2"></i><br>
+                                        Chưa có lịch hẹn đã hoàn thành
+                                    </td>
+                                </tr>
                                 <?php else: ?>
-                                    <?php foreach ($completedAppointments as $appointment): ?>
-                                        <tr>
-                                            <td><?php echo formatDateTime($appointment['ngay_hen'], $appointment['gio_hen']); ?>
-                                            </td>
-                                            <td><?php echo htmlspecialchars($appointment['ten_bac_si'] ?? 'N/A'); ?></td>
-                                            <td><?php echo htmlspecialchars($appointment['chuyen_khoa'] ?? 'N/A'); ?></td>
-                                            <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
-                                            <td><span class="badge bg-success">Hoàn thành</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-info"
-                                                    onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">Xem chi
-                                                    tiết</button>
-                                                <button class="btn btn-sm btn-primary"
-                                                    onclick="downloadReport(<?php echo $appointment['id']; ?>)">Tải về</button>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
+                                <?php foreach ($completedAppointments as $appointment): ?>
+                                <tr>
+                                    <td><?php echo formatDateTime($appointment['ngay_hen'], $appointment['gio_hen']); ?>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($appointment['ten_bac_si'] ?? 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['chuyen_khoa'] ?? 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
+                                    <td><span class="badge bg-success">Hoàn thành</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info"
+                                            onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">Xem chi
+                                            tiết</button>
+                                        <button class="btn btn-sm btn-primary"
+                                            onclick="downloadReport(<?php echo $appointment['id']; ?>)">Tải về</button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -224,29 +224,29 @@ ob_start();
                             </thead>
                             <tbody>
                                 <?php if (empty($cancelledAppointments)): ?>
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted py-4">
-                                            <i class="fas fa-times-circle fa-2x mb-2"></i><br>
-                                            Chưa có lịch hẹn đã hủy
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fas fa-times-circle fa-2x mb-2"></i><br>
+                                        Chưa có lịch hẹn đã hủy
+                                    </td>
+                                </tr>
                                 <?php else: ?>
-                                    <?php foreach ($cancelledAppointments as $appointment): ?>
-                                        <tr>
-                                            <td><?php echo formatDateTime($appointment['ngay_hen'], $appointment['gio_hen']); ?>
-                                            </td>
-                                            <td><?php echo htmlspecialchars($appointment['ten_bac_si'] ?? 'N/A'); ?></td>
-                                            <td><?php echo htmlspecialchars($appointment['chuyen_khoa'] ?? 'N/A'); ?></td>
-                                            <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
-                                            <td><?php echo htmlspecialchars($appointment['ghi_chu'] ?? 'Không có lý do'); ?>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-info"
-                                                    onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">Xem chi
-                                                    tiết</button>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
+                                <?php foreach ($cancelledAppointments as $appointment): ?>
+                                <tr>
+                                    <td><?php echo formatDateTime($appointment['ngay_hen'], $appointment['gio_hen']); ?>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($appointment['ten_bac_si'] ?? 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['chuyen_khoa'] ?? 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['ghi_chu'] ?? 'Không có lý do'); ?>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info"
+                                            onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">Xem chi
+                                            tiết</button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
                         </table>
@@ -265,38 +265,112 @@ renderLayout($content, 'Lịch hẹn của tôi - Hệ thống Quản lý Bệnh
 ?>
 
 <script>
-    // Mark this page so socket client can reliably detect patient appointments page
-    document.addEventListener('DOMContentLoaded', function() {
-        if (document && document.body) {
-            document.body.dataset.page = 'patient_appointments';
-        }
-    });
-
-    function viewAppointmentDetails(appointmentId) {
-        // TODO: Implement view appointment details modal
-        alert("Xem chi tiết lịch hẹn ID: " + appointmentId);
-    }
-
-    function cancelAppointment(appointmentId) {
-        if (confirm("Bạn có chắc chắn muốn hủy lịch hẹn này?")) {
-            // Tạo form ẩn để submit
-            var form = document.createElement("form");
-            form.method = "POST";
-            form.action = "./cancel_appointment";
-
-            var input = document.createElement("input");
-            input.type = "hidden";
-            input.name = "appointment_id";
-            input.value = appointmentId;
-
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+// Responsive tables: convert to stacked cards on small screens
+(function() {
+    function applyResponsiveTables(root) {
+        try {
+            var tables = root.querySelectorAll('table');
+            tables.forEach(function(table) {
+                // Add data-label to each cell based on its header text
+                var headers = Array.from(table.querySelectorAll('thead th')).map(function(th) {
+                    return (th.textContent || '').trim();
+                });
+                table.querySelectorAll('tbody tr').forEach(function(tr) {
+                    Array.from(tr.children).forEach(function(td, idx) {
+                        if (!td.getAttribute('data-label') && headers[idx]) {
+                            td.setAttribute('data-label', headers[idx]);
+                        }
+                    });
+                });
+            });
+        } catch (e) {
+            console.warn('Responsive table init error:', e);
         }
     }
 
-    function downloadReport(appointmentId) {
-        // TODO: Implement download report
-        alert("Tải báo cáo lịch hẹn ID: " + appointmentId);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            applyResponsiveTables(document);
+        });
+    } else {
+        applyResponsiveTables(document);
     }
+})();
+</script>
+
+<style>
+/* Mobile-first stacked table for small screens */
+@media (max-width: 576px) {
+    table.table {
+        border: 0 !important;
+    }
+
+    table.table thead {
+        display: none;
+    }
+
+    table.table tbody tr {
+        display: block;
+        margin-bottom: 0.875rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    table.table tbody tr td {
+        display: grid;
+        grid-template-columns: 40% 60%;
+        gap: 0.25rem 0.75rem;
+        text-align: left !important;
+        border: 0 !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+
+    table.table tbody tr td:last-child {
+        border-bottom: 0 !important;
+    }
+
+    table.table tbody tr td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6c757d;
+    }
+}
+</style>
+<script>
+// Mark this page so socket client can reliably detect patient appointments page
+document.addEventListener('DOMContentLoaded', function() {
+    if (document && document.body) {
+        document.body.dataset.page = 'patient_appointments';
+    }
+});
+
+function viewAppointmentDetails(appointmentId) {
+    // TODO: Implement view appointment details modal
+    alert("Xem chi tiết lịch hẹn ID: " + appointmentId);
+}
+
+function cancelAppointment(appointmentId) {
+    if (confirm("Bạn có chắc chắn muốn hủy lịch hẹn này?")) {
+        // Tạo form ẩn để submit
+        var form = document.createElement("form");
+        form.method = "POST";
+        form.action = "./cancel_appointment";
+
+        var input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "appointment_id";
+        input.value = appointmentId;
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function downloadReport(appointmentId) {
+    // TODO: Implement download report
+    alert("Tải báo cáo lịch hẹn ID: " + appointmentId);
+}
 </script>

@@ -556,3 +556,77 @@ document.addEventListener('appointmentRefresh', function() {
 
 // Add refresh button if not exists
 </script>
+
+<script>
+// Responsive tables: convert to stacked cards on small screens
+(function() {
+    function applyResponsiveTables(root) {
+        try {
+            var tables = root.querySelectorAll('table');
+            tables.forEach(function(table) {
+                var headers = Array.from(table.querySelectorAll('thead th')).map(function(th) {
+                    return (th.textContent || '').trim();
+                });
+                table.querySelectorAll('tbody tr').forEach(function(tr) {
+                    Array.from(tr.children).forEach(function(td, idx) {
+                        if (!td.getAttribute('data-label') && headers[idx]) {
+                            td.setAttribute('data-label', headers[idx]);
+                        }
+                    });
+                });
+            });
+        } catch (e) {
+            console.warn('Responsive table init error:', e);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            applyResponsiveTables(document);
+        });
+    } else {
+        applyResponsiveTables(document);
+    }
+})();
+</script>
+
+<style>
+/* Mobile-first stacked table for small screens */
+@media (max-width: 576px) {
+    table.table {
+        border: 0 !important;
+    }
+
+    table.table thead {
+        display: none;
+    }
+
+    table.table tbody tr {
+        display: block;
+        margin-bottom: 0.875rem;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    table.table tbody tr td {
+        display: grid;
+        grid-template-columns: 40% 60%;
+        gap: 0.25rem 0.75rem;
+        text-align: left !important;
+        border: 0 !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+
+    table.table tbody tr td:last-child {
+        border-bottom: 0 !important;
+    }
+
+    table.table tbody tr td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6c757d;
+    }
+}
+</style>

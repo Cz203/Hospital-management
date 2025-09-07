@@ -561,9 +561,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize socket connection for all users
     window.socketManager.init(userId, userRole, userName);
 
-    // Send ping every 30 seconds to keep connection alive
+    // Send ping every 10 minutes only if user is active
     setInterval(() => {
-      window.socketManager.ping();
-    }, 30000);
+      // Only ping if user is active (page visible, mouse moved recently, etc.)
+      if (!document.hidden && window.socketManager.isConnected) {
+        window.socketManager.ping();
+      }
+    }, 600000); // 10 minutes
   }
 });

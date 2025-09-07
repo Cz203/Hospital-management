@@ -266,14 +266,46 @@ function broadcastAppointmentStats() {
   io.emit("appointment_stats", stats);
 }
 
-// Send stats every 30 seconds
-setInterval(broadcastAppointmentStats, 30000);
+// Send stats every 5 minutes (to allow Render free tier to sleep)
+// Only send stats if there are connected users
+setInterval(() => {
+  const totalUsers =
+    connectedUsers.doctors.size +
+    connectedUsers.patients.size +
+    connectedUsers.admins.size;
+  if (totalUsers > 0) {
+    broadcastAppointmentStats();
+  }
+}, 300000); // 5 minutes instead of 30 seconds
+
+// Health check endpoint for Render
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    connectedUsers: {
+      doctors: connectedUsers.doctors.size,
+      patients: connectedUsers.patients.size,
+      admins: connectedUsers.admins.size,
+    },
+  });
+});
+
+// Root endpoint
+app.get("/", (req, res) => {
+  res.json({
+    message: "Hospital Management Socket Server",
+    status: "running",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Start server
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Socket.IO server running on port ${PORT}`);
   console.log(`Server URL: http://localhost:${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
 });
 
 // Graceful shutdown
