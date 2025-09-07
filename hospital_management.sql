@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th9 07, 2025 lúc 02:34 PM
+-- Thời gian đã tạo: Th9 07, 2025 lúc 11:48 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -86,6 +86,34 @@ INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `bao_hiem_y_te`
+--
+
+CREATE TABLE `bao_hiem_y_te` (
+  `id` int(11) NOT NULL,
+  `ma_bao_hiem` varchar(20) DEFAULT NULL,
+  `loai_the` varchar(100) DEFAULT NULL,
+  `ten_chu_the` varchar(255) DEFAULT NULL,
+  `ngay_sinh` date DEFAULT NULL,
+  `gioi_tinh` enum('Nam','Nu','Khac') DEFAULT NULL,
+  `ngay_bat_dau` date DEFAULT NULL,
+  `ngay_het_han` date DEFAULT NULL,
+  `noi_cap` varchar(255) DEFAULT NULL,
+  `trang_thai` enum('Hieu luc','Het han','Tam dung') DEFAULT 'Hieu luc'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `bao_hiem_y_te`
+--
+
+INSERT INTO `bao_hiem_y_te` (`id`, `ma_bao_hiem`, `loai_the`, `ten_chu_the`, `ngay_sinh`, `gioi_tinh`, `ngay_bat_dau`, `ngay_het_han`, `noi_cap`, `trang_thai`) VALUES
+(16, '0791034567', 'BHYT', 'Hoàng Nguyễn Phương Trang', '2003-01-10', 'Nu', '2023-01-01', '2024-12-31', 'Bảo hiểm xã hội TP.HCM', 'Hieu luc'),
+(17, '0791034568', 'BHYT', 'Việt', '2003-03-22', 'Nam', '2023-01-01', '2024-12-31', 'Bảo hiểm xã hội TP.HCM', 'Hieu luc'),
+(18, '0791034569', 'BHYT', 'Cao Viet', '2003-03-20', 'Nam', '2023-01-01', '2024-12-31', 'Bảo hiểm xã hội TP.HCM', 'Hieu luc');
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `benh_nhan`
 --
 
@@ -96,6 +124,8 @@ CREATE TABLE `benh_nhan` (
   `mat_khau` varchar(255) NOT NULL,
   `so_dien_thoai` varchar(20) DEFAULT NULL,
   `phone_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `bao_hiem_y_te` varchar(50) DEFAULT NULL,
+  `bao_hiem_y_te_id` int(11) DEFAULT NULL,
   `ngay_sinh` date DEFAULT NULL,
   `gioi_tinh` enum('Nam','Nu','Khac') DEFAULT NULL,
   `dia_chi` text DEFAULT NULL,
@@ -108,12 +138,12 @@ CREATE TABLE `benh_nhan` (
 -- Đang đổ dữ liệu cho bảng `benh_nhan`
 --
 
-INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(13, 'Hoàng Nguyễn Phương Trang', '2001trangmoon@gmail.com', '$2y$10$jCb.1eysx1RkUxaY2.cEgud7457aH5aZSqJqsRbg2GKBUttVWuk0a', '84918672152', 1, '2003-01-10', 'Nu', 'Trần Bá GIao', 'AB+', '2025-08-22 15:17:21', '2025-08-24 17:46:04'),
-(21, 'Việt', 'caoduongvietquoc@gmail.com', '$2y$10$E5dJk94KPjGRb.FYwIJ86uiga63FukshJZaR.Qph8CRLkGjNIY2xm', '84385485869', 1, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-08-23 21:09:27', '2025-08-24 18:47:55'),
-(23, 'cvb', 'tranthi22b@example.com', '$2y$10$WWKqyUOGawB9jPJKvzdXi.ixgAx/DIYPgp1bS/OL9QxHgfnblHYSq', '8413251345134', 1, '0000-00-00', 'Nam', 'vczbvcb', '', '2025-08-23 21:19:49', '2025-08-23 21:19:49'),
-(24, 'Việt', '2001tra2ngmoon@gmail.com', '$2y$10$7uqm.qatZX26SQefunbrFu/r.hAqc3Fjsox3lS4A/d4AftmwEUwGi', '8412312312312', 1, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', '', '2025-08-23 21:56:05', '2025-08-23 21:56:05'),
-(26, 'Cao Viet', '123123@gmail.com', '$2y$10$s/MXw185zelPGtOcgbHZx.p/mbODis0.ti23ys7Ld/pqL9Pg6hB6K', '84913998110', 1, '2003-03-20', 'Nam', 'bxcvb', '', '2025-08-24 18:16:05', '2025-08-24 18:16:05');
+INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `bao_hiem_y_te`, `bao_hiem_y_te_id`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(13, 'Hoàng Nguyễn Phương Trang', '2001trangmoon@gmail.com', '$2y$10$jCb.1eysx1RkUxaY2.cEgud7457aH5aZSqJqsRbg2GKBUttVWuk0a', '84918672152', 1, NULL, NULL, '2003-01-10', 'Nu', 'Trần Bá GIao', 'AB+', '2025-08-22 15:17:21', '2025-09-07 21:16:13'),
+(21, 'Việt', 'caoduongvietquoc@gmail.com', '$2y$10$E5dJk94KPjGRb.FYwIJ86uiga63FukshJZaR.Qph8CRLkGjNIY2xm', '84385485869', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-08-23 21:09:27', '2025-09-07 21:16:13'),
+(23, 'cvb', 'tranthi22b@example.com', '$2y$10$WWKqyUOGawB9jPJKvzdXi.ixgAx/DIYPgp1bS/OL9QxHgfnblHYSq', '8413251345134', 1, NULL, NULL, '0000-00-00', 'Nam', 'vczbvcb', '', '2025-08-23 21:19:49', '2025-08-23 21:19:49'),
+(24, 'Việt', '2001tra2ngmoon@gmail.com', '$2y$10$7uqm.qatZX26SQefunbrFu/r.hAqc3Fjsox3lS4A/d4AftmwEUwGi', '8412312312312', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', '', '2025-08-23 21:56:05', '2025-08-23 21:56:05'),
+(26, 'Cao Viet', '123123@gmail.com', '$2y$10$s/MXw185zelPGtOcgbHZx.p/mbODis0.ti23ys7Ld/pqL9Pg6hB6K', '84913998110', 1, NULL, NULL, '2003-03-20', 'Nam', 'bxcvb', '', '2025-08-24 18:16:05', '2025-09-07 21:16:13');
 
 -- --------------------------------------------------------
 
@@ -280,12 +310,20 @@ ALTER TABLE `bac_si`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Chỉ mục cho bảng `bao_hiem_y_te`
+--
+ALTER TABLE `bao_hiem_y_te`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `ma_bao_hiem` (`ma_bao_hiem`);
+
+--
 -- Chỉ mục cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`),
-  ADD KEY `idx_bn_email` (`email`);
+  ADD KEY `idx_bn_email` (`email`),
+  ADD KEY `idx_bao_hiem_y_te_id` (`bao_hiem_y_te_id`);
 
 --
 -- Chỉ mục cho bảng `ho_so_benh_an`
@@ -353,6 +391,12 @@ ALTER TABLE `bac_si`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
+-- AUTO_INCREMENT cho bảng `bao_hiem_y_te`
+--
+ALTER TABLE `bao_hiem_y_te`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+
+--
 -- AUTO_INCREMENT cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
@@ -397,6 +441,12 @@ ALTER TABLE `thong_bao`
 --
 -- Các ràng buộc cho các bảng đã đổ
 --
+
+--
+-- Các ràng buộc cho bảng `benh_nhan`
+--
+ALTER TABLE `benh_nhan`
+  ADD CONSTRAINT `fk_benh_nhan_bao_hiem_y_te` FOREIGN KEY (`bao_hiem_y_te_id`) REFERENCES `bao_hiem_y_te` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Các ràng buộc cho bảng `ho_so_benh_an`
