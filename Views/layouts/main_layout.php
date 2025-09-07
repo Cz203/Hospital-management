@@ -4,7 +4,6 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 var_dump($_SESSION);
-
 // Kiểm tra user đã đăng nhập
 if (!isset($_SESSION['user_id'])) {
     header("Location: ./login");
@@ -21,6 +20,20 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?></title>
+
+    <!-- Socket.IO Meta Tags -->
+    <meta name="user-id" content="<?php echo $_SESSION['user_id'] ?? ''; ?>">
+    <meta name="user-role" content="<?php echo $_SESSION['user_role'] ?? ''; ?>">
+    <meta name="user-name" content="<?php echo $_SESSION['user_name'] ?? ''; ?>">
+    <?php
+    $socketCfg = @include __DIR__ . '/../../config/socket.php';
+    $socketMode = is_array($socketCfg) && !empty($socketCfg['mode']) ? $socketCfg['mode'] : 'auto';
+    $socketProd = is_array($socketCfg) && !empty($socketCfg['server_url']) ? $socketCfg['server_url'] : '';
+    $socketDev = is_array($socketCfg) && !empty($socketCfg['dev_url']) ? $socketCfg['dev_url'] : '';
+    ?>
+    <meta name="socket-server-url" content="<?php echo htmlspecialchars($socketProd, ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="socket-mode" content="<?php echo htmlspecialchars($socketMode, ENT_QUOTES, 'UTF-8'); ?>">
+    <meta name="socket-dev-url" content="<?php echo htmlspecialchars($socketDev, ENT_QUOTES, 'UTF-8'); ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -84,6 +97,34 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
         .dropdown-item:hover {
             background-color: #f8f9fa;
             color: #667eea;
+        }
+
+        /* Bell styles */
+        .nav-bell {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: background 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-bell i {
+            font-size: 18px;
+            color: #6b7280;
+        }
+
+        .nav-bell:hover {
+            background: linear-gradient(135deg, #e8ecff 0%, #e5f2ff 100%);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .nav-bell .badge {
+            transform: translate(35%, -35%);
         }
 
         .role-badge {
@@ -216,6 +257,24 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
 
                 <!-- User Menu -->
                 <div class="navbar-nav">
+                    <!-- Notifications -->
+                    <div class="nav-item dropdown me-3">
+                        <a class="nav-link position-relative nav-bell" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span id="notif-badge"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end p-0" style="width: 340px;">
+                            <li class="dropdown-header px-3 py-2 fw-bold">Thông báo</li>
+                            <li>
+                                <div id="notif-list" class="list-group list-group-flush small"
+                                    style="max-height: 320px; overflow-y: auto;">
+                                    <div class="p-3 text-muted">Không có thông báo</div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                     <div class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
                             data-bs-toggle="dropdown">
@@ -308,7 +367,170 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
                 }
             }
         });
+
+        // Auto-dismiss Bootstrap alerts after 3 seconds (global)
+        window.addEventListener('DOMContentLoaded', function() {
+            var alerts = document.querySelectorAll('.alert');
+            if (!alerts.length) return;
+            setTimeout(function() {
+                alerts.forEach(function(el) {
+                    try {
+                        if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+                            bootstrap.Alert.getOrCreateInstance(el).close();
+                        } else {
+                            el.classList.remove('show');
+                            setTimeout(function() {
+                                el.remove();
+                            }, 300);
+                        }
+                    } catch (e) {
+                        el.remove();
+                    }
+                });
+            }, 3000);
+        });
+
+        // Notifications helper for socket/client code to push messages
+        (function setupNotifications() {
+            var notifBadge = document.getElementById('notif-badge');
+            var notifList = document.getElementById('notif-list');
+            var userIdMeta = document.querySelector('meta[name="user-id"]');
+            var currentUserId = userIdMeta ? (userIdMeta.getAttribute('content') || '').trim() : '';
+
+            function getStoreKey() {
+                return currentUserId ? ('hm_notifications_' + currentUserId) : 'hm_notifications';
+            }
+
+            function readStore() {
+                try {
+                    return JSON.parse(localStorage.getItem(getStoreKey()) || '[]');
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function writeStore(items) {
+                try {
+                    localStorage.setItem(getStoreKey(), JSON.stringify(items.slice(0, 20)));
+                } catch (e) {}
+            }
+
+            function renderItem(message, type, ts) {
+                var item = document.createElement('a');
+                item.className = 'list-group-item list-group-item-action d-flex align-items-start';
+                var color = 'primary';
+                if (type === 'success') color = 'success';
+                else if (type === 'warning') color = 'warning';
+                else if (type === 'danger' || type === 'error') color = 'danger';
+                var dateStr = '';
+                try {
+                    var d = ts ? new Date(ts) : null;
+                    if (!d || isNaN(d.getTime())) d = new Date();
+                    var dd = String(d.getDate()).padStart(2, '0');
+                    var mm = String(d.getMonth() + 1).padStart(2, '0');
+                    var yyyy = d.getFullYear();
+                    var hh = String(d.getHours()).padStart(2, '0');
+                    var mi = String(d.getMinutes()).padStart(2, '0');
+                    dateStr = dd + '-' + mm + '-' + yyyy + ' ' + hh + ':' + mi;
+                } catch (e) {
+                    dateStr = '';
+                }
+                item.innerHTML = '<div class="d-flex w-100">' +
+                    '<i class="fas fa-circle me-2 mt-1 text-' + color + '"></i>' +
+                    '<div class="flex-grow-1">' +
+                    '<div class="text-wrap">' + message + '</div>' +
+                    '<div class="text-muted small mt-1">' + dateStr + '</div>' +
+                    '</div>' +
+                    '</div>';
+                return item;
+            }
+            window.addNotification = function(message, type) {
+                if (!notifList) return;
+                var empty = notifList.querySelector('.text-muted');
+                if (empty) empty.remove();
+                var item = renderItem(message, type, Date.now());
+                notifList.prepend(item);
+                if (notifBadge) {
+                    notifBadge.classList.remove('d-none');
+                    var current = parseInt(notifBadge.textContent || '0');
+                    notifBadge.textContent = String(current + 1);
+                }
+                // persist
+                var items = readStore();
+                items.unshift({
+                    message: message,
+                    type: type || 'info',
+                    ts: Date.now()
+                });
+                writeStore(items);
+            };
+
+            // Clear badge when opening dropdown
+            var bell = document.querySelector('.nav-item.dropdown.me-3 > a[data-bs-toggle="dropdown"]');
+            if (bell) {
+                bell.addEventListener('show.bs.dropdown', function() {
+                    if (notifBadge) {
+                        notifBadge.textContent = '0';
+                        notifBadge.classList.add('d-none');
+                    }
+                });
+            }
+
+            // Drain queued notifications from early socket events & hydrate from storage/server
+            try {
+                // hydrate existing from storage
+                var stored = readStore();
+                if (stored && stored.length) {
+                    var emptyHydrate = notifList.querySelector('.text-muted');
+                    if (emptyHydrate) emptyHydrate.remove();
+                    stored.slice(0, 20).reverse().forEach(function(n) {
+                        notifList.prepend(renderItem(n.message, n.type, n.ts));
+                    });
+                }
+                // hydrate from server API (ưu tiên server)
+                if (currentUserId) {
+                    fetch('./notifications')
+                        .then(function(r) {
+                            return r.json();
+                        })
+                        .then(function(resp) {
+                            if (resp && resp.success && Array.isArray(resp.data)) {
+                                var serverItems = resp.data.map(function(n) {
+                                    return {
+                                        message: n.noi_dung,
+                                        type: n.loai || 'info',
+                                        ts: new Date(n.ngay_tao).getTime()
+                                    };
+                                });
+                                // render trực tiếp server items và đồng bộ localStorage
+                                while (notifList.firstChild) notifList.removeChild(notifList.firstChild);
+                                if (!serverItems.length) {
+                                    var div = document.createElement('div');
+                                    div.className = 'p-3 text-muted';
+                                    div.textContent = 'Không có thông báo';
+                                    notifList.appendChild(div);
+                                } else {
+                                    serverItems.slice(0, 20).forEach(function(n) {
+                                        notifList.prepend(renderItem(n.message, n.type, n.ts));
+                                    });
+                                }
+                                writeStore(serverItems);
+                            }
+                        }).catch(function(e) {});
+                }
+                // then drain queue
+                if (window.__notifQueue && Array.isArray(window.__notifQueue)) {
+                    window.__notifQueue.forEach(function(n) {
+                        window.addNotification(n.message, n.type);
+                    });
+                    window.__notifQueue = [];
+                }
+            } catch (e) {}
+        })();
     </script>
+
+    <!-- Socket.IO Client Script -->
+    <script src="./assets/js/socket-client.js"></script>
 </body>
 
 </html>

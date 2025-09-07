@@ -119,7 +119,7 @@ include 'Views/layouts/header.php';
                         <li><i class="fas fa-check text-success me-2"></i>Chăm sóc tận tâm</li>
                         <li><i class="fas fa-check text-success me-2"></i>Phù hợp mọi lứa tuổi</li>
                     </ul>
-                    <a href="./home_visit_booking" class="btn btn-warning">
+                    <a href="./doctor_team" class="btn btn-warning">
                         <i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám tại nhà
                     </a>
                 </div>
@@ -141,7 +141,7 @@ include 'Views/layouts/header.php';
                         <li><i class="fas fa-check text-success me-2"></i>Xét nghiệm toàn diện</li>
                         <li><i class="fas fa-check text-success me-2"></i>Chẩn đoán chính xác</li>
                     </ul>
-                    <a href="./hospital_appointment" class="btn btn-success">
+                    <a href="./doctor_team" class="btn btn-success">
                         <i class="fas fa-calendar-check me-2"></i>Đặt lịch khám tại viện
                     </a>
                 </div>
@@ -187,48 +187,48 @@ include 'Views/layouts/header.php';
 
         <div class="row">
             <?php if (!empty($doctors)): ?>
-                <?php $doctorsLimited = array_slice($doctors, 0, 6);
+            <?php $doctorsLimited = array_slice($doctors, 0, 6);
                 foreach ($doctorsLimited as $doc): ?>
-                    <?php
+            <?php
                     $spec = $doc['chuyen_khoa'] ?? '';
                     $colors = $specialtyColors[$spec] ?? ['text' => 'text-primary', 'bg' => 'primary'];
                     $textClass = $colors['text'];
                     ?>
-                    <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="doctor-card animate-on-scroll">
-                            <div class="doctor-avatar">
-                                <img src="<?php echo $doc['hinh_anh']; ?>"
-                                    alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>"
-                                    onerror="this.src='./assets/img/default-doctor.jpg'">
-                            </div>
-                            <h5><?php echo htmlspecialchars($doc['ten']); ?></h5>
-                            <p class="<?php echo $textClass; ?> mb-2">
-                                <i class="fas fa-stethoscope me-1"></i>
-                                Chuyên khoa <?php echo htmlspecialchars($spec ?: 'Đa khoa'); ?>
-                            </p>
-                            <p class="text-muted small mb-3">
-                                <i class="fas fa-clock me-1"></i>
-                                <?php echo (int)($doc['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh nghiệm
-                            </p>
-                            <div class="doctor-info">
-                                <span class="badge bg-success me-2">
-                                    <i class="fas fa-calendar-check me-1"></i>Có lịch
-                                </span>
-                                <span class="badge bg-info">
-                                    <i
-                                        class="fas fa-phone me-1"></i><?php echo htmlspecialchars($doc['so_dien_thoai'] ?? 'Liên hệ'); ?>
-                                </span>
-                            </div>
-                        </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="doctor-card animate-on-scroll">
+                    <div class="doctor-avatar">
+                        <img src="<?php echo $doc['hinh_anh']; ?>"
+                            alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>"
+                            onerror="this.src='./assets/img/default-doctor.jpg'">
                     </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="col-12">
-                    <div class="text-center">
-                        <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">Chưa có dữ liệu bác sĩ.</p>
+                    <h5><?php echo htmlspecialchars($doc['ten']); ?></h5>
+                    <p class="<?php echo $textClass; ?> mb-2">
+                        <i class="fas fa-stethoscope me-1"></i>
+                        Chuyên khoa <?php echo htmlspecialchars($spec ?: 'Đa khoa'); ?>
+                    </p>
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-clock me-1"></i>
+                        <?php echo (int)($doc['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh nghiệm
+                    </p>
+                    <div class="doctor-info">
+                        <span class="badge bg-success me-2">
+                            <i class="fas fa-calendar-check me-1"></i>Có lịch
+                        </span>
+                        <span class="badge bg-info">
+                            <i
+                                class="fas fa-phone me-1"></i><?php echo htmlspecialchars($doc['so_dien_thoai'] ?? 'Liên hệ'); ?>
+                        </span>
                     </div>
                 </div>
+            </div>
+            <?php endforeach; ?>
+            <?php else: ?>
+            <div class="col-12">
+                <div class="text-center">
+                    <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Chưa có dữ liệu bác sĩ.</p>
+                </div>
+            </div>
             <?php endif; ?>
         </div>
 
@@ -283,20 +283,20 @@ include 'Views/layouts/header.php';
                 if (isset($specialtyConfig[$specialty])):
                     $config = $specialtyConfig[$specialty];
             ?>
-                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                        <div class="specialty-card animate-on-scroll">
-                            <div class="specialty-icon">
-                                <i class="<?php echo $config['icon']; ?>"></i>
-                            </div>
-                            <h5><?php echo htmlspecialchars($specialty); ?></h5>
-                            <p><?php echo $config['desc']; ?></p>
-                            <div class="doctor-count">
-                                <span class="badge bg-<?php echo $config['color']; ?>">
-                                    <i class="fas fa-user-md me-1"></i><?php echo $count; ?> Bác sĩ
-                                </span>
-                            </div>
-                        </div>
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="specialty-card animate-on-scroll">
+                    <div class="specialty-icon">
+                        <i class="<?php echo $config['icon']; ?>"></i>
                     </div>
+                    <h5><?php echo htmlspecialchars($specialty); ?></h5>
+                    <p><?php echo $config['desc']; ?></p>
+                    <div class="doctor-count">
+                        <span class="badge bg-<?php echo $config['color']; ?>">
+                            <i class="fas fa-user-md me-1"></i><?php echo $count; ?> Bác sĩ
+                        </span>
+                    </div>
+                </div>
+            </div>
             <?php
                 endif;
             endforeach;

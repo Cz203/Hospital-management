@@ -1,0 +1,509 @@
+<?php
+require_once 'Models/Appointment.php';
+require_once 'Models/Doctor.php';
+require_once 'Models/Patient.php';
+require_once 'Controllers/AuthController.php';
+
+class AppointmentController
+{
+    private $appointmentModel;
+    private $doctorModel;
+    private $patientModel;
+    private $auth;
+
+    public function __construct()
+    {
+        $this->appointmentModel = new Appointment();
+        $this->doctorModel = new Doctor();
+        $this->patientModel = new Patient();
+        $this->auth = new AuthController();
+    }
+
+    /**
+     * Hiển thị trang đặt lịch khám tại bệnh viện
+     */
+    public function hospitalAppointment()
+    {
+        // Kiểm tra đăng nhập
+        $this->auth->requireAuth('patient');
+
+        $encryptedDoctorId = $_GET['doctor_id'] ?? null;
+        $doctorId = null;
+        $doctor = null;
+        $schedules = [];
+        $availableTimeSlots = [];
+
+        // Giải mã doctor_id nếu có
+        if ($encryptedDoctorId) {
+            try {
+                // Giải mã base64 và thêm salt để bảo mật
+                $decoded = base64_decode($encryptedDoctorId);
+                $doctorId = intval($decoded);
+
+                // Kiểm tra ID hợp lệ
+                if ($doctorId > 0) {
+                    $doctor = $this->doctorModel->getById($doctorId);
+                    if ($doctor) {
+                        $schedules = $this->doctorModel->getSchedules($doctorId) ?: [];
+                    }
+                }
+            } catch (Exception $e) {
+                // Nếu giải mã thất bại, không hiển thị thông tin bác sĩ
+                $doctorId = null;
+                $doctor = null;
+            }
+        }
+
+        // Lấy danh sách chuyên khoa
+        $specialties = $this->appointmentModel->getSpecialties();
+
+        $page_title = 'Đặt lịch khám tại bệnh viện';
+
+        // Render trang độc lập không dùng main layout
+        include 'Views/appointment/hospital_appointment.php';
+    }
+
+    /**
+     * Lấy danh sách bác sĩ theo chuyên khoa (AJAX)
+     */
+    public function getDoctorsBySpecialty()
+    {
+        header('Content-Type: application/json');
+
+        $specialty = $_POST['specialty'] ?? '';
+        $doctors = $this->appointmentModel->getDoctorsBySpecialty($specialty);
+
+        echo json_encode([
+            'success' => true,
+            'data' => $doctors
+        ]);
+        exit();
+    }
+
+    /**
+     * Lấy lịch làm việc của bác sĩ (AJAX)
+     */
+    public function getDoctorSchedule()
+    {
+        header('Content-Type: application/json');
+
+        $doctorId = $_POST['doctor_id'] ?? '';
+
+        if (empty($doctorId)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Thiếu thông tin bác sĩ'
+            ]);
+            exit();
+        }
+
+        $schedules = $this->doctorModel->getSchedules($doctorId);
+
+        echo json_encode([
+            'success' => true,
+            'data' => $schedules
+        ]);
+        exit();
+    }
+
+    /**
+     * Lấy khung giờ có sẵn của bác sĩ trong ngày (AJAX)
+     */
+    public function getAvailableTimeSlots()
+    {
+        header('Content-Type: application/json');
+
+        $doctorId = $_POST['doctor_id'] ?? '';
+        $date = $_POST['date'] ?? '';
+
+        if (empty($doctorId) || empty($date)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Thiếu thông tin bác sĩ hoặc ngày'
+            ]);
+            exit();
+        }
+
+        // Kiểm tra ngày không được là ngày quá khứ
+        if (strtotime($date) < strtotime(date('Y-m-d'))) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Không thể đặt lịch cho ngày quá khứ'
+            ]);
+            exit();
+        }
+
+        $timeSlots = $this->appointmentModel->getAvailableTimeSlots($doctorId, $date);
+
+        echo json_encode([
+            'success' => true,
+            'data' => $timeSlots
+        ]);
+        exit();
+    }
+
+    /**
+     * Kiểm tra xung đột lịch hẹn (AJAX)
+     */
+    public function checkConflict()
+    {
+        header('Content-Type: application/json');
+
+        $doctorId = $_POST['doctor_id'] ?? '';
+        $date = $_POST['date'] ?? '';
+        $time = $_POST['time'] ?? '';
+
+        if (empty($doctorId) || empty($date) || empty($time)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin kiểm tra']);
+            exit();
+        }
+
+        $conflict = $this->appointmentModel->checkConflict($doctorId, $date, $time);
+        echo json_encode(['success' => !$conflict, 'conflict' => $conflict]);
+        exit();
+    }
+
+    /**
+     * Đặt lịch hẹn mới
+     */
+    public function bookAppointment()
+    {
+        // Kiểm tra đăng nhập
+        $this->auth->requireAuth('patient');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: ./hospital_appointment");
+            exit();
+        }
+
+        $patientId = $_SESSION['user_id'];
+        $doctorId = $_POST['doctor_id'] ?? '';
+        $date = $_POST['date'] ?? '';
+        $time = $_POST['time'] ?? '';
+        $reason = $_POST['reason'] ?? '';
+        $notes = $_POST['notes'] ?? '';
+
+        // Validation
+        if (empty($doctorId) || empty($date) || empty($time)) {
+            $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin bắt buộc!";
+            header("Location: ./hospital_appointment?doctor_id=" . $doctorId);
+            exit();
+        }
+
+        // Kiểm tra ngày không được là ngày quá khứ
+        if (strtotime($date) < strtotime(date('Y-m-d'))) {
+            $_SESSION['error'] = "Không thể đặt lịch cho ngày quá khứ!";
+            header("Location: ./hospital_appointment?doctor_id=" . $doctorId);
+            exit();
+        }
+
+        // Kiểm tra xung đột lịch hẹn (chỉ chặn khi cùng ngày + cùng giờ + cùng bác sĩ,
+        // và trạng thái lịch hẹn hiện có thuộc 'Chờ xác nhận' hoặc 'Đã xác nhận')
+        if ($this->appointmentModel->checkConflict($doctorId, $date, $time)) {
+            $date_vn = date('d-m-Y', strtotime($date));
+            $_SESSION['error'] = "Khung giờ $time ngày $date_vn đã được đặt cho bác sĩ này. Vui lòng chọn thời gian khác!";
+            header("Location: ./hospital_appointment?doctor_id=" . $doctorId);
+            exit();
+        }
+
+        // Tạo lịch hẹn
+        $appointmentData = [
+            'benh_nhan_id' => $patientId,
+            'bac_si_id' => $doctorId,
+            'ngay_hen' => $date,
+            'gio_hen' => $time,
+            'ly_do' => $reason,
+            'loai_lich' => 'Trực tiếp',
+            'trang_thai' => 'Chờ xác nhận',
+            'ghi_chu' => $notes
+        ];
+
+        $appointmentId = $this->appointmentModel->create($appointmentData);
+
+        if ($appointmentId) {
+            // Emit socket event to notify doctor about new appointment
+            $this->emitNewAppointmentNotification($doctorId, $patientId, $date, $time);
+
+            // Also notify patient about successful booking
+            $this->emitPatientBookingConfirmation($patientId, $doctorId, $date, $time);
+
+            $_SESSION['success'] = "Đặt lịch hẹn thành công! Bác sĩ sẽ xác nhận lịch hẹn của bạn.";
+            header("Location: ./patient_appointments");
+            exit();
+        } else {
+            $_SESSION['error'] = "Có lỗi xảy ra khi đặt lịch hẹn. Vui lòng thử lại!";
+            header("Location: ./hospital_appointment?doctor_id=" . $doctorId);
+            exit();
+        }
+    }
+
+    /**
+     * Hiển thị lịch hẹn của bệnh nhân
+     */
+    public function patientAppointments()
+    {
+        // Kiểm tra đăng nhập
+        $this->auth->requireAuth('patient');
+
+        $patientId = $_SESSION['user_id'];
+
+        // Lấy tất cả lịch hẹn của bệnh nhân
+        $allAppointments = $this->appointmentModel->getByPatientId($patientId) ?: [];
+
+        // Phân loại appointments theo trạng thái
+        $upcomingAppointments = [];
+        $completedAppointments = [];
+        $cancelledAppointments = [];
+
+        foreach ($allAppointments as $appointment) {
+            switch ($appointment['trang_thai']) {
+                case 'Chờ xác nhận':
+                case 'Đã xác nhận':
+                    $upcomingAppointments[] = $appointment;
+                    break;
+                case 'Hoàn thành':
+                    $completedAppointments[] = $appointment;
+                    break;
+                case 'hủy':
+                    $cancelledAppointments[] = $appointment;
+                    break;
+                default:
+                    $upcomingAppointments[] = $appointment;
+                    break;
+            }
+        }
+
+        // Include trực tiếp file view với dữ liệu
+        include 'Views/patient/appointments.php';
+    }
+
+    /**
+     * Hủy lịch hẹn
+     */
+    public function cancelAppointment()
+    {
+        // Kiểm tra đăng nhập
+        $this->auth->requireAuth('patient');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header("Location: ./patient_appointments");
+            exit();
+        }
+
+        $appointmentId = $_POST['appointment_id'] ?? '';
+        $patientId = $_SESSION['user_id'];
+
+        if (empty($appointmentId)) {
+            $_SESSION['error'] = "ID lịch hẹn không hợp lệ!";
+            header("Location: ./patient_appointments");
+            exit();
+        }
+
+        // Kiểm tra lịch hẹn có thuộc về bệnh nhân này không
+        $appointment = $this->appointmentModel->getById($appointmentId);
+        if (!$appointment || $appointment['benh_nhan_id'] != $patientId) {
+            $_SESSION['error'] = "Không tìm thấy lịch hẹn!";
+            header("Location: ./patient_appointments");
+            exit();
+        }
+
+        // Chỉ cho phép hủy lịch hẹn chưa hoàn thành
+        if (in_array($appointment['trang_thai'], ['Hoàn thành', 'hủy'])) {
+            $_SESSION['error'] = "Không thể hủy lịch hẹn đã hoàn thành hoặc đã hủy!";
+            header("Location: ./patient_appointments");
+            exit();
+        }
+
+        // Cập nhật trạng thái thành hủy
+        if ($this->appointmentModel->updateStatus($appointmentId, 'hủy', 'Bệnh nhân hủy lịch hẹn')) {
+            // Emit socket notification for patient cancellation
+            $this->emitPatientCancellationNotification($appointment);
+
+            $_SESSION['success'] = "Hủy lịch hẹn thành công!";
+        } else {
+            $_SESSION['error'] = "Có lỗi xảy ra khi hủy lịch hẹn!";
+        }
+
+        header("Location: ./patient_appointments");
+        exit();
+    }
+
+    /**
+     * Emit socket notification for new appointment
+     */
+    private function emitNewAppointmentNotification($doctorId, $patientId, $date, $time)
+    {
+        try {
+            // Get patient information
+            $patientModel = new Patient();
+            $patient = $patientModel->getById($patientId);
+            $patientName = $patient ? $patient['ten'] : 'Bệnh nhân';
+
+            // Prepare notification data
+            $dateVn = $date;
+            try {
+                $dt = DateTime::createFromFormat('Y-m-d', $date);
+                if ($dt) {
+                    $dateVn = $dt->format('d-m-Y');
+                }
+            } catch (Exception $e) {
+            }
+            $notificationData = [
+                'doctorId' => $doctorId,
+                'patientId' => $patientId,
+                'patientName' => $patientName,
+                'appointmentDate' => $date,
+                'appointmentTime' => $time,
+                'message' => "Bệnh nhân $patientName đã đặt lịch hẹn vào $dateVn lúc $time",
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+
+            // Send HTTP request to socket server
+            $this->sendSocketNotification('new_appointment', $notificationData);
+        } catch (Exception $e) {
+            error_log("Socket notification error: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Emit socket notification for patient booking confirmation
+     */
+    private function emitPatientBookingConfirmation($patientId, $doctorId, $date, $time)
+    {
+        try {
+            // Get doctor information
+            $doctorModel = new Doctor();
+            $doctor = $doctorModel->getById($doctorId);
+            $doctorName = $doctor ? $doctor['ten'] : 'Bác sĩ';
+
+            // Prepare notification data
+            $dateVn = $date;
+            try {
+                $dt = DateTime::createFromFormat('Y-m-d', $date);
+                if ($dt) {
+                    $dateVn = $dt->format('d-m-Y');
+                }
+            } catch (Exception $e) {
+            }
+            $notificationData = [
+                'patientId' => $patientId,
+                'doctorId' => $doctorId,
+                'doctorName' => $doctorName,
+                'appointmentDate' => $date,
+                'appointmentTime' => $time,
+                'message' => "Bạn đã đặt lịch hẹn thành công với bác sĩ $doctorName vào $dateVn lúc $time",
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+
+            // Send HTTP request to socket server
+            $this->sendSocketNotification('patient_booking_confirmation', $notificationData);
+        } catch (Exception $e) {
+            error_log("Patient booking confirmation error: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Emit socket notification for patient cancellation
+     */
+    private function emitPatientCancellationNotification($appointment)
+    {
+        try {
+            $patientId = $appointment['benh_nhan_id'];
+            $doctorId = $appointment['bac_si_id'];
+
+            // Get doctor and patient information
+            require_once 'Models/Doctor.php';
+            $doctorModel = new Doctor();
+            $doctor = $doctorModel->getById($doctorId);
+            $doctorName = $doctor ? $doctor['ten'] : 'Bác sĩ';
+
+            $patientModel = new Patient();
+            $patient = $patientModel->getById($patientId);
+            $patientName = $patient ? $patient['ten'] : 'Bệnh nhân';
+
+            // Prepare notification data
+            $notificationData = [
+                'appointmentId' => $appointment['id'],
+                'patientId' => $patientId,
+                'doctorId' => $doctorId,
+                'patientName' => $patientName,
+                'doctorName' => $doctorName,
+                'appointmentDate' => $appointment['ngay_hen'],
+                'appointmentTime' => $appointment['gio_hen'],
+                'message' => "Bệnh nhân $patientName đã hủy lịch hẹn vào {$appointment['ngay_hen']} lúc {$appointment['gio_hen']}",
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+
+            // Send notification to doctor
+            $this->sendSocketNotification('appointment_cancelled_by_patient', $notificationData);
+        } catch (Exception $e) {
+            error_log("Patient cancellation notification error: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send socket notification via HTTP request
+     */
+    private function sendSocketNotification($event, $data)
+    {
+        try {
+            // Read socket server URL from config; fallback to localhost for dev
+            $cfg = @include __DIR__ . '/../config/socket.php';
+            if (!is_array($cfg) || empty($cfg['server_url'])) {
+                $cfg = @include __DIR__ . '/../../config/socket.php';
+            }
+            $mode = isset($cfg['mode']) ? $cfg['mode'] : 'auto';
+            $prod = isset($cfg['server_url']) ? $cfg['server_url'] : '';
+            $dev = isset($cfg['dev_url']) ? $cfg['dev_url'] : '';
+            // Allow override via GET param (useful in testing)
+            $override = isset($_GET['socket']) ? $_GET['socket'] : null;
+            if ($override === 'dev' || $override === 'prod') {
+                $mode = $override;
+            }
+            if ($mode === 'dev') {
+                $baseUrl = $dev ?: 'http://localhost:3001';
+            } elseif ($mode === 'prod') {
+                $baseUrl = $prod ?: ($dev ?: 'http://localhost:3001');
+            } else {
+                // auto: if HTTPS assume prod URL else dev URL
+                $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+                $baseUrl = $isHttps ? ($prod ?: ($dev ?: 'http://localhost:3001')) : ($dev ?: ($prod ?: 'http://localhost:3001'));
+            }
+            $baseUrl = rtrim($baseUrl, '/');
+            $socketUrl = $baseUrl . '/emit';
+
+            $postData = json_encode([
+                'event' => $event,
+                'data' => $data
+            ]);
+
+            // Use cURL for better reliability
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $socketUrl);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Content-Length: ' . strlen($postData)
+            ]);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+            $result = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            if ($result === false || $httpCode !== 200) {
+                error_log("Socket notification failed. HTTP Code: $httpCode, Error: $error");
+            } else {
+                error_log("Socket notification sent successfully: " . $result);
+            }
+        } catch (Exception $e) {
+            error_log("Socket notification error: " . $e->getMessage());
+        }
+    }
+}

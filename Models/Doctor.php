@@ -72,7 +72,8 @@ class Doctor extends User
         $stmt->bindParam(":chuyen_khoa", $data['chuyen_khoa']);
         $stmt->bindParam(":so_giay_phep", $data['so_giay_phep']);
         $stmt->bindParam(":so_nam_kinh_nghiem", $data['so_nam_kinh_nghiem']);
-        $stmt->bindParam(":hinh_anh", $data['hinh_anh'] ?? null);
+        $hinhAnh = $data['hinh_anh'] ?? null;
+        $stmt->bindParam(":hinh_anh", $hinhAnh);
 
         return $stmt->execute();
     }
@@ -144,5 +145,182 @@ class Doctor extends User
         $stmt->bindParam(":id", $id);
 
         return $stmt->execute();
+    }
+
+    // ========== QUẢN LÝ LỊCH LÀM VIỆC ==========
+
+    /**
+     * Thêm lịch làm việc mới
+     */
+    public function addSchedule($doctorId, $data)
+    {
+        $query = "INSERT INTO lich_lam_viec 
+                  (bac_si_id, thu_trong_tuan, gio_bat_dau, gio_ket_thuc, loai_ca, ghi_chu, trang_thai) 
+                  VALUES (:bac_si_id, :thu_trong_tuan, :gio_bat_dau, :gio_ket_thuc, :loai_ca, :ghi_chu, :trang_thai)";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":bac_si_id", $doctorId);
+        $stmt->bindParam(":thu_trong_tuan", $data['thu_trong_tuan']);
+        $stmt->bindParam(":gio_bat_dau", $data['gio_bat_dau']);
+        $stmt->bindParam(":gio_ket_thuc", $data['gio_ket_thuc']);
+        $stmt->bindParam(":loai_ca", $data['loai_ca']);
+        $stmt->bindParam(":ghi_chu", $data['ghi_chu']);
+        $trangThai = $data['trang_thai'] ?? 'active';
+        $stmt->bindParam(":trang_thai", $trangThai);
+
+        return $stmt->execute();
+    }
+
+    /**
+     * Lấy tất cả lịch làm việc của bác sĩ
+     */
+    public function getSchedules($doctorId)
+    {
+        $query = "SELECT * FROM lich_lam_viec 
+                  WHERE bac_si_id = :bac_si_id 
+                  ORDER BY 
+                    CASE thu_trong_tuan 
+                        WHEN 'Thứ 2' THEN 1
+                        WHEN 'Thứ 3' THEN 2
+                        WHEN 'Thứ 4' THEN 3
+                        WHEN 'Thứ 5' THEN 4
+                        WHEN 'Thứ 6' THEN 5
+                        WHEN 'Thứ 7' THEN 6
+                        WHEN 'Chủ nhật' THEN 7
+                    END, gio_bat_dau";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":bac_si_id", $doctorId);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy lịch làm việc theo ID
+     */
+    public function getScheduleById($scheduleId, $doctorId)
+    {
+        $query = "SELECT * FROM lich_lam_viec 
+                  WHERE id = :id AND bac_si_id = :bac_si_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id", $scheduleId);
+        $stmt->bindParam(":bac_si_id", $doctorId);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Cập nhật lịch làm việc
+     */
+    public function updateSchedule($scheduleId, $doctorId, $data)
+    {
+        $query = "UPDATE lich_lam_viec SET 
+                  thu_trong_tuan = :thu_trong_tuan,
+                  gio_bat_dau = :gio_bat_dau,
+                  gio_ket_thuc = :gio_ket_thuc,
+                  loai_ca = :loai_ca,
+                  ghi_chu = :ghi_chu,
+                  trang_thai = :trang_thai,
+                  ngay_cap_nhat = NOW()
+                  WHERE id = :id AND bac_si_id = :bac_si_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":thu_trong_tuan", $data['thu_trong_tuan']);
+        $stmt->bindParam(":gio_bat_dau", $data['gio_bat_dau']);
+        $stmt->bindParam(":gio_ket_thuc", $data['gio_ket_thuc']);
+        $stmt->bindParam(":loai_ca", $data['loai_ca']);
+        $stmt->bindParam(":ghi_chu", $data['ghi_chu']);
+        $trangThai = $data['trang_thai'] ?? 'active';
+        $stmt->bindParam(":trang_thai", $trangThai);
+        $stmt->bindParam(":id", $scheduleId);
+        $stmt->bindParam(":bac_si_id", $doctorId);
+
+        return $stmt->execute();
+    }
+
+    /**
+     * Xóa lịch làm việc
+     */
+    public function deleteSchedule($scheduleId, $doctorId)
+    {
+        $query = "DELETE FROM lich_lam_viec 
+                  WHERE id = :id AND bac_si_id = :bac_si_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":id", $scheduleId);
+        $stmt->bindParam(":bac_si_id", $doctorId);
+
+        return $stmt->execute();
+    }
+
+    /**
+     * Kiểm tra xung đột lịch làm việc
+     */
+    public function checkScheduleConflict($doctorId, $thuTrongTuan, $gioBatDau, $gioKetThuc, $excludeId = null)
+    {
+        $query = "SELECT COUNT(*) FROM lich_lam_viec 
+                  WHERE bac_si_id = :bac_si_id 
+                  AND thu_trong_tuan = :thu_trong_tuan 
+                  AND trang_thai = 'active'
+                  AND (
+                      (gio_bat_dau < :gio_ket_thuc AND gio_ket_thuc > :gio_bat_dau)
+                  )";
+
+        if ($excludeId) {
+            $query .= " AND id != :exclude_id";
+        }
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":bac_si_id", $doctorId);
+        $stmt->bindParam(":thu_trong_tuan", $thuTrongTuan);
+        $stmt->bindParam(":gio_bat_dau", $gioBatDau);
+        $stmt->bindParam(":gio_ket_thuc", $gioKetThuc);
+
+        if ($excludeId) {
+            $stmt->bindParam(":exclude_id", $excludeId);
+        }
+
+        $stmt->execute();
+        return $stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * Lấy lịch làm việc theo thứ trong tuần
+     */
+    public function getSchedulesByDay($doctorId, $thuTrongTuan)
+    {
+        $query = "SELECT * FROM lich_lam_viec 
+                  WHERE bac_si_id = :bac_si_id 
+                  AND thu_trong_tuan = :thu_trong_tuan 
+                  AND trang_thai = 'active'
+                  ORDER BY gio_bat_dau";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":bac_si_id", $doctorId);
+        $stmt->bindParam(":thu_trong_tuan", $thuTrongTuan);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy thống kê lịch làm việc
+     */
+    public function getScheduleStats($doctorId)
+    {
+        $query = "SELECT 
+                    COUNT(*) as total_schedules,
+                    COUNT(CASE WHEN trang_thai = 'active' THEN 1 END) as active_schedules,
+                    COUNT(CASE WHEN loai_ca = 'Ca sáng' THEN 1 END) as morning_shifts,
+                    COUNT(CASE WHEN loai_ca = 'Ca chiều' THEN 1 END) as afternoon_shifts,
+                    COUNT(CASE WHEN loai_ca = 'Ca tối' THEN 1 END) as evening_shifts,
+                    COUNT(CASE WHEN loai_ca = 'Ca đêm' THEN 1 END) as night_shifts
+                  FROM lich_lam_viec 
+                  WHERE bac_si_id = :bac_si_id";
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":bac_si_id", $doctorId);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }

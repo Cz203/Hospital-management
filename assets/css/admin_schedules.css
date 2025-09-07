@@ -1,0 +1,442 @@
+/* Admin Schedules CSS */
+body {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+.main-content {
+  background: transparent;
+}
+
+/* Header Styles */
+.page-header {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.page-title {
+  color: #2c3e50;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-size: 1.8rem;
+}
+
+.page-subtitle {
+  color: #7f8c8d;
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.header-actions .btn {
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-weight: 500;
+}
+
+/* Stats Cards */
+.stats-card {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stats-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.stats-icon {
+  font-size: 2rem;
+  color: #667eea;
+  margin-bottom: 10px;
+}
+
+.stats-number {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2c3e50;
+  margin-bottom: 5px;
+  line-height: 1;
+}
+
+.stats-label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Filter Card */
+.filter-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.filter-actions .form-select {
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.filter-actions .form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Day Cards */
+.day-card {
+  background: white;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.day-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.day-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 15px 20px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  position: relative;
+}
+
+.day-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.day-date {
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.9;
+  display: inline-block;
+}
+
+.day-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.day-badge {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.day-body {
+  padding: 15px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Doctor Schedule */
+.doctor-schedule {
+  margin-bottom: 15px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.doctor-schedule[style*="display: none"] {
+  display: none !important;
+}
+
+.doctor-schedule:hover {
+  background: #e9ecef;
+  transform: translateX(3px);
+}
+
+.doctor-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.doctor-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-right: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.doctor-details {
+  flex: 1;
+}
+
+.doctor-name {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.doctor-specialty {
+  color: #7f8c8d;
+  font-size: 0.8rem;
+}
+
+/* Schedule Items */
+.schedule-list {
+  margin-left: 45px;
+}
+
+.schedule-item {
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.schedule-item:hover {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.schedule-time {
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+}
+
+.schedule-type {
+  margin-bottom: 5px;
+}
+
+.shift-badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.shift-sáng {
+  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+  color: #d63031;
+}
+
+.shift-chiều {
+  background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+  color: white;
+}
+
+.shift-tối {
+  background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+  color: white;
+}
+
+.schedule-note {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 30px 15px;
+  color: #7f8c8d;
+}
+
+.empty-state i {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  opacity: 0.3;
+  color: #bdc3c7;
+}
+
+.empty-state p {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .stats-card {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .stats-number {
+    font-size: 1.6rem;
+  }
+
+  .day-header {
+    padding: 12px 15px;
+    font-size: 1rem;
+  }
+
+  .day-title {
+    font-size: 1rem;
+    margin-right: 6px;
+  }
+
+  .day-date {
+    font-size: 0.8rem;
+  }
+
+  .day-body {
+    padding: 12px;
+  }
+
+  .doctor-schedule {
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+
+  .doctor-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+  }
+
+  .schedule-list {
+    margin-left: 40px;
+  }
+
+  .schedule-item {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header {
+    padding: 15px;
+  }
+
+  .page-title {
+    font-size: 1.3rem;
+  }
+
+  .stats-card {
+    padding: 12px;
+  }
+
+  .stats-number {
+    font-size: 1.4rem;
+  }
+
+  .day-header {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  .day-title {
+    font-size: 0.95rem;
+    margin-right: 5px;
+  }
+
+  .day-date {
+    font-size: 0.75rem;
+  }
+
+  .doctor-schedule {
+    padding: 8px;
+  }
+
+  .doctor-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+  }
+
+  .schedule-list {
+    margin-left: 36px;
+  }
+
+  .schedule-item {
+    padding: 6px;
+  }
+
+  .schedule-time {
+    font-size: 0.8rem;
+  }
+
+  .shift-badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+}

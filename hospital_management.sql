@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th8 23, 2025 lúc 09:25 PM
+-- Thời gian đã tạo: Th9 07, 2025 lúc 02:34 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -46,7 +46,7 @@ CREATE TABLE `bac_si` (
 --
 
 INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen_khoa`, `so_giay_phep`, `so_nam_kinh_nghiem`, `ngay_tao`, `ngay_cap_nhat`, `hinh_anh`) VALUES
-(1, 'GSTS. Cao Việt', 'viet@gmail.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000001', 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-08-19 09:39:52', 'uploads/bacsiviet.png'),
+(1, 'GSTS. Cao Việt', 'viet@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901000001', 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-09-06 08:34:48', 'uploads/bacsiviet.png'),
 (2, 'BS. Ngô Thị Giang', 'tm.ngogiang@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000002', 'Tim mạch', 'TM002', 12, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/ngothigiang.jpg'),
 (3, 'BS. Trịnh Văn Khoa', 'tk.trinhkhoa@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000003', 'Thần kinh', 'TK001', 14, '2025-08-12 09:06:03', '2025-08-23 19:21:05', 'uploads/avt-bac-si-the-truong-1.png'),
 (4, 'BS. Nguyễn Văn Minh', 'tk.nguyenminh@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000004', 'Thần kinh', 'TK002', 10, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyenvanminh.jpg'),
@@ -109,7 +109,11 @@ CREATE TABLE `benh_nhan` (
 --
 
 INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(13, 'Hoàng Nguyễn Phương Trang', '2001trangmoon@gmail.com', '$2y$10$UZaxqTFMGIyVzz9NPNABM.ah23l2Gx89QevTBqlIvJxvevXpkO.Zi', '84918672152', 1, '2003-01-10', 'Nu', 'Trần Bá GIao', 'AB+', '2025-08-22 15:17:21', '2025-08-22 15:17:21');
+(13, 'Hoàng Nguyễn Phương Trang', '2001trangmoon@gmail.com', '$2y$10$jCb.1eysx1RkUxaY2.cEgud7457aH5aZSqJqsRbg2GKBUttVWuk0a', '84918672152', 1, '2003-01-10', 'Nu', 'Trần Bá GIao', 'AB+', '2025-08-22 15:17:21', '2025-08-24 17:46:04'),
+(21, 'Việt', 'caoduongvietquoc@gmail.com', '$2y$10$E5dJk94KPjGRb.FYwIJ86uiga63FukshJZaR.Qph8CRLkGjNIY2xm', '84385485869', 1, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-08-23 21:09:27', '2025-08-24 18:47:55'),
+(23, 'cvb', 'tranthi22b@example.com', '$2y$10$WWKqyUOGawB9jPJKvzdXi.ixgAx/DIYPgp1bS/OL9QxHgfnblHYSq', '8413251345134', 1, '0000-00-00', 'Nam', 'vczbvcb', '', '2025-08-23 21:19:49', '2025-08-23 21:19:49'),
+(24, 'Việt', '2001tra2ngmoon@gmail.com', '$2y$10$7uqm.qatZX26SQefunbrFu/r.hAqc3Fjsox3lS4A/d4AftmwEUwGi', '8412312312312', 1, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', '', '2025-08-23 21:56:05', '2025-08-23 21:56:05'),
+(26, 'Cao Viet', '123123@gmail.com', '$2y$10$s/MXw185zelPGtOcgbHZx.p/mbODis0.ti23ys7Ld/pqL9Pg6hB6K', '84913998110', 1, '2003-03-20', 'Nam', 'bxcvb', '', '2025-08-24 18:16:05', '2025-08-24 18:16:05');
 
 -- --------------------------------------------------------
 
@@ -143,11 +147,54 @@ CREATE TABLE `lich_hen` (
   `ngay_hen` date NOT NULL,
   `gio_hen` time NOT NULL,
   `ly_do` text DEFAULT NULL,
-  `trang_thai` enum('cho_xac_nhan','da_xac_nhan','hoan_thanh','huy') DEFAULT 'cho_xac_nhan',
+  `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà') NOT NULL DEFAULT 'Trực tiếp',
+  `dia_chi_kham` varchar(255) DEFAULT NULL,
+  `link_tu_van` varchar(255) DEFAULT NULL,
+  `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Hoàn thành','hủy') DEFAULT 'Chờ xác nhận',
   `ghi_chu` text DEFAULT NULL,
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `lich_hen`
+--
+
+INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(50, 21, 1, '2025-09-21', '06:20:00', 'zxcv', 'Trực tiếp', NULL, NULL, 'hủy', 'Bệnh nhân hủy lịch hẹn', '2025-09-07 12:10:26', '2025-09-07 12:21:36'),
+(51, 21, 1, '2025-09-13', '22:20:00', 'vczxc', 'Trực tiếp', NULL, NULL, 'Hoàn thành', '', '2025-09-07 12:23:08', '2025-09-07 12:24:15'),
+(52, 21, 1, '2025-09-20', '22:40:00', 'xvncvbn', 'Trực tiếp', NULL, NULL, 'Chờ xác nhận', 'cvbn', '2025-09-07 12:30:04', '2025-09-07 12:30:04');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `lich_lam_viec`
+--
+
+CREATE TABLE `lich_lam_viec` (
+  `id` int(11) NOT NULL,
+  `bac_si_id` int(11) NOT NULL,
+  `thu_trong_tuan` enum('Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật') NOT NULL,
+  `gio_bat_dau` time NOT NULL,
+  `gio_ket_thuc` time NOT NULL,
+  `loai_ca` enum('Ca sáng','Ca chiều','Ca tối') NOT NULL,
+  `ghi_chu` text DEFAULT NULL,
+  `trang_thai` enum('active','inactive') DEFAULT 'active',
+  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `lich_lam_viec`
+--
+
+INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`, `gio_ket_thuc`, `loai_ca`, `ghi_chu`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 1, 'Thứ 2', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-06 08:38:38', '2025-09-06 08:38:38'),
+(2, 1, 'Thứ 2', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-06 08:38:43', '2025-09-06 08:38:43'),
+(3, 1, 'Thứ 6', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-06 08:38:52', '2025-09-06 08:38:52'),
+(4, 1, 'Thứ 3', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-06 08:43:54', '2025-09-06 08:43:54'),
+(8, 1, 'Thứ 7', '18:00:00', '23:59:00', 'Ca tối', '', 'active', '2025-09-06 12:17:05', '2025-09-06 12:17:05'),
+(9, 1, 'Chủ nhật', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-06 12:25:07', '2025-09-06 12:25:07');
 
 -- --------------------------------------------------------
 
@@ -185,7 +232,41 @@ CREATE TABLE `quan_tri_vien` (
 --
 
 INSERT INTO `quan_tri_vien` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 'admin', 'admin@gmail.com', '$2y$10$Y3M2VBZXljzibsH.q9t2sO2NAcAoxR2WG2D/TYBV6ve6TtCCw7hDm', '0123456789', '2025-08-12 07:44:29', '2025-08-23 11:15:02');
+(1, 'admin', 'admin@gmail.com', '$2y$10$yhTSpU/RsVsqqst2e48peOojd/lGjmkkO30KVX3rTHXrkCcG65oR6', '0123456789', '2025-08-12 07:44:29', '2025-09-06 08:35:36');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `thong_bao`
+--
+
+CREATE TABLE `thong_bao` (
+  `id` int(11) NOT NULL,
+  `doi_tuong` enum('bac_si','benh_nhan','quan_tri_vien') NOT NULL,
+  `bac_si_id` int(11) DEFAULT NULL,
+  `benh_nhan_id` int(11) DEFAULT NULL,
+  `quan_tri_vien_id` int(11) DEFAULT NULL,
+  `loai` varchar(50) NOT NULL DEFAULT 'info',
+  `noi_dung` text NOT NULL,
+  `du_lieu_kem_theo` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`du_lieu_kem_theo`)),
+  `da_doc` tinyint(1) NOT NULL DEFAULT 0,
+  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `thong_bao`
+--
+
+INSERT INTO `thong_bao` (`id`, `doi_tuong`, `bac_si_id`, `benh_nhan_id`, `quan_tri_vien_id`, `loai`, `noi_dung`, `du_lieu_kem_theo`, `da_doc`, `ngay_tao`) VALUES
+(1, 'benh_nhan', NULL, 21, NULL, 'success', 'Bạn đã đặt lịch hẹn thành công vào 2025-09-07 lúc 06:40', '{\"bac_si_id\":\"1\",\"ngay\":\"2025-09-07\",\"gio\":\"06:40\"}', 0, '2025-09-07 11:59:47'),
+(2, 'benh_nhan', NULL, 21, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn: Đã xác nhận', '{\"appointment_id\":\"46\",\"trang_thai\":\"\\u0110\\u00e3 x\\u00e1c nh\\u1eadn\"}', 0, '2025-09-07 12:00:14'),
+(3, 'benh_nhan', NULL, 21, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn: Đã xác nhận', '{\"appointment_id\":\"46\",\"trang_thai\":\"\\u0110\\u00e3 x\\u00e1c nh\\u1eadn\"}', 0, '2025-09-07 12:00:14'),
+(4, 'benh_nhan', NULL, 21, NULL, 'success', 'Bạn đã đặt lịch hẹn thành công vào 2025-09-14 lúc 10:40', '{\"bac_si_id\":\"1\",\"ngay\":\"2025-09-14\",\"gio\":\"10:40\"}', 0, '2025-09-07 12:02:59'),
+(5, 'benh_nhan', NULL, 21, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn: Đã xác nhận', '{\"appointment_id\":\"47\",\"trang_thai\":\"\\u0110\\u00e3 x\\u00e1c nh\\u1eadn\"}', 0, '2025-09-07 12:03:16'),
+(6, 'benh_nhan', NULL, 21, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn: Hoàn thành', '{\"appointment_id\":\"47\",\"trang_thai\":\"Ho\\u00e0n th\\u00e0nh\"}', 0, '2025-09-07 12:03:43'),
+(7, 'benh_nhan', NULL, 21, NULL, 'success', 'Bạn đã đặt lịch hẹn thành công vào 2025-09-07 lúc 06:20', '{\"bac_si_id\":\"1\",\"ngay\":\"2025-09-07\",\"gio\":\"06:20\"}', 0, '2025-09-07 12:06:55'),
+(8, 'benh_nhan', NULL, 21, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn: Đã xác nhận', '{\"appointment_id\":\"48\",\"trang_thai\":\"\\u0110\\u00e3 x\\u00e1c nh\\u1eadn\"}', 0, '2025-09-07 12:07:26'),
+(9, 'benh_nhan', NULL, 21, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn: Đã xác nhận', '{\"appointment_id\":\"48\",\"trang_thai\":\"\\u0110\\u00e3 x\\u00e1c nh\\u1eadn\"}', 0, '2025-09-07 12:07:26');
 
 --
 -- Chỉ mục cho các bảng đã đổ
@@ -225,6 +306,15 @@ ALTER TABLE `lich_hen`
   ADD KEY `idx_lich_ngay` (`ngay_hen`);
 
 --
+-- Chỉ mục cho bảng `lich_lam_viec`
+--
+ALTER TABLE `lich_lam_viec`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_bac_si_id` (`bac_si_id`),
+  ADD KEY `idx_thu_trong_tuan` (`thu_trong_tuan`),
+  ADD KEY `idx_trang_thai` (`trang_thai`);
+
+--
 -- Chỉ mục cho bảng `otp_codes`
 --
 ALTER TABLE `otp_codes`
@@ -242,6 +332,17 @@ ALTER TABLE `quan_tri_vien`
   ADD KEY `idx_qtv_email` (`email`);
 
 --
+-- Chỉ mục cho bảng `thong_bao`
+--
+ALTER TABLE `thong_bao`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_doi_tuong` (`doi_tuong`),
+  ADD KEY `idx_bac_si_id` (`bac_si_id`),
+  ADD KEY `idx_benh_nhan_id` (`benh_nhan_id`),
+  ADD KEY `idx_quan_tri_vien_id` (`quan_tri_vien_id`),
+  ADD KEY `idx_da_doc` (`da_doc`);
+
+--
 -- AUTO_INCREMENT cho các bảng đã đổ
 --
 
@@ -255,7 +356,7 @@ ALTER TABLE `bac_si`
 -- AUTO_INCREMENT cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT cho bảng `ho_so_benh_an`
@@ -267,7 +368,13 @@ ALTER TABLE `ho_so_benh_an`
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+
+--
+-- AUTO_INCREMENT cho bảng `lich_lam_viec`
+--
+ALTER TABLE `lich_lam_viec`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT cho bảng `otp_codes`
@@ -280,6 +387,12 @@ ALTER TABLE `otp_codes`
 --
 ALTER TABLE `quan_tri_vien`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT cho bảng `thong_bao`
+--
+ALTER TABLE `thong_bao`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Các ràng buộc cho các bảng đã đổ
@@ -299,6 +412,20 @@ ALTER TABLE `ho_so_benh_an`
 ALTER TABLE `lich_hen`
   ADD CONSTRAINT `lich_hen_ibfk_1` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `lich_hen_ibfk_2` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE;
+
+--
+-- Các ràng buộc cho bảng `lich_lam_viec`
+--
+ALTER TABLE `lich_lam_viec`
+  ADD CONSTRAINT `lich_lam_viec_ibfk_1` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE;
+
+--
+-- Các ràng buộc cho bảng `thong_bao`
+--
+ALTER TABLE `thong_bao`
+  ADD CONSTRAINT `fk_tb_bac_si` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_tb_benh_nhan` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_tb_quan_tri_vien` FOREIGN KEY (`quan_tri_vien_id`) REFERENCES `quan_tri_vien` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

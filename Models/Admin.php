@@ -12,7 +12,7 @@ class Admin extends User
     public function login($email, $password)
     {
         $query = "SELECT * FROM " . $this->table_name . " WHERE email = :email LIMIT 1";
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->getConnection()->prepare($query);
         $stmt->bindParam(":email", $email);
         $stmt->execute();
 
@@ -28,7 +28,7 @@ class Admin extends User
     public function emailExists($email)
     {
         $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE email = :email";
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->getConnection()->prepare($query);
         $stmt->bindParam(":email", $email);
         $stmt->execute();
         return $stmt->fetchColumn() > 0;
@@ -37,7 +37,7 @@ class Admin extends User
     public function phoneExists($phone)
     {
         $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE so_dien_thoai = :phone";
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->getConnection()->prepare($query);
         $stmt->bindParam(":phone", $phone);
         $stmt->execute();
         return $stmt->fetchColumn() > 0;
@@ -59,7 +59,7 @@ class Admin extends User
                   (ten, email, mat_khau, so_dien_thoai, phone_verified, ngay_tao) 
                   VALUES (:ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, NOW())";
 
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->getConnection()->prepare($query);
 
         $hashedPassword = $this->hashPassword($data['mat_khau']);
         $phone_verified = $data['phone_verified'] ?? 0;
@@ -76,7 +76,7 @@ class Admin extends User
     public function getAll()
     {
         $query = "SELECT id, ten, email, so_dien_thoai, ngay_tao FROM " . $this->table_name;
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->getConnection()->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -84,7 +84,7 @@ class Admin extends User
     public function getById($id)
     {
         $query = "SELECT id, ten, email, so_dien_thoai, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE id = :id";
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->getConnection()->prepare($query);
         $stmt->bindParam(":id", $id);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -93,7 +93,7 @@ class Admin extends User
     public function updatePassword($id, $newPassword)
     {
         $query = "UPDATE " . $this->table_name . " SET mat_khau = :mat_khau WHERE id = :id";
-        $stmt = $this->conn->prepare($query);
+        $stmt = $this->getConnection()->prepare($query);
         $hashedPassword = $this->hashPassword($newPassword);
         $stmt->bindParam(":mat_khau", $hashedPassword);
         $stmt->bindParam(":id", $id);

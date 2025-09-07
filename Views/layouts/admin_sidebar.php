@@ -49,6 +49,14 @@
             </li>
 
             <li class="nav-item">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('doctor_schedules'); ?>"
+                    href="./doctor_schedules">
+                    <i class="fas fa-calendar-check me-3"></i>
+                    <span>Lịch làm việc bác sĩ</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
                     <i class="fas fa-file-medical me-3"></i>
                     <span>Hồ sơ bệnh án</span>

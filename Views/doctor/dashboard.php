@@ -12,7 +12,13 @@ $content = '
             </h1>
             <p class="text-muted">Chào mừng bác sĩ ' . $_SESSION['user_name'] . ' - ' . ($_SESSION['specialization'] ?? 'Chuyên khoa') . '</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
+            <!-- Socket Connection Status -->
+            <div class="me-3">
+                <span id="socket-status" class="badge bg-secondary">Đang kết nối...</span>
+                <div id="connection-stats" class="small text-muted"></div>
+            </div>
+            
             <button class="btn btn-success">
                 <i class="fas fa-calendar-plus me-2"></i>Lịch làm việc
             </button>

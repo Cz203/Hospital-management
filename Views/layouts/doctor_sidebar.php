@@ -21,16 +21,18 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo (strpos($_SERVER['REQUEST_URI'], 'doctor_appointment_management') !== false) ? 'active' : ''; ?>"
+                    href="./doctor_appointment_management">
                     <i class="fas fa-calendar-check me-3"></i>
-                    <span>Lịch hẹn hôm nay</span>
+                    <span>Quản lý lịch hẹn</span>
                 </a>
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('doctor_schedule_management'); ?>"
+                    href="./doctor_schedule_management">
                     <i class="fas fa-calendar-alt me-3"></i>
-                    <span>Lịch làm việc</span>
+                    <span>Đăng ký ca trực</span>
                 </a>
             </li>
 

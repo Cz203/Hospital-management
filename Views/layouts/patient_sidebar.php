@@ -21,8 +21,8 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('home'); ?>"
-                    href="./home">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo (strpos($_SERVER['REQUEST_URI'], 'hospital_appointment') !== false) ? 'active' : ''; ?>"
+                    href="./doctor_team">
                     <i class="fas fa-calendar-plus me-3"></i>
                     <span>Đặt lịch hẹn</span>
                 </a>

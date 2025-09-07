@@ -21,4 +21,9 @@ class User
     {
         return password_verify($password, $hash);
     }
+
+    public function getConnection()
+    {
+        return $this->conn;
+    }
 }
