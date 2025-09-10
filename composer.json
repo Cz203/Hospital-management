@@ -13,8 +13,6 @@
     ],
     "require": {
         "vonage/client": "^4.2",
-        "google/apiclient": "^2.18",
-        "google/apiclient-services": "^0.411.0",
         "firebase/php-jwt": "^6.11",
         "guzzlehttp/guzzle": "^7.9"
     }

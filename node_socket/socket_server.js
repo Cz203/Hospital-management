@@ -10,7 +10,7 @@ const io = socketIo(server, {
     origin: [
       "http://localhost:3000",
       "http://localhost/hospital_management",
-      "https://yourdomain.com",
+      "https://yourdomain.com", // Thay bằng domain thật của bạn
     ],
     methods: ["GET", "POST"],
     credentials: true,
