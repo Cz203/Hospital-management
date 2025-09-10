@@ -126,6 +126,9 @@ switch ($action) {
         $auth->requireAuth('patient');
         include 'Views/appointment/home_visit_booking.php'; // Đặt lịch khám tại nhà
         break;
+    case 'consultation_booking':
+        $appointmentController->consultationBooking(); // Đặt lịch tư vấn trực tuyến
+        break;
 
     // ===== PROFILE ROUTES =====
     case 'admin_profile':

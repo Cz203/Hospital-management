@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function displayTimeSlots(timeSlots, doctorId, date) {
     if (timeSlots.length === 0) {
       appointmentTime.innerHTML =
-        '<option value="">Không có khung giờ trống</option>';
+        '<option value="">Đã quá thời gian hiện tại</option>';
       appointmentTime.disabled = true;
       return;
     }

@@ -134,6 +134,15 @@ class DoctorController
 
         // Cập nhật trạng thái
         if ($appointmentModel->updateStatus($appointmentId, $status, $note)) {
+            // Debug: Log appointment data
+            error_log("Appointment update - ID: $appointmentId, Loai: {$appointment['loai_lich']}, Status: $status");
+
+            // Nếu là lịch tư vấn và được xác nhận, tạo Zoom meeting link
+            if ($appointment['loai_lich'] === 'Tư vấn' && $status === 'Đã xác nhận') {
+                error_log("Creating Zoom meeting link for consultation appointment ID: $appointmentId");
+                $this->createZoomMeetingLink($appointment);
+            }
+
             // Emit socket notification for status change
             $this->emitAppointmentStatusChange($appointment, $status, $note);
 
@@ -491,6 +500,65 @@ class DoctorController
             }
         } catch (Exception $e) {
             error_log("Appointment status change notification error: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Tạo Zoom meeting link cho lịch tư vấn
+     */
+    private function createZoomMeetingLink($appointment)
+    {
+        try {
+            error_log("Starting Zoom meeting link creation for appointment ID: " . $appointment['id']);
+            require_once 'Services/ZoomService.php';
+
+            $zoomService = new ZoomService();
+
+            // Kiểm tra xem service có sẵn sàng không
+            if (!$zoomService->isReady()) {
+                error_log("Zoom service not ready for appointment ID: " . $appointment['id']);
+                return;
+            }
+
+            error_log("Zoom service is ready, proceeding with meeting creation");
+
+            // Lấy thông tin bác sĩ và bệnh nhân
+            $doctor = $this->doctorModel->getById($appointment['bac_si_id']);
+            require_once 'Models/Patient.php';
+            $patientModel = new Patient();
+            $patient = $patientModel->getById($appointment['benh_nhan_id']);
+
+            if (!$doctor || !$patient) {
+                error_log("Cannot find doctor or patient for appointment ID: " . $appointment['id']);
+                return;
+            }
+
+            // Chuẩn bị dữ liệu cho Zoom meeting
+            $meetingData = [
+                'appointment_id' => $appointment['id'],
+                'ngay_hen' => $appointment['ngay_hen'],
+                'gio_hen' => $appointment['gio_hen'],
+                'ly_do' => $appointment['ly_do'],
+                'doctor_name' => $doctor['ten'],
+                'doctor_email' => $doctor['email'],
+                'patient_email' => $patient['email']
+            ];
+
+            // Tạo Zoom meeting link
+            $result = $zoomService->createMeetingLink($meetingData);
+
+            if ($result['success']) {
+                // Cập nhật link_tu_van trong database
+                require_once 'Models/Appointment.php';
+                $appointmentModel = new Appointment();
+                $appointmentModel->updateMeetLink($appointment['id'], $result['meet_link']);
+
+                error_log("Zoom meeting link created successfully for appointment ID: " . $appointment['id']);
+            } else {
+                error_log("Failed to create Zoom meeting link for appointment ID: " . $appointment['id'] . " - Error: " . $result['error']);
+            }
+        } catch (Exception $e) {
+            error_log("Error creating Zoom meeting link for appointment ID: " . $appointment['id'] . " - " . $e->getMessage());
         }
     }
 

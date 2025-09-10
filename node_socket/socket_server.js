@@ -7,8 +7,13 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*",
+    origin: [
+      "http://localhost:3000",
+      "http://localhost/hospital_management",
+      "https://yourdomain.com",
+    ],
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 

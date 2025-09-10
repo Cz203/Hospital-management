@@ -64,6 +64,39 @@ class AppointmentController
     }
 
     /**
+     * Hiển thị trang đặt lịch tư vấn trực tuyến 
+     */
+    public function consultationBooking()
+    {
+        // Kiểm tra đăng nhập
+        $this->auth->requireAuth('patient');
+
+        $encryptedDoctorId = $_GET['doctor_id'] ?? null;
+        $doctorId = null;
+        $doctor = null;
+        $schedules = [];
+
+        if ($encryptedDoctorId) {
+            try {
+                $decoded = base64_decode($encryptedDoctorId);
+                $doctorId = intval($decoded);
+                if ($doctorId > 0) {
+                    $doctor = $this->doctorModel->getById($doctorId);
+                    if ($doctor) {
+                        $schedules = $this->doctorModel->getSchedules($doctorId) ?: [];
+                    }
+                }
+            } catch (Exception $e) {
+                $doctorId = null;
+                $doctor = null;
+            }
+        }
+
+        // Render trang đặt lịch tư vấn trực tuyến
+        include 'Views/appointment/consultation_booking.php';
+    }
+
+    /**
      * Lấy danh sách bác sĩ theo chuyên khoa (AJAX)
      */
     public function getDoctorsBySpecialty()
@@ -197,6 +230,8 @@ class AppointmentController
         $time = $_POST['time'] ?? '';
         $reason = $_POST['reason'] ?? '';
         $notes = $_POST['notes'] ?? '';
+        $loaiLich = $_POST['loai_lich'] ?? 'Trực tiếp';
+        $linkTuVan = $_POST['link_tu_van'] ?? '';
 
         // Validation
         if (empty($doctorId) || empty($date) || empty($time)) {
@@ -251,9 +286,11 @@ class AppointmentController
             'ngay_hen' => $date,
             'gio_hen' => $time,
             'ly_do' => $reason,
-            'loai_lich' => 'Trực tiếp',
+            'loai_lich' => $loaiLich,
             'trang_thai' => 'Chờ xác nhận',
-            'ghi_chu' => $notes
+            'ghi_chu' => $notes,
+            'link_tu_van' => $linkTuVan,
+            'dia_chi_kham' => null // Tư vấn trực tuyến không cần địa chỉ
         ];
 
         $appointmentId = $this->appointmentModel->create($appointmentData);

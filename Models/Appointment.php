@@ -371,4 +371,22 @@ class Appointment extends User
             ];
         }
     }
+
+    /**
+     * Cập nhật Google Meet link cho lịch hẹn
+     */
+    public function updateMeetLink($appointmentId, $meetLink)
+    {
+        try {
+            $sql = "UPDATE {$this->table} SET link_tu_van = :link_tu_van WHERE id = :id";
+            $stmt = $this->getConnection()->prepare($sql);
+            return $stmt->execute([
+                ':link_tu_van' => $meetLink,
+                ':id' => $appointmentId
+            ]);
+        } catch (PDOException $e) {
+            error_log("Appointment updateMeetLink error: " . $e->getMessage());
+            return false;
+        }
+    }
 }

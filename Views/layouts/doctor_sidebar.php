@@ -21,6 +21,14 @@
             </li>
 
             <li class="nav-item">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo (strpos($_SERVER['REQUEST_URI'], '#') !== false) ? 'active' : ''; ?>"
+                    href="./#">
+                    <i class="fas fa-calendar-check me-3"></i>
+                    <span>Lịch hẹn hôm nay</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo (strpos($_SERVER['REQUEST_URI'], 'doctor_appointment_management') !== false) ? 'active' : ''; ?>"
                     href="./doctor_appointment_management">
                     <i class="fas fa-calendar-check me-3"></i>

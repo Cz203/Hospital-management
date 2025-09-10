@@ -186,13 +186,14 @@ ob_start();
                                     <th>Số điện thoại</th>
                                     <th>Lý do khám</th>
                                     <th>Loại lịch</th>
+                                    <th>Link tư vấn</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($pendingAppointments)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         <i class="fas fa-calendar-times fa-2x mb-2"></i><br>
                                         Không có lịch hẹn chờ xác nhận
                                     </td>
@@ -221,6 +222,16 @@ ob_start();
                                     <td>
                                         <span
                                             class="badge bg-info"><?php echo htmlspecialchars($appointment['loai_lich'] ?? 'Trực tiếp'); ?></span>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($appointment['link_tu_van'])): ?>
+                                        <a href="<?php echo htmlspecialchars($appointment['link_tu_van']); ?>"
+                                            target="_blank" class="btn btn-sm btn-success">
+                                            <i class="fas fa-video me-1"></i>Tham gia tư vấn
+                                        </a>
+                                        <?php else: ?>
+                                        <span class="text-muted">Không có</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <button class="btn btn-success btn-sm"
@@ -260,13 +271,14 @@ ob_start();
                                     <th>Số điện thoại</th>
                                     <th>Lý do khám</th>
                                     <th>Loại lịch</th>
+                                    <th>Link tư vấn</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($confirmedAppointments)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         <i class="fas fa-check-circle fa-2x mb-2"></i><br>
                                         Không có lịch hẹn đã xác nhận
                                     </td>
@@ -295,6 +307,16 @@ ob_start();
                                     <td>
                                         <span
                                             class="badge bg-info"><?php echo htmlspecialchars($appointment['loai_lich'] ?? 'Trực tiếp'); ?></span>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($appointment['link_tu_van'])): ?>
+                                        <a href="<?php echo htmlspecialchars($appointment['link_tu_van']); ?>"
+                                            target="_blank" class="btn btn-sm btn-success">
+                                            <i class="fas fa-video me-1"></i>Tham gia tư vấn
+                                        </a>
+                                        <?php else: ?>
+                                        <span class="text-muted">Không có</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-primary"
@@ -333,13 +355,14 @@ ob_start();
                                     <th>Số điện thoại</th>
                                     <th>Lý do khám</th>
                                     <th>Kết quả</th>
+                                    <th>Link tư vấn</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($completedAppointments)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         <i class="fas fa-check-double fa-2x mb-2"></i><br>
                                         Không có lịch hẹn đã hoàn thành
                                     </td>
@@ -366,6 +389,16 @@ ob_start();
                                     <td><?php echo htmlspecialchars($appointment['so_dien_thoai'] ?? 'N/A'); ?></td>
                                     <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
                                     <td><span class="badge bg-success">Hoàn thành</span></td>
+                                    <td>
+                                        <?php if (!empty($appointment['link_tu_van'])): ?>
+                                        <a href="<?php echo htmlspecialchars($appointment['link_tu_van']); ?>"
+                                            target="_blank" class="btn btn-sm btn-success">
+                                            <i class="fas fa-video me-1"></i>Xem lại cuộc họp
+                                        </a>
+                                        <?php else: ?>
+                                        <span class="text-muted">Không có</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <button class="btn btn-sm btn-info"
                                             onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">
@@ -399,13 +432,14 @@ ob_start();
                                     <th>Số điện thoại</th>
                                     <th>Lý do khám</th>
                                     <th>Lý do hủy</th>
+                                    <th>Link tư vấn</th>
                                     <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($cancelledAppointments)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
+                                    <td colspan="7" class="text-center text-muted py-4">
                                         <i class="fas fa-times-circle fa-2x mb-2"></i><br>
                                         Không có lịch hẹn đã hủy
                                     </td>
@@ -432,6 +466,16 @@ ob_start();
                                     <td><?php echo htmlspecialchars($appointment['so_dien_thoai'] ?? 'N/A'); ?></td>
                                     <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
                                     <td><?php echo htmlspecialchars($appointment['ghi_chu'] ?? 'Không có lý do'); ?>
+                                    </td>
+                                    <td>
+                                        <?php if (!empty($appointment['link_tu_van'])): ?>
+                                        <a href="<?php echo htmlspecialchars($appointment['link_tu_van']); ?>"
+                                            target="_blank" class="btn btn-sm btn-success">
+                                            <i class="fas fa-video me-1"></i>Xem lại cuộc họp
+                                        </a>
+                                        <?php else: ?>
+                                        <span class="text-muted">Không có</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-info"

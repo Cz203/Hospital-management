@@ -3,6 +3,7 @@
 require_once 'Models/Admin.php';
 require_once 'Models/Doctor.php';
 require_once 'Models/Patient.php';
+require_once 'config/security.php';
 
 class AuthController
 {
@@ -27,7 +28,22 @@ class AuthController
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $email = $_POST['email'] ?? '';
+            // Kiểm tra CSRF token
+            $csrfToken = $_POST['csrf_token'] ?? '';
+            if (!SecurityConfig::validateCSRFToken($csrfToken)) {
+                $_SESSION['error'] = "Token bảo mật không hợp lệ!";
+                header("Location: ./login_admin");
+                exit();
+            }
+
+            // Rate limiting
+            if (!SecurityConfig::checkRateLimit('admin_login_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'))) {
+                $_SESSION['error'] = "Quá nhiều lần thử. Vui lòng thử lại sau 15 phút.";
+                header("Location: ./login_admin");
+                exit();
+            }
+
+            $email = SecurityConfig::sanitizeInput($_POST['email'] ?? '');
             $password = $_POST['password'] ?? '';
 
             if (empty($email) || empty($password)) {
@@ -36,13 +52,24 @@ class AuthController
                 exit();
             }
 
+            if (!SecurityConfig::validateEmail($email)) {
+                $_SESSION['error'] = "Email không hợp lệ!";
+                header("Location: ./login_admin");
+                exit();
+            }
+
             $admin = new Admin();
             $user = $admin->login($email, $password);
             if ($user) {
+                // Regenerate session ID để tránh session fixation
+                session_regenerate_id(true);
+
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['ten'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_role'] = 'admin';
+                $_SESSION['last_activity'] = time();
+
                 header("Location: ./admin_dashboard");
                 exit();
             }
@@ -86,11 +113,16 @@ class AuthController
             $doctor = new Doctor();
             $user = $doctor->login($email, $password);
             if ($user) {
+                // Regenerate session ID để tránh session fixation
+                session_regenerate_id(true);
+
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['ten'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_role'] = 'doctor';
                 $_SESSION['specialization'] = $user['chuyen_khoa'];
+                $_SESSION['last_activity'] = time();
+
                 header("Location: ./doctor_dashboard");
                 exit();
             }
@@ -134,10 +166,15 @@ class AuthController
             $patient = new Patient();
             $user = $patient->login($email, $password);
             if ($user) {
+                // Regenerate session ID để tránh session fixation
+                session_regenerate_id(true);
+
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['ten'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_role'] = 'patient';
+                $_SESSION['last_activity'] = time();
+
                 header("Location: patient_dashboard");
                 exit();
             }
@@ -340,6 +377,16 @@ class AuthController
             header("Location: ./login");
             exit();
         }
+
+        // Kiểm tra session timeout (30 phút)
+        if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
+            session_destroy();
+            header("Location: ./login");
+            exit();
+        }
+
+        // Cập nhật last activity
+        $_SESSION['last_activity'] = time();
 
         if ($role && $_SESSION['user_role'] !== $role) {
             header("Location: ./");

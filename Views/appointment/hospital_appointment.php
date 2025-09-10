@@ -88,6 +88,7 @@
 
                         <!-- Form đặt lịch -->
                         <form id="appointmentForm" method="POST" action="./book_appointment">
+                            <input type="hidden" name="loai_lich" value="Trực tiếp">
                             <input type="hidden" id="doctorId" name="doctor_id"
                                 value="<?php echo $doctor['id'] ?? ''; ?>">
 

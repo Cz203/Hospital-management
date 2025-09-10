@@ -3,7 +3,6 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-var_dump($_SESSION);
 // Kiểm tra user đã đăng nhập
 if (!isset($_SESSION['user_id'])) {
     header("Location: ./login");

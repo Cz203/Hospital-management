@@ -2,3 +2,7 @@
 .env
 
 /vendor/
+
+google_credentials.json
+composer.json
+composer.lock
