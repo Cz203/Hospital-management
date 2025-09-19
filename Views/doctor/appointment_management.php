@@ -16,6 +16,8 @@ function getStatusBadgeClass($status)
             return 'bg-warning';
         case 'Hoàn thành':
             return 'bg-info';
+        case 'Đang khám':
+            return 'bg-warning';
         case 'hủy':
             return 'bg-danger';
         default:
@@ -33,6 +35,8 @@ function getStatusText($status)
             return 'Chờ xác nhận';
         case 'Hoàn thành':
             return 'Hoàn thành';
+        case 'Đang khám':
+            return 'Đang khám';
         case 'hủy':
             return 'Đã hủy';
         default:
@@ -151,6 +155,13 @@ ob_start();
                         type="button" role="tab">
                         <i class="fas fa-check-circle me-2"></i>Đã xác nhận
                         <span class="badge bg-success ms-2"><?php echo count($confirmedAppointments); ?></span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="examining-tab" data-bs-toggle="tab" data-bs-target="#examining"
+                        type="button" role="tab">
+                        <i class="fas fa-stethoscope me-2"></i>Đang khám
+                        <span class="badge bg-warning ms-2"><?php echo isset($examiningAppointments)?count($examiningAppointments):0; ?></span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -313,6 +324,57 @@ ob_start();
                                 </tr>
                                 <?php endforeach; ?>
                                 <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examining Appointments -->
+        <div class="tab-pane fade" id="examining" role="tabpanel">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Ngày giờ</th>
+                                    <th>Bệnh nhân</th>
+                                    <th>Số điện thoại</th>
+                                    <th>Lý do khám</th>
+                                    <th>Loại lịch</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($examiningAppointments ?? [])): ?>
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fas fa-user-md fa-2x mb-2"></i><br>
+                                        Không có lịch đang khám
+                                    </td>
+                                </tr>
+                                <?php else: foreach (($examiningAppointments ?? []) as $appointment): ?>
+                                <tr>
+                                    <td><?php echo formatDateTime($appointment['ngay_hen'], $appointment['gio_hen']); ?></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-2">
+                                                <?php echo strtoupper(substr($appointment['ten_benh_nhan'], 0, 1)); ?>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold"><?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?></div>
+                                                <small class="text-muted"><?php echo $appointment['gioi_tinh'] ?? 'N/A'; ?></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><?php echo htmlspecialchars($appointment['so_dien_thoai'] ?? 'N/A'); ?></td>
+                                    <td><?php echo htmlspecialchars($appointment['ly_do'] ?? ''); ?></td>
+                                    <td><span class="badge bg-info"><?php echo htmlspecialchars($appointment['loai_lich'] ?? 'Trực tiếp'); ?></span></td>
+                                    <td><span class="badge bg-warning">Đang khám</span></td>
+                                </tr>
+                                <?php endforeach; endif; ?>
                             </tbody>
                         </table>
                     </div>

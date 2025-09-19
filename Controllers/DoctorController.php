@@ -72,6 +72,9 @@ class DoctorController
                 case 'Đã xác nhận':
                     $confirmedAppointments[] = $appointment;
                     break;
+                case 'Đang khám':
+                    // handled separately below (examining)
+                    break;
                 case 'Hoàn thành':
                     $completedAppointments[] = $appointment;
                     break;
@@ -79,13 +82,16 @@ class DoctorController
                     $cancelledAppointments[] = $appointment;
                     break;
                 default:
-                    $pendingAppointments[] = $appointment;
+                    // ignore unknown statuses; do not mix into pending
                     break;
             }
         }
 
         // Lấy thống kê
         $stats = $appointmentModel->getStats($doctorId);
+
+        // Nhóm thêm danh sách đang khám
+        $examiningAppointments = array_values(array_filter($allAppointments, function($a){ return isset($a['trang_thai']) && $a['trang_thai'] === 'Đang khám'; }));
 
         // Start output buffering để lấy content
         ob_start();
@@ -555,6 +561,180 @@ class DoctorController
             }
         } catch (Exception $e) {
             error_log("Socket notification error: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Trang khám bệnh - hiển thị danh sách lịch hẹn theo ngày
+     */
+    public function examination()
+    {
+        $this->auth->requireAuth('doctor');
+
+        try {
+            $doctorId = $_SESSION['user_id'];
+            
+            // Lấy thông tin bác sĩ
+            $doctor = $this->doctorModel->getById($doctorId);
+            if (!$doctor) {
+                $_SESSION['error'] = 'Không tìm thấy thông tin bác sĩ!';
+                header('Location: ./doctor_dashboard');
+                exit();
+            }
+
+            // Lấy ngày được chọn (mặc định là hôm nay)
+            $selectedDate = $_GET['date'] ?? date('Y-m-d');
+            
+            // Validate ngày
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $selectedDate)) {
+                $selectedDate = date('Y-m-d');
+            }
+
+            // Kiểm tra xem có cần tự động mở modal không
+            $autoOpenModal = false;
+            $appointmentId = null;
+            
+            if (isset($_GET['start_exam']) && !empty($_GET['start_exam'])) {
+                $appointmentId = $_GET['start_exam'];
+                $autoOpenModal = true;
+                // Cập nhật trạng thái thành "Đang khám"
+                $appointmentModel = new Appointment();
+                $appointmentModel->updateStatus($appointmentId, 'Đang khám');
+            } elseif (isset($_GET['continue_exam']) && !empty($_GET['continue_exam'])) {
+                $appointmentId = $_GET['continue_exam'];
+                $autoOpenModal = true;
+            }
+
+            // Lấy lịch hẹn theo ngày được chọn
+            $appointmentModel = new Appointment();
+            $appointments = $appointmentModel->getAppointmentsByDoctorAndDate($doctorId, $selectedDate);
+            $stats = $appointmentModel->getStatsByDoctorAndDate($doctorId, $selectedDate);
+
+            // Lịch hẹn đã được lọc lấy "Đã xác nhận" và "Đang khám" từ database
+            // Không cần phân loại thêm vì đã có trong query
+
+            // Include view với thông tin auto open modal
+            include 'Views/doctor/examination.php';
+
+        } catch (Exception $e) {
+            error_log("Doctor examination error: " . $e->getMessage());
+            $_SESSION['error'] = 'Có lỗi xảy ra khi tải trang khám bệnh!';
+            header('Location: ./doctor_dashboard');
+            exit();
+        }
+    }
+
+    /**
+     * Bắt đầu khám bệnh - đổi trạng thái thành "Đang khám"
+     */
+    public function startExamination()
+    {
+        $this->auth->requireAuth('doctor');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./doctor_examination');
+            exit();
+        }
+
+        try {
+            $appointmentId = $_POST['appointment_id'] ?? null;
+            $doctorId = $_SESSION['user_id'];
+
+            if (!$appointmentId) {
+                if (!empty($_POST['ajax'])) {
+                    echo json_encode(['success' => false, 'message' => 'Thiếu thông tin lịch hẹn!']);
+                    exit();
+                } else {
+                    $_SESSION['error'] = 'Thiếu thông tin lịch hẹn!';
+                    header('Location: ./doctor_examination');
+                    exit();
+                }
+            }
+
+            $appointmentModel = new Appointment();
+            $success = $appointmentModel->startExamination($appointmentId, $doctorId);
+
+            if ($success) {
+                if (!empty($_POST['ajax'])) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => true]);
+                    exit();
+                }
+                $_SESSION['success'] = 'Đã bắt đầu khám bệnh thành công!';
+            } else {
+                if (!empty($_POST['ajax'])) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Không thể bắt đầu khám bệnh. Vui lòng thử lại!']);
+                    exit();
+                }
+                $_SESSION['error'] = 'Không thể bắt đầu khám bệnh. Vui lòng thử lại!';
+            }
+
+            // Redirect về trang examination với ngày hiện tại
+            $selectedDate = $_POST['selected_date'] ?? date('Y-m-d');
+            header('Location: ./doctor_examination?date=' . $selectedDate);
+            exit();
+
+        } catch (Exception $e) {
+            error_log("Doctor startExamination error: " . $e->getMessage());
+            if (!empty($_POST['ajax'])) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra khi bắt đầu khám bệnh!']);
+                exit();
+            } else {
+                $_SESSION['error'] = 'Có lỗi xảy ra khi bắt đầu khám bệnh!';
+                header('Location: ./doctor_examination');
+                exit();
+            }
+        }
+    }
+
+
+    /**
+     * Lưu (upsert) phiếu tiền sử dị ứng
+     */
+    public function saveAllergyHistory()
+    {
+        $this->auth->requireAuth('doctor');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+        try {
+            $patientId = $_POST['patient_id'] ?? null;
+            if (!$patientId) { echo json_encode(['success'=>false,'message'=>'Thiếu patient_id']); exit(); }
+            if (!ctype_digit((string)$patientId)) { echo json_encode(['success'=>false,'message'=>'patient_id không hợp lệ']); exit(); }
+
+            require_once 'Models/Appointment.php';
+            $model = new Appointment();
+            $ok = $model->upsertAllergyHistory($patientId, $_POST);
+            echo json_encode(['success' => $ok ? true : false, 'message' => $ok ? 'OK' : 'DB error']);
+        } catch (Exception $e) {
+            error_log('saveAllergyHistory error: '.$e->getMessage());
+            echo json_encode(['success'=>false,'message'=>'Server error']);
+        }
+    }
+
+    /**
+     * Lấy phiếu tiền sử dị ứng theo bệnh nhân
+     */
+    public function getAllergyHistory()
+    {
+        $this->auth->requireAuth('doctor');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+        try {
+            $patientId = $_POST['patient_id'] ?? null;
+            if (!$patientId) { echo json_encode(['success'=>false,'message'=>'Thiếu patient_id']); exit(); }
+            require_once 'Models/Appointment.php';
+            $model = new Appointment();
+            $data = $model->getAllergyHistoryByPatient($patientId);
+            echo json_encode(['success'=>true,'data'=>$data]);
+        } catch (Exception $e) {
+            error_log('getAllergyHistory error: '.$e->getMessage());
+            echo json_encode(['success'=>false,'message'=>'Server error']);
         }
     }
 }
