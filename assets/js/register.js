@@ -189,7 +189,17 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // Đợi 500ms sau khi user ngừng gõ mới check
+      // Validate số điện thoại Việt Nam trước
+      const validation = validateVietnamesePhoneNumber(phone);
+      if (!validation.valid) {
+        showPhoneValidationMessage(validation.message, "error");
+        return;
+      }
+
+      // Nếu hợp lệ, hiển thị thông báo success
+      showPhoneValidationMessage("Số điện thoại hợp lệ", "success");
+
+      // Đợi 500ms sau khi user ngừng gõ mới check database
       phoneCheckTimeout = setTimeout(() => {
         checkPhoneForRegistration(phone);
       }, 500);
@@ -227,6 +237,84 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 });
+
+// Validate số điện thoại Việt Nam
+function validateVietnamesePhoneNumber(phoneNumber) {
+  // Loại bỏ tất cả ký tự không phải số
+  let phone = phoneNumber.replace(/\D/g, "");
+
+  // Nếu bắt đầu bằng 84, bỏ 84 đầu để check
+  if (phone.startsWith("84")) {
+    phone = phone.substring(2);
+  } else if (phone.startsWith("0")) {
+    phone = phone.substring(1); // Bỏ số 0 đầu
+  }
+
+  // Danh sách các đầu số hợp lệ của Việt Nam
+  const validPrefixes = [
+    // Viettel
+    "32",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "86",
+    "96",
+    "97",
+    "98",
+    // Vinaphone
+    "81",
+    "82",
+    "83",
+    "84",
+    "85",
+    "88",
+    "91",
+    "94",
+    // Mobifone
+    "70",
+    "76",
+    "77",
+    "78",
+    "79",
+    "89",
+    "90",
+    "93",
+    // Vietnamobile
+    "52",
+    "56",
+    "58",
+    "92",
+    // Gmobile
+    "59",
+    "99",
+  ];
+
+  // Kiểm tra độ dài (phải có 9 chữ số sau khi bỏ đầu số 0)
+  if (phone.length !== 9) {
+    return {
+      valid: false,
+      message: "Số điện thoại phải có 10 chữ số.",
+    };
+  }
+
+  // Kiểm tra đầu số có hợp lệ không
+  const prefix = phone.substring(0, 2);
+  if (!validPrefixes.includes(prefix)) {
+    return {
+      valid: false,
+      message: "Số điện thoại không hợp lệ.",
+    };
+  }
+
+  return {
+    valid: true,
+    normalized: "84" + phone,
+  };
+}
 
 // Function để hiển thị thông báo validation
 function showPhoneValidationMessage(message, type) {
