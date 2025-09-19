@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th9 10, 2025 lúc 10:48 PM
+-- Thời gian đã tạo: Th9 19, 2025 lúc 03:40 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -143,20 +143,8 @@ INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `pho
 (21, 'Việt', 'nasumi121@gmail.com', '$2y$10$E5dJk94KPjGRb.FYwIJ86uiga63FukshJZaR.Qph8CRLkGjNIY2xm', '84385485869', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-08-23 21:09:27', '2025-09-10 18:12:18'),
 (23, 'cvb', 'tranthi22b@example.com', '$2y$10$WWKqyUOGawB9jPJKvzdXi.ixgAx/DIYPgp1bS/OL9QxHgfnblHYSq', '8413251345134', 1, NULL, NULL, '0000-00-00', 'Nam', 'vczbvcb', '', '2025-08-23 21:19:49', '2025-08-23 21:19:49'),
 (24, 'Việt', '2001tra2ngmoon@gmail.com', '$2y$10$7uqm.qatZX26SQefunbrFu/r.hAqc3Fjsox3lS4A/d4AftmwEUwGi', '8412312312312', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', '', '2025-08-23 21:56:05', '2025-08-23 21:56:05'),
-(26, 'Cao Viet', '123123@gmail.com', '$2y$10$s/MXw185zelPGtOcgbHZx.p/mbODis0.ti23ys7Ld/pqL9Pg6hB6K', '84913998110', 1, NULL, NULL, '2003-03-20', 'Nam', 'bxcvb', '', '2025-08-24 18:16:05', '2025-09-07 21:16:13');
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `google_oauth`
---
-
-CREATE TABLE `google_oauth` (
-  `id` int(11) NOT NULL,
-  `refresh_token` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(27, 'Việt', 'vczxv@gmail.com', '$2y$10$uXQU6yqxAIeBUuNn/oWQR.NnwczHfqb5sNP9P2aVGLxqzethN89fO', '84354143619', 1, NULL, NULL, '2003-01-10', 'Nu', 'vbxcvb', 'A+', '2025-09-15 11:15:08', '2025-09-15 11:15:08'),
+(28, 'Việt', 'caoduongvietquoc@gmail.com', '$2y$10$ujZnPMbxVgX1tgQaPWMnr.yU07aISutD3ehgWy5OiMhaIQWh5imWe', '84913998110', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-09-15 11:19:11', '2025-09-15 11:22:23');
 
 -- --------------------------------------------------------
 
@@ -193,7 +181,7 @@ CREATE TABLE `lich_hen` (
   `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà') NOT NULL DEFAULT 'Trực tiếp',
   `dia_chi_kham` varchar(255) DEFAULT NULL,
   `link_tu_van` varchar(255) DEFAULT NULL,
-  `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Hoàn thành','hủy') DEFAULT 'Chờ xác nhận',
+  `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Đang khám','Hoàn thành','Đã khám xong','hủy') DEFAULT 'Chờ xác nhận',
   `ghi_chu` text DEFAULT NULL,
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -205,7 +193,8 @@ CREATE TABLE `lich_hen` (
 
 INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
 (80, 21, 1, '2025-09-12', '08:20:00', '', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/82047639256?pwd=I4eHbOIPx1xoIb73V6QRwlVV5T0gvT.1', 'Đã xác nhận', '', '2025-09-10 20:43:02', '2025-09-10 20:43:08'),
-(81, 21, 1, '2025-09-12', '08:00:00', 'zxc', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85103772356?pwd=ZsEtGeNC2SlNcNPfdkTC8v5QUY3fx9.1', 'Đã xác nhận', '', '2025-09-10 20:45:24', '2025-09-10 20:45:29');
+(81, 21, 1, '2025-09-12', '08:00:00', 'zxc', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85103772356?pwd=ZsEtGeNC2SlNcNPfdkTC8v5QUY3fx9.1', 'Đã xác nhận', '', '2025-09-10 20:45:24', '2025-09-10 20:45:29'),
+(82, 21, 1, '2025-09-12', '07:20:00', 'zcbv', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85653100932?pwd=Cab2e1CPeUk4mDa2Llw6omSbxtRbqp.1', 'Đã xác nhận', '', '2025-09-10 21:04:16', '2025-09-10 21:04:32');
 
 -- --------------------------------------------------------
 
@@ -339,12 +328,6 @@ ALTER TABLE `benh_nhan`
   ADD KEY `idx_bao_hiem_y_te_id` (`bao_hiem_y_te_id`);
 
 --
--- Chỉ mục cho bảng `google_oauth`
---
-ALTER TABLE `google_oauth`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Chỉ mục cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
@@ -419,13 +402,7 @@ ALTER TABLE `bao_hiem_y_te`
 -- AUTO_INCREMENT cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
-
---
--- AUTO_INCREMENT cho bảng `google_oauth`
---
-ALTER TABLE `google_oauth`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT cho bảng `ho_so_benh_an`
@@ -437,7 +414,7 @@ ALTER TABLE `ho_so_benh_an`
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec`
