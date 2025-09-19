@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th9 19, 2025 lúc 03:40 PM
+-- Thời gian đã tạo: Th9 19, 2025 lúc 04:49 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -144,7 +144,7 @@ INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `pho
 (23, 'cvb', 'tranthi22b@example.com', '$2y$10$WWKqyUOGawB9jPJKvzdXi.ixgAx/DIYPgp1bS/OL9QxHgfnblHYSq', '8413251345134', 1, NULL, NULL, '0000-00-00', 'Nam', 'vczbvcb', '', '2025-08-23 21:19:49', '2025-08-23 21:19:49'),
 (24, 'Việt', '2001tra2ngmoon@gmail.com', '$2y$10$7uqm.qatZX26SQefunbrFu/r.hAqc3Fjsox3lS4A/d4AftmwEUwGi', '8412312312312', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', '', '2025-08-23 21:56:05', '2025-08-23 21:56:05'),
 (27, 'Việt', 'vczxv@gmail.com', '$2y$10$uXQU6yqxAIeBUuNn/oWQR.NnwczHfqb5sNP9P2aVGLxqzethN89fO', '84354143619', 1, NULL, NULL, '2003-01-10', 'Nu', 'vbxcvb', 'A+', '2025-09-15 11:15:08', '2025-09-15 11:15:08'),
-(28, 'Việt', 'caoduongvietquoc@gmail.com', '$2y$10$ujZnPMbxVgX1tgQaPWMnr.yU07aISutD3ehgWy5OiMhaIQWh5imWe', '84913998110', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-09-15 11:19:11', '2025-09-15 11:22:23');
+(28, 'Việt', 'caoduongvietquoc@gmail.com', '$2y$10$ujZnPMbxVgX1tgQaPWMnr.yU07aISutD3ehgWy5OiMhaIQWh5imWe', '84913998110', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-09-15 11:19:11', '2025-09-19 14:31:21');
 
 -- --------------------------------------------------------
 
@@ -194,7 +194,9 @@ CREATE TABLE `lich_hen` (
 INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
 (80, 21, 1, '2025-09-12', '08:20:00', '', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/82047639256?pwd=I4eHbOIPx1xoIb73V6QRwlVV5T0gvT.1', 'Đã xác nhận', '', '2025-09-10 20:43:02', '2025-09-10 20:43:08'),
 (81, 21, 1, '2025-09-12', '08:00:00', 'zxc', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85103772356?pwd=ZsEtGeNC2SlNcNPfdkTC8v5QUY3fx9.1', 'Đã xác nhận', '', '2025-09-10 20:45:24', '2025-09-10 20:45:29'),
-(82, 21, 1, '2025-09-12', '07:20:00', 'zcbv', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85653100932?pwd=Cab2e1CPeUk4mDa2Llw6omSbxtRbqp.1', 'Đã xác nhận', '', '2025-09-10 21:04:16', '2025-09-10 21:04:32');
+(82, 21, 1, '2025-09-12', '07:20:00', 'zcbv', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85653100932?pwd=Cab2e1CPeUk4mDa2Llw6omSbxtRbqp.1', 'Đã xác nhận', '', '2025-09-10 21:04:16', '2025-09-10 21:04:32'),
+(83, 28, 1, '2025-09-21', '09:20:00', 'bbbbbbb', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/87665539022?pwd=YO7sK2Ja2etNYh4orrVIfqDIn7ydpo.1', 'Đang khám', NULL, '2025-09-19 14:18:43', '2025-09-19 14:23:17'),
+(84, 28, 1, '2025-09-21', '09:20:00', '', 'Trực tiếp', NULL, '', 'Đã xác nhận', '', '2025-09-19 14:38:20', '2025-09-19 14:39:47');
 
 -- --------------------------------------------------------
 
@@ -242,6 +244,49 @@ CREATE TABLE `otp_codes` (
   `is_used` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `phieu_tien_su_di_ung`
+--
+
+CREATE TABLE `phieu_tien_su_di_ung` (
+  `id` int(11) NOT NULL,
+  `benh_nhan_id` int(11) NOT NULL,
+  `thuoc_hoac_di_nguyen` text DEFAULT NULL,
+  `so_lan_thuoc` varchar(50) DEFAULT NULL,
+  `khong_thuoc` tinyint(1) NOT NULL DEFAULT 0,
+  `ghi_chu_thuoc` text DEFAULT NULL,
+  `con_trung` text DEFAULT NULL,
+  `so_lan_con_trung` varchar(50) DEFAULT NULL,
+  `khong_con_trung` tinyint(1) NOT NULL DEFAULT 0,
+  `ghi_chu_con_trung` text DEFAULT NULL,
+  `thuc_pham` text DEFAULT NULL,
+  `so_lan_thuc_pham` varchar(50) DEFAULT NULL,
+  `khong_thuc_pham` tinyint(1) NOT NULL DEFAULT 0,
+  `ghi_chu_thuc_pham` text DEFAULT NULL,
+  `tac_nhan_khac` text DEFAULT NULL,
+  `so_lan_tac_nhan_khac` varchar(50) DEFAULT NULL,
+  `khong_tac_nhan_khac` tinyint(1) NOT NULL DEFAULT 0,
+  `ghi_chu_tac_nhan_khac` text DEFAULT NULL,
+  `tien_su_ca_nhan` text DEFAULT NULL,
+  `so_lan_tien_su_ca_nhan` varchar(50) DEFAULT NULL,
+  `khong_tien_su_ca_nhan` tinyint(1) NOT NULL DEFAULT 0,
+  `ghi_chu_tien_su_ca_nhan` text DEFAULT NULL,
+  `tien_su_gia_dinh` text DEFAULT NULL,
+  `so_lan_tien_su_gia_dinh` varchar(50) DEFAULT NULL,
+  `khong_tien_su_gia_dinh` tinyint(1) NOT NULL DEFAULT 0,
+  `ghi_chu_tien_su_gia_dinh` text DEFAULT NULL,
+  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `phieu_tien_su_di_ung`
+--
+
+INSERT INTO `phieu_tien_su_di_ung` (`id`, `benh_nhan_id`, `thuoc_hoac_di_nguyen`, `so_lan_thuoc`, `khong_thuoc`, `ghi_chu_thuoc`, `con_trung`, `so_lan_con_trung`, `khong_con_trung`, `ghi_chu_con_trung`, `thuc_pham`, `so_lan_thuc_pham`, `khong_thuc_pham`, `ghi_chu_thuc_pham`, `tac_nhan_khac`, `so_lan_tac_nhan_khac`, `khong_tac_nhan_khac`, `ghi_chu_tac_nhan_khac`, `tien_su_ca_nhan`, `so_lan_tien_su_ca_nhan`, `khong_tien_su_ca_nhan`, `ghi_chu_tien_su_ca_nhan`, `tien_su_gia_dinh`, `so_lan_tien_su_gia_dinh`, `khong_tien_su_gia_dinh`, `ghi_chu_tien_su_gia_dinh`, `ngay_tao`) VALUES
+(1, 28, '', '123', 1, '', 'cvxv', '', 0, '', '', '', 0, '', '', '', 0, '', '', '', 0, '', '', '', 0, '', '2025-09-19 14:24:15');
 
 -- --------------------------------------------------------
 
@@ -364,6 +409,13 @@ ALTER TABLE `otp_codes`
   ADD KEY `idx_is_used` (`is_used`);
 
 --
+-- Chỉ mục cho bảng `phieu_tien_su_di_ung`
+--
+ALTER TABLE `phieu_tien_su_di_ung`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_ptsd_benh_nhan` (`benh_nhan_id`);
+
+--
 -- Chỉ mục cho bảng `quan_tri_vien`
 --
 ALTER TABLE `quan_tri_vien`
@@ -414,7 +466,7 @@ ALTER TABLE `ho_so_benh_an`
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec`
@@ -427,6 +479,12 @@ ALTER TABLE `lich_lam_viec`
 --
 ALTER TABLE `otp_codes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT cho bảng `phieu_tien_su_di_ung`
+--
+ALTER TABLE `phieu_tien_su_di_ung`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT cho bảng `quan_tri_vien`
@@ -470,6 +528,12 @@ ALTER TABLE `lich_hen`
 --
 ALTER TABLE `lich_lam_viec`
   ADD CONSTRAINT `lich_lam_viec_ibfk_1` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE;
+
+--
+-- Các ràng buộc cho bảng `phieu_tien_su_di_ung`
+--
+ALTER TABLE `phieu_tien_su_di_ung`
+  ADD CONSTRAINT `fk_ptsd_benh_nhan` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Các ràng buộc cho bảng `thong_bao`

@@ -61,7 +61,6 @@ switch ($action) {
         header('Content-Type: application/json');
         echo json_encode($result);
         exit();
-        break;
 
     case 'verify_otp':
         require_once 'Controllers/SMSController.php';
@@ -82,9 +81,8 @@ switch ($action) {
         header('Content-Type: application/json');
         echo json_encode($result);
         exit();
-        break;
 
-    // ===== PASSWORD MANAGEMENT ROUTES =====
+        // ===== PASSWORD MANAGEMENT ROUTES =====
     case 'change_password':
         $auth->changePassword(); // Đổi mật khẩu
         break;
@@ -194,18 +192,18 @@ switch ($action) {
         $doctorController->getSchedulesByDay(); // Lấy lịch làm việc theo ngày
         break;
 
-        case 'doctor_examination':
-            $doctorController->examination(); // Khám bệnh - danh sách lịch hẹn hôm nay
-            break;
-        case 'start_examination':
-            $doctorController->startExamination(); // Bắt đầu khám bệnh
-            break;
-        case 'save_allergy_history':
-            $doctorController->saveAllergyHistory();
-            break;
-        case 'get_allergy_history':
-            $doctorController->getAllergyHistory();
-            break;
+    case 'doctor_examination':
+        $doctorController->examination(); // Khám bệnh - danh sách lịch hẹn hôm nay
+        break;
+    case 'start_examination':
+        $doctorController->startExamination(); // Bắt đầu khám bệnh
+        break;
+    case 'save_allergy_history':
+        $doctorController->saveAllergyHistory();
+        break;
+    case 'get_allergy_history':
+        $doctorController->getAllergyHistory();
+        break;
 
     // ===== APPOINTMENT ROUTES =====
     case 'hospital_appointment':

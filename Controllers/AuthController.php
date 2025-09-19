@@ -110,8 +110,8 @@ class AuthController
                 exit();
             }
 
-            $doctor = new Doctor();
-            $user = $doctor->login($email, $password);
+            $doctorModel = new Doctor();
+            $user = $doctorModel->login($email, $password);
             if ($user) {
                 // Regenerate session ID để tránh session fixation
                 session_regenerate_id(true);
@@ -305,7 +305,7 @@ class AuthController
                         break;
 
                     case 'doctor':
-                        $doctor = new Doctor();
+                        $doctorModel = new Doctor();
                         $data = [
                             'ten' => $name,
                             'email' => $email,
@@ -316,7 +316,7 @@ class AuthController
                             'so_giay_phep' => $_POST['so_giay_phep'] ?? '',
                             'so_nam_kinh_nghiem' => $_POST['so_nam_kinh_nghiem'] ?? 0
                         ];
-                        $success = $doctor->create($data);
+                        $success = $doctorModel->create($data);
                         break;
 
                     case 'patient':
@@ -444,10 +444,10 @@ class AuthController
                     break;
 
                 case 'doctor':
-                    $doctor = new Doctor();
-                    $user = $doctor->getById($userId);
+                    $doctorModel = new Doctor();
+                    $user = $doctorModel->getById($userId);
                     if ($user && password_verify($currentPassword, $user['mat_khau'])) {
-                        $success = $doctor->updatePassword($userId, $newPassword);
+                        $success = $doctorModel->updatePassword($userId, $newPassword);
                     } else {
                         $errorMessage = 'Mật khẩu hiện tại không đúng';
                     }

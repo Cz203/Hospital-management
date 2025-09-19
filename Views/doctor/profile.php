@@ -3,8 +3,8 @@ $page_title = 'Hồ sơ cá nhân - Bác sĩ';
 require_once 'Views/layouts/layout_helper.php';
 
 // Lấy thông tin doctor hiện tại
-$doctor = new Doctor();
-$doctor_info = $doctor->getById($_SESSION['user_id']);
+$doctorModel = new Doctor();
+$doctor_info = $doctorModel->getById($_SESSION['user_id']);
 
 ob_start();
 ?>

@@ -2,12 +2,14 @@
 require_once 'Views/layouts/layout_helper.php';
 
 // Helper function để format thời gian
-function formatTime($time) {
+function formatTime($time)
+{
     return date('H:i', strtotime($time));
 }
 
 // Helper function để tính tuổi
-function calculateAge($birthDate) {
+function calculateAge($birthDate)
+{
     $today = new DateTime();
     $birth = new DateTime($birthDate);
     $age = $today->diff($birth);
@@ -15,7 +17,8 @@ function calculateAge($birthDate) {
 }
 
 // Helper function để lấy badge class theo trạng thái
-function getStatusBadgeClass($status) {
+function getStatusBadgeClass($status)
+{
     switch ($status) {
         case 'Đã xác nhận':
             return 'bg-success';
@@ -230,7 +233,7 @@ if (empty($appointments)) {
                                             </div>
                                         </div>
                                     </div>';
-        
+
         if (!empty($appointment['ly_do'])) {
             $content .= '
                                     <div class="appointment-reason mb-3">
@@ -242,21 +245,21 @@ if (empty($appointments)) {
         $content .= '
                                     <div class="appointment-actions">';
 
-if ($appointment['trang_thai'] === 'Đã xác nhận') {
-    $content .= '
+        if ($appointment['trang_thai'] === 'Đã xác nhận') {
+            $content .= '
                                         <button class="btn btn-primary btn-sm me-2" onclick="startExamination(' . $appointment['id'] . ')">
                                             <i class="fas fa-stethoscope me-1"></i>Bắt đầu khám
                                         </button>
                                         ';
-} else if ($appointment['trang_thai'] === 'Đang khám') {
-    $content .= '
+        } else if ($appointment['trang_thai'] === 'Đang khám') {
+            $content .= '
                                         <button class="btn btn-primary btn-sm me-2" onclick="continueExamination(' . $appointment['id'] . ')">
                                             <i class="fas fa-play me-1"></i>Tiếp tục khám
                                         </button>
                                         ';
-}
+        }
 
-$content .= '
+        $content .= '
                                     </div>
                                 </div>
                             </div>

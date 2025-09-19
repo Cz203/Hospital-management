@@ -210,12 +210,12 @@ class SMSController
             require_once 'Models/Admin.php';
 
             $patient = new Patient();
-            $doctor = new Doctor();
+            $doctorModel = new Doctor();
             $admin = new Admin();
 
             // Kiểm tra trong tất cả các bảng
             $exists_in_patient = $patient->phoneExists($normalized_phone);
-            $exists_in_doctor = $doctor->phoneExists($normalized_phone);
+            $exists_in_doctor = $doctorModel->phoneExists($normalized_phone);
             $exists_in_admin = $admin->phoneExists($normalized_phone);
 
             $exists = $exists_in_patient || $exists_in_doctor || $exists_in_admin;

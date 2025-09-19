@@ -373,7 +373,6 @@ class Appointment extends User
     }
 
     /**
-
      * Cập nhật Google Meet link cho lịch hẹn
      */
     public function updateMeetLink($appointmentId, $meetLink)
@@ -391,7 +390,9 @@ class Appointment extends User
         }
     }
 
-
+    /**
+     * Lấy lịch hẹn hôm nay của bác sĩ
+     */
     public function getTodayAppointmentsByDoctor($doctorId)
     {
         try {
@@ -402,6 +403,7 @@ class Appointment extends User
                     WHERE lh.bac_si_id = :doctor_id 
                     AND lh.ngay_hen = :today
                     AND lh.trang_thai IN ('Đã xác nhận', 'Chờ xác nhận')
+                    AND lh.loai_lich != 'Tư vấn'
                     ORDER BY lh.gio_hen ASC";
 
             $stmt = $this->getConnection()->prepare($sql);
@@ -429,6 +431,7 @@ class Appointment extends User
                     WHERE lh.bac_si_id = :doctor_id 
                     AND lh.ngay_hen = :date
                     AND lh.trang_thai IN ('Đã xác nhận', 'Đang khám')
+                    AND lh.loai_lich != 'Tư vấn'
                     ORDER BY lh.gio_hen ASC";
 
             $stmt = $this->getConnection()->prepare($sql);
@@ -456,7 +459,7 @@ class Appointment extends User
                         SUM(CASE WHEN trang_thai = 'Đã xác nhận' THEN 1 ELSE 0 END) as confirmed,
                         SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed
                     FROM {$this->table}
-                    WHERE bac_si_id = :doctor_id AND ngay_hen = :today";
+                    WHERE bac_si_id = :doctor_id AND ngay_hen = :today AND loai_lich != 'Tư vấn'";
 
             $stmt = $this->getConnection()->prepare($sql);
             $stmt->execute([
@@ -486,7 +489,7 @@ class Appointment extends User
                         SUM(CASE WHEN trang_thai = 'Đang khám' THEN 1 ELSE 0 END) as examining,
                         SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed
                     FROM {$this->table}
-                    WHERE bac_si_id = :doctor_id AND ngay_hen = :date";
+                    WHERE bac_si_id = :doctor_id AND ngay_hen = :date AND loai_lich != 'Tư vấn'";
 
             $stmt = $this->getConnection()->prepare($sql);
             $stmt->execute([
@@ -530,42 +533,6 @@ class Appointment extends User
         }
     }
     // ===== Allergy history =====
-    private function ensureAllergyTable()
-    {
-        $sql = "CREATE TABLE IF NOT EXISTS phieu_tien_su_di_ung (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            benh_nhan_id INT NOT NULL,
-            thuoc_hoac_di_nguyen TEXT NULL,
-            so_lan_thuoc VARCHAR(50) NULL,
-            khong_thuoc TINYINT(1) NOT NULL DEFAULT 0,
-            ghi_chu_thuoc TEXT NULL,
-            con_trung TEXT NULL,
-            so_lan_con_trung VARCHAR(50) NULL,
-            khong_con_trung TINYINT(1) NOT NULL DEFAULT 0,
-            ghi_chu_con_trung TEXT NULL,
-            thuc_pham TEXT NULL,
-            so_lan_thuc_pham VARCHAR(50) NULL,
-            khong_thuc_pham TINYINT(1) NOT NULL DEFAULT 0,
-            ghi_chu_thuc_pham TEXT NULL,
-            tac_nhan_khac TEXT NULL,
-            so_lan_tac_nhan_khac VARCHAR(50) NULL,
-            khong_tac_nhan_khac TINYINT(1) NOT NULL DEFAULT 0,
-            ghi_chu_tac_nhan_khac TEXT NULL,
-            tien_su_ca_nhan TEXT NULL,
-            so_lan_tien_su_ca_nhan VARCHAR(50) NULL,
-            khong_tien_su_ca_nhan TINYINT(1) NOT NULL DEFAULT 0,
-            ghi_chu_tien_su_ca_nhan TEXT NULL,
-            tien_su_gia_dinh TEXT NULL,
-            so_lan_tien_su_gia_dinh VARCHAR(50) NULL,
-            khong_tien_su_gia_dinh TINYINT(1) NOT NULL DEFAULT 0,
-            ghi_chu_tien_su_gia_dinh TEXT NULL,
-            ngay_tao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_ptsd_benh_nhan (benh_nhan_id),
-            CONSTRAINT fk_ptsd_benh_nhan FOREIGN KEY (benh_nhan_id)
-                REFERENCES benh_nhan(id) ON DELETE CASCADE ON UPDATE CASCADE
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
-        $this->getConnection()->exec($sql);
-    }
 
     private function allergySchemaVariant(): string
     {
@@ -582,7 +549,6 @@ class Appointment extends User
     public function upsertAllergyHistory($patientId, $data)
     {
         try {
-            $this->ensureAllergyTable();
             // Check exists
             $stmt = $this->getConnection()->prepare("SELECT id FROM phieu_tien_su_di_ung WHERE benh_nhan_id = :pid LIMIT 1");
             $stmt->execute([':pid' => $patientId]);
@@ -685,7 +651,6 @@ class Appointment extends User
     public function getAllergyHistoryByPatient($patientId)
     {
         try {
-            $this->ensureAllergyTable();
             $stmt = $this->getConnection()->prepare("SELECT * FROM phieu_tien_su_di_ung WHERE benh_nhan_id = :pid LIMIT 1");
             $stmt->execute([':pid' => $patientId]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
