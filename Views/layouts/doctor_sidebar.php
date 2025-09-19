@@ -52,7 +52,7 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('doctor_examination'); ?>" href="./doctor_examination">
                     <i class="fas fa-stethoscope me-3"></i>
                     <span>Khám bệnh</span>
                 </a>

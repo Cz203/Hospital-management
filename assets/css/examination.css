@@ -1,0 +1,61 @@
+.appointment-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #e3e6f0;
+}
+
+/* Examination modal sidebar */
+.exam-nav {
+    border-left: 3px solid transparent;
+}
+
+.exam-nav.active,
+.exam-nav:hover {
+    border-left-color: #0d6efd;
+}
+
+/* Hide all sections by default; show active */
+.exam-section { display: none; }
+.exam-section.active { display: block; }
+
+.appointment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.border-left-primary { border-left: 0.25rem solid #4e73df !important; }
+.border-left-success { border-left: 0.25rem solid #1cc88a !important; }
+.border-left-info { border-left: 0.25rem solid #36b9cc !important; }
+.border-left-warning { border-left: 0.25rem solid #f6c23e !important; }
+
+.appointment-actions { border-top: 1px solid #e3e6f0; padding-top: 15px; margin-top: 15px; }
+.patient-info h6 { font-weight: 600; color: #2c3e50; }
+.appointment-reason { background-color: #f8f9fa; padding: 10px; border-radius: 5px; border-left: 3px solid #007bff; }
+
+/* Stats cards hover and active effects */
+.stats-card { transition: all 0.3s ease; }
+.stats-card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.15) !important; }
+.stats-card.active { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important; border-left-width: 0.5rem !important; }
+
+/* Filter buttons */
+.filter-btn.active { background-color: var(--bs-primary); color: white; border-color: var(--bs-primary); }
+
+/* Fade in animation */
+.fade-in { animation: fadeIn 0.3s ease-in; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .appointment-actions .btn { width: 100%; margin-bottom: 5px; margin-right: 0 !important; }
+}
+
+/* Extra wide modal for examination */
+.modal-xxl { max-width: 98%; }
+
+

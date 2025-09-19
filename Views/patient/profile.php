@@ -9,6 +9,29 @@ $patient_info = $patient->getById($_SESSION['user_id']);
 ob_start();
 ?>
 
+<!-- Script hiển thị thông báo lỗi/thành công -->
+<script>
+<?php if (isset($_SESSION['error'])): ?>
+    alert('<?php echo addslashes($_SESSION['error']); ?>');
+    // Mở lại modal chỉnh sửa khi có lỗi
+    document.addEventListener('DOMContentLoaded', function() {
+        var editModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+        editModal.show();
+    });
+    <?php unset($_SESSION['error']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['success'])): ?>
+    alert('<?php echo addslashes($_SESSION['success']); ?>');
+    <?php unset($_SESSION['success']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['form_data'])): ?>
+    // Xóa dữ liệu form cũ khi không có lỗi
+    <?php unset($_SESSION['form_data']); ?>
+<?php endif; ?>
+</script>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -59,9 +82,16 @@ ob_start();
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label fw-bold text-muted">Ngày sinh:</label>
+                                <label class="form-label fw-bold text-muted">Mã bảo hiểm y tế:</label>
                                 <p class="form-control-plaintext">
-                                    <?php echo $patient_info['ngay_sinh'] ? date('d/m/Y', strtotime($patient_info['ngay_sinh'])) : 'Chưa cập nhật'; ?>
+                                    <?php if (!empty($patient_info['bao_hiem_y_te'])): ?>
+                                        <span class="badge bg-info"><?php echo $patient_info['bao_hiem_y_te']; ?></span>
+                                    <?php else: ?>
+                                        <span class="text-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            Vui lòng đến phòng khám để được cập nhật
+                                        </span>
+                                    <?php endif; ?>
                                 </p>
                             </div>
                         </div>
@@ -69,11 +99,28 @@ ob_start();
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label fw-bold text-muted">Giới tính:</label>
+                                <label class="form-label fw-bold text-muted">Ngày sinh:</label>
                                 <p class="form-control-plaintext">
-                                    <?php echo $patient_info['gioi_tinh'] ?: 'Chưa cập nhật'; ?></p>
+                                    <?php echo $patient_info['ngay_sinh'] ? date('d/m/Y', strtotime($patient_info['ngay_sinh'])) : 'Chưa cập nhật'; ?>
+                                </p>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Giới tính:</label>
+                                <p class="form-control-plaintext">
+                                    <?php 
+                                    if ($patient_info['gioi_tinh']) {
+                                        echo $patient_info['gioi_tinh'] == 'Nu' ? 'Nữ' : $patient_info['gioi_tinh'];
+                                    } else {
+                                        echo 'Chưa cập nhật';
+                                    }
+                                    ?>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-muted">Nhóm máu:</label>
@@ -83,6 +130,14 @@ ob_start();
                                     <?php else: ?>
                                     Chưa cập nhật
                                     <?php endif; ?>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">Trạng thái:</label>
+                                <p class="form-control-plaintext">
+                                    <span class="badge bg-success">Hoạt động</span>
                                 </p>
                             </div>
                         </div>
@@ -127,8 +182,17 @@ ob_start();
         <div class="col-lg-4">
             <div class="card shadow-sm mb-4">
                 <div class="card-body text-center">
-                    <div class="avatar-large mb-3">
-                        <?php echo strtoupper(substr($patient_info['ten'], 0, 1)); ?>
+                    <div class="position-relative mb-3">
+                        <?php if (!empty($patient_info['hinh_anh']) && file_exists($patient_info['hinh_anh'])): ?>
+                            <img src="<?php echo $patient_info['hinh_anh']; ?>" 
+                                 alt="Ảnh đại diện" 
+                                 class="rounded-circle" 
+                                 style="width: 120px; height: 120px; object-fit: cover; border: 4px solid #e9ecef;">
+                        <?php else: ?>
+                            <div class="avatar-large mb-3" style="width: 120px; height: 120px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 48px; background: #e9ecef; border-radius: 50%;">
+                                <?php echo strtoupper(substr($patient_info['ten'], 0, 1)); ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <h5 class="mb-1"><?php echo $patient_info['ten']; ?></h5>
                     <p class="text-muted mb-2">Bệnh nhân</p>
@@ -199,50 +263,54 @@ ob_start();
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Họ và tên</label>
+                                <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="name"
-                                    value="<?php echo $patient_info['ten']; ?>" required>
+                                    value="<?php echo $_SESSION['form_data']['name'] ?? $patient_info['ten']; ?>" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Email</label>
+                                <label class="form-label">Email <span class="text-danger">*</span></label>
                                 <input type="email" class="form-control" name="email"
-                                    value="<?php echo $patient_info['email']; ?>" required>
+                                    value="<?php echo $_SESSION['form_data']['email'] ?? $patient_info['email']; ?>" 
+                                    pattern="[a-zA-Z0-9._%+-]+@gmail\.com$" 
+                                    title="Email phải có định dạng @gmail.com" required>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>Email phải có định dạng @gmail.com
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Số điện thoại</label>
-                                <input type="tel" class="form-control" name="phone"
-                                    value="<?php echo $patient_info['so_dien_thoai']; ?>">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Ngày sinh</label>
+                                <label class="form-label">Ngày sinh <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" name="date_of_birth"
-                                    value="<?php echo $patient_info['ngay_sinh']; ?>">
+                                    value="<?php echo $_SESSION['form_data']['date_of_birth'] ?? $patient_info['ngay_sinh']; ?>" required>
                             </div>
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label">Giới tính</label>
-                                <select class="form-control" name="gioi_tinh">
+                                <label class="form-label">Giới tính <span class="text-danger">*</span></label>
+                                <select class="form-control" name="gioi_tinh" required>
                                     <option value="">Chọn giới tính</option>
                                     <option value="Nam"
-                                        <?php echo $patient_info['gioi_tinh'] == 'Nam' ? 'selected' : ''; ?>>Nam
+                                        <?php echo ($_SESSION['form_data']['gioi_tinh'] ?? $patient_info['gioi_tinh']) == 'Nam' ? 'selected' : ''; ?>>Nam
                                     </option>
                                     <option value="Nu"
-                                        <?php echo $patient_info['gioi_tinh'] == 'Nu' ? 'selected' : ''; ?>>Nữ</option>
+                                        <?php echo ($_SESSION['form_data']['gioi_tinh'] ?? $patient_info['gioi_tinh']) == 'Nu' ? 'selected' : ''; ?>>Nữ</option>
                                     <option value="Khac"
-                                        <?php echo $patient_info['gioi_tinh'] == 'Khac' ? 'selected' : ''; ?>>Khác
+                                        <?php echo ($_SESSION['form_data']['gioi_tinh'] ?? $patient_info['gioi_tinh']) == 'Khac' ? 'selected' : ''; ?>>Khác
                                     </option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Địa chỉ <span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="address" rows="3" required><?php echo $_SESSION['form_data']['address'] ?? $patient_info['dia_chi']; ?></textarea>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -251,37 +319,32 @@ ob_start();
                                 <select class="form-control" name="nhom_mau">
                                     <option value="">Chọn nhóm máu</option>
                                     <option value="A+"
-                                        <?php echo $patient_info['nhom_mau'] == 'A+' ? 'selected' : ''; ?>>A+
+                                        <?php echo ($_SESSION['form_data']['nhom_mau'] ?? $patient_info['nhom_mau']) == 'A+' ? 'selected' : ''; ?>>A+
                                     </option>
                                     <option value="A-"
-                                        <?php echo $patient_info['nhom_mau'] == 'A-' ? 'selected' : ''; ?>>A-
+                                        <?php echo ($_SESSION['form_data']['nhom_mau'] ?? $patient_info['nhom_mau']) == 'A-' ? 'selected' : ''; ?>>A-
                                     </option>
                                     <option value="B+"
-                                        <?php echo $patient_info['nhom_mau'] == 'B+' ? 'selected' : ''; ?>>B+
+                                        <?php echo ($_SESSION['form_data']['nhom_mau'] ?? $patient_info['nhom_mau']) == 'B+' ? 'selected' : ''; ?>>B+
                                     </option>
                                     <option value="B-"
-                                        <?php echo $patient_info['nhom_mau'] == 'B-' ? 'selected' : ''; ?>>B-
+                                        <?php echo ($_SESSION['form_data']['nhom_mau'] ?? $patient_info['nhom_mau']) == 'B-' ? 'selected' : ''; ?>>B-
                                     </option>
                                     <option value="AB+"
-                                        <?php echo $patient_info['nhom_mau'] == 'AB+' ? 'selected' : ''; ?>>AB+
+                                        <?php echo ($_SESSION['form_data']['nhom_mau'] ?? $patient_info['nhom_mau']) == 'AB+' ? 'selected' : ''; ?>>AB+
                                     </option>
                                     <option value="AB-"
-                                        <?php echo $patient_info['nhom_mau'] == 'AB-' ? 'selected' : ''; ?>>AB-
+                                        <?php echo ($_SESSION['form_data']['nhom_mau'] ?? $patient_info['nhom_mau']) == 'AB-' ? 'selected' : ''; ?>>AB-
                                     </option>
                                     <option value="O+"
-                                        <?php echo $patient_info['nhom_mau'] == 'O+' ? 'selected' : ''; ?>>O+
+                                        <?php echo ($_SESSION['form_data']['nhom_mau'] ?? $patient_info['nhom_mau']) == 'O+' ? 'selected' : ''; ?>>O+
                                     </option>
                                     <option value="O-"
-                                        <?php echo $patient_info['nhom_mau'] == 'O-' ? 'selected' : ''; ?>>O-
+                                        <?php echo ($_SESSION['form_data']['nhom_mau'] ?? $patient_info['nhom_mau']) == 'O-' ? 'selected' : ''; ?>>O-
                                     </option>
                                 </select>
                             </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Địa chỉ</label>
-                        <textarea class="form-control" name="address"
-                            rows="3"><?php echo $patient_info['dia_chi']; ?></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -377,6 +440,8 @@ ob_start();
     font-weight: 700;
 }
 </style>
+
+<!-- Đã bỏ tính năng upload ảnh đại diện theo yêu cầu -->
 
 <?php
 $content = ob_get_clean();

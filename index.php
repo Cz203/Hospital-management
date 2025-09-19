@@ -8,11 +8,13 @@ require_once 'Controllers/AuthController.php';
 require_once 'Controllers/DoctorController.php';
 require_once 'Controllers/AdminController.php';
 require_once 'Controllers/AppointmentController.php';
+require_once 'Controllers/PatientController.php';
 // Khởi tạo Controllers
 $auth = new AuthController();
 $doctorController = new DoctorController();
 $adminController = new AdminController();
 $appointmentController = new AppointmentController();
+$patientController = new PatientController();
 
 // Lấy action từ URL - hỗ trợ cả URL đẹp và URL cũ
 $action = $_GET['action'] ?? 'home';
@@ -146,6 +148,14 @@ switch ($action) {
         include 'Views/patient/profile.php'; // Hồ sơ bệnh nhân
         break;
 
+    case 'patient_update_profile':
+        $patientController->updateProfile(); // Cập nhật hồ sơ bệnh nhân
+        break;
+
+    case 'patient_upload_avatar':
+        $patientController->uploadAvatar(); // Upload ảnh đại diện bệnh nhân
+        break;
+
     // ===== DOCTOR TEAM ROUTES =====
     case 'doctor_team':
         include 'Views/doctor/doctor_team.php'; // Danh sách bác sĩ
@@ -183,6 +193,19 @@ switch ($action) {
     case 'doctor_get_schedules_by_day':
         $doctorController->getSchedulesByDay(); // Lấy lịch làm việc theo ngày
         break;
+
+        case 'doctor_examination':
+            $doctorController->examination(); // Khám bệnh - danh sách lịch hẹn hôm nay
+            break;
+        case 'start_examination':
+            $doctorController->startExamination(); // Bắt đầu khám bệnh
+            break;
+        case 'save_allergy_history':
+            $doctorController->saveAllergyHistory();
+            break;
+        case 'get_allergy_history':
+            $doctorController->getAllergyHistory();
+            break;
 
     // ===== APPOINTMENT ROUTES =====
     case 'hospital_appointment':

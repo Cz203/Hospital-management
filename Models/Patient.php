@@ -77,7 +77,7 @@ class Patient extends User
 
     public function getById($id)
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE id = :id";
+        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, mat_khau, ngay_tao, ngay_cap_nhat, bao_hiem_y_te, bao_hiem_y_te_id FROM " . $this->table_name . " WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $id);
         $stmt->execute();
@@ -111,6 +111,36 @@ class Patient extends User
         $stmt->bindParam(":dia_chi", $data['dia_chi']);
         $stmt->bindParam(":nhom_mau", $data['nhom_mau']);
 
+        return $stmt->execute();
+    }
+
+    public function updateProfileWithEmail($id, $data)
+    {
+        $query = "UPDATE " . $this->table_name . " 
+                  SET ten = :ten, email = :email, ngay_sinh = :ngay_sinh, 
+                      gioi_tinh = :gioi_tinh, dia_chi = :dia_chi, nhom_mau = :nhom_mau, 
+                      ngay_cap_nhat = NOW()
+                  WHERE id = :id";
+
+        $stmt = $this->conn->prepare($query);
+
+        $stmt->bindParam(":id", $id);
+        $stmt->bindParam(":ten", $data['ten']);
+        $stmt->bindParam(":email", $data['email']);
+        $stmt->bindParam(":ngay_sinh", $data['ngay_sinh']);
+        $stmt->bindParam(":gioi_tinh", $data['gioi_tinh']);
+        $stmt->bindParam(":dia_chi", $data['dia_chi']);
+        $stmt->bindParam(":nhom_mau", $data['nhom_mau']);
+
+        return $stmt->execute();
+    }
+
+    public function updateImage($id, $imagePath)
+    {
+        $query = "UPDATE " . $this->table_name . " SET hinh_anh = :hinh_anh, ngay_cap_nhat = NOW() WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":hinh_anh", $imagePath);
+        $stmt->bindParam(":id", $id);
         return $stmt->execute();
     }
 

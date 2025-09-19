@@ -373,6 +373,7 @@ class Appointment extends User
     }
 
     /**
+
      * Cập nhật Google Meet link cho lịch hẹn
      */
     public function updateMeetLink($appointmentId, $meetLink)
@@ -387,6 +388,322 @@ class Appointment extends User
         } catch (PDOException $e) {
             error_log("Appointment updateMeetLink error: " . $e->getMessage());
             return false;
+        }
+    }
+
+
+    public function getTodayAppointmentsByDoctor($doctorId)
+    {
+        try {
+            $today = date('Y-m-d');
+            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau
+                    FROM {$this->table} lh
+                    JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
+                    WHERE lh.bac_si_id = :doctor_id 
+                    AND lh.ngay_hen = :today
+                    AND lh.trang_thai IN ('Đã xác nhận', 'Chờ xác nhận')
+                    ORDER BY lh.gio_hen ASC";
+
+            $stmt = $this->getConnection()->prepare($sql);
+            $stmt->execute([
+                ':doctor_id' => $doctorId,
+                ':today' => $today
+            ]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Appointment getTodayAppointmentsByDoctor error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Lấy lịch hẹn theo ngày của bác sĩ (đã xác nhận và đang khám)
+     */
+    public function getAppointmentsByDoctorAndDate($doctorId, $date)
+    {
+        try {
+            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau, bn.bao_hiem_y_te, bhy.ngay_het_han
+                    FROM {$this->table} lh
+                    JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
+                    LEFT JOIN bao_hiem_y_te bhy ON bn.bao_hiem_y_te_id = bhy.id
+                    WHERE lh.bac_si_id = :doctor_id 
+                    AND lh.ngay_hen = :date
+                    AND lh.trang_thai IN ('Đã xác nhận', 'Đang khám')
+                    ORDER BY lh.gio_hen ASC";
+
+            $stmt = $this->getConnection()->prepare($sql);
+            $stmt->execute([
+                ':doctor_id' => $doctorId,
+                ':date' => $date
+            ]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Appointment getAppointmentsByDoctorAndDate error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Lấy thống kê lịch hẹn hôm nay của bác sĩ
+     */
+    public function getTodayStatsByDoctor($doctorId)
+    {
+        try {
+            $today = date('Y-m-d');
+            $sql = "SELECT 
+                        COUNT(*) as total,
+                        SUM(CASE WHEN trang_thai = 'Chờ xác nhận' THEN 1 ELSE 0 END) as pending,
+                        SUM(CASE WHEN trang_thai = 'Đã xác nhận' THEN 1 ELSE 0 END) as confirmed,
+                        SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed
+                    FROM {$this->table}
+                    WHERE bac_si_id = :doctor_id AND ngay_hen = :today";
+
+            $stmt = $this->getConnection()->prepare($sql);
+            $stmt->execute([
+                ':doctor_id' => $doctorId,
+                ':today' => $today
+            ]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Appointment getTodayStatsByDoctor error: " . $e->getMessage());
+            return [
+                'total' => 0,
+                'pending' => 0,
+                'confirmed' => 0,
+                'completed' => 0
+            ];
+        }
+    }
+
+    /**
+     * Lấy thống kê lịch hẹn theo ngày của bác sĩ (Tổng số bệnh nhân, Đang khám, Đã khám xong)
+     */
+    public function getStatsByDoctorAndDate($doctorId, $date)
+    {
+        try {
+            $sql = "SELECT 
+                        COUNT(*) as total_patients,
+                        SUM(CASE WHEN trang_thai = 'Đang khám' THEN 1 ELSE 0 END) as examining,
+                        SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed
+                    FROM {$this->table}
+                    WHERE bac_si_id = :doctor_id AND ngay_hen = :date";
+
+            $stmt = $this->getConnection()->prepare($sql);
+            $stmt->execute([
+                ':doctor_id' => $doctorId,
+                ':date' => $date
+            ]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Appointment getStatsByDoctorAndDate error: " . $e->getMessage());
+            return [
+                'total_patients' => 0,
+                'examining' => 0,
+                'completed' => 0
+            ];
+        }
+    }
+
+    /**
+     * Bắt đầu khám bệnh - đổi trạng thái thành "Đang khám"
+     */
+    public function startExamination($appointmentId, $doctorId)
+    {
+        try {
+            $sql = "UPDATE {$this->table} 
+                    SET trang_thai = 'Đang khám', 
+                        ngay_cap_nhat = NOW()
+                    WHERE id = :appointment_id 
+                    AND bac_si_id = :doctor_id 
+                    AND trang_thai = 'Đã xác nhận'";
+
+            $stmt = $this->getConnection()->prepare($sql);
+            $result = $stmt->execute([
+                ':appointment_id' => $appointmentId,
+                ':doctor_id' => $doctorId
+            ]);
+
+            return $result && $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            error_log("Appointment startExamination error: " . $e->getMessage());
+            return false;
+        }
+    }
+    // ===== Allergy history =====
+    private function ensureAllergyTable()
+    {
+        $sql = "CREATE TABLE IF NOT EXISTS phieu_tien_su_di_ung (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            benh_nhan_id INT NOT NULL,
+            thuoc_hoac_di_nguyen TEXT NULL,
+            so_lan_thuoc VARCHAR(50) NULL,
+            khong_thuoc TINYINT(1) NOT NULL DEFAULT 0,
+            ghi_chu_thuoc TEXT NULL,
+            con_trung TEXT NULL,
+            so_lan_con_trung VARCHAR(50) NULL,
+            khong_con_trung TINYINT(1) NOT NULL DEFAULT 0,
+            ghi_chu_con_trung TEXT NULL,
+            thuc_pham TEXT NULL,
+            so_lan_thuc_pham VARCHAR(50) NULL,
+            khong_thuc_pham TINYINT(1) NOT NULL DEFAULT 0,
+            ghi_chu_thuc_pham TEXT NULL,
+            tac_nhan_khac TEXT NULL,
+            so_lan_tac_nhan_khac VARCHAR(50) NULL,
+            khong_tac_nhan_khac TINYINT(1) NOT NULL DEFAULT 0,
+            ghi_chu_tac_nhan_khac TEXT NULL,
+            tien_su_ca_nhan TEXT NULL,
+            so_lan_tien_su_ca_nhan VARCHAR(50) NULL,
+            khong_tien_su_ca_nhan TINYINT(1) NOT NULL DEFAULT 0,
+            ghi_chu_tien_su_ca_nhan TEXT NULL,
+            tien_su_gia_dinh TEXT NULL,
+            so_lan_tien_su_gia_dinh VARCHAR(50) NULL,
+            khong_tien_su_gia_dinh TINYINT(1) NOT NULL DEFAULT 0,
+            ghi_chu_tien_su_gia_dinh TEXT NULL,
+            ngay_tao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_ptsd_benh_nhan (benh_nhan_id),
+            CONSTRAINT fk_ptsd_benh_nhan FOREIGN KEY (benh_nhan_id)
+                REFERENCES benh_nhan(id) ON DELETE CASCADE ON UPDATE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+        $this->getConnection()->exec($sql);
+    }
+
+    private function allergySchemaVariant(): string
+    {
+        try {
+            $stmt = $this->getConnection()->prepare("SHOW COLUMNS FROM phieu_tien_su_di_ung LIKE 'con_trung'");
+            $stmt->execute();
+            $exists = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $exists ? 'standard' : 'prefixed';
+        } catch (PDOException $e) {
+            return 'standard';
+        }
+    }
+
+    public function upsertAllergyHistory($patientId, $data)
+    {
+        try {
+            $this->ensureAllergyTable();
+            // Check exists
+            $stmt = $this->getConnection()->prepare("SELECT id FROM phieu_tien_su_di_ung WHERE benh_nhan_id = :pid LIMIT 1");
+            $stmt->execute([':pid' => $patientId]);
+            $exists = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $variant = $this->allergySchemaVariant();
+
+            $payload = [
+                ':pid' => $patientId,
+                ':thuoc' => $data['allergy_drug'] ?? null,
+                ':sl_thuoc' => $data['allergy_drug_times'] ?? null,
+                ':khong_thuoc' => isset($data['allergy_drug_no']) ? (int)$data['allergy_drug_no'] : 0,
+                ':gc_thuoc' => $data['allergy_drug_note'] ?? null,
+                ':ctr' => $data['allergy_insect'] ?? null,
+                ':sl_ctr' => $data['allergy_insect_times'] ?? null,
+                ':khong_ctr' => isset($data['allergy_insect_no']) ? (int)$data['allergy_insect_no'] : 0,
+                ':gc_ctr' => $data['allergy_insect_note'] ?? null,
+                ':tp' => $data['allergy_food'] ?? null,
+                ':sl_tp' => $data['allergy_food_times'] ?? null,
+                ':khong_tp' => isset($data['allergy_food_no']) ? (int)$data['allergy_food_no'] : 0,
+                ':gc_tp' => $data['allergy_food_note'] ?? null,
+                ':tnk' => $data['allergy_other'] ?? null,
+                ':sl_tnk' => $data['allergy_other_times'] ?? null,
+                ':khong_tnk' => isset($data['allergy_other_no']) ? (int)$data['allergy_other_no'] : 0,
+                ':gc_tnk' => $data['allergy_other_note'] ?? null,
+                ':tscn' => $data['personal_history'] ?? null,
+                ':sl_tscn' => $data['personal_history_times'] ?? null,
+                ':khong_tscn' => isset($data['personal_history_no']) ? (int)$data['personal_history_no'] : 0,
+                ':gc_tscn' => $data['personal_history_note'] ?? null,
+                ':tsgd' => $data['family_history'] ?? null,
+                ':sl_tsgd' => $data['family_history_times'] ?? null,
+                ':khong_tsgd' => isset($data['family_history_no']) ? (int)$data['family_history_no'] : 0,
+                ':gc_tsgd' => $data['family_history_note'] ?? null,
+            ];
+
+            if ($variant === 'standard') {
+                if ($exists) {
+                    $sql = "UPDATE phieu_tien_su_di_ung SET
+                            thuoc_hoac_di_nguyen=:thuoc, so_lan_thuoc=:sl_thuoc, khong_thuoc=:khong_thuoc, ghi_chu_thuoc=:gc_thuoc,
+                            con_trung=:ctr, so_lan_con_trung=:sl_ctr, khong_con_trung=:khong_ctr, ghi_chu_con_trung=:gc_ctr,
+                            thuc_pham=:tp, so_lan_thuc_pham=:sl_tp, khong_thuc_pham=:khong_tp, ghi_chu_thuc_pham=:gc_tp,
+                            tac_nhan_khac=:tnk, so_lan_tac_nhan_khac=:sl_tnk, khong_tac_nhan_khac=:khong_tnk, ghi_chu_tac_nhan_khac=:gc_tnk,
+                            tien_su_ca_nhan=:tscn, so_lan_tien_su_ca_nhan=:sl_tscn, khong_tien_su_ca_nhan=:khong_tscn, ghi_chu_tien_su_ca_nhan=:gc_tscn,
+                            tien_su_gia_dinh=:tsgd, so_lan_tien_su_gia_dinh=:sl_tsgd, khong_tien_su_gia_dinh=:khong_tsgd, ghi_chu_tien_su_gia_dinh=:gc_tsgd
+                            WHERE benh_nhan_id=:pid";
+                } else {
+                    $sql = "INSERT INTO phieu_tien_su_di_ung (
+                            benh_nhan_id, thuoc_hoac_di_nguyen, so_lan_thuoc, khong_thuoc, ghi_chu_thuoc,
+                            con_trung, so_lan_con_trung, khong_con_trung, ghi_chu_con_trung,
+                            thuc_pham, so_lan_thuc_pham, khong_thuc_pham, ghi_chu_thuc_pham,
+                            tac_nhan_khac, so_lan_tac_nhan_khac, khong_tac_nhan_khac, ghi_chu_tac_nhan_khac,
+                            tien_su_ca_nhan, so_lan_tien_su_ca_nhan, khong_tien_su_ca_nhan, ghi_chu_tien_su_ca_nhan,
+                            tien_su_gia_dinh, so_lan_tien_su_gia_dinh, khong_tien_su_gia_dinh, ghi_chu_tien_su_gia_dinh
+                        ) VALUES (
+                            :pid, :thuoc, :sl_thuoc, :khong_thuoc, :gc_thuoc,
+                            :ctr, :sl_ctr, :khong_ctr, :gc_ctr,
+                            :tp, :sl_tp, :khong_tp, :gc_tp,
+                            :tnk, :sl_tnk, :khong_tnk, :gc_tnk,
+                            :tscn, :sl_tscn, :khong_tscn, :gc_tscn,
+                            :tsgd, :sl_tsgd, :khong_tsgd, :gc_tsgd
+                        )";
+                }
+            } else { // prefixed schema with di_ung_*
+                if ($exists) {
+                    $sql = "UPDATE phieu_tien_su_di_ung SET
+                            thuoc_hoac_di_nguyen=:thuoc, so_lan_thuoc=:sl_thuoc, khong_thuoc=:khong_thuoc, ghi_chu_thuoc=:gc_thuoc,
+                            di_ung_con_trung=:ctr, so_lan_con_trung=:sl_ctr, khong_con_trung=:khong_ctr, ghi_chu_con_trung=:gc_ctr,
+                            di_ung_thuc_pham=:tp, so_lan_thuc_pham=:sl_tp, khong_thuc_pham=:khong_tp, ghi_chu_thuc_pham=:gc_tp,
+                            di_ung_tac_nhan_khac=:tnk, so_lan_tac_nhan_khac=:sl_tnk, khong_tac_nhan_khac=:khong_tnk, ghi_chu_tac_nhan_khac=:gc_tnk,
+                            tien_su_ca_nhan=:tscn, so_lan_tien_su_ca_nhan=:sl_tscn, khong_tien_su_ca_nhan=:khong_tscn, ghi_chu_tien_su_ca_nhan=:gc_tscn,
+                            tien_su_gia_dinh=:tsgd, so_lan_tien_su_gia_dinh=:sl_tsgd, khong_tien_su_gia_dinh=:khong_tsgd, ghi_chu_tien_su_gia_dinh=:gc_tsgd
+                            WHERE benh_nhan_id=:pid";
+                } else {
+                    $sql = "INSERT INTO phieu_tien_su_di_ung (
+                            benh_nhan_id, thuoc_hoac_di_nguyen, so_lan_thuoc, khong_thuoc, ghi_chu_thuoc,
+                            di_ung_con_trung, so_lan_con_trung, khong_con_trung, ghi_chu_con_trung,
+                            di_ung_thuc_pham, so_lan_thuc_pham, khong_thuc_pham, ghi_chu_thuc_pham,
+                            di_ung_tac_nhan_khac, so_lan_tac_nhan_khac, khong_tac_nhan_khac, ghi_chu_tac_nhan_khac,
+                            tien_su_ca_nhan, so_lan_tien_su_ca_nhan, khong_tien_su_ca_nhan, ghi_chu_tien_su_ca_nhan,
+                            tien_su_gia_dinh, so_lan_tien_su_gia_dinh, khong_tien_su_gia_dinh, ghi_chu_tien_su_gia_dinh
+                        ) VALUES (
+                            :pid, :thuoc, :sl_thuoc, :khong_thuoc, :gc_thuoc,
+                            :ctr, :sl_ctr, :khong_ctr, :gc_ctr,
+                            :tp, :sl_tp, :khong_tp, :gc_tp,
+                            :tnk, :sl_tnk, :khong_tnk, :gc_tnk,
+                            :tscn, :sl_tscn, :khong_tscn, :gc_tscn,
+                            :tsgd, :sl_tsgd, :khong_tsgd, :gc_tsgd
+                        )";
+                }
+            }
+
+            $stmt2 = $this->getConnection()->prepare($sql);
+            return $stmt2->execute($payload);
+        } catch (PDOException $e) {
+            error_log('upsertAllergyHistory error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getAllergyHistoryByPatient($patientId)
+    {
+        try {
+            $this->ensureAllergyTable();
+            $stmt = $this->getConnection()->prepare("SELECT * FROM phieu_tien_su_di_ung WHERE benh_nhan_id = :pid LIMIT 1");
+            $stmt->execute([':pid' => $patientId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            if (!$row) return null;
+            // Normalize keys for frontend (no di_ung_ prefix)
+            if (array_key_exists('di_ung_con_trung', $row)) {
+                $row['con_trung'] = $row['di_ung_con_trung'];
+            }
+            if (array_key_exists('di_ung_thuc_pham', $row)) {
+                $row['thuc_pham'] = $row['di_ung_thuc_pham'];
+            }
+            if (array_key_exists('di_ung_tac_nhan_khac', $row)) {
+                $row['tac_nhan_khac'] = $row['di_ung_tac_nhan_khac'];
+            }
+            return $row;
+        } catch (PDOException $e) {
+            error_log('getAllergyHistoryByPatient error: ' . $e->getMessage());
+            return null;
         }
     }
 }
