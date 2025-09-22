@@ -41,6 +41,7 @@
 
             <form method="POST" action="./login_admin">
                 <input type="hidden" name="role" value="admin">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                 <div class="mb-3">
                     <label for="email" class="form-label">

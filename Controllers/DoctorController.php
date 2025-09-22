@@ -457,6 +457,45 @@ class DoctorController
     }
 
     /**
+     * Danh sách bác sĩ theo chuyên khoa (slug)
+     */
+    public function listBySpecialty()
+    {
+        // public page tương tự doctor_team (không dùng main layout)
+        $slug = $_GET['slug'] ?? '';
+        if ($slug === '') {
+            include 'Views/doctor/specialties_all.php';
+            return;
+        }
+        require_once 'Models/Specialty.php';
+        $spModel = new Specialty();
+        $specialty = $spModel->getBySlug($slug);
+        if (!$specialty) {
+            include 'Views/doctor/specialties_all.php';
+            return;
+        }
+        $doctors = $this->doctorModel->getBySpecialization($specialty['ten']);
+        include 'Views/doctor/doctors_by_specialty.php';
+    }
+
+    /**
+     * Hiển thị tất cả chuyên khoa (grid)
+     */
+    public function specialtiesAll()
+    {
+        // public page giống doctor_team (không dùng main layout)
+        require_once 'Models/Specialty.php';
+        $spModel = new Specialty();
+        // Lấy kèm số lượng bác sĩ mỗi chuyên khoa
+        if (method_exists($spModel, 'allWithDoctorCounts')) {
+            $specialties = $spModel->allWithDoctorCounts();
+        } else {
+            $specialties = $spModel->all();
+        }
+        include 'Views/doctor/specialties_all.php';
+    }
+
+    /**
      * Emit socket notification for appointment status change
      */
     private function emitAppointmentStatusChange($appointment, $newStatus, $note)

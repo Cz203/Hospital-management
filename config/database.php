@@ -31,7 +31,7 @@ class Database
                     $key = trim($key);
                     $value = trim($value, '"\'');
                     $_ENV[$key] = $value;
-                    putenv("$key=$value");
+                    putenv(assignment: "$key=$value");
                 }
             }
         }

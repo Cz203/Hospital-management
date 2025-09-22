@@ -81,10 +81,10 @@
                         <select class="form-select" id="doctorFilter" onchange="filterByDoctor()">
                             <option value="">Tất cả bác sĩ</option>
                             <?php foreach ($doctors as $doctor): ?>
-                                <option value="<?php echo $doctor['id']; ?>">
-                                    <?php echo htmlspecialchars($doctor['ten']); ?> -
-                                    <?php echo htmlspecialchars($doctor['chuyen_khoa']); ?>
-                                </option>
+                            <option value="<?php echo $doctor['id']; ?>">
+                                <?php echo htmlspecialchars($doctor['ten']); ?> -
+                                <?php echo htmlspecialchars($doctor['chuyen_khoa']); ?>
+                            </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -117,73 +117,73 @@
             $dayDate->add(new DateInterval('P' . $dayOffset . 'D'));
             $formattedDate = $dayDate->format('d/m/Y');
         ?>
-            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
-                <div class="day-card">
-                    <div class="day-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-calendar-day me-2"></i>
-                                <div class="day-title"><?php echo $day; ?></div>
-                                <div class="day-date"><?php echo $formattedDate; ?></div>
-                            </div>
-                            <span class="day-badge"><?php echo count($schedulesByDay[$day]); ?> bác sĩ</span>
+        <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12 mb-4">
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-calendar-day me-2"></i>
+                            <div class="day-title"><?php echo $day; ?></div>
+                            <div class="day-date"><?php echo $formattedDate; ?></div>
                         </div>
-                    </div>
-                    <div class="day-body">
-                        <?php if (empty($schedulesByDay[$day])): ?>
-                            <div class="empty-state">
-                                <i class="fas fa-calendar-times"></i>
-                                <p class="mb-0">Không có bác sĩ trực</p>
-                            </div>
-                        <?php else: ?>
-                            <?php foreach ($schedulesByDay[$day] as $doctorData): ?>
-                                <div class="doctor-schedule" data-doctor-id="<?php echo $doctorData['doctor']['id']; ?>">
-                                    <div class="doctor-info">
-                                        <div class="doctor-avatar">
-                                            <?php if (!empty($doctorData['doctor']['hinh_anh']) && file_exists($doctorData['doctor']['hinh_anh'])): ?>
-                                                <img src="<?php echo htmlspecialchars($doctorData['doctor']['hinh_anh']); ?>"
-                                                    alt="<?php echo htmlspecialchars($doctorData['doctor']['ten']); ?>"
-                                                    class="avatar-image">
-                                            <?php else: ?>
-                                                <?php echo strtoupper(substr($doctorData['doctor']['ten'], 0, 1)); ?>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="doctor-details">
-                                            <h6 class="doctor-name"><?php echo htmlspecialchars($doctorData['doctor']['ten']); ?>
-                                            </h6>
-                                            <small
-                                                class="doctor-specialty"><?php echo htmlspecialchars($doctorData['doctor']['chuyen_khoa']); ?></small>
-                                        </div>
-                                    </div>
-                                    <div class="schedule-list">
-                                        <?php foreach ($doctorData['schedules'] as $schedule): ?>
-                                            <div class="schedule-item">
-                                                <div class="schedule-time">
-                                                    <i class="fas fa-clock me-1"></i>
-                                                    <?php echo date('H:i', strtotime($schedule['gio_bat_dau'])); ?> -
-                                                    <?php echo date('H:i', strtotime($schedule['gio_ket_thuc'])); ?>
-                                                </div>
-                                                <div class="schedule-type">
-                                                    <span
-                                                        class="shift-badge shift-<?php echo strtolower(str_replace('Ca ', '', $schedule['loai_ca'])); ?>">
-                                                        <?php echo $schedule['loai_ca']; ?>
-                                                    </span>
-                                                </div>
-                                                <?php if (!empty($schedule['ghi_chu'])): ?>
-                                                    <div class="schedule-note">
-                                                        <i class="fas fa-sticky-note me-1"></i>
-                                                        <?php echo htmlspecialchars($schedule['ghi_chu']); ?>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                        <span class="day-badge"><?php echo count($schedulesByDay[$day]); ?> bác sĩ</span>
                     </div>
                 </div>
+                <div class="day-body">
+                    <?php if (empty($schedulesByDay[$day])): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <p class="mb-0">Không có bác sĩ trực</p>
+                    </div>
+                    <?php else: ?>
+                    <?php foreach ($schedulesByDay[$day] as $doctorData): ?>
+                    <div class="doctor-schedule" data-doctor-id="<?php echo $doctorData['doctor']['id']; ?>">
+                        <div class="doctor-info">
+                            <div class="doctor-avatar">
+                                <?php if (!empty($doctorData['doctor']['hinh_anh']) && file_exists($doctorData['doctor']['hinh_anh'])): ?>
+                                <img src="<?php echo htmlspecialchars($doctorData['doctor']['hinh_anh']); ?>"
+                                    alt="<?php echo htmlspecialchars($doctorData['doctor']['ten']); ?>"
+                                    class="avatar-image">
+                                <?php else: ?>
+                                <?php echo strtoupper(substr($doctorData['doctor']['ten'], 0, 1)); ?>
+                                <?php endif; ?>
+                            </div>
+                            <div class="doctor-details">
+                                <h6 class="doctor-name"><?php echo htmlspecialchars($doctorData['doctor']['ten']); ?>
+                                </h6>
+                                <small
+                                    class="doctor-specialty"><?php echo htmlspecialchars($doctorData['doctor']['chuyen_khoa']); ?></small>
+                            </div>
+                        </div>
+                        <div class="schedule-list">
+                            <?php foreach ($doctorData['schedules'] as $schedule): ?>
+                            <div class="schedule-item">
+                                <div class="schedule-time">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <?php echo date('H:i', strtotime($schedule['gio_bat_dau'])); ?> -
+                                    <?php echo date('H:i', strtotime($schedule['gio_ket_thuc'])); ?>
+                                </div>
+                                <div class="schedule-type">
+                                    <span
+                                        class="shift-badge shift-<?php echo strtolower(str_replace('Ca ', '', $schedule['loai_ca'])); ?>">
+                                        <?php echo $schedule['loai_ca']; ?>
+                                    </span>
+                                </div>
+                                <?php if (!empty($schedule['ghi_chu'])): ?>
+                                <div class="schedule-note">
+                                    <i class="fas fa-sticky-note me-1"></i>
+                                    <?php echo htmlspecialchars($schedule['ghi_chu']); ?>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
             </div>
+        </div>
         <?php endforeach; ?>
     </div>
 </div>

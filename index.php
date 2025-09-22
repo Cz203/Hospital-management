@@ -104,6 +104,33 @@ switch ($action) {
         $adminController->manageDoctorSchedules(); // Quản lý lịch làm việc bác sĩ
         break;
 
+    case 'doctors_list':
+        $adminController->doctorsList(); // Danh sách bác sĩ (Admin)
+        break;
+    case 'admin_create_doctor':
+        $adminController->adminCreateDoctor(); // Thêm bác sĩ (Admin)
+        break;
+    case 'admin_update_doctor':
+        $adminController->adminUpdateDoctor(); // Cập nhật bác sĩ (Admin)
+        break;
+    case 'admin_delete_doctor':
+        $adminController->adminDeleteDoctor(); // Xóa bác sĩ (Admin)
+        break;
+
+    // ===== SPECIALTIES (ADMIN) =====
+    case 'specialties':
+        $adminController->specialties();
+        break;
+    case 'specialty_create':
+        $adminController->specialtyCreate();
+        break;
+    case 'specialty_update':
+        $adminController->specialtyUpdate();
+        break;
+    case 'specialty_delete':
+        $adminController->specialtyDelete();
+        break;
+
     // ===== DASHBOARD ROUTES =====
     case 'doctor_dashboard':
         $auth->requireAuth('doctor');
@@ -128,6 +155,14 @@ switch ($action) {
         break;
     case 'consultation_booking':
         $appointmentController->consultationBooking(); // Đặt lịch tư vấn trực tuyến
+        break;
+
+    // ===== SPECIALTIES PUBLIC PAGES =====
+    case 'doctors_by_specialty':
+        $doctorController->listBySpecialty();
+        break;
+    case 'specialties_all':
+        $doctorController->specialtiesAll();
         break;
 
     // ===== PROFILE ROUTES =====

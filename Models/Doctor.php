@@ -55,21 +55,52 @@ class Doctor extends User
             throw new Exception("Số điện thoại đã được sử dụng. Vui lòng chọn số khác.");
         }
 
+        // Resolve chuyen_khoa_id from provided data (accept both id or name)
+        $specialtyId = null;
+        if (isset($data['chuyen_khoa_id']) && $data['chuyen_khoa_id']) {
+            $specialtyId = (int)$data['chuyen_khoa_id'];
+        } elseif (!empty($data['chuyen_khoa'])) {
+            $specName = $data['chuyen_khoa'];
+            $stmtSpec = $this->conn->prepare("SELECT id FROM chuyen_khoa WHERE ten = :ten LIMIT 1");
+            $stmtSpec->bindParam(":ten", $specName);
+            $stmtSpec->execute();
+            $row = $stmtSpec->fetch(PDO::FETCH_ASSOC);
+            $specialtyId = $row ? (int)$row['id'] : null;
+            if (!$specialtyId) {
+                // Auto create specialty if not exists
+                $stmtIns = $this->conn->prepare("INSERT INTO chuyen_khoa(ten) VALUES(:ten)");
+                $stmtIns->bindParam(":ten", $specName);
+                try {
+                    if ($stmtIns->execute()) {
+                        $specialtyId = (int)$this->conn->lastInsertId();
+                    }
+                } catch (PDOException $e) {
+                    // ignore if unique constraint violated due to race, try reselect
+                    try {
+                        $stmtSpec2 = $this->conn->prepare("SELECT id FROM chuyen_khoa WHERE ten = :ten LIMIT 1");
+                        $stmtSpec2->bindParam(":ten", $specName);
+                        $stmtSpec2->execute();
+                        $row2 = $stmtSpec2->fetch(PDO::FETCH_ASSOC);
+                        $specialtyId = $row2 ? (int)$row2['id'] : null;
+                    } catch (PDOException $e2) {
+                    }
+                }
+            }
+        }
+
         $query = "INSERT INTO " . $this->table_name . " 
-                  (ten, email, mat_khau, so_dien_thoai, phone_verified, chuyen_khoa, so_giay_phep, so_nam_kinh_nghiem, hinh_anh, ngay_tao) 
-                  VALUES (:ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, :chuyen_khoa, :so_giay_phep, :so_nam_kinh_nghiem, :hinh_anh, NOW())";
+                  (ten, email, mat_khau, so_dien_thoai, chuyen_khoa_id, so_giay_phep, so_nam_kinh_nghiem, hinh_anh, ngay_tao) 
+                  VALUES (:ten, :email, :mat_khau, :so_dien_thoai, :chuyen_khoa_id, :so_giay_phep, :so_nam_kinh_nghiem, :hinh_anh, NOW())";
 
         $stmt = $this->conn->prepare($query);
 
         $hashedPassword = $this->hashPassword($data['mat_khau']);
-        $phone_verified = $data['phone_verified'] ?? 0;
 
         $stmt->bindParam(":ten", $data['ten']);
         $stmt->bindParam(":email", $data['email']);
         $stmt->bindParam(":mat_khau", $hashedPassword);
         $stmt->bindParam(":so_dien_thoai", $data['so_dien_thoai']);
-        $stmt->bindParam(":phone_verified", $phone_verified);
-        $stmt->bindParam(":chuyen_khoa", $data['chuyen_khoa']);
+        $stmt->bindValue(":chuyen_khoa_id", $specialtyId, PDO::PARAM_INT);
         $stmt->bindParam(":so_giay_phep", $data['so_giay_phep']);
         $stmt->bindParam(":so_nam_kinh_nghiem", $data['so_nam_kinh_nghiem']);
         $hinhAnh = $data['hinh_anh'] ?? null;
@@ -78,21 +109,51 @@ class Doctor extends User
         return $stmt->execute();
     }
 
-    public function getAll()
+    public function getAll(): array
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, chuyen_khoa, so_giay_phep, so_nam_kinh_nghiem, ngay_tao, hinh_anh FROM " . $this->table_name;
+        $query = "SELECT bs.id, bs.ten, bs.email, bs.so_dien_thoai, 
+                         ck.ten AS chuyen_khoa, bs.chuyen_khoa_id, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.ngay_tao, bs.hinh_anh
+                  FROM " . $this->table_name . " bs
+                  LEFT JOIN chuyen_khoa ck ON ck.id = bs.chuyen_khoa_id";
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getById($id)
+    public function countAll(): int
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, chuyen_khoa, so_giay_phep, so_nam_kinh_nghiem, mat_khau, ngay_tao, ngay_cap_nhat FROM " . $this->table_name . " WHERE id = :id";
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM " . $this->table_name);
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
+
+    public function getPaginated(int $offset, int $limit): array
+    {
+        $query = "SELECT bs.id, bs.ten, bs.email, bs.so_dien_thoai,
+                         ck.ten AS chuyen_khoa, bs.chuyen_khoa_id, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.ngay_tao, bs.hinh_anh
+                  FROM " . $this->table_name . " bs
+                  LEFT JOIN chuyen_khoa ck ON ck.id = bs.chuyen_khoa_id
+                  ORDER BY bs.ngay_tao DESC
+                  LIMIT :limit OFFSET :offset";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getById(int $id): ?array
+    {
+        $query = "SELECT bs.id, bs.ten, bs.email, bs.so_dien_thoai, 
+                         ck.ten AS chuyen_khoa, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.mat_khau, bs.ngay_tao, bs.ngay_cap_nhat
+                  FROM " . $this->table_name . " bs
+                  LEFT JOIN chuyen_khoa ck ON ck.id = bs.chuyen_khoa_id
+                  WHERE bs.id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $id);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
     }
 
     public function updatePassword($id, $newPassword)
@@ -107,7 +168,10 @@ class Doctor extends User
 
     public function getBySpecialization($specialization)
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, chuyen_khoa, so_giay_phep, so_nam_kinh_nghiem FROM " . $this->table_name . " WHERE chuyen_khoa = :chuyen_khoa";
+        $query = "SELECT bs.id, bs.ten, bs.email, bs.so_dien_thoai, ck.ten AS chuyen_khoa, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.hinh_anh
+                  FROM " . $this->table_name . " bs
+                  LEFT JOIN chuyen_khoa ck ON ck.id = bs.chuyen_khoa_id
+                  WHERE ck.ten = :chuyen_khoa";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":chuyen_khoa", $specialization);
         $stmt->execute();
@@ -123,13 +187,24 @@ class Doctor extends User
         return $stmt->execute();
     }
 
-    public function updateProfile($id, $data)
+    public function updateProfile(int $id, array $data): bool
     {
+        // Allow either chuyen_khoa_id directly or resolve from name
+        $specialtyId = $data['chuyen_khoa_id'] ?? null;
+        if (!$specialtyId && isset($data['chuyen_khoa'])) {
+            $specName = $data['chuyen_khoa'];
+            $stmtSpec = $this->conn->prepare("SELECT id FROM chuyen_khoa WHERE ten = :ten LIMIT 1");
+            $stmtSpec->bindParam(":ten", $specName);
+            $stmtSpec->execute();
+            $row = $stmtSpec->fetch(PDO::FETCH_ASSOC);
+            $specialtyId = $row ? (int)$row['id'] : null;
+        }
+
         $query = "UPDATE " . $this->table_name . " SET 
                   ten = :ten, 
                   email = :email, 
                   so_dien_thoai = :so_dien_thoai, 
-                  chuyen_khoa = :chuyen_khoa, 
+                  chuyen_khoa_id = :chuyen_khoa_id, 
                   so_giay_phep = :so_giay_phep, 
                   so_nam_kinh_nghiem = :so_nam_kinh_nghiem,
                   ngay_cap_nhat = NOW()
@@ -139,11 +214,18 @@ class Doctor extends User
         $stmt->bindParam(":ten", $data['ten']);
         $stmt->bindParam(":email", $data['email']);
         $stmt->bindParam(":so_dien_thoai", $data['so_dien_thoai']);
-        $stmt->bindParam(":chuyen_khoa", $data['chuyen_khoa']);
+        $stmt->bindValue(":chuyen_khoa_id", $specialtyId, PDO::PARAM_INT);
         $stmt->bindParam(":so_giay_phep", $data['so_giay_phep']);
         $stmt->bindParam(":so_nam_kinh_nghiem", $data['so_nam_kinh_nghiem']);
         $stmt->bindParam(":id", $id);
 
+        return $stmt->execute();
+    }
+
+    public function deleteById(int $id): bool
+    {
+        $stmt = $this->conn->prepare("DELETE FROM " . $this->table_name . " WHERE id = :id");
+        $stmt->bindParam(":id", $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
 

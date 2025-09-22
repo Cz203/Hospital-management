@@ -92,7 +92,7 @@
                 <div class="row align-items-center">
                     <div class="col-md-6">
                         <p class="mb-0 text-dark">
-                            &copy; 2025 <strong>ThinhViet Hospital</strong>. Tất cả quyền được bảo lưu.
+                            &copy; 2025 <strong>ThinhViet Hospital</strong>.
                         </p>
                     </div>
                     <div class="col-md-6 text-md-end">
@@ -119,16 +119,16 @@
 
     <!-- Additional JS for specific pages -->
     <?php if (isset($additional_js)): ?>
-        <?php foreach ($additional_js as $js): ?>
-            <script src="<?php echo $js; ?>"></script>
-        <?php endforeach; ?>
+    <?php foreach ($additional_js as $js): ?>
+    <script src="<?php echo $js; ?>"></script>
+    <?php endforeach; ?>
     <?php endif; ?>
 
     <!-- Page specific scripts -->
     <?php if (isset($page_scripts)): ?>
-        <script>
-            <?php echo $page_scripts; ?>
-        </script>
+    <script>
+<?php echo $page_scripts; ?>
+    </script>
     <?php endif; ?>
     </body>
 

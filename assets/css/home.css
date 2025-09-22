@@ -664,6 +664,7 @@ body {
   bottom: 0;
   background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,0 1000,1000 0,1000"/></svg>');
   background-size: cover;
+  pointer-events: none; /* allow links/buttons inside section to be clickable */
 }
 
 .specialty-card {

@@ -28,7 +28,8 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('doctors_list'); ?>"
+                    href="./doctors_list">
                     <i class="fas fa-user-md me-3"></i>
                     <span>Quản lý bác sĩ</span>
                 </a>
@@ -53,6 +54,14 @@
                     href="./doctor_schedules">
                     <i class="fas fa-calendar-check me-3"></i>
                     <span>Lịch làm việc bác sĩ</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('specialties'); ?>"
+                    href="./specialties">
+                    <i class="fas fa-stethoscope me-3"></i>
+                    <span>Quản lý chuyên khoa</span>
                 </a>
             </li>
 
@@ -99,44 +108,44 @@
 </div>
 
 <style>
-    .sidebar .nav-link {
-        transition: all 0.3s ease;
-        border-left: 3px solid transparent;
+.sidebar .nav-link {
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+}
+
+.sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: #007bff;
+}
+
+.sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left-color: #007bff;
+    font-weight: 600;
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
     }
 
-    .sidebar .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-left-color: #007bff;
+    .sidebar.show {
+        transform: translateX(0);
     }
-
-    .sidebar .nav-link.active {
-        background-color: rgba(255, 255, 255, 0.2);
-        border-left-color: #007bff;
-        font-weight: 600;
-        box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
-    }
-
-    .user-avatar {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .sidebar {
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar.show {
-            transform: translateX(0);
-        }
-    }
+}
 </style>

@@ -79,6 +79,7 @@ class AuthController
             exit();
         }
 
+        SecurityConfig::generateCSRFToken();
         include 'Views/auth/login_admin.php';
     }
 

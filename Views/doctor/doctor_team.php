@@ -1,11 +1,15 @@
 <?php
 require_once 'Models/Doctor.php';
+require_once 'Models/Specialty.php';
 $doctorModel = new Doctor();
 $doctors = $doctorModel->getAll();
 
-$specialties = array_values(array_unique(array_filter(array_map(function ($d) {
-    return $d['chuyen_khoa'] ?? '';
-}, $doctors))));
+// Lấy chuyên khoa từ bảng chuyen_khoa thay vì từ bac_si
+$spModel = new Specialty();
+$specialtyRows = $spModel->all();
+$specialties = array_map(function ($row) {
+    return $row['ten'];
+}, $specialtyRows);
 
 // Set page title for header
 $page_title = 'Đội ngũ bác sĩ';
@@ -53,9 +57,9 @@ include 'Views/layouts/header.php';
                 <select id="specialtyFilter" class="form-select form-select-lg">
                     <option value="">Tất cả chuyên khoa</option>
                     <?php foreach ($specialties as $spec): ?>
-                        <option value="<?php echo htmlspecialchars($spec); ?>">
-                            <?php echo htmlspecialchars($spec); ?>
-                        </option>
+                    <option value="<?php echo htmlspecialchars($spec); ?>">
+                        <?php echo htmlspecialchars($spec); ?>
+                    </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -92,7 +96,7 @@ include 'Views/layouts/header.php';
     <div class="container">
         <div class="row" id="doctorsContainer">
             <?php foreach ($doctors as $doc): ?>
-                <?php
+            <?php
 
                 // Kiểm tra và sử dụng ảnh từ database
                 $imgSrc = null;
@@ -128,66 +132,49 @@ include 'Views/layouts/header.php';
                 $experience = (int)($doc['so_nam_kinh_nghiem'] ?? 0);
                 $specialty = $doc['chuyen_khoa'] ?: 'Đa khoa';
                 ?>
-                <div class="col-lg-4 col-md-6 mb-4 doctor-item animate-on-scroll"
-                    data-spec="<?php echo htmlspecialchars($specialty); ?>"
-                    data-name="<?php echo htmlspecialchars($doc['ten']); ?>"
-                    data-phone="<?php echo htmlspecialchars($doc['so_dien_thoai'] ?: ''); ?>"
-                    data-experience="<?php echo $experience; ?>">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3 doctor-item animate-on-scroll"
+                data-spec="<?php echo htmlspecialchars($specialty); ?>"
+                data-name="<?php echo htmlspecialchars($doc['ten']); ?>"
+                data-phone="<?php echo htmlspecialchars($doc['so_dien_thoai'] ?: ''); ?>"
+                data-experience="<?php echo $experience; ?>">
 
-                    <div class="doctor-card h-100">
-                        <div class="doctor-header">
-                            <div class="doctor-avatar">
-                                <img src="<?php echo $imgSrc; ?>" alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>"
-                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                <div class="avatar-placeholder"
-                                    style="display: none; width: 100%; height: 100%; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 2rem;">
-                                    <i class="fas fa-user-md"></i>
-                                </div>
-                            </div>
-                            <div class="doctor-status">
-                                <span class="status-badge online">Đang hoạt động</span>
+                <div class="doctor-card h-100">
+                    <div class="doctor-header">
+                        <div class="doctor-avatar">
+                            <img src="<?php echo $imgSrc; ?>" alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div class="avatar-placeholder"
+                                style="display: none; width: 100%; height: 100%; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 2rem;">
+                                <i class="fas fa-user-md"></i>
                             </div>
                         </div>
 
-                        <div class="doctor-body">
-                            <h5 class="doctor-name"><?php echo htmlspecialchars($doc['ten']); ?></h5>
-                            <p class="doctor-specialty">
-                                <i class="fas fa-stethoscope me-2"></i>
-                                <?php echo htmlspecialchars($specialty); ?>
-                            </p>
+                    </div>
 
-                            <div class="doctor-stats">
-                                <div class="stat-item">
-                                    <i class="fas fa-clock text-primary"></i>
-                                    <span><?php echo $experience; ?> năm kinh nghiệm</span>
-                                </div>
-                                <?php if (!empty($doc['so_giay_phep'])): ?>
-                                    <div class="stat-item">
-                                        <i class="fas fa-certificate text-success"></i>
-                                        <span>GPL: <?php echo htmlspecialchars($doc['so_giay_phep']); ?></span>
-                                    </div>
-                                <?php endif; ?>
-                                <?php if (!empty($doc['so_dien_thoai'])): ?>
-                                    <div class="stat-item">
-                                        <i class="fas fa-phone text-info"></i>
-                                        <span><?php echo htmlspecialchars($doc['so_dien_thoai']); ?></span>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
+                    <div class="doctor-body">
+                        <h5 class="doctor-name"><?php echo htmlspecialchars($doc['ten']); ?></h5>
+                        <p class="doctor-specialty">
+                            <i class="fas fa-stethoscope me-2"></i>
+                            <?php echo htmlspecialchars($specialty); ?>
+                        </p>
 
-                            <div class="doctor-actions">
-                                <a href="./hospital_appointment?doctor_id=<?php echo base64_encode($doc['id']); ?>"
-                                    class="btn btn-primary btn-sm w-100 mb-2">
-                                    <i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám
-                                </a>
-                                <a href="./consultation_booking?doctor_id=<?php echo base64_encode($doc['id']); ?>"
-                                    class="btn btn-outline-primary btn-sm w-100">
-                                    <i class="fas fa-video me-2"></i>Tư vấn trực tuyến
-                                </a>
-                            </div>
+                        <div class="doctor-meta text-muted">
+                            <span><?php echo $experience; ?> năm kinh nghiệm</span>
+                        </div>
+
+                        <div class="doctor-actions">
+                            <a href="./hospital_appointment?doctor_id=<?php echo base64_encode($doc['id']); ?>"
+                                class="btn btn-primary btn-sm w-100 mb-2">
+                                <i class="fas fa-calendar-plus me-2"></i>Đặt lịch
+                            </a>
+                            <a href="./consultation_booking?doctor_id=<?php echo base64_encode($doc['id']); ?>"
+                                class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-video me-2"></i>Tư vấn
+                            </a>
                         </div>
                     </div>
                 </div>
+            </div>
             <?php endforeach; ?>
         </div>
 
@@ -205,344 +192,329 @@ include 'Views/layouts/header.php';
     </div>
 </section>
 
-<!-- Call to Action -->
-<section class="cta-section py-5 bg-gradient-primary text-white">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h3 class="mb-3">Cần tư vấn thêm?</h3>
-                <p class="mb-0">Liên hệ với chúng tôi để được hỗ trợ và tư vấn chi tiết về dịch vụ khám chữa bệnh</p>
-            </div>
-            <div class="col-lg-4 text-lg-end">
-                <a href="tel:02812345678" class="btn btn-light btn-lg me-2">
-                    <i class="fas fa-phone me-2"></i>Gọi ngay
-                </a>
-                <a href="./contact" class="btn btn-outline-light btn-lg">
-                    <i class="fas fa-envelope me-2"></i>Liên hệ
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
+
 
 <style>
-    /* Page Header */
+/* Page Header */
+.page-header {
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,1000 1000,0 1000,1000"/></svg>');
+    background-size: cover;
+}
+
+.page-header .container {
+    position: relative;
+    z-index: 2;
+}
+
+.header-stats .h3 {
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Filter Section */
+.filter-section {
+    border-bottom: 1px solid #e9ecef;
+}
+
+.form-select,
+.form-control {
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus,
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Doctor Cards */
+.doctor-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.doctor-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.doctor-header {
+    position: relative;
+    padding: 1rem 1rem .75rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    text-align: center;
+}
+
+.doctor-avatar {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto .75rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+}
+
+.doctor-card:hover .doctor-avatar {
+    transform: scale(1.03);
+    border-color: var(--primary-color);
+}
+
+.doctor-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.doctor-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.online {
+    background: #d4edda;
+    color: #155724;
+}
+
+.doctor-body {
+    padding: 1rem 1rem 1.25rem;
+}
+
+.doctor-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: .3rem;
+    text-align: center;
+}
+
+.doctor-specialty {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: .75rem;
+    font-size: .95rem;
+}
+
+.doctor-stats {
+    margin-bottom: .5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+}
+
+.stat-item i {
+    width: 20px;
+    margin-right: 0.75rem;
+    font-size: 1rem;
+}
+
+.doctor-actions {
+    border-top: 1px solid #e9ecef;
+    padding-top: .75rem;
+}
+
+.doctor-actions .btn {
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    font-size: .875rem;
+    padding: .375rem .5rem;
+}
+
+.doctor-actions .btn:hover {
+    transform: translateY(-2px);
+}
+
+/* CTA Section */
+.cta-section {
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,0 1000,1000 0,1000"/></svg>');
+    background-size: cover;
+}
+
+.cta-section .container {
+    position: relative;
+    z-index: 2;
+}
+
+/* No Results */
+.no-results-icon {
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
     .page-header {
-        position: relative;
-        overflow: hidden;
+        text-align: center;
+        margin-top: 80px !important;
     }
 
-    .page-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,1000 1000,0 1000,1000"/></svg>');
-        background-size: cover;
+    .header-stats {
+        justify-content: center !important;
+        margin-top: 2rem;
     }
 
-    .page-header .container {
-        position: relative;
-        z-index: 2;
-    }
-
-    .header-stats .h3 {
-        font-weight: 800;
-        color: rgba(255, 255, 255, 0.9);
-    }
-
-    /* Filter Section */
-    .filter-section {
-        border-bottom: 1px solid #e9ecef;
-    }
-
-    .form-select,
-    .form-control {
-        border-radius: 12px;
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
-    }
-
-    .form-select:focus,
-    .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
-
-    /* Doctor Cards */
     .doctor-card {
-        background: #fff;
-        border-radius: 20px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e9ecef;
-        transition: all 0.3s ease;
-        overflow: hidden;
-        position: relative;
+        margin-bottom: 2rem;
     }
 
-    .doctor-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    .cta-section .text-lg-end {
+        text-align: center !important;
+        margin-top: 2rem;
+    }
+
+    .cta-section .btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .page-header {
+        margin-top: 70px !important;
     }
 
     .doctor-header {
-        position: relative;
-        padding: 2rem 2rem 1rem;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        text-align: center;
-    }
-
-    .doctor-avatar {
-        width: 120px;
-        height: 120px;
-        margin: 0 auto 1rem;
-        border-radius: 50%;
-        overflow: hidden;
-        border: 4px solid #fff;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-    }
-
-    .doctor-card:hover .doctor-avatar {
-        transform: scale(1.05);
-        border-color: var(--primary-color);
-    }
-
-    .doctor-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .doctor-status {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-    }
-
-    .status-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .status-badge.online {
-        background: #d4edda;
-        color: #155724;
+        padding: 1.5rem 1rem 1rem;
     }
 
     .doctor-body {
-        padding: 1.5rem 2rem 2rem;
+        padding: 1rem 1.5rem 1.5rem;
     }
 
-    .doctor-name {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--gray-800);
-        margin-bottom: 0.5rem;
-        text-align: center;
+    .doctor-avatar {
+        width: 100px;
+        height: 100px;
     }
-
-    .doctor-specialty {
-        color: var(--primary-color);
-        font-weight: 600;
-        text-align: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .doctor-stats {
-        margin-bottom: 1.5rem;
-    }
-
-    .stat-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 0.75rem;
-        font-size: 0.875rem;
-        color: var(--gray-600);
-    }
-
-    .stat-item i {
-        width: 20px;
-        margin-right: 0.75rem;
-        font-size: 1rem;
-    }
-
-    .doctor-actions {
-        border-top: 1px solid #e9ecef;
-        padding-top: 1.5rem;
-    }
-
-    .doctor-actions .btn {
-        border-radius: 12px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .doctor-actions .btn:hover {
-        transform: translateY(-2px);
-    }
-
-    /* CTA Section */
-    .cta-section {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .cta-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="rgba(255,255,255,0.05)" points="0,0 1000,1000 0,1000"/></svg>');
-        background-size: cover;
-    }
-
-    .cta-section .container {
-        position: relative;
-        z-index: 2;
-    }
-
-    /* No Results */
-    .no-results-icon {
-        opacity: 0.5;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .page-header {
-            text-align: center;
-            margin-top: 80px !important;
-        }
-
-        .header-stats {
-            justify-content: center !important;
-            margin-top: 2rem;
-        }
-
-        .doctor-card {
-            margin-bottom: 2rem;
-        }
-
-        .cta-section .text-lg-end {
-            text-align: center !important;
-            margin-top: 2rem;
-        }
-
-        .cta-section .btn {
-            display: block;
-            width: 100%;
-            margin-bottom: 1rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .page-header {
-            margin-top: 70px !important;
-        }
-
-        .doctor-header {
-            padding: 1.5rem 1rem 1rem;
-        }
-
-        .doctor-body {
-            padding: 1rem 1.5rem 1.5rem;
-        }
-
-        .doctor-avatar {
-            width: 100px;
-            height: 100px;
-        }
-    }
+}
 </style>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const specSelect = document.getElementById('specialtyFilter');
-        const searchInput = document.getElementById('searchInput');
-        const sortFilter = document.getElementById('sortFilter');
-        const items = Array.from(document.querySelectorAll('.doctor-item'));
-        const noResults = document.getElementById('noResults');
+document.addEventListener('DOMContentLoaded', function() {
+    const specSelect = document.getElementById('specialtyFilter');
+    const searchInput = document.getElementById('searchInput');
+    const sortFilter = document.getElementById('sortFilter');
+    const items = Array.from(document.querySelectorAll('.doctor-item'));
+    const noResults = document.getElementById('noResults');
 
-        function applyFilters() {
-            const spec = specSelect.value.trim().toLowerCase();
-            const q = searchInput.value.trim().toLowerCase();
-            const sortBy = sortFilter.value;
+    function applyFilters() {
+        const spec = specSelect.value.trim().toLowerCase();
+        const q = searchInput.value.trim().toLowerCase();
+        const sortBy = sortFilter.value;
 
-            let visibleItems = 0;
+        let visibleItems = 0;
 
-            items.forEach(el => {
-                const elSpec = (el.dataset.spec || '').toLowerCase();
-                const elName = (el.dataset.name || '').toLowerCase();
-                const elPhone = (el.dataset.phone || '').toLowerCase();
-                const elExperience = parseInt(el.dataset.experience || 0);
+        items.forEach(el => {
+            const elSpec = (el.dataset.spec || '').toLowerCase();
+            const elName = (el.dataset.name || '').toLowerCase();
+            const elPhone = (el.dataset.phone || '').toLowerCase();
+            const elExperience = parseInt(el.dataset.experience || 0);
 
-                const matchSpec = !spec || elSpec.includes(spec);
-                const matchQ = !q || elName.includes(q) || elPhone.includes(q);
+            const matchSpec = !spec || elSpec.includes(spec);
+            const matchQ = !q || elName.includes(q) || elPhone.includes(q);
 
-                if (matchSpec && matchQ) {
-                    el.style.display = '';
-                    visibleItems++;
-                } else {
-                    el.style.display = 'none';
-                }
-            });
-
-            // Show/hide no results message
-            if (visibleItems === 0) {
-                noResults.style.display = 'block';
+            if (matchSpec && matchQ) {
+                el.style.display = '';
+                visibleItems++;
             } else {
-                noResults.style.display = 'none';
+                el.style.display = 'none';
             }
+        });
 
-            // Sort items
-            sortItems(sortBy);
+        // Show/hide no results message
+        if (visibleItems === 0) {
+            noResults.style.display = 'block';
+        } else {
+            noResults.style.display = 'none';
         }
 
-        function sortItems(sortBy) {
-            const container = document.getElementById('doctorsContainer');
-            const items = Array.from(container.children);
+        // Sort items
+        sortItems(sortBy);
+    }
 
-            items.sort((a, b) => {
-                switch (sortBy) {
-                    case 'name':
-                        return (a.dataset.name || '').localeCompare(b.dataset.name || '');
-                    case 'experience':
-                        return (parseInt(b.dataset.experience || 0) - parseInt(a.dataset.experience || 0));
-                    case 'specialty':
-                        return (a.dataset.spec || '').localeCompare(b.dataset.spec || '');
-                    default:
-                        return 0;
-                }
-            });
+    function sortItems(sortBy) {
+        const container = document.getElementById('doctorsContainer');
+        const items = Array.from(container.children);
 
-            items.forEach(item => container.appendChild(item));
-        }
+        items.sort((a, b) => {
+            switch (sortBy) {
+                case 'name':
+                    return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+                case 'experience':
+                    return (parseInt(b.dataset.experience || 0) - parseInt(a.dataset.experience || 0));
+                case 'specialty':
+                    return (a.dataset.spec || '').localeCompare(b.dataset.spec || '');
+                default:
+                    return 0;
+            }
+        });
 
-        function clearFilters() {
-            specSelect.value = '';
-            searchInput.value = '';
-            sortFilter.value = 'name';
-            applyFilters();
-        }
+        items.forEach(item => container.appendChild(item));
+    }
 
-        // Event listeners
-        specSelect.addEventListener('change', applyFilters);
-        searchInput.addEventListener('input', applyFilters);
-        sortFilter.addEventListener('change', applyFilters);
-
-        // Make clearFilters available globally
-        window.clearFilters = clearFilters;
-
-        // Initialize
+    function clearFilters() {
+        specSelect.value = '';
+        searchInput.value = '';
+        sortFilter.value = 'name';
         applyFilters();
-    });
+    }
+
+    // Event listeners
+    specSelect.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+    sortFilter.addEventListener('change', applyFilters);
+
+    // Make clearFilters available globally
+    window.clearFilters = clearFilters;
+
+    // Initialize
+    applyFilters();
+});
 </script>
 
 <?php

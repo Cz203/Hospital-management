@@ -276,14 +276,15 @@ class Appointment extends User
     public function getDoctorsBySpecialty($specialty = null)
     {
         try {
-            $sql = "SELECT id, ten, chuyen_khoa, so_nam_kinh_nghiem, hinh_anh
-                    FROM bac_si 
+            $sql = "SELECT bs.id, bs.ten, ck.ten AS chuyen_khoa, bs.so_nam_kinh_nghiem, bs.hinh_anh
+                    FROM bac_si bs
+                    LEFT JOIN chuyen_khoa ck ON ck.id = bs.chuyen_khoa_id
                     WHERE 1=1";
 
             $params = [];
 
             if ($specialty) {
-                $sql .= " AND chuyen_khoa = :specialty";
+                $sql .= " AND ck.ten = :specialty";
                 $params[':specialty'] = $specialty;
             }
 
@@ -304,14 +305,14 @@ class Appointment extends User
     public function getSpecialties()
     {
         try {
-            $sql = "SELECT DISTINCT chuyen_khoa 
-                    FROM bac_si 
-                    WHERE chuyen_khoa IS NOT NULL 
-                    ORDER BY chuyen_khoa";
+            $sql = "SELECT DISTINCT ten 
+                    FROM chuyen_khoa 
+                    WHERE trang_thai = 'active' 
+                    ORDER BY ten";
 
             $stmt = $this->getConnection()->prepare($sql);
             $stmt->execute();
-            return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'chuyen_khoa');
+            return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'ten');
         } catch (PDOException $e) {
             error_log("Appointment getSpecialties error: " . $e->getMessage());
             return [];

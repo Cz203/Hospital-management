@@ -1,5 +1,6 @@
 <?php
 require_once 'Models/Doctor.php';
+require_once 'Models/Specialty.php';
 require_once 'Controllers/AuthController.php';
 
 $auth = new AuthController();
@@ -10,15 +11,9 @@ $doctors = $doctorModel->getAll();
 // Limit to 6 doctors for the home page
 $displayDoctors = array_slice($doctors, 0, 6);
 
-// Count doctors by specialty
-$specialtyCounts = [];
-foreach ($doctors as $doctor) {
-    $specialty = $doctor['chuyen_khoa'] ?? 'Khác';
-    if (!isset($specialtyCounts[$specialty])) {
-        $specialtyCounts[$specialty] = 0;
-    }
-    $specialtyCounts[$specialty]++;
-}
+// Get specialties directly from chuyen_khoa with doctor counts
+$specialtyModel = new Specialty();
+$specialties = $specialtyModel->allWithDoctorCounts();
 
 // Define specialty colors for consistent styling
 $specialtyColors = [
@@ -43,7 +38,7 @@ $specialtyColors = [
 ];
 
 // Set page title
-$page_title = 'Trang chủ - ThinhViet Hospital';
+$page_title = 'Trang chủ';
 
 // Include header
 include 'Views/layouts/header.php';
@@ -210,15 +205,7 @@ include 'Views/layouts/header.php';
                         <i class="fas fa-clock me-1"></i>
                         <?php echo (int)($doc['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh nghiệm
                     </p>
-                    <div class="doctor-info">
-                        <span class="badge bg-success me-2">
-                            <i class="fas fa-calendar-check me-1"></i>Có lịch
-                        </span>
-                        <span class="badge bg-info">
-                            <i
-                                class="fas fa-phone me-1"></i><?php echo htmlspecialchars($doc['so_dien_thoai'] ?? 'Liên hệ'); ?>
-                        </span>
-                    </div>
+
                 </div>
             </div>
             <?php endforeach; ?>
@@ -256,51 +243,39 @@ include 'Views/layouts/header.php';
         </div>
 
         <div class="row">
-            <?php
-            // Define specialty icons and colors
-            $specialtyConfig = [
-                'Nội tổng quát' => ['icon' => 'fas fa-stethoscope', 'color' => 'primary', 'desc' => 'Điều trị các bệnh lý nội khoa tổng quát'],
-                'Ung bướu' => ['icon' => 'fas fa-microscope', 'color' => 'danger', 'desc' => 'Chẩn đoán và điều trị ung thư'],
-                'Sản phụ khoa' => ['icon' => 'fas fa-baby', 'color' => 'pink', 'desc' => 'Chăm sóc sức khỏe phụ nữ và thai sản'],
-                'Chẩn đoán hình ảnh' => ['icon' => 'fas fa-x-ray', 'color' => 'info', 'desc' => 'X-quang, CT, MRI, siêu âm'],
-                'Xét nghiệm' => ['icon' => 'fas fa-flask', 'color' => 'warning', 'desc' => 'Xét nghiệm máu, sinh hóa, vi sinh'],
-                'Ngoại khoa' => ['icon' => 'fas fa-user-md', 'color' => 'success', 'desc' => 'Phẫu thuật tổng quát'],
-                'Tiêu hóa' => ['icon' => 'fas fa-stomach', 'color' => 'orange', 'desc' => 'Bệnh lý đường tiêu hóa'],
-                'Nội tiết' => ['icon' => 'fas fa-pills', 'color' => 'purple', 'desc' => 'Bệnh lý nội tiết và chuyển hóa'],
-                'Tim mạch' => ['icon' => 'fas fa-heartbeat', 'color' => 'danger', 'desc' => 'Bệnh lý tim mạch'],
-                'Nam khoa' => ['icon' => 'fas fa-mars', 'color' => 'blue', 'desc' => 'Sức khỏe nam giới'],
-                'Cơ xương khớp' => ['icon' => 'fas fa-bone', 'color' => 'secondary', 'desc' => 'Bệnh lý cơ xương khớp'],
-                'Truyền nhiễm' => ['icon' => 'fas fa-virus', 'color' => 'warning', 'desc' => 'Bệnh truyền nhiễm'],
-                'Thần kinh' => ['icon' => 'fas fa-brain', 'color' => 'indigo', 'desc' => 'Bệnh lý thần kinh'],
-                'Nhi khoa' => ['icon' => 'fas fa-child', 'color' => 'info', 'desc' => 'Chăm sóc sức khỏe trẻ em'],
-                'Mắt' => ['icon' => 'fas fa-eye', 'color' => 'primary', 'desc' => 'Bệnh lý mắt và thị giác'],
-                'Tai mũi họng' => ['icon' => 'fas fa-head-side-cough', 'color' => 'success', 'desc' => 'Bệnh lý tai mũi họng'],
-                'Da liễu' => ['icon' => 'fas fa-allergies', 'color' => 'warning', 'desc' => 'Bệnh lý da và thẩm mỹ'],
-                'Răng hàm mặt' => ['icon' => 'fas fa-tooth', 'color' => 'light', 'desc' => 'Nha khoa và phẫu thuật hàm mặt']
-            ];
-
-            foreach ($specialtyCounts as $specialty => $count):
-                if (isset($specialtyConfig[$specialty])):
-                    $config = $specialtyConfig[$specialty];
+            <?php $specialtiesLimited = array_slice($specialties ?? [], 0, 8);
+            foreach ($specialtiesLimited as $sp):
+                $name = $sp['ten'];
+                $count = (int)($sp['doctor_count'] ?? 0);
+                $iconClass = !empty($sp['icon']) ? $sp['icon'] : 'fas fa-stethoscope';
+                $desc = $sp['mo_ta'] ?? '';
+                $badgeColor = 'primary';
             ?>
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                <div class="specialty-card animate-on-scroll">
-                    <div class="specialty-icon">
-                        <i class="<?php echo $config['icon']; ?>"></i>
+                <a class="text-decoration-none text-reset"
+                    href="./doctors_by_specialty?slug=<?php echo urlencode($sp['slug'] ?? ''); ?>">
+                    <div class="specialty-card animate-on-scroll">
+                        <div class="specialty-icon">
+                            <i class="<?php echo htmlspecialchars($iconClass); ?>"></i>
+                        </div>
+                        <h5><?php echo htmlspecialchars($name); ?></h5>
+                        <p><?php echo htmlspecialchars($desc); ?></p>
+                        <div class="doctor-count">
+                            <span class="badge bg-<?php echo $badgeColor; ?>">
+                                <i class="fas fa-user-md me-1"></i><?php echo $count; ?> Bác sĩ
+                            </span>
+                        </div>
                     </div>
-                    <h5><?php echo htmlspecialchars($specialty); ?></h5>
-                    <p><?php echo $config['desc']; ?></p>
-                    <div class="doctor-count">
-                        <span class="badge bg-<?php echo $config['color']; ?>">
-                            <i class="fas fa-user-md me-1"></i><?php echo $count; ?> Bác sĩ
-                        </span>
-                    </div>
-                </div>
+                </a>
             </div>
-            <?php
-                endif;
-            endforeach;
-            ?>
+            <?php endforeach; ?>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <a class="btn btn-primary btn-lg animate-on-scroll" href="./specialties_all">
+                    <i class="fas fa-users me-2"></i>Xem tất chuyên khoa
+                </a>
+            </div>
         </div>
     </div>
 </section>
@@ -322,7 +297,8 @@ include 'Views/layouts/header.php';
                         </div>
                         <div class="col-md-3 col-6 mb-3">
                             <div class="stat-item">
-                                <div class="stat-number text-success"><?php echo count($specialtyCounts); ?>+</div>
+                                <div class="stat-number text-success">
+                                    <?php echo is_array($specialties) ? count($specialties) : 0; ?>+</div>
                                 <div class="stat-label">Chuyên khoa</div>
                             </div>
                         </div>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th9 19, 2025 lúc 04:49 PM
+-- Thời gian đã tạo: Th9 22, 2025 lúc 12:43 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -33,6 +33,7 @@ CREATE TABLE `bac_si` (
   `email` varchar(255) NOT NULL,
   `mat_khau` varchar(255) NOT NULL,
   `so_dien_thoai` varchar(20) DEFAULT NULL,
+  `chuyen_khoa_id` int(11) DEFAULT NULL,
   `chuyen_khoa` varchar(100) DEFAULT NULL,
   `so_giay_phep` varchar(50) DEFAULT NULL,
   `so_nam_kinh_nghiem` int(11) DEFAULT 0,
@@ -45,43 +46,8 @@ CREATE TABLE `bac_si` (
 -- Đang đổ dữ liệu cho bảng `bac_si`
 --
 
-INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen_khoa`, `so_giay_phep`, `so_nam_kinh_nghiem`, `ngay_tao`, `ngay_cap_nhat`, `hinh_anh`) VALUES
-(1, 'GSTS. Cao Việt', 'caoviet5.work@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901000001', 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-09-10 18:57:33', 'uploads/bacsiviet.png'),
-(2, 'BS. Ngô Thị Giang', 'tm.ngogiang@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000002', 'Tim mạch', 'TM002', 12, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/ngothigiang.jpg'),
-(3, 'BS. Trịnh Văn Khoa', 'tk.trinhkhoa@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000003', 'Thần kinh', 'TK001', 14, '2025-08-12 09:06:03', '2025-08-23 19:21:05', 'uploads/avt-bac-si-the-truong-1.png'),
-(4, 'BS. Nguyễn Văn Minh', 'tk.nguyenminh@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000004', 'Thần kinh', 'TK002', 10, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyenvanminh.jpg'),
-(5, 'BS. Hoàng Thị Em', 'nhi.hoangem@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000005', 'Nhi khoa', 'NK001', 11, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/hoangthiem.jpg'),
-(6, 'BS. Lý Thị Hoa', 'nhi.lyhoa@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000006', 'Nhi khoa', 'NK002', 9, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/lythihoa.jpg'),
-(7, 'BS. Lê Thị Cẩm', 'san.lecam@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000007', 'Sản phụ khoa', 'SK001', 13, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/lethicam.jpg'),
-(8, 'BS. Mai Thị Lan', 'san.mailan@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000008', 'Sản phụ khoa', 'SK002', 8, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/maithilan.jpg'),
-(9, 'BS. Trần Thu Trang', 'dalieu.trang@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000009', 'Da liễu', 'DL001', 10, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/tranthutrang.jpg'),
-(10, 'BS. Phạm Đức Long', 'dalieu.long@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000010', 'Da liễu', 'DL002', 7, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/phamduclong.jpg'),
-(11, 'BS. Vũ Thị Hạnh', 'mat.hanh@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000011', 'Mắt', 'MT001', 12, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/vuthihanh.jpg'),
-(12, 'BS. Đỗ Minh Khôi', 'mat.khoi@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000012', 'Mắt', 'MT002', 6, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/dominhkhoi.jpg'),
-(13, 'BS. Lâm Quốc Bảo', 'tmh.baolam@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000013', 'Tai mũi họng', 'TMH001', 9, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/lamquocbao.jpg'),
-(14, 'BS. Nguyễn Ngọc Ánh', 'tmh.anhngoc@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000014', 'Tai mũi họng', 'TMH002', 7, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyenngocanh.jpg'),
-(15, 'BS. Tạ Minh Tuấn', 'rhm.tuan@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000015', 'Răng hàm mặt', 'RHM001', 10, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/taminhtuan.jpg'),
-(16, 'BS. Bùi Thị Kim', 'rhm.kim@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000016', 'Răng hàm mặt', 'RHM002', 5, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/buithikim.jpg'),
-(17, 'BS. Đặng Quang Huy', 'ctch.huy@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000017', 'Chấn thương chỉnh hình', 'CTCH001', 12, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/dangquanghuy.jpg'),
-(18, 'BS. Lưu Văn Tín', 'ctch.tin@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000018', 'Chấn thương chỉnh hình', 'CTCH002', 7, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/luuvantin.jpg'),
-(19, 'BS. Phan Thanh Hải', 'ungbuou.hai@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000019', 'Ung bướu', 'UB001', 13, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/phanthanhhai.jpg'),
-(20, 'BS. Nguyễn Thị Yến', 'ungbuou.yen@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000020', 'Ung bướu', 'UB002', 9, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyenthiyen.jpg'),
-(21, 'BS. Trương Minh Đức', 'noitiet.duc@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000021', 'Nội tiết', 'NT001', 11, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/truongminhduc.jpg'),
-(22, 'BS. Lê Thanh Hằng', 'noitiet.hang@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000022', 'Nội tiết', 'NT002', 8, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/lethanhhang.jpg'),
-(23, 'BS. Võ Quốc Khánh', 'tieuhua.khanh@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000023', 'Tiêu hóa', 'TH001', 10, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/voquockhanh.jpg'),
-(24, 'BS. Phạm Thị Mỹ', 'tieuhua.my@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000024', 'Tiêu hóa', 'TH002', 6, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/phamthimy.jpg'),
-(25, 'BS. Nguyễn Văn An', 'noi.nguyenan@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000025', 'Nội tổng quát', 'NQ001', 10, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyenvanan.jpg'),
-(26, 'BS. Trần Thị Bình', 'noi.tranbinh@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000026', 'Nội tổng quát', 'NQ002', 7, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/tranthibinh.jpg'),
-(27, 'BS. Đỗ Văn Nam', 'namkhoa.donam@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000027', 'Nam khoa', 'NKH001', 9, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/dovannam.jpg'),
-(28, 'BS. Phùng Hữu Phúc', 'namkhoa.phuc@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000028', 'Nam khoa', 'NKH002', 6, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/phunghuuphuc.jpg'),
-(29, 'BS. Trần Bảo Châu', 'truyennhiem.chau@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000029', 'Truyền nhiễm', 'TN001', 12, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/tranbaochau.jpg'),
-(30, 'BS. Nguyễn Tuấn Kiệt', 'truyennhiem.kiet@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000030', 'Truyền nhiễm', 'TN002', 7, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyentuankiet.jpg'),
-(31, 'BS. Lê Phước Lộc', 'cdha.loc@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000031', 'Chẩn đoán hình ảnh', 'CDHA001', 10, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/lephuocloc.jpg'),
-(32, 'BS. Nguyễn Diễm My', 'cdha.my@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000032', 'Chẩn đoán hình ảnh', 'CDHA002', 5, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyendiemmy.jpg'),
-(33, 'BS. Phan Thanh Tùng', 'xn.tung@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000033', 'Xét nghiệm', 'XN001', 9, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/phanthanhtung.jpg'),
-(34, 'BS. Nguyễn Thị Tú', 'xn.tu@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000034', 'Xét nghiệm', 'XN002', 6, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/nguyenthitu.jpg'),
-(35, 'BS. Vũ Văn Phúc', 'ngoai.vuphuc@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000035', 'Ngoại khoa', 'NG001', 14, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/vuvanphuc.jpg'),
-(36, 'BS. Hoàng Thị Dung', 'ngoai.hoangdung@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '0901000036', 'Ngoại khoa', 'NG002', 9, '2025-08-12 09:06:03', '2025-08-12 09:06:03', 'images/bacsi/hoangthidung.jpg');
+INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen_khoa_id`, `chuyen_khoa`, `so_giay_phep`, `so_nam_kinh_nghiem`, `ngay_tao`, `ngay_cap_nhat`, `hinh_anh`) VALUES
+(1, 'GSTS. Cao Việt', 'caoviet5.work@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901000001', 1, 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-09-22 06:53:16', 'uploads/bacsiviet.png');
 
 -- --------------------------------------------------------
 
@@ -149,6 +115,46 @@ INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `pho
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `chuyen_khoa`
+--
+
+CREATE TABLE `chuyen_khoa` (
+  `id` int(11) NOT NULL,
+  `ten` varchar(100) NOT NULL,
+  `slug` varchar(120) DEFAULT NULL,
+  `mo_ta` text DEFAULT NULL,
+  `icon` varchar(100) DEFAULT NULL,
+  `thu_tu` int(11) DEFAULT 0,
+  `trang_thai` enum('active','inactive') DEFAULT 'active',
+  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `chuyen_khoa`
+--
+
+INSERT INTO `chuyen_khoa` (`id`, `ten`, `slug`, `mo_ta`, `icon`, `thu_tu`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 'Tim mạch', 'tim-mach', 'Khám và điều trị bệnh lý tim mạch', 'fas fa-heartbeat', 60, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(2, 'Thần kinh', 'than-kinh', 'Bệnh lý hệ thần kinh trung ương và ngoại biên', 'fas fa-brain', 70, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(3, 'Nhi khoa', 'nhi-khoa', 'Chăm sóc sức khỏe trẻ em', 'fas fa-child', 80, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(4, 'Sản phụ khoa', 'san-phu-khoa', 'Chăm sóc sức khỏe phụ nữ và thai sản', 'fas fa-baby', 30, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(5, 'Da liễu', 'da-lieu', 'Khám và điều trị các bệnh lý da', 'fas fa-allergies', 110, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(6, 'Mắt', 'mat', 'Khám và điều trị các bệnh lý mắt', 'fas fa-eye', 90, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(7, 'Tai mũi họng', 'tai-mui-hong', 'Bệnh lý tai, mũi, họng', 'fas fa-head-side-cough', 100, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(9, 'Chấn thương chỉnh hình', 'chan-thuong-chinh-hinh', 'v', 'fas fa-bone', 170, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(10, 'Ung bướu', 'ung-buou', 'Chẩn đoán và điều trị các bệnh lý ung thư', 'fas fa-microscope', 20, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(11, 'Nội tiết', 'noi-tiet', 'Bệnh lý nội tiết và chuyển hóa', 'fas fa-pills', 150, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(12, 'Tiêu hóa', 'tieu-hoa', 'Bệnh lý đường tiêu hóa', 'fas fa-notes-medical', 160, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(13, 'Nội tổng quát', 'noi-tong-quat', 'Khám và điều trị các bệnh lý nội khoa tổng quát', 'fas fa-stethoscope', 10, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(14, 'Nam khoa', 'nam-khoa', 'Sức khỏe nam giới', 'fas fa-mars', 130, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(15, 'Truyền nhiễm', 'truyen-nhiem', 'Bệnh truyền nhiễm và kiểm soát nhiễm khuẩn', 'fas fa-virus', 140, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(16, 'Chẩn đoán hình ảnh', 'chuan-doan-hinh-anh', 'X-quang, CT, MRI, siêu âm', 'fas fa-x-ray', 40, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(17, 'Xét nghiệm', 'xet-nghiem', 'Xét nghiệm huyết học, sinh hóa, vi sinh', 'fas fa-flask', 50, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22');
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `ho_so_benh_an`
 --
 
@@ -196,7 +202,9 @@ INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`
 (81, 21, 1, '2025-09-12', '08:00:00', 'zxc', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85103772356?pwd=ZsEtGeNC2SlNcNPfdkTC8v5QUY3fx9.1', 'Đã xác nhận', '', '2025-09-10 20:45:24', '2025-09-10 20:45:29'),
 (82, 21, 1, '2025-09-12', '07:20:00', 'zcbv', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85653100932?pwd=Cab2e1CPeUk4mDa2Llw6omSbxtRbqp.1', 'Đã xác nhận', '', '2025-09-10 21:04:16', '2025-09-10 21:04:32'),
 (83, 28, 1, '2025-09-21', '09:20:00', 'bbbbbbb', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/87665539022?pwd=YO7sK2Ja2etNYh4orrVIfqDIn7ydpo.1', 'Đang khám', NULL, '2025-09-19 14:18:43', '2025-09-19 14:23:17'),
-(84, 28, 1, '2025-09-21', '09:20:00', '', 'Trực tiếp', NULL, '', 'Đã xác nhận', '', '2025-09-19 14:38:20', '2025-09-19 14:39:47');
+(84, 28, 1, '2025-09-21', '09:20:00', '', 'Trực tiếp', NULL, '', 'Đã xác nhận', '', '2025-09-19 14:38:20', '2025-09-19 14:39:47'),
+(85, 28, 1, '2025-09-21', '09:40:00', '', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/86437616119?pwd=L0aCv9LWGw0PScPaHigK2t4QxjH1nG.1', 'Đã xác nhận', '', '2025-09-19 15:02:35', '2025-09-19 15:03:30'),
+(86, 28, 1, '2025-09-22', '17:20:00', '', 'Trực tiếp', NULL, '', 'Đã xác nhận', '', '2025-09-22 10:18:32', '2025-09-22 10:18:43');
 
 -- --------------------------------------------------------
 
@@ -229,21 +237,6 @@ INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`,
 (9, 1, 'Chủ nhật', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-06 12:25:07', '2025-09-06 12:25:07'),
 (10, 1, 'Thứ 4', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-07 21:51:05', '2025-09-07 21:51:05'),
 (11, 1, 'Thứ 2', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-08 08:24:08', '2025-09-08 08:24:08');
-
--- --------------------------------------------------------
-
---
--- Cấu trúc bảng cho bảng `otp_codes`
---
-
-CREATE TABLE `otp_codes` (
-  `id` int(11) NOT NULL,
-  `phone_number` varchar(20) NOT NULL,
-  `otp_code` varchar(6) NOT NULL,
-  `expires_at` datetime NOT NULL,
-  `is_used` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -354,7 +347,8 @@ INSERT INTO `thong_bao` (`id`, `doi_tuong`, `bac_si_id`, `benh_nhan_id`, `quan_t
 --
 ALTER TABLE `bac_si`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `idx_bac_si_chuyen_khoa_id` (`chuyen_khoa_id`);
 
 --
 -- Chỉ mục cho bảng `bao_hiem_y_te`
@@ -371,6 +365,14 @@ ALTER TABLE `benh_nhan`
   ADD UNIQUE KEY `email` (`email`),
   ADD KEY `idx_bn_email` (`email`),
   ADD KEY `idx_bao_hiem_y_te_id` (`bao_hiem_y_te_id`);
+
+--
+-- Chỉ mục cho bảng `chuyen_khoa`
+--
+ALTER TABLE `chuyen_khoa`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_chuyen_khoa_ten` (`ten`),
+  ADD UNIQUE KEY `uniq_chuyen_khoa_slug` (`slug`);
 
 --
 -- Chỉ mục cho bảng `ho_so_benh_an`
@@ -398,15 +400,6 @@ ALTER TABLE `lich_lam_viec`
   ADD KEY `idx_bac_si_id` (`bac_si_id`),
   ADD KEY `idx_thu_trong_tuan` (`thu_trong_tuan`),
   ADD KEY `idx_trang_thai` (`trang_thai`);
-
---
--- Chỉ mục cho bảng `otp_codes`
---
-ALTER TABLE `otp_codes`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_phone_number` (`phone_number`),
-  ADD KEY `idx_expires_at` (`expires_at`),
-  ADD KEY `idx_is_used` (`is_used`);
 
 --
 -- Chỉ mục cho bảng `phieu_tien_su_di_ung`
@@ -442,7 +435,7 @@ ALTER TABLE `thong_bao`
 -- AUTO_INCREMENT cho bảng `bac_si`
 --
 ALTER TABLE `bac_si`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT cho bảng `bao_hiem_y_te`
@@ -457,6 +450,12 @@ ALTER TABLE `benh_nhan`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
+-- AUTO_INCREMENT cho bảng `chuyen_khoa`
+--
+ALTER TABLE `chuyen_khoa`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+
+--
 -- AUTO_INCREMENT cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
@@ -466,19 +465,13 @@ ALTER TABLE `ho_so_benh_an`
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
-
---
--- AUTO_INCREMENT cho bảng `otp_codes`
---
-ALTER TABLE `otp_codes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_tien_su_di_ung`
@@ -501,6 +494,12 @@ ALTER TABLE `thong_bao`
 --
 -- Các ràng buộc cho các bảng đã đổ
 --
+
+--
+-- Các ràng buộc cho bảng `bac_si`
+--
+ALTER TABLE `bac_si`
+  ADD CONSTRAINT `fk_bac_si_chuyen_khoa` FOREIGN KEY (`chuyen_khoa_id`) REFERENCES `chuyen_khoa` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Các ràng buộc cho bảng `benh_nhan`
