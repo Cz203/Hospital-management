@@ -171,16 +171,40 @@ class AppointmentController
             exit();
         }
 
-        $timeSlots = $this->appointmentModel->getAvailableTimeSlots($doctorId, $date);
+        // Trả về kèm trạng thái disabled để UI hiển thị slot đã được đặt
+        $timeSlots = $this->appointmentModel->getAvailableTimeSlots($doctorId, $date, true);
 
-        // Nếu chọn ngày hôm nay, lọc bỏ các giờ đã qua
+        // Disable nếu vượt quá cửa sổ đặt lịch:
+        // - Trước ngày 23: 23/tháng trước → hết tháng hiện tại
+        // - Từ ngày 23: 23/tháng này → hết tháng kế tiếp
+        $openDay = 23;
+        $anchor = new DateTime(date('Y-m-01'));
+        $anchor->setDate((int)$anchor->format('Y'), (int)$anchor->format('m'), $openDay);
+        if (new DateTime($today) < $anchor) {
+            $bookingStart = (clone $anchor)->modify('-1 month');
+            $bookingEnd = (clone $anchor)->modify('last day of this month');
+        } else {
+            $bookingStart = clone $anchor;
+            $bookingEnd = (clone $anchor)->modify('+1 month')->modify('last day of this month');
+        }
+        $selDateObj = DateTime::createFromFormat('Y-m-d', $selectedDate);
+        if ($selDateObj && ($selDateObj < $bookingStart || $selDateObj > $bookingEnd)) {
+            foreach ($timeSlots as &$slot) {
+                $slot['disabled'] = true;
+            }
+            unset($slot);
+        }
+
+        // Nếu chọn ngày hôm nay, đánh dấu disabled cho các giờ đã qua
         if ($selectedDate == $today && !empty($timeSlots)) {
             $currentTime = strtotime($now);
-            $timeSlots = array_filter($timeSlots, function ($slot) use ($currentTime) {
+            foreach ($timeSlots as &$slot) {
                 $slotTime = strtotime($slot['time']);
-                return $slotTime > $currentTime;
-            });
-            $timeSlots = array_values($timeSlots); // Re-index array
+                if ($slotTime <= $currentTime) {
+                    $slot['disabled'] = true;
+                }
+            }
+            unset($slot);
         }
 
         echo json_encode([

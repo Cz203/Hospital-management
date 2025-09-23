@@ -25,13 +25,79 @@ class DoctorController
         $schedules = $this->doctorModel->getSchedules($doctorId);
         $stats = $this->doctorModel->getScheduleStats($doctorId);
 
-        // Nhóm lịch theo thứ trong tuần
-        $schedulesByDay = [];
+        // Không nhóm theo thứ nữa; sẽ lấy theo ngày cụ thể khi render tuần
         $daysOfWeek = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
 
-        foreach ($daysOfWeek as $day) {
-            $schedulesByDay[$day] = $this->doctorModel->getSchedulesByDay($doctorId, $day);
+        // Support custom start date (?from=YYYY-MM-DD) and weekly view with offset (?w=...)
+        $fromParam = (isset($_GET['from']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['from'])) ? $_GET['from'] : date('Y-m-d');
+        $fromDate = DateTime::createFromFormat('Y-m-d', $fromParam);
+        if (!$fromDate) {
+            $fromDate = new DateTime();
         }
+        $fromDate->setTime(0, 0, 0);
+
+        // Cửa sổ hiển thị/điều hướng lấy theo chính sách booking (dành cho bệnh nhân)
+        $todayDt = new DateTime(date('Y-m-d'));
+
+        // Base week is the Monday of the week containing the 'from' date
+        $baseWeekStart = clone $fromDate;
+        $baseWeekStart->modify('monday this week');
+
+        // Weekly context with offset
+        $weekOffset = isset($_GET['w']) && is_numeric($_GET['w']) ? (int)$_GET['w'] : 0;
+        $weekStartDate = clone $baseWeekStart;
+        if ($weekOffset !== 0) {
+            if ($weekOffset > 0) {
+                $weekStartDate->add(new DateInterval('P' . ($weekOffset * 7) . 'D'));
+            } else {
+                $weekStartDate->sub(new DateInterval('P' . (abs($weekOffset) * 7) . 'D'));
+            }
+        }
+        $weekEndDate = clone $weekStartDate;
+        $weekEndDate->add(new DateInterval('P6D'));
+        $weekLabel = $weekStartDate->format('d/m') . ' - ' . $weekEndDate->format('d/m/Y');
+        $prevWeekOffset = $weekOffset - 1;
+        $nextWeekOffset = $weekOffset + 1;
+        $weekDaysDates = [];
+        $weekDaysOrder = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+        foreach ($weekDaysOrder as $idx => $vnDay) {
+            $d = clone $weekStartDate;
+            $d->add(new DateInterval('P' . $idx . 'D'));
+            $weekDaysDates[$vnDay] = $d->format('Y-m-d');
+        }
+
+        // Lấy ngoại lệ theo ngày trong phạm vi tuần đang xem để áp dụng khi render
+        $exceptions = $this->doctorModel->getScheduleExceptionsByDateRange(
+            $doctorId,
+            $weekStartDate->format('Y-m-d'),
+            $weekEndDate->format('Y-m-d')
+        );
+
+        // Booking window for patients: từ mốc 23
+        $openDay = 23;
+        $anchor = new DateTime(date('Y-m-01'));
+        $anchor->setDate((int)$anchor->format('Y'), (int)$anchor->format('m'), $openDay);
+        if ($todayDt < $anchor) {
+            // Trước ngày 23: hiển thị từ 23 tháng trước → hết tháng hiện tại
+            $bookingStart = (clone $anchor)->modify('-1 month');
+            $bookingEnd = (clone $anchor)->modify('last day of this month');
+        } else {
+            // Từ ngày 23 trở đi: hiển thị 23 tháng này → hết tháng kế tiếp
+            $bookingStart = clone $anchor;
+            $bookingEnd = (clone $anchor)->modify('+1 month')->modify('last day of this month');
+        }
+
+        // Gán cửa sổ hiển thị cho view (để ẩn/hiện card ngày)
+        $windowStartDate = clone $bookingStart;
+        $windowEndDate = clone $bookingEnd;
+
+        // Cho phép điều hướng tuần trong [bookingStart .. bookingEnd]
+        $navWindowStart = clone $bookingStart;
+        $navWindowEnd = clone $bookingEnd;
+        $daysDiff = (int)floor(($navWindowEnd->getTimestamp() - $navWindowStart->getTimestamp()) / 86400);
+        $maxWeekOffset = max(0, (int)floor($daysDiff / 7));
+        $allowPrevWeek = $weekStartDate > $navWindowStart; // chỉ khi tuần hiện tại nằm sau start
+        $allowNextWeek = ($weekEndDate < $navWindowEnd);
 
         // Start output buffering để lấy content
         ob_start();
@@ -199,6 +265,13 @@ class DoctorController
             exit();
         }
 
+        // Chỉ cho bác sĩ đăng ký/hoàn tất lịch cơ bản từ ngày 23 → 25 hằng tháng
+        if (!$this->isWithinDoctorRegistrationWindow()) {
+            $_SESSION['error'] = 'Chỉ được đăng ký/hoàn tất lịch từ ngày 23 đến 25 hằng tháng!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+
         // Kiểm tra xung đột lịch
         if ($this->doctorModel->checkScheduleConflict($doctorId, $thuTrongTuan, $gioBatDau, $gioKetThuc)) {
             $_SESSION['error'] = "Lịch làm việc này bị xung đột với lịch hiện có!";
@@ -278,6 +351,19 @@ class DoctorController
             exit();
         }
 
+        // Áp dụng quy định: Chỉ được thay đổi ca trực vào Thứ 3 hoặc Thứ 4 và phải có lý do
+        if (!$this->isTuesdayOrWednesday()) {
+            $_SESSION['error'] = "Chỉ được thay đổi ca trực vào Thứ 3 hoặc Thứ 4.";
+            header("Location: ./doctor_schedule_management");
+            exit();
+        }
+
+        if (empty(trim($ghiChu))) {
+            $_SESSION['error'] = "Vui lòng cung cấp lý do chính đáng khi thay đổi ca trực (bắt buộc).";
+            header("Location: ./doctor_schedule_management");
+            exit();
+        }
+
         // Kiểm tra xung đột lịch (loại trừ lịch hiện tại)
         if ($this->doctorModel->checkScheduleConflict($doctorId, $thuTrongTuan, $gioBatDau, $gioKetThuc, $scheduleId)) {
             $_SESSION['error'] = "Lịch làm việc này bị xung đột với lịch hiện có!";
@@ -335,6 +421,13 @@ class DoctorController
             exit();
         }
 
+        // Chỉ cho phép xóa vào Thứ 3 hoặc Thứ 4
+        if (!$this->isTuesdayOrWednesday()) {
+            $_SESSION['error'] = "Chỉ được xóa ca trực vào Thứ 3 hoặc Thứ 4.";
+            header("Location: ./doctor_schedule_management");
+            exit();
+        }
+
         // Xóa lịch làm việc
         if ($this->doctorModel->deleteSchedule($scheduleId, $doctorId)) {
             $_SESSION['success'] = "Xóa lịch làm việc thành công!";
@@ -354,6 +447,7 @@ class DoctorController
         // Kiểm tra đăng nhập và quyền bác sĩ
         $this->auth->requireAuth('doctor');
 
+        header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
             echo json_encode(['success' => false, 'message' => 'Method not allowed']);
@@ -411,6 +505,155 @@ class DoctorController
     }
 
     /**
+     * Chỉnh sửa lịch làm việc CHO MỘT NGÀY CỤ THỂ (tạo ngoại lệ theo ngày)
+     */
+    public function modifyScheduleForDate()
+    {
+        $this->auth->requireAuth('doctor');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        $doctorId = $_SESSION['user_id'];
+        $scheduleId = $_POST['schedule_id'] ?? '';
+        $date = $_POST['date'] ?? '';
+        $loaiCa = $_POST['loai_ca'] ?? '';
+        $gioBatDau = $_POST['gio_bat_dau'] ?? '';
+        $gioKetThuc = $_POST['gio_ket_thuc'] ?? '';
+        $ghiChu = $_POST['ghi_chu'] ?? '';
+        $fromParam = $_POST['from'] ?? null;
+
+        // Chỉ cho phép thao tác vào Thứ 3 hoặc Thứ 4
+        if (!$this->isTuesdayOrWednesday()) {
+            $_SESSION['error'] = 'Chỉ được thay đổi ca trực vào Thứ 3 hoặc Thứ 4.';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+
+        if (!$scheduleId || !$date || !$loaiCa || !$gioBatDau || !$gioKetThuc) {
+            $_SESSION['error'] = 'Thiếu thông tin bắt buộc!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $_SESSION['error'] = 'Ngày không hợp lệ!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        if (strtotime($gioBatDau) >= strtotime($gioKetThuc)) {
+            $_SESSION['error'] = 'Giờ kết thúc phải sau giờ bắt đầu!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        if (empty(trim($ghiChu))) {
+            $_SESSION['error'] = 'Vui lòng nhập lý do thay đổi!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+
+        // Kiểm tra lịch thuộc bác sĩ
+        $schedule = $this->doctorModel->getScheduleById($scheduleId, $doctorId);
+        if (!$schedule) {
+            $_SESSION['error'] = 'Không tìm thấy lịch làm việc!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+
+        // Giới hạn trong 1 tháng kể từ mốc from (hoặc hôm nay)
+        $start = $fromParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fromParam) ? $fromParam : date('Y-m-d');
+        $windowStart = DateTime::createFromFormat('Y-m-d', $start);
+        $windowEnd = clone $windowStart;
+        $windowEnd->modify('+1 month');
+        $dateObj = DateTime::createFromFormat('Y-m-d', $date);
+        if (!$dateObj || $dateObj < $windowStart || $dateObj > $windowEnd) {
+            $_SESSION['error'] = 'Ngày chỉnh sửa nằm ngoài phạm vi 1 tháng!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+
+        // Kiểm tra xung đột theo ngày (sau khi áp dụng ngoại lệ khác)
+        $schedIdInt = (int)$scheduleId;
+        if ($this->doctorModel->checkDateScheduleConflict($doctorId, $date, $gioBatDau, $gioKetThuc, $schedIdInt)) {
+            $_SESSION['error'] = 'Khung giờ mới bị trùng với ca khác trong ngày ' . $date . '!';
+            $redir = './doctor_schedule_management' . ($fromParam ? ('?from=' . urlencode($fromParam)) : '');
+            header('Location: ' . $redir);
+            exit();
+        }
+
+        $ok = $this->doctorModel->upsertModifyException($doctorId, $schedIdInt, $date, [
+            'gio_bat_dau' => $gioBatDau,
+            'gio_ket_thuc' => $gioKetThuc,
+            'loai_ca' => $loaiCa,
+            'ghi_chu' => $ghiChu,
+        ]);
+
+        $_SESSION[$ok ? 'success' : 'error'] = $ok ? 'Đã cập nhật ca trực cho ngày ' . $date . '!' : 'Không thể cập nhật ca trực cho ngày này!';
+        $redir = './doctor_schedule_management' . ($fromParam ? ('?from=' . urlencode($fromParam)) : '');
+        header('Location: ' . $redir);
+        exit();
+    }
+
+    /**
+     * Hủy ca trực CHO MỘT NGÀY CỤ THỂ (tạo ngoại lệ cancel)
+     */
+    public function cancelScheduleForDate()
+    {
+        $this->auth->requireAuth('doctor');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        $doctorId = $_SESSION['user_id'];
+        $scheduleId = $_POST['schedule_id'] ?? '';
+        $date = $_POST['date'] ?? '';
+        $reason = $_POST['reason'] ?? '';
+        $fromParam = $_POST['from'] ?? null;
+
+        if (!$this->isTuesdayOrWednesday()) {
+            $_SESSION['error'] = 'Chỉ được xóa ca trực vào Thứ 3 hoặc Thứ 4.';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        if (!$scheduleId || !$date) {
+            $_SESSION['error'] = 'Thiếu thông tin bắt buộc!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            $_SESSION['error'] = 'Ngày không hợp lệ!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        if (empty(trim($reason))) {
+            $_SESSION['error'] = 'Vui lòng nhập lý do hủy ca!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        $schedule = $this->doctorModel->getScheduleById($scheduleId, $doctorId);
+        if (!$schedule) {
+            $_SESSION['error'] = 'Không tìm thấy lịch làm việc!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+        $start = $fromParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fromParam) ? $fromParam : date('Y-m-d');
+        $windowStart = DateTime::createFromFormat('Y-m-d', $start);
+        $windowEnd = clone $windowStart;
+        $windowEnd->modify('+1 month');
+        $dateObj = DateTime::createFromFormat('Y-m-d', $date);
+        if (!$dateObj || $dateObj < $windowStart || $dateObj > $windowEnd) {
+            $_SESSION['error'] = 'Ngày hủy nằm ngoài phạm vi 1 tháng!';
+            header('Location: ./doctor_schedule_management');
+            exit();
+        }
+
+        $ok = $this->doctorModel->addCancelException($doctorId, (int)$scheduleId, $date, $reason);
+        $_SESSION[$ok ? 'success' : 'error'] = $ok ? 'Đã hủy ca trực ngày ' . $date . '!' : 'Không thể hủy ca trực ngày này!';
+        $redir = './doctor_schedule_management' . ($fromParam ? ('?from=' . urlencode($fromParam)) : '');
+        header('Location: ' . $redir);
+        exit();
+    }
+
+    /**
      * Dashboard bác sĩ
      */
     public function dashboard()
@@ -454,6 +697,33 @@ class DoctorController
         ];
 
         return $days[$englishDay] ?? '';
+    }
+
+    /**
+     * Kiểm tra hôm nay có phải Thứ 6 không
+     */
+    private function isFriday()
+    {
+        return (int)date('N') === 5; // 5 = Friday
+    }
+
+    /**
+     * Đăng ký/hoàn tất lịch cơ bản: chỉ 23 → 25 hằng tháng
+     */
+    private function isWithinDoctorRegistrationWindow(): bool
+    {
+        $day = (int)date('j');
+        // Cho phép đăng ký từ ngày 23 → 25 hằng tháng
+        return $day >= 23 && $day <= 25;
+    }
+
+    /**
+     * Kiểm tra hôm nay là Thứ 3 hoặc Thứ 4
+     */
+    private function isTuesdayOrWednesday()
+    {
+        $n = (int)date('N'); // 1=Mon..7=Sun
+        return $n === 2 || $n === 3; // Tue or Wed
     }
 
     /**

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th9 22, 2025 lúc 12:43 PM
+-- Thời gian đã tạo: Th9 23, 2025 lúc 01:44 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -198,13 +198,8 @@ CREATE TABLE `lich_hen` (
 --
 
 INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(80, 21, 1, '2025-09-12', '08:20:00', '', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/82047639256?pwd=I4eHbOIPx1xoIb73V6QRwlVV5T0gvT.1', 'Đã xác nhận', '', '2025-09-10 20:43:02', '2025-09-10 20:43:08'),
-(81, 21, 1, '2025-09-12', '08:00:00', 'zxc', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85103772356?pwd=ZsEtGeNC2SlNcNPfdkTC8v5QUY3fx9.1', 'Đã xác nhận', '', '2025-09-10 20:45:24', '2025-09-10 20:45:29'),
-(82, 21, 1, '2025-09-12', '07:20:00', 'zcbv', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/85653100932?pwd=Cab2e1CPeUk4mDa2Llw6omSbxtRbqp.1', 'Đã xác nhận', '', '2025-09-10 21:04:16', '2025-09-10 21:04:32'),
-(83, 28, 1, '2025-09-21', '09:20:00', 'bbbbbbb', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/87665539022?pwd=YO7sK2Ja2etNYh4orrVIfqDIn7ydpo.1', 'Đang khám', NULL, '2025-09-19 14:18:43', '2025-09-19 14:23:17'),
-(84, 28, 1, '2025-09-21', '09:20:00', '', 'Trực tiếp', NULL, '', 'Đã xác nhận', '', '2025-09-19 14:38:20', '2025-09-19 14:39:47'),
-(85, 28, 1, '2025-09-21', '09:40:00', '', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/86437616119?pwd=L0aCv9LWGw0PScPaHigK2t4QxjH1nG.1', 'Đã xác nhận', '', '2025-09-19 15:02:35', '2025-09-19 15:03:30'),
-(86, 28, 1, '2025-09-22', '17:20:00', '', 'Trực tiếp', NULL, '', 'Đã xác nhận', '', '2025-09-22 10:18:32', '2025-09-22 10:18:43');
+(89, 28, 1, '2025-09-24', '12:00:00', '', 'Trực tiếp', NULL, '', 'Đã xác nhận', '', '2025-09-23 10:53:12', '2025-09-23 10:53:27'),
+(90, 28, 1, '2025-09-24', '12:20:00', '', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/88038802020?pwd=TOQy4lo2jZzOt6fCdiFsCgFcpvckPj.1', 'Đã xác nhận', '', '2025-09-23 10:59:37', '2025-09-23 10:59:50');
 
 -- --------------------------------------------------------
 
@@ -230,13 +225,46 @@ CREATE TABLE `lich_lam_viec` (
 --
 
 INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`, `gio_ket_thuc`, `loai_ca`, `ghi_chu`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 1, 'Thứ 2', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-06 08:38:38', '2025-09-06 08:38:38'),
-(3, 1, 'Thứ 6', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-06 08:38:52', '2025-09-06 08:38:52'),
-(4, 1, 'Thứ 3', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-06 08:43:54', '2025-09-06 08:43:54'),
-(8, 1, 'Thứ 7', '18:00:00', '23:59:00', 'Ca tối', '', 'active', '2025-09-06 12:17:05', '2025-09-06 12:17:05'),
-(9, 1, 'Chủ nhật', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-06 12:25:07', '2025-09-06 12:25:07'),
-(10, 1, 'Thứ 4', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-07 21:51:05', '2025-09-07 21:51:05'),
-(11, 1, 'Thứ 2', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-08 08:24:08', '2025-09-08 08:24:08');
+(11, 1, 'Thứ 2', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-08 08:24:08', '2025-09-08 08:24:08'),
+(13, 1, 'Thứ 2', '18:00:00', '23:59:00', 'Ca tối', '', 'active', '2025-09-23 08:57:14', '2025-09-23 08:57:14'),
+(14, 1, 'Thứ 3', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-23 08:58:00', '2025-09-23 08:58:00'),
+(16, 1, 'Thứ 3', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-23 09:21:11', '2025-09-23 09:21:11'),
+(17, 1, 'Thứ 4', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-23 09:43:24', '2025-09-23 09:43:24'),
+(18, 1, 'Thứ 5', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-23 09:46:17', '2025-09-23 09:46:17'),
+(19, 1, 'Thứ 6', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-23 09:46:25', '2025-09-23 09:46:25'),
+(20, 1, 'Thứ 6', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-23 09:59:01', '2025-09-23 09:59:01'),
+(21, 1, 'Chủ nhật', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-23 10:41:08', '2025-09-23 10:41:08'),
+(22, 1, 'Thứ 4', '12:00:00', '18:00:00', 'Ca chiều', '', 'active', '2025-09-23 10:42:15', '2025-09-23 10:42:15');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `lich_lam_viec_ngoai_le`
+--
+
+CREATE TABLE `lich_lam_viec_ngoai_le` (
+  `id` int(11) NOT NULL,
+  `bac_si_id` int(11) NOT NULL,
+  `schedule_id` int(11) NOT NULL,
+  `ngay` date NOT NULL,
+  `action` enum('cancel','modify') NOT NULL,
+  `gio_bat_dau` time DEFAULT NULL,
+  `gio_ket_thuc` time DEFAULT NULL,
+  `loai_ca` varchar(50) DEFAULT NULL,
+  `ghi_chu` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `lich_lam_viec_ngoai_le`
+--
+
+INSERT INTO `lich_lam_viec_ngoai_le` (`id`, `bac_si_id`, `schedule_id`, `ngay`, `action`, `gio_bat_dau`, `gio_ket_thuc`, `loai_ca`, `ghi_chu`, `created_at`) VALUES
+(1, 1, 17, '2025-09-24', 'cancel', NULL, NULL, NULL, 'c c', '2025-09-23 09:52:44'),
+(2, 1, 19, '2025-10-03', 'modify', '18:00:00', '23:59:00', 'Ca tối', 'xc', '2025-09-23 09:57:19'),
+(3, 1, 19, '2025-09-26', 'cancel', NULL, NULL, NULL, 'thích thì nghỉ', '2025-09-23 09:58:22'),
+(4, 1, 16, '2025-09-30', 'cancel', NULL, NULL, NULL, 'c', '2025-09-23 10:13:41'),
+(5, 1, 21, '2025-10-05', 'modify', '06:00:00', '12:00:00', 'Ca sáng', 'cv', '2025-09-23 11:38:05');
 
 -- --------------------------------------------------------
 
@@ -402,6 +430,14 @@ ALTER TABLE `lich_lam_viec`
   ADD KEY `idx_trang_thai` (`trang_thai`);
 
 --
+-- Chỉ mục cho bảng `lich_lam_viec_ngoai_le`
+--
+ALTER TABLE `lich_lam_viec_ngoai_le`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_exc` (`bac_si_id`,`schedule_id`,`ngay`),
+  ADD KEY `idx_bacsi_ngay` (`bac_si_id`,`ngay`);
+
+--
 -- Chỉ mục cho bảng `phieu_tien_su_di_ung`
 --
 ALTER TABLE `phieu_tien_su_di_ung`
@@ -465,13 +501,19 @@ ALTER TABLE `ho_so_benh_an`
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+
+--
+-- AUTO_INCREMENT cho bảng `lich_lam_viec_ngoai_le`
+--
+ALTER TABLE `lich_lam_viec_ngoai_le`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_tien_su_di_ung`

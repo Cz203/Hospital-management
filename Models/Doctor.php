@@ -145,7 +145,7 @@ class Doctor extends User
     public function getById(int $id): ?array
     {
         $query = "SELECT bs.id, bs.ten, bs.email, bs.so_dien_thoai, 
-                         ck.ten AS chuyen_khoa, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.mat_khau, bs.ngay_tao, bs.ngay_cap_nhat
+                         ck.ten AS chuyen_khoa, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.mat_khau, bs.ngay_tao, bs.ngay_cap_nhat, bs.hinh_anh
                   FROM " . $this->table_name . " bs
                   LEFT JOIN chuyen_khoa ck ON ck.id = bs.chuyen_khoa_id
                   WHERE bs.id = :id";
@@ -383,6 +383,156 @@ class Doctor extends User
         $stmt->bindParam(":thu_trong_tuan", $thuTrongTuan);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy lịch làm việc theo NGÀY (YYYY-MM-DD), áp dụng ngoại lệ trong ngày nếu có
+     */
+    public function getSchedulesByDate(int $doctorId, string $dateYmd): array
+    {
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateYmd)) {
+            return [];
+        }
+        $ts = strtotime($dateYmd);
+        if ($ts === false) {
+            return [];
+        }
+        $englishDay = date('l', $ts);
+        $map = [
+            'Monday' => 'Thứ 2',
+            'Tuesday' => 'Thứ 3',
+            'Wednesday' => 'Thứ 4',
+            'Thursday' => 'Thứ 5',
+            'Friday' => 'Thứ 6',
+            'Saturday' => 'Thứ 7',
+            'Sunday' => 'Chủ nhật',
+        ];
+        $thuVn = isset($map[$englishDay]) ? $map[$englishDay] : '';
+        if ($thuVn === '') {
+            return [];
+        }
+
+        $base = $this->getSchedulesByDay($doctorId, $thuVn);
+        // Đọc ngoại lệ đúng ngày
+        $exList = $this->getScheduleExceptionsByDateRange($doctorId, $dateYmd, $dateYmd);
+        $exByScheduleId = [];
+        foreach ($exList as $ex) {
+            $exByScheduleId[(int)$ex['schedule_id']] = $ex;
+        }
+
+        $result = [];
+        foreach ($base as $row) {
+            $sid = (int)$row['id'];
+            if (isset($exByScheduleId[$sid])) {
+                $ex = $exByScheduleId[$sid];
+                if ($ex['action'] === 'cancel') {
+                    continue; // bỏ lịch này trong ngày
+                }
+                if ($ex['action'] === 'modify') {
+                    if (!empty($ex['loai_ca'])) $row['loai_ca'] = $ex['loai_ca'];
+                    if (!empty($ex['gio_bat_dau'])) $row['gio_bat_dau'] = $ex['gio_bat_dau'];
+                    if (!empty($ex['gio_ket_thuc'])) $row['gio_ket_thuc'] = $ex['gio_ket_thuc'];
+                    $row['ghi_chu'] = $row['ghi_chu'] ?: $ex['ghi_chu'];
+                    $row['exception_action'] = 'modify';
+                }
+            }
+            $result[] = $row;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Kiểm tra xung đột ca làm việc theo NGÀY (đã áp dụng ngoại lệ hiện có),
+     * loại trừ một scheduleId nếu cung cấp
+     */
+    public function checkDateScheduleConflict(int $doctorId, string $dateYmd, string $gioBatDau, string $gioKetThuc, ?int $excludeScheduleId = null): bool
+    {
+        $schedules = $this->getSchedulesByDate($doctorId, $dateYmd);
+        $newStart = strtotime($gioBatDau);
+        $newEnd = strtotime($gioKetThuc);
+        if ($newStart === false || $newEnd === false) {
+            return true; // coi là xung đột nếu thời gian không hợp lệ
+        }
+        foreach ($schedules as $sc) {
+            $sid = (int)$sc['id'];
+            if ($excludeScheduleId !== null && $sid === $excludeScheduleId) {
+                continue;
+            }
+            $existStart = strtotime($sc['gio_bat_dau']);
+            $existEnd = strtotime($sc['gio_ket_thuc']);
+            if ($existStart === false || $existEnd === false) {
+                continue;
+            }
+            if ($newStart < $existEnd && $newEnd > $existStart) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ====== Ngoại lệ theo ngày (chỉ áp dụng cho 1 ngày cụ thể) ======
+
+    public function getScheduleExceptionsByDateRange($doctorId, $startDate, $endDate)
+    {
+
+        $query = "SELECT * FROM lich_lam_viec_ngoai_le WHERE bac_si_id = :bac_si_id AND ngay BETWEEN :start AND :end";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':bac_si_id', $doctorId, PDO::PARAM_INT);
+        $stmt->bindParam(':start', $startDate);
+        $stmt->bindParam(':end', $endDate);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function upsertModifyException($doctorId, $scheduleId, $dateYmd, $data)
+    {
+
+        // Upsert style: try update then insert if not exists
+        $queryUpdate = "UPDATE lich_lam_viec_ngoai_le SET action='modify', gio_bat_dau=:gio_bat_dau, gio_ket_thuc=:gio_ket_thuc, loai_ca=:loai_ca, ghi_chu=:ghi_chu WHERE bac_si_id=:bac_si_id AND schedule_id=:schedule_id AND ngay=:ngay";
+        $stmt = $this->conn->prepare($queryUpdate);
+        $stmt->bindParam(':gio_bat_dau', $data['gio_bat_dau']);
+        $stmt->bindParam(':gio_ket_thuc', $data['gio_ket_thuc']);
+        $stmt->bindParam(':loai_ca', $data['loai_ca']);
+        $stmt->bindParam(':ghi_chu', $data['ghi_chu']);
+        $stmt->bindParam(':bac_si_id', $doctorId, PDO::PARAM_INT);
+        $stmt->bindParam(':schedule_id', $scheduleId, PDO::PARAM_INT);
+        $stmt->bindParam(':ngay', $dateYmd);
+        $stmt->execute();
+        if ($stmt->rowCount() > 0) return true;
+
+        $queryInsert = "INSERT INTO lich_lam_viec_ngoai_le (bac_si_id, schedule_id, ngay, action, gio_bat_dau, gio_ket_thuc, loai_ca, ghi_chu) VALUES (:bac_si_id, :schedule_id, :ngay, 'modify', :gio_bat_dau, :gio_ket_thuc, :loai_ca, :ghi_chu)";
+        $stmt2 = $this->conn->prepare($queryInsert);
+        $stmt2->bindParam(':bac_si_id', $doctorId, PDO::PARAM_INT);
+        $stmt2->bindParam(':schedule_id', $scheduleId, PDO::PARAM_INT);
+        $stmt2->bindParam(':ngay', $dateYmd);
+        $stmt2->bindParam(':gio_bat_dau', $data['gio_bat_dau']);
+        $stmt2->bindParam(':gio_ket_thuc', $data['gio_ket_thuc']);
+        $stmt2->bindParam(':loai_ca', $data['loai_ca']);
+        $stmt2->bindParam(':ghi_chu', $data['ghi_chu']);
+        return $stmt2->execute();
+    }
+
+    public function addCancelException($doctorId, $scheduleId, $dateYmd, $reason)
+    {
+
+        // If a modify exists, convert to cancel
+        $queryUp = "UPDATE lich_lam_viec_ngoai_le SET action='cancel', gio_bat_dau=NULL, gio_ket_thuc=NULL, loai_ca=NULL, ghi_chu=:ghi_chu WHERE bac_si_id=:bac_si_id AND schedule_id=:schedule_id AND ngay=:ngay";
+        $stmt = $this->conn->prepare($queryUp);
+        $stmt->bindParam(':ghi_chu', $reason);
+        $stmt->bindParam(':bac_si_id', $doctorId, PDO::PARAM_INT);
+        $stmt->bindParam(':schedule_id', $scheduleId, PDO::PARAM_INT);
+        $stmt->bindParam(':ngay', $dateYmd);
+        $stmt->execute();
+        if ($stmt->rowCount() > 0) return true;
+
+        $queryInsert = "INSERT INTO lich_lam_viec_ngoai_le (bac_si_id, schedule_id, ngay, action, ghi_chu) VALUES (:bac_si_id, :schedule_id, :ngay, 'cancel', :ghi_chu)";
+        $stmt2 = $this->conn->prepare($queryInsert);
+        $stmt2->bindParam(':bac_si_id', $doctorId, PDO::PARAM_INT);
+        $stmt2->bindParam(':schedule_id', $scheduleId, PDO::PARAM_INT);
+        $stmt2->bindParam(':ngay', $dateYmd);
+        $stmt2->bindParam(':ghi_chu', $reason);
+        return $stmt2->execute();
     }
 
     /**
