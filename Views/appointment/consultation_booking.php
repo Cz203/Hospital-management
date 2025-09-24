@@ -41,7 +41,7 @@ $patient_info = $patient->getById($_SESSION['user_id']);
                     <div class="appointment-form-panel">
                         <div class="panel-header">
                             <h4><i class="fas fa-headset me-2"></i>Đặt lịch tư vấn trực tuyến</h4>
-                            <p class="text-muted">Cuộc hẹn sẽ được lưu với loại lịch: <strong>tư vấn</strong></p>
+
                         </div>
 
                         <!-- Thông tin bác sĩ đã chọn -->
@@ -51,26 +51,23 @@ $patient_info = $patient->getById($_SESSION['user_id']);
                                 <div class="doctor-avatar">
                                     <?php
                                         $imgSrc = null;
-
-                                        // Doctor data loaded successfully
-
                                         if (!empty($doctor['hinh_anh'])) {
-                                            // Nếu hinh_anh đã có đường dẫn uploads/ thì sử dụng trực tiếp
-                                            if (strpos($doctor['hinh_anh'], 'uploads/') === 0) {
-                                                $imgSrc = './' . $doctor['hinh_anh'];
+                                            // Xây dựng đường dẫn web và kiểm tra tồn tại theo đường dẫn filesystem tuyệt đối
+                                            if (strpos($doctor['hinh_anh'], 'uploads/') === 0 || strpos($doctor['hinh_anh'], './uploads/') === 0) {
+                                                $relWeb = $doctor['hinh_anh'];
                                             } else {
-                                                // Nếu chỉ có tên file thì thêm đường dẫn uploads/
-                                                $imgSrc = './uploads/' . $doctor['hinh_anh'];
+                                                $relWeb = 'uploads/' . $doctor['hinh_anh'];
                                             }
-
-                                            // Kiểm tra file có tồn tại không
-                                            if (!file_exists($imgSrc)) {
-                                                $imgSrc = null; // Reset nếu file không tồn tại
+                                            // Chuẩn hóa bớt ./ nếu đã có
+                                            $relWeb = ltrim($relWeb, './');
+                                            $imgSrcWeb = './' . $relWeb;
+                                            $imgSrcFs = __DIR__ . '/../../' . $relWeb; // FS path
+                                            if (file_exists($imgSrcFs)) {
+                                                $imgSrc = $imgSrcWeb;
                                             }
                                         }
-
-                                        // Nếu không có ảnh hoặc file không tồn tại, sử dụng placeholder
                                         if (!$imgSrc) {
+                                            // Placeholder SVG nếu không có ảnh
                                             $imgSrc = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9IiNmOGY5ZmEiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjMwIiByPSIxNSIgZmlsbD0iI2RlZTJlNiIvPjxwYXRoIGQ9Ik0xNSA2NSBRNDAgNDUgNjUgNjUiIHN0cm9rZT0iI2RlZTJlNiIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIi8+PC9zdmc+';
                                         }
                                         ?>
@@ -93,6 +90,34 @@ $patient_info = $patient->getById($_SESSION['user_id']);
                         </div>
                         <?php endif; ?>
 
+                        <!-- Đặt khám nhanh (giống lịch hẹn trực tiếp) -->
+                        <div class="card mb-4" id="quickBookingCard" style="display: none;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-calendar me-2"></i>
+                                        <h6 class="mb-0">Chọn ngày tư vấn</h6>
+                                    </div>
+                                    <div>
+                                        <button type="button" id="qbPrev" class="btn btn-sm btn-outline-secondary"><i
+                                                class="fas fa-chevron-left"></i></button>
+                                        <button type="button" id="qbNext"
+                                            class="btn btn-sm btn-outline-secondary ms-2"><i
+                                                class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+                                <div class="d-flex overflow-auto" id="quickDays" style="gap:12px;"></div>
+                                <div class="mt-3">
+                                    <div class="d-flex align-items-center mb-2">
+
+                                        <strong class="me-2">Khung giờ</strong>
+                                        <small class="text-muted" id="slotCountLabel"></small>
+                                    </div>
+                                    <div id="quickTimeSlots" class="d-flex flex-wrap" style="gap:10px;"></div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Form đặt lịch -->
                         <form id="appointmentForm" method="POST" action="./book_appointment">
                             <input type="hidden" name="loai_lich" value="Tư vấn">
@@ -104,26 +129,26 @@ $patient_info = $patient->getById($_SESSION['user_id']);
 
                             <div class="row">
                                 <!-- Thông tin lịch hẹn -->
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="form-section">
                                         <h6 class="section-title">
                                             <i class="fas fa-calendar me-2"></i>Thông tin lịch hẹn
                                         </h6>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Ngày tư vấn <span
-                                                    class="text-danger">*</span></label>
-                                            <input type="date" id="appointmentDate" name="date" class="form-control"
-                                                min="<?php echo date('Y-m-d'); ?>" required>
+                                        <input type="hidden" id="appointmentDate" name="date" value="">
+                                        <div class="mb-3 d-none">
+                                            <label class="form-label">Ngày đã chọn</label>
+                                            <input type="text" id="selectedDateDisplay" class="form-control" value=""
+                                                disabled>
                                         </div>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Giờ tư vấn <span
-                                                    class="text-danger">*</span></label>
-                                            <select id="appointmentTime" name="time" class="form-select" required
+                                        <input type="hidden" id="appointmentTime" name="time" value="">
+                                        <div class="mb-3 d-none">
+                                            <label class="form-label">Giờ đã chọn</label>
+                                            <input type="text" id="selectedTimeDisplay" class="form-control" value=""
                                                 disabled>
-                                                <option value="">Chọn ngày trước</option>
-                                            </select>
+                                        </div>
+                                        <div class="mb-3">
                                             <div class="form-text">Khung giờ 20 phút/lần</div>
                                         </div>
 
@@ -141,45 +166,8 @@ $patient_info = $patient->getById($_SESSION['user_id']);
                                     </div>
                                 </div>
 
-                                <!-- Lịch làm việc của bác sĩ -->
-                                <div class="col-md-6">
-                                    <div class="form-section">
-                                        <h6 class="section-title">
-                                            <i class="fas fa-clock me-2"></i>Lịch làm việc của bác sĩ
-                                        </h6>
-                                        <div id="scheduleDisplay" class="schedule-display">
-                                            <?php if (isset($schedules) && !empty($schedules)): ?>
-                                            <?php
-                                                // Group schedules by day
-                                                $schedulesByDay = [];
-                                                foreach ($schedules as $schedule) {
-                                                    if (!isset($schedulesByDay[$schedule['thu_trong_tuan']])) {
-                                                        $schedulesByDay[$schedule['thu_trong_tuan']] = [];
-                                                    }
-                                                    $schedulesByDay[$schedule['thu_trong_tuan']][] = $schedule;
-                                                }
-
-                                                $daysOrder = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
-                                                foreach ($daysOrder as $day) {
-                                                    if (isset($schedulesByDay[$day]) && !empty($schedulesByDay[$day])) {
-                                                        echo '<div class="schedule-day">';
-                                                        echo '<h6>' . $day . '</h6>';
-                                                        echo '<div class="schedule-shifts">';
-                                                        foreach ($schedulesByDay[$day] as $schedule) {
-                                                            echo $schedule['loai_ca'] . ': ' . $schedule['gio_bat_dau'] . ' - ' . $schedule['gio_ket_thuc'] . '<br>';
-                                                        }
-                                                        echo '</div></div>';
-                                                    }
-                                                }
-                                                ?>
-                                            <?php else: ?>
-                                            <p class="text-muted">Bác sĩ chưa có lịch làm việc</p>
-                                            <p class="text-muted small">Debug: Schedules count =
-                                                <?php echo isset($schedules) ? count($schedules) : 'undefined'; ?></p>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                </div>
+                                <!-- Cột trống để cân layout (tùy ý) -->
+                                <div class="col-md-6"></div>
                             </div>
 
                             <!-- Nút submit -->

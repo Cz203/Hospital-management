@@ -196,25 +196,13 @@ class Appointment extends User
      * Lấy khung giờ khám có sẵn của bác sĩ trong ngày
      * Mỗi khung giờ 20 phút
      */
-    public function getAvailableTimeSlots($doctorId, $ngayHen)
+    public function getAvailableTimeSlots($doctorId, $ngayHen, $includeBooked = false)
     {
         try {
-            // Lấy lịch làm việc của bác sĩ trong ngày
-            $dayOfWeek = $this->getDayOfWeek($ngayHen);
-
-            $sql = "SELECT gio_bat_dau, gio_ket_thuc, loai_ca
-                    FROM lich_lam_viec 
-                    WHERE bac_si_id = :doctor_id 
-                    AND thu_trong_tuan = :thu_trong_tuan 
-                    AND trang_thai = 'active'";
-
-            $stmt = $this->getConnection()->prepare($sql);
-            $stmt->execute([
-                ':doctor_id' => $doctorId,
-                ':thu_trong_tuan' => $dayOfWeek
-            ]);
-
-            $workSchedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // Lấy lịch làm việc THEO NGÀY, áp dụng ngoại lệ theo ngày (cancel/modify)
+            require_once 'Models/Doctor.php';
+            $doctorModel = new Doctor();
+            $workSchedules = $doctorModel->getSchedulesByDate((int)$doctorId, $ngayHen);
 
             if (empty($workSchedules)) {
                 return [];
@@ -225,7 +213,7 @@ class Appointment extends User
                     FROM {$this->table} 
                     WHERE bac_si_id = :doctor_id 
                     AND ngay_hen = :ngay_hen 
-                    AND trang_thai IN ('Chờ xác nhận', 'Đã xác nhận')";
+                    AND trang_thai IN ('Chờ xác nhận', 'Đã xác nhận', 'Đang khám')";
 
             $stmt = $this->getConnection()->prepare($sql);
             $stmt->execute([
@@ -233,37 +221,55 @@ class Appointment extends User
                 ':ngay_hen' => $ngayHen
             ]);
 
-            $bookedTimes = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'gio_hen');
+            $bookedTimesRaw = array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'gio_hen');
+            // Chuẩn hóa về H:i để so sánh với slot bắt đầu
+            $bookedTimes = [];
+            foreach ($bookedTimesRaw as $t) {
+                $ts = strtotime($t);
+                if ($ts !== false) {
+                    $bookedTimes[] = date('H:i', $ts);
+                }
+            }
 
             // Tạo khung giờ 20 phút cho mỗi ca làm việc
-            $availableSlots = [];
+            $slots = [];
 
             foreach ($workSchedules as $schedule) {
                 $startTime = new DateTime($schedule['gio_bat_dau']);
                 $endTime = new DateTime($schedule['gio_ket_thuc']);
 
-                // Tạo khung giờ 20 phút
                 $currentTime = clone $startTime;
                 while ($currentTime < $endTime) {
                     $timeSlot = $currentTime->format('H:i');
                     $nextSlot = clone $currentTime;
                     $nextSlot->add(new DateInterval('PT20M'));
 
-                    // Kiểm tra xem khung giờ này có bị trùng không
-                    if (!in_array($timeSlot, $bookedTimes) && $nextSlot <= $endTime) {
-                        $availableSlots[] = [
+                    $isBooked = in_array($timeSlot, $bookedTimes) || !($nextSlot <= $endTime);
+
+                    if ($includeBooked) {
+                        $slots[] = [
                             'time' => $timeSlot,
                             'end_time' => $nextSlot->format('H:i'),
                             'shift' => $schedule['loai_ca'],
-                            'display' => $timeSlot . ' - ' . $nextSlot->format('H:i')
+                            'display' => $timeSlot . ' - ' . $nextSlot->format('H:i'),
+                            'disabled' => $isBooked ? true : false
                         ];
+                    } else {
+                        if (!$isBooked) {
+                            $slots[] = [
+                                'time' => $timeSlot,
+                                'end_time' => $nextSlot->format('H:i'),
+                                'shift' => $schedule['loai_ca'],
+                                'display' => $timeSlot . ' - ' . $nextSlot->format('H:i')
+                            ];
+                        }
                     }
 
                     $currentTime->add(new DateInterval('PT20M'));
                 }
             }
 
-            return $availableSlots;
+            return $slots;
         } catch (Exception $e) {
             error_log("Appointment getAvailableTimeSlots error: " . $e->getMessage());
             return [];

@@ -227,6 +227,14 @@ switch ($action) {
         $doctorController->getSchedulesByDay(); // Lấy lịch làm việc theo ngày
         break;
 
+    case 'doctor_modify_schedule_for_date':
+        $doctorController->modifyScheduleForDate(); // Chỉnh sửa lịch cho 1 ngày cụ thể
+        break;
+
+    case 'doctor_cancel_schedule_for_date':
+        $doctorController->cancelScheduleForDate(); // Hủy lịch cho 1 ngày cụ thể
+        break;
+
     case 'doctor_examination':
         $doctorController->examination(); // Khám bệnh - danh sách lịch hẹn hôm nay
         break;
