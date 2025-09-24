@@ -289,7 +289,31 @@ class DoctorController
             'trang_thai' => 'active'
         ];
 
-        if ($this->doctorModel->addSchedule($doctorId, $data)) {
+        $newId = $this->doctorModel->addSchedule($doctorId, $data);
+        if ($newId) {
+            // Nếu đang trong ngày 23-25, khóa từ NGÀY 23 → hết tháng hiện tại bằng ngoại lệ cancel
+            $tz = new DateTimeZone('Asia/Ho_Chi_Minh');
+            $today = new DateTime('now', $tz);
+            $day = (int)$today->format('j');
+            if ($day >= 23 && $day <= 25) {
+                // Tính từ ngày 23 của THÁNG HIỆN TẠI đến hết tháng (bao gồm 23/24/25…)
+                $startLock = new DateTime($today->format('Y-m-') . '23', $tz);
+                $startLock->setTime(0, 0, 0);
+                $endLock = clone $today;
+                $endLock->modify('last day of this month');
+                $endLock->setTime(23, 59, 59);
+                if ($startLock <= $endLock) {
+                    $cursor = clone $startLock;
+                    while ($cursor <= $endLock) {
+                        $dateYmd = $cursor->format('Y-m-d');
+                        try {
+                            $this->doctorModel->addCancelException($doctorId, (int)$newId, $dateYmd, 'Khóa cuối tháng (23→hết tháng) theo chính sách 23-25');
+                        } catch (Exception $e) {
+                        }
+                        $cursor->modify('+1 day');
+                    }
+                }
+            }
             $_SESSION['success'] = "Thêm lịch làm việc thành công!";
         } else {
             $_SESSION['error'] = "Có lỗi xảy ra khi thêm lịch làm việc!";
