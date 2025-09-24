@@ -88,7 +88,7 @@
                 <tr>
                     <th style="width:100px; background:#fff9db;">Ca làm</th>
                     <?php foreach ($daysOfWeek as $day): ?>
-                        <?php
+                    <?php
                         $dayOffset = $weekDays[$day];
                         $dayDate = clone $currentWeekStart;
                         $dayDate->add(new DateInterval('P' . $dayOffset . 'D'));
@@ -98,20 +98,20 @@
                             $inWindow = ($dayDate >= $windowStartDate) && ($dayDate <= $windowEndDate);
                         }
                         ?>
-                        <th class="text-primary" style="white-space:nowrap; background:#ffffff;">
-                            <?php echo $day; ?><br>
-                            <small><?php echo $dayDate->format('d/m/Y'); ?></small>
-                            <?php if (!$inWindow): ?><div class="small text-muted">Ngoài 1 tháng</div><?php endif; ?>
-                        </th>
+                    <th class="text-primary" style="white-space:nowrap; background:#ffffff;">
+                        <?php echo $day; ?><br>
+                        <small><?php echo $dayDate->format('d/m/Y'); ?></small>
+                        <?php if (!$inWindow): ?><div class="small text-muted">Ngoài 1 tháng</div><?php endif; ?>
+                    </th>
                     <?php endforeach; ?>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($shiftRows as $row): ?>
-                    <tr>
-                        <th style="background:#fff9db; width:100px;"><?php echo $row['label']; ?></th>
-                        <?php foreach ($daysOfWeek as $day): ?>
-                            <?php
+                <tr>
+                    <th style="background:#fff9db; width:100px;"><?php echo $row['label']; ?></th>
+                    <?php foreach ($daysOfWeek as $day): ?>
+                    <?php
                             $dayOffset = $weekDays[$day];
                             $dayDate = clone $currentWeekStart;
                             $dayDate->add(new DateInterval('P' . $dayOffset . 'D'));
@@ -129,64 +129,64 @@
                                 }));
                             }
                             ?>
-                            <td style="vertical-align:top; min-width:140px; background:#ffffff;">
-                                <?php if (!$inWindowCell): ?>
-                                    <span class="text-muted small">Ngoài 1 tháng</span>
-                                <?php elseif (empty($cellItems)): ?>
-                                    <span class="text-muted small">—</span>
-                                <?php else: ?>
-                                    <?php foreach ($cellItems as $schedule): ?>
-                                        <?php
+                    <td style="vertical-align:top; min-width:140px; background:#ffffff;">
+                        <?php if (!$inWindowCell): ?>
+                        <span class="text-muted small">Ngoài 1 tháng</span>
+                        <?php elseif (empty($cellItems)): ?>
+                        <span class="text-muted small">—</span>
+                        <?php else: ?>
+                        <?php foreach ($cellItems as $schedule): ?>
+                        <?php
                                         $displayStart = $schedule['gio_bat_dau'];
                                         $displayEnd = $schedule['gio_ket_thuc'];
                                         ?>
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <div>
-                                                <span
-                                                    class="badge bg-secondary me-2"><?php echo date('H:i', strtotime($displayStart)); ?>
-                                                    - <?php echo date('H:i', strtotime($displayEnd)); ?></span>
-                                                <?php if (!empty($schedule['ghi_chu'])): ?>
-                                                    <small class="text-muted d-block"><i
-                                                            class="fas fa-sticky-note me-1"></i><?php echo htmlspecialchars($schedule['ghi_chu']); ?></small>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                                                    data-bs-toggle="dropdown">
-                                                    <i class="fas fa-ellipsis-v"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                    <li>
-                                                        <a class="dropdown-item edit-schedule" href="#"
-                                                            data-schedule-id="<?php echo $schedule['id']; ?>"
-                                                            data-date="<?php echo $currentDateStr; ?>">
-                                                            <i class="fas fa-edit me-2"></i>Chỉnh sửa ngày này
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <hr class="dropdown-divider">
-                                                    </li>
-                                                    <li>
-                                                        <form method="POST" action="./doctor_cancel_schedule_for_date" class="d-inline">
-                                                            <input type="hidden" name="schedule_id"
-                                                                value="<?php echo $schedule['id']; ?>">
-                                                            <input type="hidden" name="date" value="<?php echo $currentDateStr; ?>">
-                                                            <input type="hidden" name="from"
-                                                                value="<?php echo isset($_GET['from']) ? htmlspecialchars($_GET['from']) : (isset($windowStartDate) ? $windowStartDate->format('Y-m-d') : date('Y-m-d')); ?>">
-                                                            <button type="submit" class="dropdown-item text-danger"
-                                                                onclick="return confirm('Hủy ca trực cho ngày này? Vui lòng chắc chắn!')">
-                                                                <i class="fas fa-ban me-2"></i>Hủy ca trực (ngày này)
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span
+                                    class="badge bg-secondary me-2"><?php echo date('H:i', strtotime($displayStart)); ?>
+                                    - <?php echo date('H:i', strtotime($displayEnd)); ?></span>
+                                <?php if (!empty($schedule['ghi_chu'])): ?>
+                                <small class="text-muted d-block"><i
+                                        class="fas fa-sticky-note me-1"></i><?php echo htmlspecialchars($schedule['ghi_chu']); ?></small>
                                 <?php endif; ?>
-                            </td>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item edit-schedule" href="#"
+                                            data-schedule-id="<?php echo $schedule['id']; ?>"
+                                            data-date="<?php echo $currentDateStr; ?>">
+                                            <i class="fas fa-edit me-2"></i>Chỉnh sửa ngày này
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li>
+                                        <form method="POST" action="./doctor_cancel_schedule_for_date" class="d-inline">
+                                            <input type="hidden" name="schedule_id"
+                                                value="<?php echo $schedule['id']; ?>">
+                                            <input type="hidden" name="date" value="<?php echo $currentDateStr; ?>">
+                                            <input type="hidden" name="from"
+                                                value="<?php echo isset($_GET['from']) ? htmlspecialchars($_GET['from']) : (isset($windowStartDate) ? $windowStartDate->format('Y-m-d') : date('Y-m-d')); ?>">
+                                            <button type="submit" class="dropdown-item text-danger"
+                                                onclick="return confirm('Hủy ca trực cho ngày này? Vui lòng chắc chắn!')">
+                                                <i class="fas fa-ban me-2"></i>Hủy ca trực (ngày này)
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                         <?php endforeach; ?>
-                    </tr>
+                        <?php endif; ?>
+                    </td>
+                    <?php endforeach; ?>
+                </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
