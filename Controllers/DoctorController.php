@@ -351,9 +351,9 @@ class DoctorController
             exit();
         }
 
-        // Áp dụng quy định: Chỉ được thay đổi ca trực vào Thứ 3 hoặc Thứ 4 và phải có lý do
-        if (!$this->isTuesdayOrWednesday()) {
-            $_SESSION['error'] = "Chỉ được thay đổi ca trực vào Thứ 3 hoặc Thứ 4.";
+        // Áp dụng quy định: Chỉ được thay đổi ca trực vào Thứ 2 và phải có lý do
+        if (!$this->isMonday()) {
+            $_SESSION['error'] = "Chỉ được thay đổi ca trực vào Thứ 2.";
             header("Location: ./doctor_schedule_management");
             exit();
         }
@@ -421,9 +421,9 @@ class DoctorController
             exit();
         }
 
-        // Chỉ cho phép xóa vào Thứ 3 hoặc Thứ 4
-        if (!$this->isTuesdayOrWednesday()) {
-            $_SESSION['error'] = "Chỉ được xóa ca trực vào Thứ 3 hoặc Thứ 4.";
+        // Chỉ cho phép xóa vào Thứ 2
+        if (!$this->isMonday()) {
+            $_SESSION['error'] = "Chỉ được xóa ca trực vào Thứ 2.";
             header("Location: ./doctor_schedule_management");
             exit();
         }
@@ -523,9 +523,9 @@ class DoctorController
         $ghiChu = $_POST['ghi_chu'] ?? '';
         $fromParam = $_POST['from'] ?? null;
 
-        // Chỉ cho phép thao tác vào Thứ 3 hoặc Thứ 4
-        if (!$this->isTuesdayOrWednesday()) {
-            $_SESSION['error'] = 'Chỉ được thay đổi ca trực vào Thứ 3 hoặc Thứ 4.';
+        // Chỉ cho phép thao tác vào Thứ 2
+        if (!$this->isMonday()) {
+            $_SESSION['error'] = 'Chỉ được thay đổi ca trực vào Thứ 2.';
             header('Location: ./doctor_schedule_management');
             exit();
         }
@@ -560,14 +560,32 @@ class DoctorController
         }
 
         // Giới hạn trong 1 tháng kể từ mốc from (hoặc hôm nay)
+        $tz = new DateTimeZone('Asia/Ho_Chi_Minh');
         $start = $fromParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fromParam) ? $fromParam : date('Y-m-d');
-        $windowStart = DateTime::createFromFormat('Y-m-d', $start);
+        $windowStart = DateTime::createFromFormat('Y-m-d', $start, $tz);
         $windowEnd = clone $windowStart;
         $windowEnd->modify('+1 month');
-        $dateObj = DateTime::createFromFormat('Y-m-d', $date);
+        $dateObj = DateTime::createFromFormat('Y-m-d', $date, $tz);
         if (!$dateObj || $dateObj < $windowStart || $dateObj > $windowEnd) {
             $_SESSION['error'] = 'Ngày chỉnh sửa nằm ngoài phạm vi 1 tháng!';
             header('Location: ./doctor_schedule_management');
+            exit();
+        }
+
+        // Giới hạn: chỉ cho phép chỉnh sửa NGÀY thuộc TUẦN SAU (không phải tuần này)
+        $today = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        $today->setTime(0, 0, 0);
+        $mondayThisWeek = clone $today;
+        $mondayThisWeek->modify('monday this week');
+        $nextWeekStart = clone $mondayThisWeek;
+        $nextWeekStart->modify('+7 days');
+        $nextWeekEnd = clone $nextWeekStart;
+        $nextWeekEnd->modify('+6 days');
+        $dateObjMid = (clone $dateObj)->setTime(0, 0, 0);
+        if ($dateObjMid < $nextWeekStart || $dateObjMid > $nextWeekEnd) {
+            $_SESSION['error'] = 'Chỉ được chỉnh sửa ca trực cho các ngày thuộc TUẦN SAU (Thứ 2 → Chủ nhật tuần sau).';
+            $redir = './doctor_schedule_management' . ($fromParam ? ('?from=' . urlencode($fromParam)) : '');
+            header('Location: ' . $redir);
             exit();
         }
 
@@ -609,8 +627,8 @@ class DoctorController
         $reason = $_POST['reason'] ?? '';
         $fromParam = $_POST['from'] ?? null;
 
-        if (!$this->isTuesdayOrWednesday()) {
-            $_SESSION['error'] = 'Chỉ được xóa ca trực vào Thứ 3 hoặc Thứ 4.';
+        if (!$this->isMonday()) {
+            $_SESSION['error'] = 'Chỉ được xóa ca trực vào Thứ 2.';
             header('Location: ./doctor_schedule_management');
             exit();
         }
@@ -635,14 +653,32 @@ class DoctorController
             header('Location: ./doctor_schedule_management');
             exit();
         }
+        $tz = new DateTimeZone('Asia/Ho_Chi_Minh');
         $start = $fromParam && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fromParam) ? $fromParam : date('Y-m-d');
-        $windowStart = DateTime::createFromFormat('Y-m-d', $start);
+        $windowStart = DateTime::createFromFormat('Y-m-d', $start, $tz);
         $windowEnd = clone $windowStart;
         $windowEnd->modify('+1 month');
-        $dateObj = DateTime::createFromFormat('Y-m-d', $date);
+        $dateObj = DateTime::createFromFormat('Y-m-d', $date, $tz);
         if (!$dateObj || $dateObj < $windowStart || $dateObj > $windowEnd) {
             $_SESSION['error'] = 'Ngày hủy nằm ngoài phạm vi 1 tháng!';
             header('Location: ./doctor_schedule_management');
+            exit();
+        }
+
+        // Giới hạn: chỉ cho phép HỦY ngày thuộc TUẦN SAU
+        $today = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        $today->setTime(0, 0, 0);
+        $mondayThisWeek = clone $today;
+        $mondayThisWeek->modify('monday this week');
+        $nextWeekStart = clone $mondayThisWeek;
+        $nextWeekStart->modify('+7 days');
+        $nextWeekEnd = clone $nextWeekStart;
+        $nextWeekEnd->modify('+6 days');
+        $dateObjMid = (clone $dateObj)->setTime(0, 0, 0);
+        if ($dateObjMid < $nextWeekStart || $dateObjMid > $nextWeekEnd) {
+            $_SESSION['error'] = 'Chỉ được hủy ca trực cho các ngày thuộc TUẦN SAU (Thứ 2 → Chủ nhật tuần sau).';
+            $redir = './doctor_schedule_management' . ($fromParam ? ('?from=' . urlencode($fromParam)) : '');
+            header('Location: ' . $redir);
             exit();
         }
 
@@ -699,31 +735,25 @@ class DoctorController
         return $days[$englishDay] ?? '';
     }
 
-    /**
-     * Kiểm tra hôm nay có phải Thứ 6 không
-     */
-    private function isFriday()
-    {
-        return (int)date('N') === 5; // 5 = Friday
-    }
 
     /**
      * Đăng ký/hoàn tất lịch cơ bản: chỉ 23 → 25 hằng tháng
      */
     private function isWithinDoctorRegistrationWindow(): bool
     {
-        $day = (int)date('j');
+        $dt = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        $day = (int)$dt->format('j');
         // Cho phép đăng ký từ ngày 23 → 25 hằng tháng
         return $day >= 23 && $day <= 25;
     }
 
     /**
-     * Kiểm tra hôm nay là Thứ 3 hoặc Thứ 4
+     * Kiểm tra hôm nay là Thứ 4
      */
-    private function isTuesdayOrWednesday()
+    private function isMonday()
     {
-        $n = (int)date('N'); // 1=Mon..7=Sun
-        return $n === 2 || $n === 3; // Tue or Wed
+        $dt = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        return (int)$dt->format('N') === 1; // 4 = monday (VN timezone)
     }
 
     /**

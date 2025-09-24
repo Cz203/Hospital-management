@@ -174,7 +174,7 @@ class AppointmentController
         // Trả về kèm trạng thái disabled để UI hiển thị slot đã được đặt
         $timeSlots = $this->appointmentModel->getAvailableTimeSlots($doctorId, $date, true);
 
-        // Disable nếu vượt quá cửa sổ đặt lịch:
+        // Xác định cửa sổ tháng dựa trên mốc ngày 23:
         // - Trước ngày 23: 23/tháng trước → hết tháng hiện tại
         // - Từ ngày 23: 23/tháng này → hết tháng kế tiếp
         $openDay = 23;
@@ -187,12 +187,27 @@ class AppointmentController
             $bookingStart = clone $anchor;
             $bookingEnd = (clone $anchor)->modify('+1 month')->modify('last day of this month');
         }
+
+        // Bổ sung quy tắc hiển thị theo tuần cho bệnh nhân (1 hoặc 2 tuần):
+        // - Thứ 2 (Mon): chỉ tuần này (đến Chủ nhật tuần này, 23:59)
+        // - Thứ 3 → CN: tuần này + tuần sau (đến Chủ nhật tuần sau, 23:59)
+        $todayObj = new DateTime($today);
+        $weekStart = clone $todayObj;
+        $weekStart->modify('monday this week');
+        $weekEnd = clone $weekStart;
+        $weekEnd->modify('sunday this week');
+        $dow = (int)$todayObj->format('N'); // 1=Mon..7=Sun
+        $weeklyEnd = ($dow === 1) ? (clone $weekEnd) : (clone $weekEnd)->modify('+7 days');
+        $weeklyEnd->setTime(23, 59, 59);
+
+        // Cửa sổ cuối cùng cho bệnh nhân là giao giữa (today..bookingEnd theo tháng) và (today..weeklyEnd)
+        $finalStart = max($todayObj->getTimestamp(), $bookingStart->getTimestamp());
+        $finalEnd = min($bookingEnd->getTimestamp(), $weeklyEnd->getTimestamp());
+
         $selDateObj = DateTime::createFromFormat('Y-m-d', $selectedDate);
-        if ($selDateObj && ($selDateObj < $bookingStart || $selDateObj > $bookingEnd)) {
-            foreach ($timeSlots as &$slot) {
-                $slot['disabled'] = true;
-            }
-            unset($slot);
+        if (!$selDateObj || $selDateObj->getTimestamp() < $finalStart || $selDateObj->getTimestamp() > $finalEnd) {
+            // Ngoài phạm vi cho phép → trả về rỗng để UI ẩn ngày và không hiển thị slot
+            $timeSlots = [];
         }
 
         // Nếu chọn ngày hôm nay, đánh dấu disabled cho các giờ đã qua

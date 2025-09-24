@@ -1,26 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Hiển thị ngày giờ real-time
-  function updateDateTime() {
-    const now = new Date();
-    const options = {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    };
-    document.getElementById("current-datetime").textContent =
-      now.toLocaleString("vi-VN", options);
-  }
-
-  // Cập nhật ngày giờ mỗi giây
-  updateDateTime();
-  setInterval(updateDateTime, 1000);
-
-  // Bỏ ràng buộc đăng ký theo ngày trong tháng (client-side)
-
   // Auto-fill time based on shift type
   document.getElementById("loai_ca").addEventListener("change", function () {
     const startTime = document.getElementById("gio_bat_dau");
@@ -48,15 +26,38 @@ document.addEventListener("DOMContentLoaded", function () {
     button.addEventListener("click", function (e) {
       e.preventDefault();
 
-      // Quy định: Chỉ cho chỉnh sửa vào Thứ 3 hoặc Thứ 4
-      const dow = new Date().getDay(); // 0=Sun..6=Sat
-      const isTueOrWed = dow === 2 || dow === 3;
-      if (!isTueOrWed) {
-        alert("Chỉ được thay đổi ca trực vào Thứ 3 hoặc Thứ 4.");
+      // Quy định: Chỉ cho chỉnh sửa vào Thứ 2 và CHỈ áp dụng cho NGÀY thuộc TUẦN SAU
+      const now = new Date();
+      // Dùng timezone VN từ server-side mặc định, JS client lấy local; nếu client khác timezone có thể lệch.
+      // Đơn giản: coi theo client, 0=Sun..6=Sat
+      const dow = now.getDay();
+      const isMon = dow === 1;
+      if (!isMon) {
+        showToast("Chỉ được thay đổi ca trực vào Thứ 2.");
+        return;
+      }
+      const dateYmd = this.getAttribute("data-date");
+      if (!dateYmd) {
+        showToast("Thiếu ngày áp dụng.");
+        return;
+      }
+      const dateObj = new Date(dateYmd + "T00:00:00");
+      dateObj.setHours(0, 0, 0, 0);
+      const mondayThisWeek = new Date(now);
+      const dowNorm = dow === 0 ? 7 : dow; // 1..7
+      mondayThisWeek.setDate(now.getDate() - (dowNorm - 1));
+      mondayThisWeek.setHours(0, 0, 0, 0);
+      const nextWeekStart = new Date(mondayThisWeek);
+      nextWeekStart.setDate(mondayThisWeek.getDate() + 7);
+      nextWeekStart.setHours(0, 0, 0, 0);
+      const nextWeekEnd = new Date(nextWeekStart);
+      nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+      nextWeekEnd.setHours(23, 59, 59, 999);
+      if (dateObj < nextWeekStart || dateObj > nextWeekEnd) {
+        showToast("Chỉ được chỉnh sửa ca trực cho các ngày thuộc TUẦN SAU.");
         return;
       }
       const scheduleId = this.getAttribute("data-schedule-id");
-      const dateYmd = this.getAttribute("data-date");
 
       // Fetch schedule data
       fetch("./doctor_get_schedule_info", {
@@ -108,12 +109,12 @@ document.addEventListener("DOMContentLoaded", function () {
               document.getElementById("editScheduleModal")
             ).show();
           } else {
-            alert("Không thể tải thông tin ca trực: " + data.message);
+            showToast("Không thể tải thông tin ca trực: " + data.message);
           }
         })
         .catch((error) => {
           console.error("Error:", error);
-          alert("Có lỗi xảy ra khi tải thông tin ca trực");
+          showToast("Có lỗi xảy ra khi tải thông tin ca trực");
         });
     });
   });
@@ -123,29 +124,67 @@ document.addEventListener("DOMContentLoaded", function () {
     .querySelectorAll('form[action="./doctor_cancel_schedule_for_date"] button')
     .forEach((btn) => {
       btn.addEventListener("click", function (e) {
-        const dow = new Date().getDay();
-        const isTueOrWed = dow === 2 || dow === 3;
-        if (!isTueOrWed) {
+        const now = new Date();
+        const dow = now.getDay();
+        const isMonCancel = dow === 1;
+        if (!isMonCancel) {
           e.preventDefault();
-          alert("Chỉ được xóa ca trực vào Thứ 3 hoặc Thứ 4.");
+          showToast("Chỉ được xóa ca trực vào Thứ 2.");
           return false;
         }
+        // Chỉ cho phép HỦY ngày thuộc TUẦN SAU
         const form = this.closest("form");
-        let reasonInput = form.querySelector('input[name="reason"]');
-        if (!reasonInput) {
-          reasonInput = document.createElement("input");
-          reasonInput.type = "hidden";
-          reasonInput.name = "reason";
-          form.appendChild(reasonInput);
-        }
-        const reason = window.prompt("Nhập lý do hủy ca cho ngày này:");
-        if (!reason || !reason.trim()) {
+        const dateInput = form.querySelector('input[name="date"]');
+        const dateYmd = dateInput ? dateInput.value : "";
+        if (!dateYmd) {
           e.preventDefault();
-          alert("Vui lòng nhập lý do hợp lệ.");
+          showToast("Thiếu ngày áp dụng.");
           return false;
         }
-        reasonInput.value = reason.trim();
-        return true;
+        const dateObj = new Date(dateYmd + "T00:00:00");
+        dateObj.setHours(0, 0, 0, 0);
+        const dowNorm = dow === 0 ? 7 : dow;
+        const mondayThisWeek = new Date(now);
+        mondayThisWeek.setDate(now.getDate() - (dowNorm - 1));
+        mondayThisWeek.setHours(0, 0, 0, 0);
+        const nextWeekStart = new Date(mondayThisWeek);
+        nextWeekStart.setDate(mondayThisWeek.getDate() + 7);
+        nextWeekStart.setHours(0, 0, 0, 0);
+        const nextWeekEnd = new Date(nextWeekStart);
+        nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+        nextWeekEnd.setHours(23, 59, 59, 999);
+        if (dateObj < nextWeekStart || dateObj > nextWeekEnd) {
+          e.preventDefault();
+          showToast("Chỉ được hủy ca trực cho các ngày thuộc TUẦN SAU.");
+          return false;
+        }
+        // Mở modal nhập lý do
+        e.preventDefault();
+        const modalEl = document.getElementById("cancelReasonModal");
+        const confirmBtn = document.getElementById("confirmCancelBtn");
+        const reasonInputEl = document.getElementById("cancelReasonInput");
+        const dateLabel = document.getElementById("cancelDateLabel");
+        dateLabel.textContent = dateYmd;
+        reasonInputEl.value = "";
+        const bsModal = new bootstrap.Modal(modalEl);
+        bsModal.show();
+        confirmBtn.onclick = () => {
+          const val = reasonInputEl.value.trim();
+          if (!val) {
+            showToast("Vui lòng nhập lý do hợp lệ.");
+            return;
+          }
+          let hiddenReason = form.querySelector('input[name="reason"]');
+          if (!hiddenReason) {
+            hiddenReason = document.createElement("input");
+            hiddenReason.type = "hidden";
+            hiddenReason.name = "reason";
+            form.appendChild(hiddenReason);
+          }
+          hiddenReason.value = val;
+          bsModal.hide();
+          form.submit();
+        };
       });
     });
 
@@ -184,5 +223,28 @@ document.addEventListener("DOMContentLoaded", function () {
         from
       )}&w=0`;
     });
+  }
+
+  function showToast(message, type = "danger") {
+    // Hiển thị thông báo inline trên giao diện thay vì toast/popup
+    const bar = document.getElementById("messageBar");
+    if (!bar) return;
+    bar.style.display = "block";
+    const cls =
+      type === "success"
+        ? "alert alert-success"
+        : type === "warning"
+        ? "alert alert-warning"
+        : "alert alert-danger";
+    bar.className = cls;
+    bar.textContent = message;
+    // Tự ẩn sau 3 giây
+    setTimeout(() => {
+      if (bar) {
+        bar.style.display = "none";
+        bar.className = "";
+        bar.textContent = "";
+      }
+    }, 3000);
   }
 });
