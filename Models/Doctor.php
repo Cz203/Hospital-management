@@ -250,7 +250,10 @@ class Doctor extends User
         $trangThai = $data['trang_thai'] ?? 'active';
         $stmt->bindParam(":trang_thai", $trangThai);
 
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            return (int)$this->conn->lastInsertId();
+        }
+        return 0;
     }
 
     /**
