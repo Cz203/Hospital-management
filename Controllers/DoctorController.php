@@ -208,9 +208,6 @@ class DoctorController
 
         // Cập nhật trạng thái
         if ($appointmentModel->updateStatus($appointmentId, $status, $note)) {
-            // Debug: Log appointment data
-            error_log("Appointment update - ID: $appointmentId, Loai: {$appointment['loai_lich']}, Status: $status");
-
             // Nếu là lịch tư vấn và được xác nhận, tạo Zoom meeting link
             if ($appointment['loai_lich'] === 'Tư vấn' && $status === 'Đã xác nhận') {
                 error_log("Creating Zoom meeting link for consultation appointment ID: $appointmentId");
@@ -219,6 +216,76 @@ class DoctorController
 
             // Emit socket notification for status change
             $this->emitAppointmentStatusChange($appointment, $status, $note);
+
+            // If doctor cancels, notify patient via email
+            if ($status === 'hủy') {
+                try {
+                    require_once 'Services/MailService.php';
+                    require_once 'Models/Patient.php';
+                    $patientModel = new Patient();
+                    $patient = $patientModel->getById($appointment['benh_nhan_id']);
+                    $doctor = $this->doctorModel->getById($doctorId);
+                    if ($patient && $doctor) {
+                        // Lấy lại lịch hẹn để lấy thời điểm cập nhật (ngày/giờ hủy)
+                        require_once 'Models/Appointment.php';
+                        $apptModelFresh = new Appointment();
+                        $fresh = $apptModelFresh->getById($appointmentId);
+                        $cancelDate = isset($fresh['ngay_cap_nhat']) ? date('Y-m-d', strtotime($fresh['ngay_cap_nhat'])) : date('Y-m-d');
+                        $cancelTime = isset($fresh['ngay_cap_nhat']) ? date('H:i', strtotime($fresh['ngay_cap_nhat'])) : date('H:i');
+                        $mailer = new MailService();
+                        $mailer->sendDoctorCancelledToPatient(
+                            $patient,
+                            $doctor,
+                            $appointment['ngay_hen'],
+                            $appointment['gio_hen'],
+                            $appointment['loai_lich'] ?? 'Trực tiếp',
+                            $cancelDate,
+                            $cancelTime
+                        );
+                    }
+                } catch (Exception $e) {
+                    error_log('Mail (doctor cancelled -> patient) error: ' . $e->getMessage());
+                }
+            }
+
+            // If confirmed, send email to patient (include link_tu_van if available) and reminder to doctor
+            if ($status === 'Đã xác nhận') {
+                try {
+                    require_once 'Services/MailService.php';
+                    $doctor = $this->doctorModel->getById($doctorId);
+                    require_once 'Models/Patient.php';
+                    $patientModel = new Patient();
+                    $patient = $patientModel->getById($appointment['benh_nhan_id']);
+                    if ($doctor && $patient) {
+                        // Re-fetch latest appointment to get updated link_tu_van (e.g., Zoom link just created)
+                        require_once 'Models/Appointment.php';
+                        $apptModelFresh = new Appointment();
+                        $fresh = $apptModelFresh->getById($appointmentId);
+                        $zoomLink = isset($fresh['link_tu_van']) ? $fresh['link_tu_van'] : (isset($appointment['link_tu_van']) ? $appointment['link_tu_van'] : null);
+                        $mailer = new MailService();
+                        $mailer->sendAppointmentConfirmedToPatient(
+                            $patient,
+                            $doctor,
+                            $fresh['ngay_hen'] ?? $appointment['ngay_hen'],
+                            $fresh['gio_hen'] ?? $appointment['gio_hen'],
+                            ($fresh['loai_lich'] ?? $appointment['loai_lich'] ?? 'Trực tiếp'),
+                            $zoomLink
+                        );
+
+                        // Send reminder email to doctor as well (with CTA if tư vấn)
+                        $mailer->sendAppointmentConfirmedReminderToDoctor(
+                            $doctor,
+                            $patient,
+                            $fresh['ngay_hen'] ?? $appointment['ngay_hen'],
+                            $fresh['gio_hen'] ?? $appointment['gio_hen'],
+                            ($fresh['loai_lich'] ?? $appointment['loai_lich'] ?? 'Trực tiếp'),
+                            $zoomLink
+                        );
+                    }
+                } catch (Exception $e) {
+                    error_log('Mail (confirmed to patient) error: ' . $e->getMessage());
+                }
+            }
 
             $_SESSION['success'] = "Cập nhật trạng thái lịch hẹn thành công!";
         } else {

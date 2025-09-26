@@ -180,9 +180,9 @@ class SocketManager {
       this.handleReconnect();
     });
 
-    // Authentication
+    // Authentication (no console output in production)
     this.socket.on("authenticated", (data) => {
-      console.log("Socket authenticated:", data);
+      // intentionally no-op
     });
 
     this.socket.on("error", (error) => {

@@ -287,8 +287,6 @@ class AppointmentController
         $selectedDate = date('Y-m-d', strtotime($date));
         $selectedTime = $time;
 
-        // Debug: Log để kiểm tra
-        error_log("Appointment validation - Today: $today, Now: $now, Selected Date: $selectedDate, Selected Time: $selectedTime, Raw input: $date");
 
         // Kiểm tra ngày quá khứ
         if ($selectedDate < $today) {
@@ -318,7 +316,7 @@ class AppointmentController
             exit();
         }
 
-        // Tạo lịch hẹn
+        // Tạo lịch hẹn 
         $appointmentData = [
             'benh_nhan_id' => $patientId,
             'bac_si_id' => $doctorId,
@@ -340,6 +338,20 @@ class AppointmentController
 
             // Also notify patient about successful booking
             $this->emitPatientBookingConfirmation($patientId, $doctorId, $date, $time);
+
+            // Send email to doctor about new booking (non-blocking best-effort)
+            try {
+                require_once 'Services/MailService.php';
+                $doctor = $this->doctorModel->getById((int)$doctorId);
+                $patient = $this->patientModel->getById((int)$patientId);
+                if ($doctor && $patient) {
+                    $mailer = new MailService();
+                    $zoomLinkMaybe = ($loaiLich === 'Tư vấn' && !empty($linkTuVan)) ? $linkTuVan : null;
+                    $mailer->sendAppointmentBookedToDoctor($doctor, $patient, $date, $time, $loaiLich, $zoomLinkMaybe);
+                }
+            } catch (Exception $e) {
+                error_log('Mail (new booking to doctor) error: ' . $e->getMessage());
+            }
 
             $_SESSION['success'] = "Đặt lịch hẹn thành công! Bác sĩ sẽ xác nhận lịch hẹn của bạn.";
             header("Location: ./patient_appointments");
@@ -430,8 +442,34 @@ class AppointmentController
 
         // Cập nhật trạng thái thành hủy
         if ($this->appointmentModel->updateStatus($appointmentId, 'hủy', 'Bệnh nhân hủy lịch hẹn')) {
+            // Lấy lại lịch hẹn để đọc thời điểm cập nhật (ngày/giờ hủy)
+            $fresh = $this->appointmentModel->getById($appointmentId);
+            $cancelDate = isset($fresh['ngay_cap_nhat']) ? date('Y-m-d', strtotime($fresh['ngay_cap_nhat'])) : date('Y-m-d');
+            $cancelTime = isset($fresh['ngay_cap_nhat']) ? date('H:i', strtotime($fresh['ngay_cap_nhat'])) : date('H:i');
             // Emit socket notification for patient cancellation
             $this->emitPatientCancellationNotification($appointment);
+
+            // Send email to doctor about patient cancellation
+            try {
+                require_once 'Services/MailService.php';
+                $doctorModel = new Doctor();
+                $doctor = $doctorModel->getById($appointment['bac_si_id']);
+                $patient = $this->patientModel->getById($patientId);
+                if ($doctor && $patient) {
+                    $mailer = new MailService();
+                    $mailer->sendPatientCancelledToDoctor(
+                        $doctor,
+                        $patient,
+                        $appointment['ngay_hen'],
+                        $appointment['gio_hen'],
+                        $appointment['loai_lich'] ?? 'Trực tiếp',
+                        $cancelDate,
+                        $cancelTime
+                    );
+                }
+            } catch (Exception $e) {
+                error_log('Mail (patient cancelled -> doctor) error: ' . $e->getMessage());
+            }
 
             $_SESSION['success'] = "Hủy lịch hẹn thành công!";
         } else {

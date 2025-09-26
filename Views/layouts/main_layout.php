@@ -518,7 +518,7 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
     </script>
 
     <!-- Socket.IO Client Script -->
-    <script src="./assets/js/socket-client.js"></script>
+
 </body>
 
 </html>

@@ -14,6 +14,7 @@
     "require": {
         "vonage/client": "^4.2",
         "firebase/php-jwt": "^6.11",
-        "guzzlehttp/guzzle": "^7.9"
+        "guzzlehttp/guzzle": "^7.9",
+        "phpmailer/phpmailer": "^6.10"
     }
 }

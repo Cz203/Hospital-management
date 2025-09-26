@@ -5,13 +5,27 @@ const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
+
+// Build CORS origins from ENV (comma-separated), with sensible fallbacks
+function getAllowedOrigins() {
+  const raw =
+    process.env.SOCKET_ALLOWED_ORIGINS || process.env.CORS_ORIGINS || "";
+  const parsed = raw
+    .split(",")
+    .map((s) => s && s.trim())
+    .filter(Boolean);
+  if (parsed.length) return parsed;
+  // defaults for local dev + typical PHP base path
+  return [
+    "http://localhost:3000",
+    "http://localhost/hospital_management",
+    "http://127.0.0.1/hospital_management",
+  ];
+}
+
 const io = socketIo(server, {
   cors: {
-    origin: [
-      "http://localhost:3000",
-      "http://localhost/hospital_management",
-      "https://yourdomain.com", // Thay bằng domain thật của bạn
-    ],
+    origin: getAllowedOrigins(),
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -306,9 +320,10 @@ app.get("/", (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || process.env.SOCKET_PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Socket.IO server running on port ${PORT}`);
+  console.log(`Allowed origins: ${JSON.stringify(getAllowedOrigins())}`);
   console.log(`Server URL: http://localhost:${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
 });
