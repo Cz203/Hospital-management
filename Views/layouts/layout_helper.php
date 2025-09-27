@@ -46,6 +46,9 @@ break;
 case 'patient':
 include 'Views/layouts/patient_sidebar.php';
 break;
+case 'letan':
+include 'Views/layouts/reception_sidebar.php';
+break;
 default:
 echo '<div class="alert alert-danger">Role không hợp lệ!</div>';
 }
@@ -103,6 +106,8 @@ case 'doctor':
 return 'Bác sĩ';
 case 'patient':
 return 'Bệnh nhân';
+case 'letan':
+return 'Lễ tân';
 default:
 return 'Không xác định';
 }
@@ -122,6 +127,8 @@ case 'doctor':
 return 'role-doctor';
 case 'patient':
 return 'role-patient';
+case 'letan':
+return 'role-letan';
 default:
 return '';
 }

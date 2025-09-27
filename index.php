@@ -9,12 +9,14 @@ require_once 'Controllers/DoctorController.php';
 require_once 'Controllers/AdminController.php';
 require_once 'Controllers/AppointmentController.php';
 require_once 'Controllers/PatientController.php';
+require_once 'Controllers/ReceptionController.php';
 // Khởi tạo Controllers
 $auth = new AuthController();
 $doctorController = new DoctorController();
 $adminController = new AdminController();
 $appointmentController = new AppointmentController();
 $patientController = new PatientController();
+$receptionController = new ReceptionController();
 
 // Lấy action từ URL - hỗ trợ cả URL đẹp và URL cũ
 $action = $_GET['action'] ?? 'home';
@@ -34,6 +36,10 @@ switch ($action) {
 
     case 'login_doctor':
         $auth->loginDoctor(); // Đăng nhập bác sĩ
+        break;
+
+    case 'login_reception':
+        $auth->loginReception(); // Đăng nhập lễ tân
         break;
 
     case 'register':
@@ -140,6 +146,14 @@ switch ($action) {
     case 'patient_dashboard':
         $auth->requireAuth('patient');
         include 'Views/patient/dashboard.php'; // Trang chủ bệnh nhân
+        break;
+
+    case 'reception_dashboard':
+        $receptionController->dashboard(); // Trang chính lễ tân
+        break;
+
+    case 'reception_doctor_schedules':
+        $receptionController->doctorSchedules(); // Trang lịch làm việc bác sĩ (lễ tân)
         break;
 
 
@@ -277,6 +291,26 @@ switch ($action) {
         $appointmentController->getDoctorSchedule(); // Lấy lịch làm việc bác sĩ (AJAX)
         break;
 
+    case 'reception_find_patient':
+        $receptionController->findPatientByPhone(); // Tra cứu BN theo SĐT (AJAX)
+        break;
+
+    case 'reception_get_doctor_schedules':
+        $receptionController->getDoctorSchedules(); // API lấy lịch làm việc (lễ tân)
+        break;
+
+    case 'reception_complete_patient':
+        $receptionController->completePatientProfile(); // Bổ sung thông tin còn thiếu (AJAX)
+        break;
+
+    case 'reception_patient_create':
+        $receptionController->patientCreateForm(); // Form thêm bệnh nhân
+        break;
+
+    case 'reception_patient_store':
+        $receptionController->patientStore(); // Lưu bệnh nhân mới
+        break;
+
     case 'patient_appointments':
         $appointmentController->patientAppointments(); // Lịch hẹn của bệnh nhân
         break;
@@ -300,6 +334,9 @@ switch ($action) {
                     exit();
                 case 'patient':
                     header("Location: ./patient_dashboard"); // Redirect bệnh nhân về dashboard
+                    exit();
+                case 'letan':
+                    header("Location: ./reception_dashboard"); // Redirect lễ tân về dashboard
                     exit();
             }
         }

@@ -24,6 +24,22 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `le_tan`
+--
+
+CREATE TABLE `le_tan` (
+  `id` int(11) NOT NULL,
+  `ten` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `mat_khau` varchar(255) NOT NULL,
+  `so_dien_thoai` varchar(20) DEFAULT NULL,
+  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+INSERT INTO `le_tan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_tao`, `ngay_cap_nhat`) VALUES (NULL, 'Le tan A', 'letan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', NULL, '2025-09-27 21:27:34', '2025-09-27 21:29:23')
+--
 -- Cấu trúc bảng cho bảng `bac_si`
 --
 
@@ -453,6 +469,13 @@ ALTER TABLE `quan_tri_vien`
   ADD KEY `idx_qtv_email` (`email`);
 
 --
+-- Chỉ mục cho bảng `le_tan`
+--
+ALTER TABLE `le_tan`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
 -- Chỉ mục cho bảng `thong_bao`
 --
 ALTER TABLE `thong_bao`
@@ -532,6 +555,12 @@ ALTER TABLE `quan_tri_vien`
 --
 ALTER TABLE `thong_bao`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT cho bảng `le_tan`
+--
+ALTER TABLE `le_tan`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Các ràng buộc cho các bảng đã đổ

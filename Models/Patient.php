@@ -146,7 +146,7 @@ class Patient extends User
 
     public function getByPhone($phone)
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE so_dien_thoai = :phone LIMIT 1";
+        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE so_dien_thoai = :phone LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":phone", $phone);
         $stmt->execute();
@@ -160,5 +160,75 @@ class Patient extends User
         $stmt->bindParam(":mat_khau", $hashedPassword);
         $stmt->bindParam(":id", $id);
         return $stmt->execute();
+    }
+
+    /**
+     * Bổ sung các trường còn thiếu: chỉ update nếu cột hiện tại đang NULL hoặc rỗng
+     */
+    public function completeMissingFields(int $patientId, array $fields): bool
+    {
+        if ($patientId <= 0 || empty($fields)) {
+            return false;
+        }
+
+        // Lấy bản ghi hiện tại
+        $current = $this->getById($patientId);
+        if (!$current) return false;
+
+        $allowed = ['email', 'ngay_sinh', 'gioi_tinh', 'dia_chi', 'nhom_mau', 'bao_hiem_y_te', 'bao_hiem_y_te_id'];
+        $updates = [];
+        $params = [':id' => $patientId];
+
+        foreach ($allowed as $col) {
+            if (!array_key_exists($col, $fields)) continue;
+            $newVal = $fields[$col];
+            $curVal = isset($current[$col]) ? $current[$col] : null;
+            $isEmpty = ($curVal === null) || (trim((string)$curVal) === '');
+            if ($isEmpty) {
+                $updates[] = "$col = :$col";
+                if ($col === 'bao_hiem_y_te_id') {
+                    $params[":$col"] = (int)$newVal ?: null;
+                } else {
+                    $params[":$col"] = $newVal;
+                }
+            }
+        }
+
+        if (empty($updates)) return false;
+
+        $sql = "UPDATE " . $this->table_name . " SET " . implode(', ', $updates) . ", ngay_cap_nhat = NOW() WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute($params);
+    }
+
+    /**
+     * Cho phép lễ tân cập nhật hoặc xóa (set NULL) các trường cho phép.
+     * Nếu giá trị truyền vào là chuỗi rỗng => set NULL.
+     */
+    public function updateFieldsByReception(int $patientId, array $fields): bool
+    {
+        if ($patientId <= 0) return false;
+
+        $allowed = ['email', 'ngay_sinh', 'gioi_tinh', 'dia_chi', 'nhom_mau', 'bao_hiem_y_te'];
+        $updates = [];
+        $params = [':id' => $patientId];
+
+        foreach ($allowed as $col) {
+            if (!array_key_exists($col, $fields)) continue;
+            $val = $fields[$col];
+            if ($val === '') {
+                // Xóa -> NULL
+                $updates[] = "$col = NULL";
+            } else {
+                $updates[] = "$col = :$col";
+                $params[":$col"] = $val;
+            }
+        }
+
+        if (empty($updates)) return false;
+
+        $sql = "UPDATE " . $this->table_name . " SET " . implode(', ', $updates) . ", ngay_cap_nhat = NOW() WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute($params);
     }
 }
