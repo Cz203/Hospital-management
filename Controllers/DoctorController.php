@@ -1,15 +1,21 @@
 <?php
 require_once 'Models/Doctor.php';
+require_once 'Models/XraySuggestion.php';
+require_once 'Models/PhieuChupXquang.php';
 require_once 'Controllers/AuthController.php';
 
 class DoctorController
 {
     private $doctorModel;
+    private $xraySuggestionModel;
+    private $phieuChupXquangModel;
     private $auth;
 
     public function __construct()
     {
         $this->doctorModel = new Doctor();
+        $this->xraySuggestionModel = new XraySuggestion();
+        $this->phieuChupXquangModel = new PhieuChupXquang();
         $this->auth = new AuthController();
     }
 
@@ -18,8 +24,11 @@ class DoctorController
      */
     public function manageSchedule()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            header("Location: ./login");
+            exit();
+        }
 
         $doctorId = $_SESSION['user_id'];
         $schedules = $this->doctorModel->getSchedules($doctorId);
@@ -114,8 +123,11 @@ class DoctorController
      */
     public function appointmentManagement()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            header("Location: ./login");
+            exit();
+        }
 
         $doctorId = $_SESSION['user_id'];
 
@@ -176,8 +188,11 @@ class DoctorController
      */
     public function updateAppointmentStatus()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            header("Location: ./login");
+            exit();
+        }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header("Location: ./doctor_appointment_management");
@@ -234,8 +249,11 @@ class DoctorController
      */
     public function addSchedule()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            header("Location: ./login");
+            exit();
+        }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header("Location: ./doctor_schedule_management");
@@ -328,8 +346,11 @@ class DoctorController
      */
     public function updateSchedule()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            header("Location: ./login");
+            exit();
+        }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header("Location: ./doctor_schedule_management");
@@ -420,8 +441,11 @@ class DoctorController
      */
     public function deleteSchedule()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            header("Location: ./login");
+            exit();
+        }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header("Location: ./doctor_schedule_management");
@@ -468,8 +492,11 @@ class DoctorController
      */
     public function getScheduleInfo()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            header("Location: ./login");
+            exit();
+        }
 
         header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -504,8 +531,11 @@ class DoctorController
      */
     public function getSchedulesByDay()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            header("Location: ./login");
+            exit();
+        }
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
@@ -718,8 +748,11 @@ class DoctorController
      */
     public function dashboard()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            header("Location: ./login");
+            exit();
+        }
 
         $doctorId = $_SESSION['user_id'];
         $doctor = $this->doctorModel->getById($doctorId);
@@ -1174,6 +1207,1082 @@ class DoctorController
         } catch (Exception $e) {
             error_log('getAllergyHistory error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Server error']);
+        }
+    }
+
+    // ===== Examination form: save & print =====
+    public function saveExaminationForm()
+    {
+        $this->auth->requireAuth('doctor');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+        try {
+            $doctorId = $_SESSION['user_id'];
+            $patientId = $_POST['patient_id'] ?? null;
+            if (!$patientId) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu patient_id']);
+                exit();
+            }
+
+            require_once 'Models/PhieuKhamBenh.php';
+            $model = new PhieuKhamBenh();
+
+            // Map payload from form names
+            $payload = [
+                'benh_nhan_id' => $patientId,
+                'bac_si_id' => $doctorId,
+                'so_y_te' => $_POST['so_y_te'] ?? null,
+                'benh_vien' => $_POST['benh_vien'] ?? null,
+                'buong_kham' => $_POST['buong_kham'] ?? null,
+                'ho_ten' => $_POST['ho_ten'] ?? null,
+                'ngay_sinh' => $_POST['ngay_sinh'] ?? null,
+                'thang_sinh' => $_POST['thang_sinh'] ?? null,
+                'nam_sinh' => $_POST['nam_sinh'] ?? null,
+                'tuoi' => $_POST['tuoi'] ?? null,
+                'gioi_tinh' => $_POST['gioi_tinh'] ?? null,
+                'nghe_nghiep' => $_POST['nghe_nghiep'] ?? null,
+                'dan_toc' => $_POST['dan_toc'] ?? null,
+                'ngoai_kieu' => $_POST['ngoai_kieu'] ?? null,
+                'noi_lam_viec' => $_POST['noi_lam_viec'] ?? null,
+                'dia_chi' => $_POST['dia_chi'] ?? null,
+                'doi_tuong_bhyt' => isset($_POST['doi_tuong']) && in_array('BHYT', (array)$_POST['doi_tuong']) ? 1 : 0,
+                'doi_tuong_thu_phi' => isset($_POST['doi_tuong']) && in_array('Thu phí', (array)$_POST['doi_tuong']) ? 1 : 0,
+                'doi_tuong_mien' => isset($_POST['doi_tuong']) && in_array('Miễn', (array)$_POST['doi_tuong']) ? 1 : 0,
+                'doi_tuong_khac' => isset($_POST['doi_tuong']) && in_array('Khác', (array)$_POST['doi_tuong']) ? 1 : 0,
+                'bhyt_ngay' => $_POST['bhyt_ngay'] ?? null,
+                'bhyt_thang' => $_POST['bhyt_thang'] ?? null,
+                'bhyt_nam' => $_POST['bhyt_nam'] ?? null,
+                'so_the_bhyt' => $_POST['so_the_bhyt'] ?? null,
+                'dien_thoai_bao_tin' => $_POST['dien_thoai_bao_tin'] ?? null,
+                'gio_kham' => $_POST['gio_kham'] ?? null,
+                'phut_kham' => $_POST['phut_kham'] ?? null,
+                'ngay_kham' => $_POST['ngay_kham'] ?? null,
+                'thang_kham' => $_POST['thang_kham'] ?? null,
+                'nam_kham' => $_POST['nam_kham'] ?? null,
+                'chan_doan_gioi_thieu' => $_POST['chan_doan_gioi_thieu'] ?? null,
+                'qua_trinh_benh_li' => $_POST['qua_trinh_benh_li'] ?? null,
+                'tien_su_ban_than' => $_POST['tien_su_ban_than'] ?? null,
+                'tien_su_gia_dinh' => $_POST['tien_su_gia_dinh'] ?? null,
+                'kham_toan_than' => $_POST['kham_toan_than'] ?? null,
+                'mach' => $_POST['mach'] ?? null,
+                'nhiet_do' => $_POST['nhiet_do'] ?? null,
+                'huyet_ap_tam_thu' => $_POST['huyet_ap_tam_thu'] ?? null,
+                'huyet_ap_tam_truong' => $_POST['huyet_ap_tam_truong'] ?? null,
+                'nhip_tho' => $_POST['nhip_tho'] ?? null,
+                'kham_cac_bo_phan' => $_POST['kham_cac_bo_phan'] ?? null,
+                'tom_tat_lam_sang' => $_POST['tom_tat_lam_sang'] ?? null,
+                'chan_doan_vao_vien' => $_POST['chan_doan_vao_vien'] ?? null,
+                'da_xu_li' => $_POST['da_xu_li'] ?? null,
+                'khoa_dieu_tri' => $_POST['khoa_dieu_tri'] ?? null,
+                'chu_y' => $_POST['chu_y'] ?? null,
+                'ngay_ky' => $_POST['ngay_ky'] ?? null,
+                'thang_ky' => $_POST['thang_ky'] ?? null,
+                'nam_ky' => $_POST['nam_ky'] ?? null,
+                'ten_bac_si' => $_POST['ten_bac_si'] ?? null,
+                'id_lich_hen' => $_POST['appointment_id'] ?? null,
+            ];
+
+            // Upsert by appointment if appointment_id is provided
+            if (!empty($payload['id_lich_hen'])) {
+                $newId = $model->upsertByAppointmentId((int)$payload['id_lich_hen'], $payload);
+            } else {
+                $newId = $model->create($payload);
+            }
+            header('Content-Type: application/json');
+            echo json_encode(['success' => $newId ? true : false, 'id' => $newId]);
+        } catch (Exception $e) {
+            error_log('saveExaminationForm error: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Server error']);
+        }
+        exit();
+    }
+
+    public function getExaminationForm()
+    {
+        $this->auth->requireAuth('doctor');
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+        try {
+            $appointmentId = $_POST['appointment_id'] ?? null;
+            if (!$appointmentId) { echo json_encode(['success'=>false,'message'=>'Thiếu appointment_id']); exit(); }
+            require_once 'Models/PhieuKhamBenh.php';
+            $model = new PhieuKhamBenh();
+            $row = $model->getByAppointmentId((int)$appointmentId);
+            echo json_encode(['success'=>true,'data'=>$row]);
+        } catch (Exception $e) {
+            error_log('getExaminationForm error: ' . $e->getMessage());
+            echo json_encode(['success'=>false,'message'=>'Server error']);
+        }
+        exit();
+    }
+
+    public function printExaminationForm()
+    {
+        $this->auth->requireAuth('doctor');
+        $id = $_GET['id'] ?? null;
+        if (!$id) {
+            echo 'Thiếu id phiếu khám bệnh';
+            exit();
+        }
+        require_once 'Models/PhieuKhamBenh.php';
+        $model = new PhieuKhamBenh();
+        $record = $model->getById((int)$id);
+        if (!$record) {
+            echo 'Không tìm thấy phiếu khám bệnh';
+            exit();
+        }
+        
+        // Include the beautiful print view
+        include 'Views/doctor/print_examination_form.php';
+        exit();
+    }
+
+    /**
+     * Lấy gợi ý X-Quang từ database
+     */
+    public function getXraySuggestions()
+    {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $keyword = $_POST['keyword'] ?? '';
+        
+        // Debug log
+        error_log('X-Ray Suggestions - Keyword: ' . $keyword);
+        
+        if (empty($keyword)) {
+            // Lấy tất cả gợi ý nếu không có từ khóa
+            $suggestions = $this->xraySuggestionModel->getAllActive();
+        } else {
+            // Tìm kiếm theo từ khóa
+            $suggestions = $this->xraySuggestionModel->search($keyword);
+        }
+        
+        // Debug log
+        error_log('X-Ray Suggestions - Found: ' . count($suggestions) . ' suggestions');
+
+        echo json_encode([
+            'success' => true,
+            'data' => $suggestions
+        ]);
+    }
+
+    /**
+     * Tính giá tiền X-Quang
+     */
+    public function calculateXrayPrice()
+    {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $suggestionNames = $_POST['suggestions'] ?? '';
+        
+        // Debug log
+        error_log('X-Ray Price Calculation - Input: ' . $suggestionNames);
+        
+        if (empty($suggestionNames)) {
+            echo json_encode([
+                'success' => true,
+                'total_price' => 0,
+                'details' => []
+            ]);
+            exit();
+        }
+
+        $totalPrice = $this->xraySuggestionModel->calculateTotalPrice($suggestionNames);
+        $details = $this->xraySuggestionModel->getPriceDetails($suggestionNames);
+        
+        // Debug log
+        error_log('X-Ray Price Calculation - Total: ' . $totalPrice . ', Details: ' . json_encode($details));
+
+        echo json_encode([
+            'success' => true,
+            'total_price' => $totalPrice,
+            'details' => $details
+        ]);
+    }
+
+    /**
+     * Lưu phiếu chụp X-Quang
+     */
+    public function saveXrayForm()
+    {
+        // Kiểm tra đăng nhập và quyền bác sĩ
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        try {
+            // Lấy dữ liệu từ POST
+            $idPhieuKhamBenh = $_POST['id_phieu_kham_benh'] ?? '';
+            $soDienThoai = $_POST['so_dien_thoai'] ?? '0777871608';
+            $quan = $_POST['quan'] ?? 'Gò Vấp';
+            $yeuCauChup = $_POST['yeu_cau_chup'] ?? '';
+            $bacSiKham = $_POST['bac_si_kham'] ?? '';
+
+            // Validate required fields
+            if (empty($idPhieuKhamBenh) || empty($yeuCauChup)) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc']);
+                exit();
+            }
+
+            // Kiểm tra xem đã có phiếu chụp X-Quang cho phiếu khám này chưa
+            try {
+                $existingXray = $this->phieuChupXquangModel->getByExamId($idPhieuKhamBenh);
+            } catch (Exception $e) {
+                error_log('Error getting existing X-Ray form: ' . $e->getMessage());
+                $existingXray = null;
+            }
+            
+            $data = [
+                'id_phieu_kham_benh' => $idPhieuKhamBenh,
+                'so_dien_thoai' => $soDienThoai,
+                'quan' => $quan,
+                'yeu_cau_chup' => $yeuCauChup,
+                'bac_si_kham' => $bacSiKham
+            ];
+
+            if ($existingXray) {
+                // Cập nhật phiếu chụp X-Quang đã có
+                try {
+                    $id = $this->phieuChupXquangModel->update($existingXray['id'], $data);
+                    // Sau khi cập nhật, đảm bảo trạng thái là "Đã yêu cầu"
+                    $this->phieuChupXquangModel->updateStatus($id, 'Đã yêu cầu');
+                    $message = 'Cập nhật phiếu chụp X-Quang thành công';
+                } catch (Exception $e) {
+                    error_log('Error updating X-Ray form: ' . $e->getMessage());
+                    echo json_encode(['success' => false, 'message' => 'Lỗi khi cập nhật phiếu chụp X-Quang']);
+                    exit();
+                }
+            } else {
+                // Tạo phiếu chụp X-Quang mới
+                try {
+                    $id = $this->phieuChupXquangModel->save($data);
+                    // Sau khi tạo mới, trạng thái mặc định đã là "Đã yêu cầu"
+                    $message = 'Lưu phiếu chụp X-Quang thành công';
+                } catch (Exception $e) {
+                    error_log('Error saving X-Ray form: ' . $e->getMessage());
+                    echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu phiếu chụp X-Quang']);
+                    exit();
+                }
+            }
+            
+            if ($id) {
+                echo json_encode([
+                    'success' => true, 
+                    'message' => $message,
+                    'id' => $id
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu phiếu chụp X-Quang']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Save X-Ray form error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * In phiếu chụp X-Quang
+     */
+    public function printXrayForm()
+    {
+        // Kiểm tra đăng nhập và quyền bác sĩ
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $id = $_GET['id'] ?? '';
+        
+        if (empty($id)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu chụp X-Quang']);
+            exit();
+        }
+
+        $phieuChup = $this->phieuChupXquangModel->getById($id);
+        
+        if (!$phieuChup) {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu chụp X-Quang']);
+            exit();
+        }
+
+        // Include print view
+        include 'Views/doctor/print_xray_form.php';
+    }
+
+    /**
+     * Xem chi tiết phiếu chụp X-Quang (không in)
+     */
+    public function viewXrayForm()
+    {
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $id = $_GET['id'] ?? '';
+        if (empty($id)) {
+            echo 'Thiếu ID phiếu chụp X-Quang';
+            exit();
+        }
+
+        $phieuChup = $this->phieuChupXquangModel->getById($id);
+        if (!$phieuChup) {
+            echo 'Không tìm thấy phiếu chụp X-Quang';
+            exit();
+        }
+
+        include 'Views/doctor/view_xray_form.php';
+    }
+
+    /**
+     * API: Danh sách phiếu chụp trạng thái "Đã yêu cầu"
+     */
+    public function getRequestedXrayList()
+    {
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+        $date = isset($_GET['date']) ? $_GET['date'] : null; // format YYYY-MM-DD
+        $keyword = isset($_GET['name']) ? trim($_GET['name']) : (isset($_GET['keyword']) ? trim($_GET['keyword']) : null);
+
+        try {
+            $list = $this->phieuChupXquangModel->getRequested($limit, $offset, $date, $keyword);
+            echo json_encode(['success' => true, 'data' => $list]);
+        } catch (Exception $e) {
+            error_log('getRequestedXrayList error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * API: Lấy dữ liệu hiển thị trả kết quả X-Quang theo ID phiếu
+     */
+    public function getXrayResultData()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID']);
+            exit();
+        }
+
+        try {
+            $data = $this->phieuChupXquangModel->getById($id);
+            if (!$data) {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy']);
+                return;
+            }
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            error_log('getXrayResultData error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Upload ảnh X-Quang cho phiếu px.id
+     */
+    public function uploadXrayImages()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu']);
+            return;
+        }
+        if (!isset($_FILES['images'])) {
+            echo json_encode(['success' => false, 'message' => 'Không có file tải lên']);
+            return;
+        }
+        $baseDir = __DIR__ . '/../uploads';
+        $targetDir = dirname(__DIR__) . '/uploads/xray/' . $id;
+        if (!is_dir($targetDir)) {
+            @mkdir($targetDir, 0777, true);
+        }
+        $files = $_FILES['images'];
+        $saved = [];
+        for ($i = 0; $i < count($files['name']); $i++) {
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
+            $tmp = $files['tmp_name'][$i];
+            $name = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $files['name'][$i]);
+            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+            if (!in_array($ext, ['jpg','jpeg','png','gif'])) continue;
+            $newName = uniqid('xray_', true) . '.' . $ext;
+            $dest = $targetDir . '/' . $newName;
+            if (move_uploaded_file($tmp, $dest)) {
+                $url = './uploads/xray/' . $id . '/' . $newName;
+                $saved[] = $url;
+            }
+        }
+        echo json_encode(['success' => true, 'count' => count($saved), 'files' => $saved]);
+    }
+
+    /**
+     * Lưu kết quả X-Quang vào bảng ket_qua_xquang
+     */
+    public function saveXrayResult()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input) {
+            echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ']);
+            return;
+        }
+
+        $id_phieu_chup_xquang = isset($input['id_phieu_chup_xquang']) ? (int)$input['id_phieu_chup_xquang'] : 0;
+        if ($id_phieu_chup_xquang <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu chụp X-Quang']);
+            return;
+        }
+
+        try {
+            $db = require_once 'config/database.php';
+            $database = new Database();
+            $conn = $database->getConnection();
+
+            // Kiểm tra xem đã có kết quả chưa
+            $checkSql = "SELECT id FROM ket_qua_xquang WHERE id_phieu_chup_xquang = ?";
+            $checkStmt = $conn->prepare($checkSql);
+            $checkStmt->execute([$id_phieu_chup_xquang]);
+            $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($existing) {
+                // Cập nhật kết quả hiện có
+                $sql = "UPDATE ket_qua_xquang SET 
+                        chuan_doan = ?, noi_dung = ?, ket_luan = ?, bac_si_xquang = ?, ngay_doc = NOW()
+                        WHERE id_phieu_chup_xquang = ?";
+                $stmt = $conn->prepare($sql);
+                $result = $stmt->execute([
+                    $input['chuan_doan'] ?? '',
+                    $input['noi_dung'] ?? '',
+                    $input['ket_luan'] ?? '',
+                    $input['bac_si_xquang'] ?? '',
+                    $id_phieu_chup_xquang
+                ]);
+            } else {
+                // Tạo kết quả mới
+                $sql = "INSERT INTO ket_qua_xquang (id_phieu_chup_xquang, chuan_doan, noi_dung, ket_luan, bac_si_xquang, ngay_doc) 
+                        VALUES (?, ?, ?, ?, ?, NOW())";
+                $stmt = $conn->prepare($sql);
+                $result = $stmt->execute([
+                    $id_phieu_chup_xquang,
+                    $input['chuan_doan'] ?? '',
+                    $input['noi_dung'] ?? '',
+                    $input['ket_luan'] ?? '',
+                    $input['bac_si_xquang'] ?? ''
+                ]);
+            }
+
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Đã lưu kết quả X-Quang']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu kết quả']);
+            }
+        } catch (Exception $e) {
+            error_log('saveXrayResult error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * In kết quả X-Quang
+     */
+    public function printXrayResult()
+    {
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo 'Unauthorized';
+            return;
+        }
+
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) {
+            echo 'Thiếu ID';
+            return;
+        }
+
+        try {
+            $db = require_once 'config/database.php';
+            $database = new Database();
+            $conn = $database->getConnection();
+
+            // Lấy dữ liệu kết quả X-Quang
+            $sql = "SELECT kq.*, px.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.chan_doan_vao_vien, pk.nam_sinh,
+                           bs.ten as bac_si_chi_dinh, ck.ten as khoa_chi_dinh
+                    FROM ket_qua_xquang kq
+                    JOIN phieu_chup_xquang px ON kq.id_phieu_chup_xquang = px.id
+                    JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
+                    LEFT JOIN bac_si bs ON pk.bac_si_id = bs.id
+                    LEFT JOIN chuyen_khoa ck ON bs.chuyen_khoa_id = ck.id
+                    WHERE kq.id_phieu_chup_xquang = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$id]);
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$data) {
+                echo 'Không tìm thấy kết quả X-Quang';
+                return;
+            }
+
+            // Include print view
+            include 'Views/doctor/print_xray_result.php';
+        } catch (Exception $e) {
+            error_log('printXrayResult error: ' . $e->getMessage());
+            echo 'Lỗi hệ thống';
+        }
+    }
+
+    /**
+     * Hoàn thành kết quả X-Quang (cập nhật trạng thái)
+     */
+    public function completeXrayResult()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input || !isset($input['id'])) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID']);
+            return;
+        }
+
+        $id = (int)$input['id'];
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
+            return;
+        }
+
+        try {
+            $db = require_once 'config/database.php';
+            $database = new Database();
+            $conn = $database->getConnection();
+
+            // Cập nhật trạng thái phiếu chụp X-Quang
+            $sql = "UPDATE phieu_chup_xquang SET trang_thai = 'Hoàn thành' WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $result = $stmt->execute([$id]);
+
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Đã hoàn thành kết quả X-Quang']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi cập nhật trạng thái']);
+            }
+        } catch (Exception $e) {
+            error_log('completeXrayResult error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy dữ liệu kết quả X-Quang đã lưu
+     */
+    public function getSavedXrayResult()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID']);
+            return;
+        }
+
+        try {
+            $db = require_once 'config/database.php';
+            $database = new Database();
+            $conn = $database->getConnection();
+
+            // Lấy dữ liệu kết quả đã lưu
+            $sql = "SELECT * FROM ket_qua_xquang WHERE id_phieu_chup_xquang = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$id]);
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($data) {
+                echo json_encode(['success' => true, 'data' => $data]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Chưa có dữ liệu kết quả']);
+            }
+        } catch (Exception $e) {
+            error_log('getSavedXrayResult error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lưu ảnh X-Quang vào bảng ket_qua_xquang_hinh_anh
+     */
+    public function saveXrayImages()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!$input || !isset($input['id_phieu_chup_xquang']) || !isset($input['images'])) {
+            echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ']);
+            return;
+        }
+
+        $id_phieu_chup_xquang = (int)$input['id_phieu_chup_xquang'];
+        $images = $input['images'];
+        
+        if ($id_phieu_chup_xquang <= 0 || empty($images)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu dữ liệu ảnh']);
+            return;
+        }
+
+        try {
+            $db = require_once 'config/database.php';
+            $database = new Database();
+            $conn = $database->getConnection();
+
+            // Lấy ket_qua_id từ bảng ket_qua_xquang
+            $sql = "SELECT id FROM ket_qua_xquang WHERE id_phieu_chup_xquang = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$id_phieu_chup_xquang]);
+            $ketQua = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$ketQua) {
+                echo json_encode(['success' => false, 'message' => 'Chưa có kết quả X-Quang']);
+                return;
+            }
+
+            $ketQuaId = $ketQua['id'];
+            $savedCount = 0;
+
+            // Lưu từng ảnh vào bảng ket_qua_xquang_hinh_anh
+            foreach ($images as $imageUrl) {
+                $sql = "INSERT INTO ket_qua_xquang_hinh_anh (ket_qua_id, file_path, file_name, mime_type) VALUES (?, ?, ?, ?)";
+                $stmt = $conn->prepare($sql);
+                
+                $fileName = basename($imageUrl);
+                $mimeType = 'image/' . strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                
+                $result = $stmt->execute([
+                    $ketQuaId,
+                    $imageUrl,
+                    $fileName,
+                    $mimeType
+                ]);
+
+                if ($result) {
+                    $savedCount++;
+                }
+            }
+
+            echo json_encode(['success' => true, 'message' => 'Đã lưu ' . $savedCount . ' ảnh', 'count' => $savedCount]);
+        } catch (Exception $e) {
+            error_log('saveXrayImages error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy ảnh X-Quang đã lưu
+     */
+    public function getSavedXrayImages()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID']);
+            return;
+        }
+
+        try {
+            $db = require_once 'config/database.php';
+            $database = new Database();
+            $conn = $database->getConnection();
+
+            // Lấy ảnh từ bảng ket_qua_xquang_hinh_anh
+            $sql = "SELECT hinh.* FROM ket_qua_xquang_hinh_anh hinh
+                    JOIN ket_qua_xquang kq ON hinh.ket_qua_id = kq.id
+                    WHERE kq.id_phieu_chup_xquang = ?
+                    ORDER BY hinh.ngay_tai ASC";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([$id]);
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            error_log('getSavedXrayImages error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Thống kê X-Quang cho dashboard hôm nay
+     * - total_today: tổng phiếu tạo hôm nay
+     * - completed_today: số phiếu trạng thái Hoàn thành (cập nhật hôm nay)
+     * - waiting_count: số phiếu trạng thái Đã yêu cầu (không giới hạn ngày)
+     */
+    public function getXrayStatsToday()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'admin')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $database = new Database();
+            $db = $database->getConnection();
+
+            // Optional date param (YYYY-MM-DD). Default today
+            $date = isset($_GET['date']) && preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', $_GET['date']) ? $_GET['date'] : null;
+            if ($date === null) {
+                $stmtDate = $db->query("SELECT CURDATE() AS d");
+                $dateRow = $stmtDate->fetch(PDO::FETCH_ASSOC);
+                $date = $dateRow ? $dateRow['d'] : date('Y-m-d');
+            }
+
+            // Tổng phiếu tạo theo ngày
+            $stmt1 = $db->prepare("SELECT COUNT(*) AS c FROM phieu_chup_xquang WHERE DATE(ngay_tao) = ?");
+            $stmt1->execute([$date]);
+            $row1 = $stmt1->fetch(PDO::FETCH_ASSOC);
+            $totalToday = (int)($row1['c'] ?? 0);
+
+            // Hoàn thành theo ngày (lọc theo ngày tạo phiếu)
+            $stmt2 = $db->prepare("SELECT COUNT(*) AS c FROM phieu_chup_xquang WHERE trang_thai = 'Hoàn thành' AND DATE(ngay_tao) = ?");
+            $stmt2->execute([$date]);
+            $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+            $completedToday = (int)($row2['c'] ?? 0);
+
+            // Đang chờ chụp: trạng thái Đã yêu cầu theo ngày tạo
+            $stmt3 = $db->prepare("SELECT COUNT(*) AS c FROM phieu_chup_xquang WHERE trang_thai = 'Đã yêu cầu' AND DATE(ngay_tao) = ?");
+            $stmt3->execute([$date]);
+            $row3 = $stmt3->fetch(PDO::FETCH_ASSOC);
+            $waitingCount = (int)($row3['c'] ?? 0);
+
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'total_today' => $totalToday,
+                    'completed_today' => $completedToday,
+                    'waiting_count' => $waitingCount,
+                    'date' => $date,
+                ]
+            ]);
+        } catch (Exception $e) {
+            error_log('getXrayStatsToday error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy dữ liệu phiếu chụp X-Quang
+     */
+    public function getXrayFormData()
+    {
+        // Kiểm tra đăng nhập và quyền bác sĩ
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $id = $_GET['id'] ?? '';
+        
+        if (empty($id)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu chụp X-Quang']);
+            exit();
+        }
+
+        $phieuChup = $this->phieuChupXquangModel->getById($id);
+        
+        if (!$phieuChup) {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu chụp X-Quang']);
+            exit();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'data' => $phieuChup
+        ]);
+    }
+
+    /**
+     * Lịch sử X-Quang: lọc theo ngày (DATE(px.ngay_tao)) và tìm theo tên bệnh nhân
+     */
+    public function getXrayHistory()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'admin')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $date = isset($_GET['date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['date']) ? $_GET['date'] : null;
+        $name = isset($_GET['name']) ? trim($_GET['name']) : '';
+
+        try {
+            $database = new Database();
+            $db = $database->getConnection();
+
+            $sql = "SELECT px.id, px.trang_thai, px.ngay_tao, kq.ket_luan, kq.noi_dung,
+                           pk.ho_ten, pk.tuoi, pk.gioi_tinh
+                    FROM phieu_chup_xquang px
+                    JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
+                    LEFT JOIN ket_qua_xquang kq ON kq.id_phieu_chup_xquang = px.id";
+
+            $conds = [];
+            $params = [];
+            if ($date) { $conds[] = 'DATE(px.ngay_tao) = ?'; $params[] = $date; }
+            if ($name !== '') { $conds[] = 'pk.ho_ten LIKE ?'; $params[] = '%'.$name.'%'; }
+            if (!empty($conds)) { $sql .= ' WHERE ' . implode(' AND ', $conds); }
+            $sql .= ' ORDER BY px.ngay_tao DESC, px.id DESC LIMIT 200';
+
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode(['success' => true, 'data' => $rows]);
+        } catch (Exception $e) {
+            error_log('getXrayHistory error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy dữ liệu kết quả X-Quang đầy đủ để hiển thị modal xem phiếu (read-only)
+     */
+    public function getXrayResultView()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'admin')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $id = isset($_GET['id']) ? (int)$_GET['id'] : 0; // id px
+        if ($id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID']);
+            return;
+        }
+
+        try {
+            $database = new Database();
+            $db = $database->getConnection();
+
+            $sql = "SELECT px.id, px.ngay_tao, px.ngay_cap_nhat, px.trang_thai,
+                           pk.ho_ten, pk.nam_sinh, pk.gioi_tinh, pk.dia_chi,
+                           pk.chan_doan_vao_vien, pk.ten_bac_si AS bac_si_chi_dinh,
+                           kq.noi_dung, kq.ket_luan, kq.bac_si_xquang
+                    FROM phieu_chup_xquang px
+                    JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
+                    LEFT JOIN ket_qua_xquang kq ON kq.id_phieu_chup_xquang = px.id
+                    WHERE px.id = ?";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([$id]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if(!$row){ echo json_encode(['success'=>false,'message'=>'Không tìm thấy']); return; }
+            echo json_encode(['success'=>true,'data'=>$row]);
+        } catch (Exception $e) {
+            error_log('getXrayResultView error: '.$e->getMessage());
+            echo json_encode(['success'=>false,'message'=>'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy KQ X-Quang theo id phiếu khám bệnh để hiển thị trong modal khám bệnh (read-only)
+     */
+    public function getXrayResultByExamIdForView()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'admin')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $examId = isset($_GET['exam_id']) ? (int)$_GET['exam_id'] : 0;
+        if ($examId <= 0) { echo json_encode(['success'=>false,'message'=>'Thiếu exam id']); return; }
+
+        try {
+            $database = new Database();
+            $db = $database->getConnection();
+            $sql = "SELECT px.id, px.ngay_tao, px.ngay_cap_nhat, px.trang_thai,
+                           pk.ho_ten, pk.nam_sinh, pk.gioi_tinh, pk.dia_chi,
+                           pk.chan_doan_vao_vien, pk.ten_bac_si AS bac_si_chi_dinh,
+                           kq.noi_dung, kq.ket_luan, kq.bac_si_xquang
+                    FROM phieu_chup_xquang px
+                    JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
+                    LEFT JOIN ket_qua_xquang kq ON kq.id_phieu_chup_xquang = px.id
+                    WHERE px.id_phieu_kham_benh = ?
+                    ORDER BY px.id DESC LIMIT 1";
+            $st = $db->prepare($sql);
+            $st->execute([$examId]);
+            $row = $st->fetch(PDO::FETCH_ASSOC);
+            if(!$row){ echo json_encode(['success'=>false,'message'=>'Chưa có kết quả X-Quang']); return; }
+            echo json_encode(['success'=>true,'data'=>$row]);
+        } catch (Exception $e) {
+            error_log('getXrayResultByExamIdForView error: '.$e->getMessage());
+            echo json_encode(['success'=>false,'message'=>'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy phiếu chụp X-Quang theo ID phiếu khám bệnh
+     */
+    public function getXrayFormByExamId()
+    {
+        // Kiểm tra đăng nhập và quyền bác sĩ
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $examId = $_GET['exam_id'] ?? '';
+        
+        if (empty($examId)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu khám bệnh']);
+            exit();
+        }
+
+        // Tìm phiếu chụp X-Quang theo ID phiếu khám bệnh
+        try {
+            $phieuChup = $this->phieuChupXquangModel->getByExamId($examId);
+        } catch (Exception $e) {
+            error_log('Error getting X-Ray form by exam ID: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi khi lấy phiếu chụp X-Quang']);
+            exit();
+        }
+        
+        if (!$phieuChup) {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu chụp X-Quang']);
+            exit();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'data' => $phieuChup
+        ]);
+    }
+
+    /**
+     * Lấy trạng thái BHYT của bệnh nhân
+     */
+    public function getPatientBhytStatus()
+    {
+        // Kiểm tra đăng nhập và quyền bác sĩ
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $examId = $_GET['exam_id'] ?? '';
+        
+        if (empty($examId)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu khám bệnh']);
+            exit();
+        }
+
+        try {
+            // Lấy đối tượng từ phiếu khám bệnh đã lưu
+            $sql = "SELECT pk.doi_tuong_bhyt, pk.doi_tuong_thu_phi, pk.doi_tuong_mien, pk.doi_tuong_khac,
+                           bn.id as benh_nhan_id, pk.id as phieu_kham_id
+                    FROM phieu_kham_benh pk
+                    JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                    WHERE pk.id = ?";
+            
+            // Get database connection
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+            
+            $stmt = $db->prepare($sql);
+            if (!$stmt) {
+                echo json_encode(['success' => false, 'message' => 'Lỗi database']);
+                exit();
+            }
+
+            $stmt->execute([$examId]);
+            $patient = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$patient) {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy thông tin bệnh nhân']);
+                exit();
+            }
+
+            // Kiểm tra đối tượng từ phiếu khám bệnh đã lưu
+            $doiTuongBhyt = $patient['doi_tuong_bhyt'];
+            $doiTuongThuPhi = $patient['doi_tuong_thu_phi'];
+            $doiTuongMien = $patient['doi_tuong_mien'];
+            $doiTuongKhac = $patient['doi_tuong_khac'];
+            
+            // Ưu tiên BHYT trước
+            $hasBhyt = $doiTuongBhyt == 1;
+            
+            // Debug log
+            error_log('Patient Type Debug - Exam ID: ' . $examId);
+            error_log('Patient Type Debug - Benh nhan ID: ' . $patient['benh_nhan_id']);
+            error_log('Patient Type Debug - Phieu kham ID: ' . $patient['phieu_kham_id']);
+            error_log('Patient Type Debug - doi_tuong_bhyt: ' . $doiTuongBhyt);
+            error_log('Patient Type Debug - doi_tuong_thu_phi: ' . $doiTuongThuPhi);
+            error_log('Patient Type Debug - doi_tuong_mien: ' . $doiTuongMien);
+            error_log('Patient Type Debug - doi_tuong_khac: ' . $doiTuongKhac);
+            error_log('Patient Type Debug - hasBhyt: ' . ($hasBhyt ? 'true' : 'false'));
+
+            echo json_encode([
+                'success' => true,
+                'hasBhyt' => $hasBhyt,
+                'doiTuongBhyt' => $doiTuongBhyt,
+                'doiTuongThuPhi' => $doiTuongThuPhi,
+                'doiTuongMien' => $doiTuongMien,
+                'doiTuongKhac' => $doiTuongKhac,
+                'benhNhanId' => $patient['benh_nhan_id'],
+                'phieuKhamId' => $patient['phieu_kham_id']
+            ]);
+
+        } catch (Exception $e) {
+            error_log('Error getting patient BHYT status: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }
 }

@@ -41,6 +41,7 @@ case 'admin':
 include 'Views/layouts/admin_sidebar.php';
 break;
 case 'doctor':
+case 'xray_doctor':
 include 'Views/layouts/doctor_sidebar.php';
 break;
 case 'patient':
@@ -101,6 +102,8 @@ case 'admin':
 return 'Quản trị viên';
 case 'doctor':
 return 'Bác sĩ';
+case 'xray_doctor':
+return 'Bác sĩ X-Quang';
 case 'patient':
 return 'Bệnh nhân';
 default:
@@ -119,6 +122,7 @@ switch ($role) {
 case 'admin':
 return 'role-admin';
 case 'doctor':
+case 'xray_doctor':
 return 'role-doctor';
 case 'patient':
 return 'role-patient';

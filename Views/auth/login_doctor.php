@@ -4,12 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập Bác sĩ - Hệ thống Quản lý Bệnh viện</title>
+<title>Đăng nhập Bác sĩ - Hệ thống Quản lý Bệnh viện</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/login.css">
-
-
 </head>
 
 <body>
@@ -30,18 +28,7 @@
             <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
-            <?php if (isset($_SESSION['success'])): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i>
-                <?php echo $_SESSION['success']; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php unset($_SESSION['success']); ?>
-            <?php endif; ?>
-
             <form method="POST" action="./login_doctor">
-                <input type="hidden" name="role" value="doctor">
-
                 <div class="mb-3">
                     <label for="email" class="form-label">
                         <i class="fas fa-envelope"></i> Email
@@ -56,19 +43,10 @@
                     <input type="password" class="form-control" id="password" name="password" required>
                 </div>
 
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="remember">
-                    <label class="form-check-label" for="remember">
-                        Ghi nhớ đăng nhập
-                    </label>
-                </div>
-
                 <button type="submit" class="btn btn-primary btn-login w-100">
                     <i class="fas fa-sign-in-alt"></i> Đăng nhập
                 </button>
             </form>
-
-
         </div>
     </div>
 

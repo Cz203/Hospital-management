@@ -30,6 +30,9 @@
                             <a href="#sec-xray" class="list-group-item list-group-item-action exam-nav">
                                 <i class="fas fa-x-ray me-2"></i>X-Quang
                             </a>
+                            <a href="#sec-xray-result" class="list-group-item list-group-item-action exam-nav">
+                                <i class="fas fa-file-medical-alt me-2"></i>Kết quả X-Quang
+                            </a>
                             <a href="#sec-prescription" class="list-group-item list-group-item-action exam-nav">
                                 <i class="fas fa-pills me-2"></i>Kê đơn thuốc
                             </a>
@@ -66,6 +69,46 @@
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label fw-bold">Giới tính</label>
                                             <input type="text" class="form-control" id="patientGender" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Phiếu yêu cầu Siêu âm -->
+                            <div class="card mb-3 exam-section" id="sec-ultrasound">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-wave-square me-2"></i>Phiếu yêu cầu Siêu âm</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-2">
+                                        <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU SIÊU ÂM</div>
+                                    </div>
+                                    <div class="border border-dark p-2">
+                                        <div class="row g-2 align-items-center mb-2">
+                                            <div class="col-md-6">Họ và tên: <strong id="us_name"></strong></div>
+                                            <div class="col-md-2">Tuổi: <strong id="us_age"></strong></div>
+                                            <div class="col-md-2">Giới: <strong id="us_gender"></strong></div>
+                                            <div class="col-md-2">Số hồ sơ: <input type="text" class="form-control form-control-sm d-inline-block w-auto" id="us_so_ho_so"></div>
+                                        </div>
+                                        <div class="row g-2 align-items-center mb-2">
+                                            <div class="col-md-4">Đối tượng: <input type="text" class="form-control form-control-sm" id="us_doi_tuong" placeholder="BHYT / Thu phí"></div>
+                                            <div class="col-md-4">Số thẻ BHYT: <input type="text" class="form-control form-control-sm" id="us_so_the_bhyt"></div>
+                                            <div class="col-md-4">Phòng khám: <input type="text" class="form-control form-control-sm" id="us_phong_kham"></div>
+                                        </div>
+                                        <div class="row g-2 align-items-center mb-2">
+                                            <div class="col-md-12">Chẩn đoán: <input type="text" class="form-control form-control-sm" id="us_chan_doan"></div>
+                                        </div>
+                                        <div class="text-center fw-bold mb-1">Yêu cầu xét nghiệm</div>
+                                        <textarea class="form-control mb-3" id="us_yeu_cau" rows="3" placeholder="Ví dụ: Siêu âm Doppler thai nhi ..."></textarea>
+                                        <div class="d-flex justify-content-between mt-2">
+                                            <div>
+                                                <div class="fw-bold">CHỦ NHIỆM KHOA</div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="mb-1"><em id="us_date_line"></em></div>
+                                                <div class="fw-bold">BÁC SỸ KHÁM</div>
+                                                <div style="min-height:40px" id="us_bac_si"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -205,12 +248,8 @@
 
                                         <!-- Thông tin liên hệ -->
                                         <div class="row g-3 mt-2">
-                                            <div class="col-md-8">
-                                                <label class="form-label fw-bold">11. Họ tên, địa chỉ người nhà khi cần báo tin:</label>
-                                                <input type="text" class="form-control" name="nguoi_bao_tin">
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label fw-bold">Điện thoại số:</label>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">11. Điện thoại người báo tin:</label>
                                                 <input type="text" class="form-control" name="dien_thoai_bao_tin">
                                             </div>
                                         </div>
@@ -218,29 +257,40 @@
                                         <!-- Thời gian khám -->
                                         <div class="row g-3 mt-2">
                                             <div class="col-md-6">
-                                                <label class="form-label fw-bold">12. Đến khám bệnh lúc:</label>
+                                                <label class="form-label fw-bold">13. Đến khám bệnh lúc:</label>
                                                 <div class="row g-2">
-                                                    <div class="col-3">
-                                                        <input type="number" class="form-control" name="gio_kham" placeholder="Giờ" min="0" max="23">
+                                                    <div class="col-auto">
+                                                        <div class="input-group flex-nowrap">
+                                                            <input type="number" class="form-control text-center" name="gio_kham" placeholder="Giờ" min="0" max="23" style="width:80px;">
+                                                            <span class="input-group-text">Giờ</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-3">
-                                                        <input type="number" class="form-control" name="phut_kham" placeholder="Phút" min="0" max="59">
+                                                    <div class="col-auto">
+                                                        <div class="input-group flex-nowrap">
+                                                            <input type="number" class="form-control text-center" name="phut_kham" placeholder="Phút" min="0" max="59" style="width:80px;">
+                                                            <span class="input-group-text">Phút</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="col-2">
-                                                        <input type="number" class="form-control" name="ngay_kham" placeholder="Ngày" min="1" max="31">
-                                                    </div>
-                                                    <div class="col-2">
-                                                        <input type="number" class="form-control" name="thang_kham" placeholder="Tháng" min="1" max="12">
-                                                    </div>
-                                                    <div class="col-2">
-                                                        <input type="number" class="form-control" name="nam_kham" placeholder="Năm" min="2024" max="2030">
+                                                    <div class="w-100"></div>
+                                                    <div class="col-12">
+                                                        <div class="d-flex flex-nowrap gap-2">
+                                                            <div class="input-group flex-nowrap" style="width:auto;">
+                                                                <span class="input-group-text">Ngày</span>
+                                                                <input type="number" class="form-control text-center" name="ngay_kham" placeholder="Ngày" min="1" max="31" style="width:80px;">
+                                                            </div>
+                                                            <div class="input-group flex-nowrap" style="width:auto;">
+                                                                <span class="input-group-text">Tháng</span>
+                                                                <input type="number" class="form-control text-center" name="thang_kham" placeholder="Tháng" min="1" max="12" style="width:80px;">
+                                                            </div>
+                                                            <div class="input-group flex-nowrap" style="width:auto;">
+                                                                <span class="input-group-text">Năm</span>
+                                                                <input type="number" class="form-control text-center" name="nam_kham" placeholder="Năm" min="2024" max="2030" style="width:110px;">
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-bold">13. Chẩn đoán của nơi giới thiệu:</label>
-                                                <input type="text" class="form-control" name="chan_doan_gioi_thieu">
-                                            </div>
+                                 
                                         </div>
                                     </div>
 
@@ -348,7 +398,7 @@
                                     <!-- Footer -->
                                     <div class="row mt-4">
                                         <div class="col-md-6">
-                                            <div class="text-muted small">Hướng dẫn: - In khổ A4 dọc, 1 mặt</div>
+                                            <div class="text-muted small"></div>
                                         </div>
                                         <div class="col-md-6 text-end">
                                             <div class="mb-2">
@@ -359,6 +409,192 @@
                                             <div class="fw-bold">BÁC SĨ KHÁM BỆNH</div>
                                             <div class="mt-2">
                                                 <strong>Họ tên:</strong> <input type="text" class="form-control d-inline-block w-auto" name="ten_bac_si" placeholder="Tên bác sĩ">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Phiếu chụp X-Quang -->
+                            <div class="card mb-3 exam-section" id="sec-xray">
+                                <div class="card-header bg-dark text-white">
+                                    <h6 class="mb-0"><i class="fas fa-x-ray me-2"></i>Phiếu chụp X-Quang</h6>
+                                </div>
+                                <div class="card-body">
+                                    <!-- Hidden input for examination ID -->
+                                    <input type="hidden" name="id_phieu_kham_benh" id="xray_examination_id">
+                                    
+                                    <!-- Header phòng khám -->
+                                    <div class="mb-3 text-center">
+                                        <div class="fw-bold" style="font-size:18px" id="xray_clinic_name_display">PHIẾU CHỤP X – QUANG</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Cơ sở y tế</label>
+                                            <input type="text" class="form-control" name="xray_clinic_name" id="xray_clinic_name" value="Thịnh Việt" readonly>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Điện thoại</label>
+                                            <input type="text" class="form-control" name="xray_phone" id="xray_phone" value="0777871608">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Quận/Huyện</label>
+                                            <input type="text" class="form-control" name="xray_quan" id="xray_quan" value="Gò Vấp">
+                                        </div>
+                                    </div>
+
+                                    <!-- Thông tin bệnh nhân -->
+                                    <div class="row g-3">
+                                        <div class="col-md-8">
+                                            <label class="form-label fw-bold">Họ tên người bệnh</label>
+                                            <input type="text" class="form-control" name="xray_patient_name" id="xray_patient_name" readonly>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Tuổi</label>
+                                            <input type="text" class="form-control" name="xray_patient_age" id="xray_patient_age" readonly>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Nam/Nữ</label>
+                                            <input type="text" class="form-control" name="xray_patient_gender" id="xray_patient_gender" readonly>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-bold">Địa chỉ</label>
+                                            <input type="text" class="form-control" name="xray_patient_address" id="xray_patient_address">
+                                        </div>
+                                    </div>
+
+                                    <!-- Chẩn đoán vào viện -->
+                                    <div class="mt-3">
+                                        <label class="form-label fw-bold">Chẩn đoán vào viện:</label>
+                                        <input type="text" class="form-control" name="xray_diagnosis" id="xray_diagnosis" placeholder="Nhập chẩn đoán vào viện...">
+                                    </div>
+
+                                    <!-- Đối tượng (removed per request) -->
+                                    <div class="row mt-3 d-none">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Đối tượng:</label>
+                                            <div class="form-control-plaintext" id="xray_patient_type_display">
+                                                <span class="badge bg-secondary">Chưa xác định</span>
+                                            </div>
+                                            <small class="text-muted"></small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Tỷ lệ thanh toán:</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control text-end fw-bold" id="xray_payment_rate" value="100%" readonly style="color: #dc3545;">
+                                                <span class="input-group-text bg-danger text-white fw-bold">%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Yêu cầu chụp -->
+                                    <div class="mt-3 position-relative">
+                                        <label class="form-label fw-bold text-center w-100 d-block" style="font-size:16px">YÊU CẦU CHỤP</label>
+                                        <textarea class="form-control" name="xray_request" id="xray_request" rows="6" placeholder="Nhập yêu cầu chụp..."></textarea>
+                                        <div id="xray_suggestions" class="position-absolute bg-white border rounded shadow" style="display:none; z-index:1000; max-height:200px; overflow-y:auto; width:100%;"></div>
+                                    </div>
+
+                                    <!-- Giá tiền (removed per request) -->
+                                    <div class="row mt-3 d-none">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Chi tiết giá tiền</label>
+                                            <div id="xray_price_details" class="border rounded p-2" style="min-height: 100px; background-color: #f8f9fa;">
+                                                <div class="text-muted text-center">Chưa có yêu cầu chụp</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="row">
+                                                <div class="col-12 mb-2">
+                                                    <label class="form-label fw-bold">Giá gốc</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control text-end fw-bold" id="xray_original_price" value="0 VNĐ" readonly style="font-size: 16px; color: #6c757d;">
+                                                        <span class="input-group-text bg-secondary text-white fw-bold">VNĐ</span>
+                                                    </div>
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label fw-bold">Tổng thanh toán</label>
+                                                    <div class="input-group">
+                                                        <input type="text" class="form-control text-end fw-bold" id="xray_total_price" value="0 VNĐ" readonly style="font-size: 18px; color: #dc3545;">
+                                                        <span class="input-group-text bg-danger text-white fw-bold">VNĐ</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- Chữ ký -->
+                                    <div class="row mt-4">
+                                        <div class="col-md-6"></div>
+                                        <div class="col-md-6 text-center">
+                                            <div class="mb-2 d-flex align-items-center justify-content-center gap-2">
+                                                <span>Ngày</span>
+                                                <input type="number" class="form-control text-center" name="xray_ngay" id="xray_ngay" style="width:70px">
+                                                <span>tháng</span>
+                                                <input type="number" class="form-control text-center" name="xray_thang" id="xray_thang" style="width:70px">
+                                                <span>năm</span>
+                                                <input type="number" class="form-control text-center" name="xray_nam" id="xray_nam" style="width:90px">
+                                            </div>
+                                            <div class="fw-bold">BÁC SĨ ĐIỀU TRỊ</div>
+                                            <div class="mt-2" id="xray_doctor_display" style="min-height:40px; border-bottom: 1px solid #000; padding: 5px;">(Ký và ghi rõ họ tên)</div>
+                                            <input type="hidden" name="xray_doctor_name" id="xray_doctor_name">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kết quả X-Quang -->
+                            <div class="card mb-3 exam-section" id="sec-xray-result">
+                                <div class="card-header bg-secondary text-white">
+                                    <h6 class="mb-0"><i class="fas fa-file-medical-alt me-2"></i>Kết quả X-Quang</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="nav nav-tabs mb-2" id="xr_result_tabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="xr_tab_info" data-bs-toggle="tab" data-bs-target="#xr_tabpane_info" type="button" role="tab">Thông tin</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="xr_tab_images" data-bs-toggle="tab" data-bs-target="#xr_tabpane_images" type="button" role="tab">Hình Ảnh X-Quang</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content">
+                                        <div class="tab-pane fade show active" id="xr_tabpane_info" role="tabpanel">
+                                            <div id="xrayResultReadonly" class="border border-dark p-2" style="display:none" data-pxid="">
+                                        <div class="text-center">
+                                            <div class="fw-bold">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
+                                            <div class="fw-bold">KHOA CHUẨN ĐOÁN HÌNH ẢNH</div>
+                                            <div class="text-muted">Địa chỉ: Gò Vấp - Điện thoại: 0777871608</div>
+                                        </div>
+                                        <hr>
+                                        <div class="row g-2">
+                                            <div class="col-md-6">Họ và tên: <strong id="xr_ro_name"></strong></div>
+                                            <div class="col-md-6">Giới tính: <strong id="xr_ro_gender"></strong></div>
+                                            <div class="col-md-6">Năm sinh: <strong id="xr_ro_yob"></strong></div>
+                                            <div class="col-md-6">Số phiếu chỉ định: <strong id="xr_ro_id"></strong></div>
+                                            <div class="col-md-12">Địa chỉ: <strong id="xr_ro_address"></strong></div>
+                                            <div class="col-md-6">Ngày chỉ định: <strong id="xr_ro_date"></strong></div>
+                                            <div class="col-md-6">Giờ chỉ định: <strong id="xr_ro_time"></strong></div>
+                                        </div>
+                                        <hr>
+                                        <div>Chẩn đoán: <strong id="xr_ro_chandoan"></strong></div>
+                                        <div>Bác sĩ chỉ định: <strong id="xr_ro_bschidinh"></strong></div>
+                                        <div class="mt-2">Nội dung: <strong id="xr_ro_noidung"></strong></div>
+                                        <div class="mt-3 fw-bold">KẾT QUẢ</div>
+                                        <div class="border p-2" id="xr_ro_ketqua" style="min-height:80px"></div>
+                                        <div class="mt-3 fw-bold">KẾT LUẬN</div>
+                                        <div class="border p-2" id="xr_ro_ketluan" style="min-height:80px"></div>
+                                        <div class="text-end mt-3">
+                                            <em id="xr_ro_today"></em><br>
+                                            <strong>Bác sĩ X Quang</strong>
+                                            <div id="xr_ro_bsxq" style="min-height:40px"></div>
+                                        </div>
+                                            </div>
+                                            <div id="xrayResultEmpty" class="text-muted">Chưa có kết quả X-Quang</div>
+                                        </div>
+                                        <div class="tab-pane fade" id="xr_tabpane_images" role="tabpanel">
+                                            <div id="xr_images_wrap">
+                                                <div class="text-muted small mb-2">Danh sách hình ảnh X-Quang đã lưu</div>
+                                                <div class="row" id="xr_ro_gallery"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -482,8 +718,20 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times me-1"></i>Đóng
                 </button>
+                <button type="button" class="btn btn-outline-primary" id="btnSaveExamForm" style="display:none" onclick="saveExaminationForm()">
+                    <i class="fas fa-save me-1"></i>Lưu phiếu khám
+                </button>
+                <button type="button" class="btn btn-primary" id="btnPrintExamForm" style="display:none" onclick="printExaminationForm()">
+                    <i class="fas fa-print me-1"></i>In phiếu khám
+                </button>
                 <button type="button" class="btn btn-success" id="btnSaveExam" style="display:none" onclick="saveAllergyHistory()">
                     <i class="fas fa-save me-1"></i>Lưu tiền sử
+                </button>
+                <button type="button" class="btn btn-success" id="saveXrayForm" style="display:none">
+                    <i class="fas fa-save me-1"></i>Lưu phiếu chụp X-Quang
+                </button>
+                <button type="button" class="btn btn-primary" id="printXrayForm" style="display:none" disabled>
+                    <i class="fas fa-print me-1"></i>In phiếu chụp X-Quang
                 </button>
             </div>
         </div>

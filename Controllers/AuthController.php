@@ -136,6 +136,68 @@ class AuthController
         include 'Views/auth/login_doctor.php';
     }
 
+    public function loginXrayDoctor()
+    {
+        if ($this->isLoggedIn()) {
+            $role = $_SESSION['user_role'];
+            if ($role === 'xray_doctor') {
+                header("Location: ./xray_dashboard");
+                exit();
+            }
+            switch ($role) {
+                case 'admin':
+                    header("Location: ./admin_dashboard");
+                    exit();
+                case 'doctor':
+                    header("Location: ./doctor_dashboard");
+                    exit();
+                case 'patient':
+                    header("Location: ./patient_dashboard");
+                    exit();
+            }
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $email = $_POST['email'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (empty($email) || empty($password)) {
+                $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
+                header("Location: ./login_xquang");
+                exit();
+            }
+
+            $doctorModel = new Doctor();
+            $user = $doctorModel->login($email, $password);
+            if ($user) {
+                // Chỉ cho phép bác sĩ có chuyên khoa id = 16 (Chẩn đoán hình ảnh)
+                $specId = isset($user['chuyen_khoa_id']) ? (int)$user['chuyen_khoa_id'] : 0;
+                if ($specId !== 16) {
+                    $_SESSION['error'] = "Tài khoản không thuộc chuyên khoa Chẩn đoán hình ảnh (ID=16).";
+                    header("Location: ./login_xquang");
+                    exit();
+                }
+
+                session_regenerate_id(true);
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['ten'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = 'xray_doctor';
+                $_SESSION['specialization_id'] = $specId;
+                $_SESSION['last_activity'] = time();
+
+                header("Location: ./xray_dashboard");
+                exit();
+            }
+
+            $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
+            header("Location: ./login_xquang");
+            exit();
+        }
+
+        include 'Views/auth/login_xquang.php';
+    }
+
     public function loginPatient()
     {
         if ($this->isLoggedIn()) {

@@ -436,13 +436,182 @@ if (isset($autoOpenModal) && $autoOpenModal && $appointmentId) {
                 buongKham.value = "' . (isset($doctor['chuyen_khoa']) && !empty($doctor['chuyen_khoa']) ? $doctor['chuyen_khoa'] : 'Chuyên khoa') . '";
             }
             
+            // Tự động điền thời gian khám, ngày khám/ký (hiện tại) và tên bác sĩ
+            var now = new Date();
+            var pad = function(n){ return n.toString().padStart(2,"0"); };
+            var setIf = function(selector, value){ var el = document.querySelector(selector); if (el) { el.value = value; } };
+
+            // 12. Đến khám bệnh lúc
+            // Bác sĩ sẽ tự nhập Giờ/Phút, hệ thống không tự điền
+            setIf("[name=ngay_kham]", now.getDate());
+            setIf("[name=thang_kham]", now.getMonth() + 1);
+            setIf("[name=nam_kham]", now.getFullYear());
+
+            // Footer ký ngày tháng năm
+            setIf("[name=ngay_ky]", now.getDate());
+            setIf("[name=thang_ky]", now.getMonth() + 1);
+            setIf("[name=nam_ky]", now.getFullYear());
+
+            // Tên bác sĩ khám
+            setIf("[name=ten_bac_si]", "' . (isset($doctor['ten']) && !empty($doctor['ten']) ? addslashes($doctor['ten']) : 'Bác sĩ') . '");
+            
             // Mở modal
             var modal = new bootstrap.Modal(document.getElementById("examinationModal"));
             modal.show();
             
+            // Tải lại phiếu khám đã lưu (nếu có) theo appointment để tiếp tục khám
+            try { if (typeof loadExaminationFormIfAny === "function") { loadExaminationFormIfAny(); } } catch (e) {}
+
             // Load allergy history nếu có patient code
             if (patientCode) {
                 fetchAllergyHistory(patientCode);
+            }
+
+            // Khi chuyển sang tab Kết quả X-Quang thì tải kết quả (read-only)
+            document.querySelectorAll(".exam-nav").forEach(function(a){
+                a.addEventListener("click", function(){
+                    if (this.getAttribute("href") === "#sec-xray-result") {
+                        loadXrayResultReadonly();
+                    }
+                });
+            });
+
+            function loadXrayResultReadonly(){
+                try{
+                    var examIdEl = document.getElementById("xray_examination_id");
+                    var examId = examIdEl ? examIdEl.value : "";
+                    if(!examId || examId === ""){
+                        // Thử lấy từ form đã lưu trong JS nếu có
+                        if (typeof getCurrentExaminationId === "function") {
+                            examId = getCurrentExaminationId();
+                        }
+                    }
+                    if(!examId){ return; }
+                    fetch("?action=get_xray_result_by_exam&exam_id=" + encodeURIComponent(examId))
+                      .then(function(res){ return res.json(); })
+                      .then(function(json){
+                        var box = document.getElementById("xrayResultReadonly");
+                        var empty = document.getElementById("xrayResultEmpty");
+                        if(!json.success || !json.data){ if(box) box.style.display="none"; if(empty) empty.style.display="block"; return; }
+                        var d = json.data; if(empty) empty.style.display="none"; if(box) box.style.display="block";
+                        setText("xr_ro_name", d.ho_ten);
+                        setText("xr_ro_gender", d.gioi_tinh);
+                        setText("xr_ro_yob", d.nam_sinh);
+                        setText("xr_ro_id", d.id);
+                        setText("xr_ro_address", d.dia_chi);
+                        var dt = d.ngay_cap_nhat || d.ngay_tao; var nd = dt ? new Date(dt) : new Date();
+                        setText("xr_ro_date", nd.toLocaleDateString("vi-VN"));
+                        setText("xr_ro_time", nd.toLocaleTimeString("vi-VN"));
+                        setText("xr_ro_chandoan", d.chan_doan_vao_vien || "");
+                        setText("xr_ro_bschidinh", d.bac_si_chi_dinh || "");
+                        setText("xr_ro_noidung", d.noi_dung || "");
+                        setHtml("xr_ro_ketqua", (d.noi_dung || ""));
+                        setHtml("xr_ro_ketluan", (d.ket_luan || ""));
+                        var today = new Date();
+                        setText("xr_ro_today", "Ngày " + today.getDate() + " tháng " + (today.getMonth()+1) + " năm " + today.getFullYear());
+                        setText("xr_ro_bsxq", d.bac_si_xquang || "");
+
+                        // Save current px id for image tab
+                        var infoBox = document.getElementById("xrayResultReadonly");
+                        if(infoBox){ infoBox.setAttribute("data-pxid", d.id); }
+                        // Preload images
+                        loadXrayImagesForExam(d.id);
+                      })
+                      .catch(function(){});
+                }catch(e){}
+            }
+
+            function setText(id, val){ var el = document.getElementById(id); if(el) el.textContent = (val ?? ""); }
+            function setHtml(id, val){ var el = document.getElementById(id); if(el) el.innerHTML = (val ?? ""); }
+
+            // Load images for px id (used by image tab)
+            function loadXrayImagesForExam(pxId){
+                if(!pxId) return;
+                fetch("?action=get_saved_xray_images&id=" + encodeURIComponent(pxId))
+                  .then(function(res){ return res.json(); })
+                  .then(function(json){
+                    var wrap = document.getElementById("xr_ro_gallery");
+                    if(!wrap) return;
+                    wrap.innerHTML = "";
+                    if(!json.success || !json.data || json.data.length===0){
+                        wrap.innerHTML = "<div class=\"text-muted\">Chưa có ảnh</div>";
+                        return;
+                    }
+                    json.data.forEach(function(img){
+                        var url = img.file_path || "";
+                        if(url && !(url.startsWith("http")||url.startsWith("./")||url.startsWith("/"))){ url = "./" + url; }
+                        var col = document.createElement("div");
+                        col.className = "col-md-3 mb-2";
+                        var html = `
+                          <div class="border p-1">
+                            <img src="${url}" class="img-fluid" style="cursor:pointer"
+                                 onclick="zoomImage(&quot;${url}&quot;)"
+                                 onerror="this.replaceWith(document.createTextNode(&quot;Không tải được ảnh&quot;))"/>
+                          </div>`;
+                        col.innerHTML = html;
+                        wrap.appendChild(col);
+                    });
+                  })
+                  .catch(function(){});
+            }
+
+            // When user clicks on the images tab, load gallery using saved px id
+            document.addEventListener("click", function(e){
+                var t = e.target;
+                if(t && t.getAttribute && t.getAttribute("data-bs-target") === "#xr_tabpane_images"){
+                    var pxid = document.getElementById("xrayResultReadonly")?.getAttribute("data-pxid") || "";
+                    if(pxid){ loadXrayImagesForExam(pxid); }
+                }
+            });
+//Zoom hình ảnh xquang
+            // Provide zoomImage viewer if not already defined on the page
+            if(!window.zoomImage){
+              window.zoomImage = function(imageUrl){
+                var modal = document.createElement("div");
+                modal.className = "modal fade";
+                modal.innerHTML = `
+                  <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Xem ảnh X-Quang</h5>
+                        <div class="btn-group me-2">
+                          <button type="button" class="btn btn-sm btn-outline-secondary" id="zoomOutBtn" title="Thu nhỏ"><i class="fas fa-minus"></i></button>
+                          <button type="button" class="btn btn-sm btn-outline-secondary" id="zoomInBtn" title="Phóng to"><i class="fas fa-plus"></i></button>
+                          <button type="button" class="btn btn-sm btn-outline-secondary" id="resetZoomBtn" title="Reset"><i class="fas fa-expand-arrows-alt"></i></button>
+                          <button type="button" class="btn btn-sm btn-outline-primary" id="fullscreenBtn" title="Toàn màn hình"><i class="fas fa-expand"></i></button>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <div class="modal-body text-center" style="background:#f8f9fa; overflow:auto; max-height:80vh;">
+                        <div id="imageContainer" style="position:relative; display:inline-block;">
+                          <img src="${imageUrl}" id="zoomImage" style="max-width:100%; height:auto; cursor:grab; transition: transform 0.3s ease;" draggable="false"/>
+                        </div>
+                      </div>
+                    </div>
+                  </div>`;
+                document.body.appendChild(modal);
+                var bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+
+                var zoomLevel=1, isDragging=false, startX=0, startY=0, translateX=0, translateY=0;
+                var img = modal.querySelector("#zoomImage");
+                var container = modal.querySelector("#imageContainer");
+                function update(){ img.style.transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`; }
+                modal.querySelector("#zoomInBtn").addEventListener("click", function(){ zoomLevel=Math.min(zoomLevel*1.2,5); update(); });
+                modal.querySelector("#zoomOutBtn").addEventListener("click", function(){ zoomLevel=Math.max(zoomLevel/1.2,0.1); update(); });
+                modal.querySelector("#resetZoomBtn").addEventListener("click", function(){ zoomLevel=1; translateX=0; translateY=0; update(); });
+                modal.querySelector("#fullscreenBtn").addEventListener("click", function(){
+                  if(!document.fullscreenElement){ container.requestFullscreen().then(()=>{ modal.querySelector("#fullscreenBtn").innerHTML="<i class=\"fas fa-compress\"></i>"; }); }
+                  else { document.exitFullscreen().then(()=>{ modal.querySelector("#fullscreenBtn").innerHTML="<i class=\"fas fa-expand\"></i>"; }); }
+                });
+                container.addEventListener("wheel", function(e){ e.preventDefault(); var d=e.deltaY>0?0.9:1.1; zoomLevel=Math.max(0.1, Math.min(5, zoomLevel*d)); update(); });
+                img.addEventListener("mousedown", function(e){ isDragging=true; startX=e.clientX-translateX; startY=e.clientY-translateY; img.style.cursor="grabbing"; });
+                document.addEventListener("mousemove", function(e){ if(isDragging){ translateX=e.clientX-startX; translateY=e.clientY-startY; update(); }});
+                document.addEventListener("mouseup", function(){ isDragging=false; img.style.cursor="grab"; });
+                var tX, tY; img.addEventListener("touchstart", function(e){ if(e.touches.length===1){ tX=e.touches[0].clientX; tY=e.touches[0].clientY; }});
+                img.addEventListener("touchmove", function(e){ if(e.touches.length===1){ e.preventDefault(); translateX+=e.touches[0].clientX-tX; translateY+=e.touches[0].clientY-tY; tX=e.touches[0].clientX; tY=e.touches[0].clientY; update(); }});
+                modal.addEventListener("hidden.bs.modal", function(){ document.body.removeChild(modal); });
+              };
             }
         }
     });
