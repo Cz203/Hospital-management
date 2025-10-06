@@ -11,6 +11,7 @@ class SocketManager {
     this.userName = null;
     // Page detection helpers
     this.isOnPatientAppointments = this.isOnPatientAppointments.bind(this);
+    this.isOnDoctorExamination = this.isOnDoctorExamination.bind(this);
     // Notifications bridge
     this.pushBell = (msg, type) => {
       try {
@@ -59,6 +60,27 @@ class SocketManager {
         ? window.location.href
         : "";
     return href.includes("patient_appointments");
+  }
+
+  // Detect doctor examination page reliably (pretty URL or action param)
+  isOnDoctorExamination() {
+    try {
+      if (
+        document &&
+        document.body &&
+        document.body.dataset &&
+        document.body.dataset.page === "doctor_examination"
+      ) {
+        return true;
+      }
+    } catch (_) {}
+    try {
+      const href = window?.location?.href || "";
+      const path = window?.location?.pathname || "";
+      if (path.includes("doctor_examination")) return true;
+      if (href.includes("action=doctor_examination")) return true;
+    } catch (_) {}
+    return false;
   }
 
   // Strong reload strategy for patient appointments page
@@ -245,19 +267,34 @@ class SocketManager {
   handleAppointmentNotification(data) {
     console.log("New appointment notification:", data);
 
-    // Push to bell only (no toast)
-    // Bell dropdown for doctors
-    this.pushBell(data.message, "info");
+    // Only doctors should see this bell message
+    if (this.userRole === "doctor") {
+      var who = data && data.patientName ? data.patientName : "Bệnh nhân";
+      var msg =
+        data && data.message ? data.message : "Bạn vừa có một lịch mới: " + who;
+      this.pushBell(msg, "info");
+    }
 
     // Update appointment count if on dashboard
     this.updateAppointmentCount();
 
-    // Auto-refresh appointments if on appointment management page
+    // Auto-refresh doctor views
     if (window.location.pathname.includes("appointment_management")) {
       console.log("Auto-refreshing appointments...");
       setTimeout(() => {
         this.refreshAppointments();
       }, 1000);
+    }
+    if (this.isOnDoctorExamination()) {
+      try {
+        if (typeof refreshExamination === "function") {
+          setTimeout(() => refreshExamination(), 600);
+        } else {
+          setTimeout(() => window.location.reload(), 800);
+        }
+      } catch (_) {
+        setTimeout(() => window.location.reload(), 800);
+      }
     }
   }
 
@@ -279,14 +316,33 @@ class SocketManager {
   // Handle appointment updates
   handleAppointmentUpdate(data) {
     console.log("Appointment update:", data);
-    // Push to bell only (no toast)
-    this.pushBell("Có cập nhật lịch hẹn mới", "info");
+    // Only doctors should see this bell message
+    if (this.userRole === "doctor") {
+      var who = data && data.patientName ? data.patientName : "";
+      var msg =
+        data && data.message
+          ? data.message
+          : "Bạn vừa có một lịch mới" + (who ? ": " + who : "");
+      this.pushBell(msg, "info");
+    }
 
     // Refresh appointments if on relevant page
     if (window.location.pathname.includes("appointment")) {
       setTimeout(() => {
         this.refreshAppointments();
       }, 1000);
+    }
+    // Refresh doctor examination page if open
+    if (this.isOnDoctorExamination()) {
+      try {
+        if (typeof refreshExamination === "function") {
+          setTimeout(() => refreshExamination(), 600);
+        } else {
+          setTimeout(() => window.location.reload(), 800);
+        }
+      } catch (_) {
+        setTimeout(() => window.location.reload(), 800);
+      }
     }
   }
 
@@ -303,6 +359,18 @@ class SocketManager {
       setTimeout(() => {
         this.refreshAppointments();
       }, 1000);
+    }
+    // Also refresh doctor examination if open
+    if (window.location.pathname.includes("doctor_examination")) {
+      try {
+        if (typeof refreshExamination === "function") {
+          setTimeout(() => refreshExamination(), 600);
+        } else {
+          setTimeout(() => window.location.reload(), 800);
+        }
+      } catch (_) {
+        setTimeout(() => window.location.reload(), 800);
+      }
     }
   }
 
@@ -453,7 +521,8 @@ class SocketManager {
                 <small class="text-muted">
                     Bác sĩ: ${stats.connectedDoctors} | 
                     Bệnh nhân: ${stats.connectedPatients} | 
-                    Admin: ${stats.connectedAdmins}
+                    Admin: ${stats.connectedAdmins} |
+                    Lễ tân: ${stats.connectedReceptionists}
                 </small>
             `;
     }

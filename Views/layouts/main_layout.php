@@ -194,7 +194,7 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
             <!-- Logo -->
             <a class="navbar-brand" href="./home">
                 <i class="fas fa-hospital text-primary me-2"></i>
-                Hospital Management
+                ThinhViet Clinic
             </a>
 
             <!-- Navigation Items -->

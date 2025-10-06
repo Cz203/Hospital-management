@@ -53,6 +53,14 @@
             </li>
 
             <li class="nav-item">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('reception_queue'); ?>"
+                    href="./reception_queue">
+                    <i class="fas fa-sort-numeric-down me-3"></i>
+                    <span>Bốc số</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('doctors_by_specialty'); ?>"
                     href="./specialties_all">
                     <i class="fas fa-stethoscope me-3"></i>

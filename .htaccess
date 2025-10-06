@@ -6,7 +6,7 @@
     # Ví dụ:
     #  - Localhost: http://localhost/hospital_management/  => RewriteBase /hospital_management/
     #  - Trên host: https://example.com/                   => RewriteBase /
-    RewriteBase /hospital_management/
+    RewriteBase /clinic-management/
 
     # Redirect URL dạng index.php?action=ten-trang -> /ten-trang (301 SEO-friendly)
     RewriteCond %{THE_REQUEST} \s/index\.php\?action=([^\s&]+) [NC]
@@ -25,7 +25,7 @@
     </Files>
 
     # Chặn truy cập file cấu hình (trong thư mục config)
-    RedirectMatch 403 ^/hospital_management/config/
+    RedirectMatch 403 ^/clinic-management/config/
 
     # Chặn truy cập file database .sql
     <FilesMatch "\.sql$">
