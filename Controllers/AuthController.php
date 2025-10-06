@@ -136,6 +136,60 @@ class AuthController
         include 'Views/auth/login_doctor.php';
     }
 
+    public function loginReception()
+    {
+        if ($this->isLoggedIn()) {
+            $role = $_SESSION['user_role'];
+            if ($role === 'letan') {
+                header("Location: ./reception_dashboard");
+                exit();
+            }
+            switch ($role) {
+                case 'admin':
+                    header("Location: ./admin_dashboard");
+                    exit();
+                case 'doctor':
+                    header("Location: ./doctor_dashboard");
+                    exit();
+                case 'patient':
+                    header("Location: ./patient_dashboard");
+                    exit();
+            }
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $email = $_POST['email'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (empty($email) || empty($password)) {
+                $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
+                header("Location: ./login_reception");
+                exit();
+            }
+
+            require_once 'Models/Reception.php';
+            $model = new Reception();
+            $user = $model->login($email, $password);
+            if ($user) {
+                session_regenerate_id(true);
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['ten'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = 'letan';
+                $_SESSION['last_activity'] = time();
+
+                header("Location: ./reception_dashboard");
+                exit();
+            }
+
+            $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
+            header("Location: ./login_reception");
+            exit();
+        }
+
+        include 'Views/auth/login_reception.php';
+    }
+
     public function loginPatient()
     {
         if ($this->isLoggedIn()) {
