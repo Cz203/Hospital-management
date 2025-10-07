@@ -60,7 +60,7 @@ ob_start();
                     <h6 class="mb-0"><i class="fas fa-stream me-2"></i>Hàng đợi hôm nay</h6>
                     <div class="d-flex gap-2 align-items-center">
                         <select id="f-doctor" class="form-select form-select-sm" style="min-width: 220px">
-                            <option value="">-- Chọn bác sĩ --</option>
+                            <option value="0">-- Tất cả bác sĩ --</option>
                         </select>
                         <input type="date" id="f-date" class="form-control form-control-sm"
                             value="<?php echo date('Y-m-d'); ?>">
@@ -92,7 +92,7 @@ document.getElementById('q-specialty').addEventListener('change', function() {
             try {
                 var resp = JSON.parse(xhr.responseText);
                 var sel = document.getElementById('f-doctor');
-                sel.innerHTML = '<option value="">-- Chọn bác sĩ --</option>';
+                sel.innerHTML = '<option value="0">-- Tất cả bác sĩ --</option>';
                 (resp.data || []).forEach(function(d) {
                     var opt = document.createElement('option');
                     opt.value = d.id;
@@ -184,14 +184,15 @@ function renderQueue(rows) {
     }
     var html = '<table class="table table-striped table-sm align-middle">' +
         '<thead><tr>' +
-        '<th>#</th><th>BN</th><th>Ưu tiên</th><th>Trạng thái</th><th>Giờ gọi</th><th>Thao tác</th>' +
+        '<th>STT</th><th>Tên bệnh nhân</th><th>Bác sĩ</th><th>Trạng thái</th><th>Ưu tiên</th><th>Giờ gọi</th><th>Thao tác</th>' +
         '</tr></thead><tbody>';
     rows.forEach(function(r) {
         html += '<tr>' +
             '<td><span class="badge bg-primary">' + r.so_thu_tu + '</span></td>' +
-            '<td>' + (r.benh_nhan_id || '') + '</td>' +
-            '<td>' + (r.uu_tien ? '<span class="badge bg-danger">Ưu tiên</span>' : '') + '</td>' +
+            '<td>' + (r.ten_benh_nhan || r.benh_nhan_id || '') + '</td>' +
+            '<td>' + (r.ten_bac_si || r.bac_si_id || '') + '</td>' +
             '<td>' + (r.trang_thai || '') + '</td>' +
+            '<td>' + (r.uu_tien ? '<span class="badge bg-danger">Ưu tiên</span>' : '') + '</td>' +
             '<td>' + (r.thoi_gian_goi || '') + '</td>' +
             '<td class="text-nowrap">' +
             '<button class="btn btn-sm btn-outline-primary me-1" onclick="updateStatus(' + r.id +

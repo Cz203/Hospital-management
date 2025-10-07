@@ -430,15 +430,32 @@ class ReceptionController
         $doctorId = isset($_GET['bac_si_id']) ? (int)$_GET['bac_si_id'] : 0;
         $date = isset($_GET['ngay']) ? $_GET['ngay'] : date('Y-m-d');
         $status = isset($_GET['trang_thai']) ? $_GET['trang_thai'] : null;
-        if ($doctorId <= 0) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Thiếu bac_si_id']);
-            exit();
+
+        try {
+            $pdo = $this->doctorModel->getConnection();
+            $sql = "SELECT t.*, bn.ten AS ten_benh_nhan, bs.ten AS ten_bac_si
+                    FROM phieu_boc_so t
+                    JOIN benh_nhan bn ON bn.id = t.benh_nhan_id
+                    JOIN bac_si bs ON bs.id = t.bac_si_id
+                    WHERE t.ngay = :d";
+            $params = [':d' => $date];
+            if ($doctorId > 0) {
+                $sql .= " AND t.bac_si_id = :bs";
+                $params[':bs'] = $doctorId;
+            }
+            if (!empty($status)) {
+                $sql .= " AND t.trang_thai = :st";
+                $params[':st'] = $status;
+            }
+            $sql .= " ORDER BY t.uu_tien DESC, t.so_thu_tu ASC";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            echo json_encode(['success' => true, 'data' => $rows]);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
         }
-        require_once 'Models/QueueTicket.php';
-        $qt = new QueueTicket();
-        $rows = $qt->listQueue($doctorId, $date, $status);
-        echo json_encode(['success' => true, 'data' => $rows]);
         exit();
     }
 
