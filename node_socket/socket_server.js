@@ -96,9 +96,10 @@ app.post("/emit", (req, res) => {
         );
       }
     } else if (event === "appointment_update" && data && data.doctorId) {
-      // Target only the intended doctor and doctors group
+      // Target only the intended doctor and doctors group; also notify all receptionists
       io.to(`doctor_${data.doctorId}`).emit("appointment_update", data);
       io.to("all_doctors").emit("appointment_update", data);
+      io.to("all_receptionists").emit("appointment_update", data);
       console.log(`Appointment update sent to doctor ${data.doctorId}`, data);
     } else {
       // Emit to all connected clients (fallback)

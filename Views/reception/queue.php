@@ -182,23 +182,29 @@ function renderQueue(rows) {
         document.getElementById('queue-table').innerHTML = '<span class="text-muted">Không có phiếu</span>';
         return;
     }
+    // Lưu dữ liệu vào bộ nhớ tạm để phục vụ in phiếu
+    try {
+        window.__queueRows = {};
+        rows.forEach(function(x) {
+            if (x && x.id) {
+                window.__queueRows[String(x.id)] = x;
+            }
+        });
+    } catch (e) {}
     var html = '<table class="table table-striped table-sm align-middle">' +
         '<thead><tr>' +
-        '<th>STT</th><th>Tên bệnh nhân</th><th>Bác sĩ</th><th>Trạng thái</th><th>Ưu tiên</th><th>Giờ gọi</th><th>Thao tác</th>' +
+        '<th>STT</th><th>Tên bệnh nhân</th><th>Bác sĩ</th><th>Dự kiến</th><th>Thao tác</th>' +
         '</tr></thead><tbody>';
     rows.forEach(function(r) {
         html += '<tr>' +
             '<td><span class="badge bg-primary">' + r.so_thu_tu + '</span></td>' +
             '<td>' + (r.ten_benh_nhan || r.benh_nhan_id || '') + '</td>' +
             '<td>' + (r.ten_bac_si || r.bac_si_id || '') + '</td>' +
-            '<td>' + (r.trang_thai || '') + '</td>' +
-            '<td>' + (r.uu_tien ? '<span class="badge bg-danger">Ưu tiên</span>' : '') + '</td>' +
-            '<td>' + (r.thoi_gian_goi || '') + '</td>' +
+            '<td>' + (r.thoi_gian_du_kien || '') + '</td>' +
+
             '<td class="text-nowrap">' +
-            '<button class="btn btn-sm btn-outline-primary me-1" onclick="updateStatus(' + r.id +
-            ',\'dang_goi\')">Gọi vào</button>' +
-            '<button class="btn btn-sm btn-outline-danger" onclick="updateStatus(' + r.id +
-            ',\'huy\')">Hủy</button>' +
+            '<button class="btn btn-sm btn-outline-secondary" onclick="printTicket(' + r.id +
+            ')"><i class="fas fa-print me-1"></i>In phiếu</button>' +
             '</td>' +
             '</tr>';
     });
@@ -230,21 +236,85 @@ function updateStatus(id, st) {
     xhr.send(params.toString());
 }
 
-// Realtime: auto refresh queue on appointment updates for selected doctor
+// In phiếu bốc số (popup in ấn đơn giản)
+function printTicket(id) {
+    try {
+        var data = (window.__queueRows || {})[String(id)] || null;
+        if (!data) {
+            alert('Không tìm thấy dữ liệu phiếu');
+            return;
+        }
+        var ngay = data.ngay || (new Date()).toISOString().slice(0, 10);
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        var timeNow = hh + ':' + mm;
+        var tenBn = data.ten_benh_nhan || ('BN #' + (data.benh_nhan_id || ''));
+        var tenBs = data.ten_bac_si || ('BS #' + (data.bac_si_id || ''));
+        var quay = data.quay || '';
+        var duKien = data.thoi_gian_du_kien || '';
+        var so = data.so_thu_tu || '';
+
+        var w = window.open('', 'PRINT', 'height=600,width=420');
+        if (!w) {
+            alert('Trình duyệt chặn cửa sổ in');
+            return;
+        }
+        w.document.write('<html><head><title>Phiếu bốc số</title>');
+        w.document.write('<style>\n' +
+            'body{font-family:Arial,Helvetica,sans-serif;padding:16px;}\n' +
+            '.center{text-align:center;}\n' +
+            '.title{font-size:18px;font-weight:700;margin-bottom:8px;}\n' +
+            '.big{font-size:56px;font-weight:800;line-height:1.1;margin:12px 0;}\n' +
+            '.meta{font-size:13px;color:#555;margin:2px 0;}\n' +
+            '.row{margin:4px 0;}\n' +
+            '.label{color:#666;}\n' +
+            '.footer{margin-top:16px;border-top:1px dashed #999;padding-top:8px;font-size:12px;color:#666;}\n' +
+            '</style>');
+        w.document.write('</head><body>');
+        w.document.write('<div class="center">');
+        w.document.write('<div class="title">ThinhViet Clinic</div>');
+        w.document.write('<div class="meta">Ngày: ' + ngay + ' | In lúc: ' + timeNow + '</div>');
+        if (quay) w.document.write('<div class="meta">Quầy: ' + quay + '</div>');
+        w.document.write('<div class="big">#' + so + '</div>');
+        w.document.write('</div>');
+        w.document.write('<div class="row"><span class="label">Bệnh nhân:</span> ' + tenBn + '</div>');
+        w.document.write('<div class="row"><span class="label">Bác sĩ:</span> ' + tenBs + '</div>');
+        if (duKien) w.document.write('<div class="row"><span class="label">Dự kiến khám:</span> ' + duKien + '</div>');
+        if (data.uu_tien) w.document.write('<div class="row"><strong>ƯU TIÊN</strong></div>');
+        if (data.thoi_gian_goi) w.document.write('<div class="row"><span class="label">Giờ gọi:</span> ' + (data
+            .thoi_gian_goi || '') + '</div>');
+        w.document.write('<div class="footer center">Vui lòng chờ tới lượt. Xin cảm ơn!</div>');
+        w.document.write('</body></html>');
+        w.document.close();
+        w.focus();
+        try {
+            w.print();
+        } catch (e) {}
+        // setTimeout(() => { try { w.close(); } catch(e) {} }, 300);
+    } catch (e) {
+        alert('Không thể in phiếu');
+    }
+}
+
+// Auto-load and auto-refresh on filter changes
 document.addEventListener('DOMContentLoaded', function() {
     try {
-        if (window.socketManager && window.socketManager.socket) {
-            window.socketManager.socket.on('appointment_update', function(data) {
-                try {
-                    var currentDoctor = document.getElementById('f-doctor').value;
-                    if (!currentDoctor) return;
-                    if (!data || (String(data.doctorId || '') !== String(currentDoctor))) return;
-                    // debounce reload a bit
-                    clearTimeout(window.__queueReloadTimer);
-                    window.__queueReloadTimer = setTimeout(loadQueue, 300);
-                } catch (e) {}
-            });
-        }
+        var dsel = document.getElementById('f-doctor');
+        if (dsel && !dsel.value) dsel.value = '0'; // default to All doctors
+        var dateSel = document.getElementById('f-date');
+        var stSel = document.getElementById('f-status');
+        if (dsel) dsel.addEventListener('change', function() {
+            loadQueue();
+        });
+        if (dateSel) dateSel.addEventListener('change', function() {
+            loadQueue();
+        });
+        if (stSel) stSel.addEventListener('change', function() {
+            loadQueue();
+        });
+        // initial load
+        loadQueue();
     } catch (e) {}
 });
 </script>

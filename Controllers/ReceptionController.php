@@ -369,8 +369,9 @@ class ReceptionController
             'bac_si_id' => $doctorId,
             'ngay_hen' => $today,
             'gio_hen' => $chosen['time'] . ':00',
-            'ly_do' => 'Walk-in',
-            'loai_lich' => 'Trực tiếp',
+            // Walk-in tại quầy: không dùng ly_do, đánh dấu loại lịch "Tại viện"
+            'ly_do' => null,
+            'loai_lich' => 'Tại viện',
             'trang_thai' => 'Đã xác nhận',
             'ghi_chu' => 'Lễ tân phát số walk-in'
         ]);
@@ -433,10 +434,11 @@ class ReceptionController
 
         try {
             $pdo = $this->doctorModel->getConnection();
-            $sql = "SELECT t.*, bn.ten AS ten_benh_nhan, bs.ten AS ten_bac_si
+            $sql = "SELECT t.*, bn.ten AS ten_benh_nhan, bs.ten AS ten_bac_si, lh.gio_hen AS thoi_gian_du_kien
                     FROM phieu_boc_so t
                     JOIN benh_nhan bn ON bn.id = t.benh_nhan_id
                     JOIN bac_si bs ON bs.id = t.bac_si_id
+                    LEFT JOIN lich_hen lh ON lh.id = t.lich_hen_id
                     WHERE t.ngay = :d";
             $params = [':d' => $date];
             if ($doctorId > 0) {
@@ -446,6 +448,9 @@ class ReceptionController
             if (!empty($status)) {
                 $sql .= " AND t.trang_thai = :st";
                 $params[':st'] = $status;
+            } else {
+                // Mặc định ẩn các phiếu đã bắt đầu khám khỏi giao diện lễ tân
+                $sql .= " AND t.trang_thai <> 'dang_kham'";
             }
             $sql .= " ORDER BY t.uu_tien DESC, t.so_thu_tu ASC";
             $stmt = $pdo->prepare($sql);

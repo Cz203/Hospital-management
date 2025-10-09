@@ -9,9 +9,11 @@ class SocketManager {
     this.userId = null;
     this.userRole = null;
     this.userName = null;
+    this._queueReloadTimer = null;
     // Page detection helpers
     this.isOnPatientAppointments = this.isOnPatientAppointments.bind(this);
     this.isOnDoctorExamination = this.isOnDoctorExamination.bind(this);
+    this.isOnReceptionQueue = this.isOnReceptionQueue.bind(this);
     // Notifications bridge
     this.pushBell = (msg, type) => {
       try {
@@ -79,6 +81,20 @@ class SocketManager {
       const path = window?.location?.pathname || "";
       if (path.includes("doctor_examination")) return true;
       if (href.includes("action=doctor_examination")) return true;
+    } catch (_) {}
+    return false;
+  }
+
+  // Detect reception queue page
+  isOnReceptionQueue() {
+    try {
+      const path = window?.location?.pathname || "";
+      if (path.includes("reception_queue")) return true;
+    } catch (_) {}
+    try {
+      const table = document.getElementById("queue-table");
+      const sel = document.getElementById("f-doctor");
+      if (table && sel && typeof window.loadQueue === "function") return true;
     } catch (_) {}
     return false;
   }
@@ -296,6 +312,11 @@ class SocketManager {
         setTimeout(() => window.location.reload(), 800);
       }
     }
+
+    // Reception: refresh queue if relevant
+    if (this.userRole === "letan" && this.isOnReceptionQueue()) {
+      this.refreshReceptionQueueIfRelevant(data);
+    }
   }
 
   // Handle patient booking confirmation
@@ -344,6 +365,11 @@ class SocketManager {
         setTimeout(() => window.location.reload(), 800);
       }
     }
+
+    // Reception: refresh queue if relevant
+    if (this.userRole === "letan" && this.isOnReceptionQueue()) {
+      this.refreshReceptionQueueIfRelevant(data);
+    }
   }
 
   // Handle appointment status changes
@@ -371,6 +397,11 @@ class SocketManager {
       } catch (_) {
         setTimeout(() => window.location.reload(), 800);
       }
+    }
+
+    // Reception: refresh queue if relevant
+    if (this.userRole === "letan" && this.isOnReceptionQueue()) {
+      this.refreshReceptionQueueIfRelevant(data);
     }
   }
 
@@ -577,6 +608,26 @@ class SocketManager {
         window.location.reload();
       }, 2000);
     }
+  }
+
+  // Reception queue refresh (debounced) when event is relevant to selected doctor
+  refreshReceptionQueueIfRelevant(data) {
+    try {
+      var sel = document.getElementById("f-doctor");
+      if (!sel || typeof window.loadQueue !== "function") return;
+      var currentDoctor = String(sel.value || "");
+      var eventDoctor =
+        data && data.doctorId != null ? String(data.doctorId) : "";
+      if (
+        currentDoctor === "0" ||
+        (eventDoctor && eventDoctor === currentDoctor)
+      ) {
+        clearTimeout(this._queueReloadTimer);
+        this._queueReloadTimer = setTimeout(function () {
+          window.loadQueue();
+        }, 250);
+      }
+    } catch (_) {}
   }
 
   // Handle reconnection

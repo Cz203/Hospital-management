@@ -20,8 +20,8 @@
     <link rel="stylesheet" href="./assets/css/home.css?v=<?php echo filemtime('./assets/css/home.css'); ?>">
 
     <!-- Additional CSS for specific pages -->
-    <?php if (isset($additional_css)): ?>
-    <?php foreach ($additional_css as $css): ?>
+    <?php if (isset($additional_css)) : ?>
+    <?php foreach ($additional_css as $css) : ?>
     <link rel="stylesheet" href="<?php echo $css; ?>">
     <?php endforeach; ?>
     <?php endif; ?>
@@ -76,7 +76,7 @@
 
                 <!-- Authentication Links + Notifications -->
                 <ul class="navbar-nav">
-                    <?php if (!isset($_SESSION['user_id'])): ?>
+                    <?php if (!isset($_SESSION['user_id'])) : ?>
                     <li class="nav-item">
                         <a class="nav-link btn btn-outline-light btn-sm px-3" href="login">
                             <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập
@@ -87,7 +87,7 @@
                             <i class="fas fa-user-plus me-1"></i>Đăng ký
                         </a>
                     </li>
-                    <?php else: ?>
+                    <?php else : ?>
                     <!-- Notifications bell -->
                     <li class="nav-item me-2">
                         <div class="dropdown">

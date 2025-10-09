@@ -50,7 +50,7 @@ include 'Views/layouts/header.php';
         <div class="row justify-content-center">
             <div class="col-lg-10 text-center">
                 <div class="hero-content">
-                    <h1 class="hero-title">ThinhViet Hospital</h1>
+                    <h1 class="hero-title">Phòng khám đa khoa ThinhViet</h1>
 
                     <!-- Search Section -->
                     <div class="hero-search animate-on-scroll">
@@ -181,9 +181,9 @@ include 'Views/layouts/header.php';
         </div>
 
         <div class="row">
-            <?php if (!empty($doctors)): ?>
+            <?php if (!empty($doctors)) : ?>
             <?php $doctorsLimited = array_slice($doctors, 0, 6);
-                foreach ($doctorsLimited as $doc): ?>
+                foreach ($doctorsLimited as $doc) : ?>
             <?php
                     $spec = $doc['chuyen_khoa'] ?? '';
                     $colors = $specialtyColors[$spec] ?? ['text' => 'text-primary', 'bg' => 'primary'];
@@ -209,7 +209,7 @@ include 'Views/layouts/header.php';
                 </div>
             </div>
             <?php endforeach; ?>
-            <?php else: ?>
+            <?php else : ?>
             <div class="col-12">
                 <div class="text-center">
                     <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
@@ -244,7 +244,7 @@ include 'Views/layouts/header.php';
 
         <div class="row">
             <?php $specialtiesLimited = array_slice($specialties ?? [], 0, 8);
-            foreach ($specialtiesLimited as $sp):
+            foreach ($specialtiesLimited as $sp) :
                 $name = $sp['ten'];
                 $count = (int)($sp['doctor_count'] ?? 0);
                 $iconClass = !empty($sp['icon']) ? $sp['icon'] : 'fas fa-stethoscope';

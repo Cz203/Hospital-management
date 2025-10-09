@@ -1101,6 +1101,19 @@ class DoctorController
                 require_once 'Models/Appointment.php';
                 $appointmentModel = new Appointment();
                 $appointmentModel->updateStatus($appointmentId, 'Đang khám');
+                // Đồng bộ hàng đợi: chuyển phiếu sang 'dang_kham' và phát realtime
+                try {
+                    require_once 'Models/QueueTicket.php';
+                    $qt = new QueueTicket();
+                    $qt->updateStatusByAppointmentId((int)$appointmentId, 'dang_kham');
+                    $this->sendSocketNotification('appointment_update', [
+                        'doctorId' => $doctorId,
+                        'appointmentId' => (int)$appointmentId,
+                        'queueStatus' => 'dang_kham',
+                        'timestamp' => date('Y-m-d H:i:s')
+                    ]);
+                } catch (Exception $e) {
+                }
             } elseif (isset($_GET['continue_exam']) && !empty($_GET['continue_exam'])) {
                 $appointmentId = $_GET['continue_exam'];
                 $autoOpenModal = true;
@@ -1154,6 +1167,20 @@ class DoctorController
             $success = $appointmentModel->startExamination($appointmentId, $doctorId);
 
             if ($success) {
+                // Đồng bộ hàng đợi: đặt trạng thái phiếu sang 'dang_kham' và ẩn khỏi lễ tân
+                try {
+                    require_once 'Models/QueueTicket.php';
+                    $qt = new QueueTicket();
+                    $qt->updateStatusByAppointmentId((int)$appointmentId, 'dang_kham');
+                    // Emit realtime để lễ tân và bác sĩ cập nhật giao diện
+                    $this->sendSocketNotification('appointment_update', [
+                        'doctorId' => $doctorId,
+                        'appointmentId' => (int)$appointmentId,
+                        'queueStatus' => 'dang_kham',
+                        'timestamp' => date('Y-m-d H:i:s')
+                    ]);
+                } catch (Exception $e) {
+                }
                 if (!empty($_POST['ajax'])) {
                     header('Content-Type: application/json');
                     echo json_encode(['success' => true]);

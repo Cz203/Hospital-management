@@ -44,8 +44,9 @@ class QueueTicket
 
     public function nextSerialForDoctor(int $doctorId, string $dateYmd): int
     {
-        $stmt = $this->conn->prepare("SELECT COALESCE(MAX(so_thu_tu), 0) FROM {$this->table} WHERE bac_si_id = :bs AND ngay = :d");
-        $stmt->execute([':bs' => $doctorId, ':d' => $dateYmd]);
+        // Global per-day numbering: ignore doctor, take next across all tickets of the day
+        $stmt = $this->conn->prepare("SELECT COALESCE(MAX(so_thu_tu), 0) FROM {$this->table} WHERE ngay = :d");
+        $stmt->execute([':d' => $dateYmd]);
         return (int)$stmt->fetchColumn() + 1;
     }
 
@@ -74,6 +75,21 @@ class QueueTicket
         $sql = "UPDATE {$this->table} SET trang_thai = :st{$setTime}, updated_at = NOW() WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([':st' => $status, ':id' => $ticketId]);
+    }
+
+    public function updateStatusByAppointmentId(int $appointmentId, string $status): bool
+    {
+        $today = date('Y-m-d');
+        $timeCols = [
+            'dang_goi' => 'thoi_gian_goi',
+            'dang_kham' => 'thoi_gian_bat_dau',
+            'xong' => 'thoi_gian_ket_thuc',
+        ];
+        $setTime = isset($timeCols[$status]) ? ", {$timeCols[$status]} = NOW()" : '';
+        $sql = "UPDATE {$this->table} SET trang_thai = :st{$setTime}, updated_at = NOW() 
+				WHERE lich_hen_id = :aid AND ngay = :d AND trang_thai IN ('cho','dang_goi')";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([':st' => $status, ':aid' => $appointmentId, ':d' => $today]);
     }
 
     public function getById(int $ticketId): ?array
