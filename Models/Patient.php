@@ -11,9 +11,19 @@ class Patient extends User
 
     public function login($email, $password)
     {
-        $query = "SELECT * FROM " . $this->table_name . " WHERE email = :email LIMIT 1";
+        // Đổi logic: tham số đầu dùng như số điện thoại để đăng nhập, chấp nhận 84/0
+        $raw = trim($email);
+        $p1 = $raw;
+        $p2 = $raw;
+        if (str_starts_with($raw, '84')) {
+            $p2 = '0' . substr($raw, 2);
+        } elseif (str_starts_with($raw, '0')) {
+            $p2 = '84' . substr($raw, 1);
+        }
+        $query = "SELECT * FROM " . $this->table_name . " WHERE so_dien_thoai = :p1 OR so_dien_thoai = :p2 LIMIT 1";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":email", $email);
+        $stmt->bindParam(":p1", $p1);
+        $stmt->bindParam(":p2", $p2);
         $stmt->execute();
 
         if ($stmt->rowCount() > 0) {
@@ -45,15 +55,18 @@ class Patient extends User
 
     public function create($data)
     {
+
+        // Sinh mã bệnh nhân tự động
+        $ma_benh_nhan = 'BN' . date('ymd') . rand(10, 99);
         $query = "INSERT INTO " . $this->table_name . " 
-                  (ten, email, mat_khau, so_dien_thoai, phone_verified, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, ngay_tao) 
-                  VALUES (:ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, :ngay_sinh, :gioi_tinh, :dia_chi, :nhom_mau, NOW())";
+                  (ma_benh_nhan, ten, email, mat_khau, so_dien_thoai, phone_verified, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, ngay_tao) 
+                  VALUES (:ma_benh_nhan, :ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, :ngay_sinh, :gioi_tinh, :dia_chi, :nhom_mau, NOW())";
 
         $stmt = $this->conn->prepare($query);
 
         $hashedPassword = $this->hashPassword($data['mat_khau']);
         $phone_verified = $data['phone_verified'] ?? 0;
-
+        $stmt->bindParam(":ma_benh_nhan", $ma_benh_nhan);
         $stmt->bindParam(":ten", $data['ten']);
         $stmt->bindParam(":email", $data['email']);
         $stmt->bindParam(":mat_khau", $hashedPassword);

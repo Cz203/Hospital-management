@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th10 07, 2025 lúc 10:25 AM
+-- Thời gian đã tạo: Th10 09, 2025 lúc 12:28 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Cơ sở dữ liệu: `hospital_management`
+-- Cơ sở dữ liệu: `clinic-management`
 --
 
 -- --------------------------------------------------------
@@ -105,16 +105,18 @@ CREATE TABLE `benh_nhan` (
   `dia_chi` text DEFAULT NULL,
   `nhom_mau` enum('A+','A-','B+','B-','AB+','AB-','O+','O-') DEFAULT NULL,
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `ma_benh_nhan` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `benh_nhan`
 --
 
-INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `bao_hiem_y_te`, `bao_hiem_y_te_id`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(28, 'Việt', 'caoduongvietquoc1@gmail.com', '$2y$10$ujZnPMbxVgX1tgQaPWMnr.yU07aISutD3ehgWy5OiMhaIQWh5imWe', '84913998110', 1, 'DNxvxvxzv', NULL, '2003-03-22', 'Nam', 'cvzxcvxzcvxcv', 'A+', '2025-09-15 11:19:11', '2025-10-05 15:54:25'),
-(30, 'Việt', 'thu1234@gmail.com', '$2y$10$t0LLqsPXfLJWdWnkELBvEOkkNkhzr8uOolF9LLiSpj3VTtezgcD0C', '841234567901', 1, NULL, NULL, '2025-09-30', '', '', '', '2025-09-27 15:17:59', '2025-09-27 15:17:59');
+INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `bao_hiem_y_te`, `bao_hiem_y_te_id`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`, `ma_benh_nhan`) VALUES
+(30, 'Việt', 'thu1234@gmail.com', '$2y$10$t0LLqsPXfLJWdWnkELBvEOkkNkhzr8uOolF9LLiSpj3VTtezgcD0C', '841234567901', 1, NULL, NULL, '2025-09-30', '', '', '', '2025-09-27 15:17:59', '2025-09-27 15:17:59', NULL),
+(31, 'Cao Dương Quốc Việt', 'caoduongvietquoc@gmail.com', '$2y$10$1WEqOHK4l3RJlgPpEE6juuBj5/83xtQ331nYdhQYGvSWp7MAi2r6u', '84913998110', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-10-09 10:24:55', '2025-10-09 10:24:55', 'BN25100919'),
+(32, 'zxcvzxcvzxcv', 'caovietcv5.work@gmail.com', '$2y$10$geCYm28GlGj3Ga9.ug2LmeI1RlC4lJu.122nfuuoTnKCshQ9fAsHe', '84913992110', 1, NULL, NULL, '2003-03-22', 'Nam', 'zxcv', 'A+', '2025-10-09 10:25:26', '2025-10-09 10:25:26', 'BN25100932');
 
 -- --------------------------------------------------------
 
@@ -225,7 +227,7 @@ CREATE TABLE `le_tan` (
 --
 
 INSERT INTO `le_tan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 'Le tan A', 'letan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', NULL, '2025-09-27 14:27:34', '2025-09-27 14:29:23');
+(1, 'Le tan A', 'letan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0918726466', '2025-09-27 14:27:34', '2025-10-09 10:14:06');
 
 -- --------------------------------------------------------
 
@@ -240,7 +242,7 @@ CREATE TABLE `lich_hen` (
   `ngay_hen` date NOT NULL,
   `gio_hen` time NOT NULL,
   `ly_do` text DEFAULT NULL,
-  `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà') NOT NULL DEFAULT 'Trực tiếp',
+  `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà','Tại viện') NOT NULL DEFAULT 'Trực tiếp',
   `dia_chi_kham` varchar(255) DEFAULT NULL,
   `link_tu_van` varchar(255) DEFAULT NULL,
   `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Đang khám','Hoàn thành','Đã khám xong','hủy') DEFAULT 'Chờ xác nhận',
@@ -248,16 +250,6 @@ CREATE TABLE `lich_hen` (
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `lich_hen`
---
-
-INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(186, 28, 1, '2025-10-07', '15:20:00', '', 'Tư vấn', NULL, '', 'Chờ xác nhận', '', '2025-10-07 08:12:00', '2025-10-07 08:12:00'),
-(187, 28, 48, '2025-10-07', '15:20:00', 'Walk-in', 'Trực tiếp', NULL, NULL, 'hủy', NULL, '2025-10-07 08:12:30', '2025-10-07 08:15:00'),
-(188, 30, 1, '2025-10-07', '15:40:00', 'Walk-in', 'Trực tiếp', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-07 08:13:52', '2025-10-07 08:13:52'),
-(189, 30, 48, '2025-10-07', '15:40:00', 'Walk-in', 'Trực tiếp', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-07 08:14:10', '2025-10-07 08:14:10');
 
 -- --------------------------------------------------------
 
@@ -293,7 +285,10 @@ INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`,
 (52, 1, 'Thứ 7', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-24 19:23:04', '2025-09-24 19:23:04'),
 (53, 1, 'Thứ 2', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-24 19:26:02', '2025-09-24 19:26:02'),
 (54, 48, 'Thứ 3', '06:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-09-24 19:15:27', '2025-09-24 19:15:27'),
-(57, 48, 'Thứ 3', '12:00:00', '17:59:00', 'Ca chiều', '', 'active', '2025-09-24 19:15:27', '2025-09-24 19:15:27');
+(57, 48, 'Thứ 3', '12:00:00', '17:59:00', 'Ca chiều', '', 'active', '2025-09-24 19:15:27', '2025-09-24 19:15:27'),
+(58, 48, 'Thứ 5', '12:00:00', '17:59:00', 'Ca chiều', '', 'active', '2025-09-24 19:15:27', '2025-09-24 19:15:27'),
+(59, 1, 'Thứ 5', '12:00:00', '17:59:00', 'Ca chiều', '', 'active', '2025-09-24 19:15:42', '2025-10-07 07:28:27'),
+(60, 48, 'Thứ 5', '18:00:00', '23:59:00', 'Ca tối', '', 'active', '2025-09-24 19:18:29', '2025-10-09 09:00:33');
 
 -- --------------------------------------------------------
 
@@ -345,15 +340,6 @@ CREATE TABLE `phieu_boc_so` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Đang đổ dữ liệu cho bảng `phieu_boc_so`
---
-
-INSERT INTO `phieu_boc_so` (`id`, `ngay`, `so_thu_tu`, `benh_nhan_id`, `bac_si_id`, `lich_hen_id`, `trang_thai`, `uu_tien`, `quay`, `ghi_chu`, `thoi_gian_goi`, `thoi_gian_bat_dau`, `thoi_gian_ket_thuc`, `created_at`, `updated_at`) VALUES
-(55, '2025-10-07', 1, 28, 48, 187, 'huy', 0, NULL, NULL, NULL, NULL, NULL, '2025-10-07 08:12:30', '2025-10-07 08:15:00'),
-(56, '2025-10-07', 1, 30, 1, 188, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-10-07 08:13:52', '2025-10-07 08:13:52'),
-(57, '2025-10-07', 2, 30, 48, 189, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-10-07 08:14:10', '2025-10-07 08:14:10');
-
 -- --------------------------------------------------------
 
 --
@@ -389,13 +375,6 @@ CREATE TABLE `phieu_tien_su_di_ung` (
   `ghi_chu_tien_su_gia_dinh` text DEFAULT NULL,
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `phieu_tien_su_di_ung`
---
-
-INSERT INTO `phieu_tien_su_di_ung` (`id`, `benh_nhan_id`, `thuoc_hoac_di_nguyen`, `so_lan_thuoc`, `khong_thuoc`, `ghi_chu_thuoc`, `con_trung`, `so_lan_con_trung`, `khong_con_trung`, `ghi_chu_con_trung`, `thuc_pham`, `so_lan_thuc_pham`, `khong_thuc_pham`, `ghi_chu_thuc_pham`, `tac_nhan_khac`, `so_lan_tac_nhan_khac`, `khong_tac_nhan_khac`, `ghi_chu_tac_nhan_khac`, `tien_su_ca_nhan`, `so_lan_tien_su_ca_nhan`, `khong_tien_su_ca_nhan`, `ghi_chu_tien_su_ca_nhan`, `tien_su_gia_dinh`, `so_lan_tien_su_gia_dinh`, `khong_tien_su_gia_dinh`, `ghi_chu_tien_su_gia_dinh`, `ngay_tao`) VALUES
-(1, 28, '', '123', 1, '', 'cvxv', '', 0, '', '', '', 0, '', '', '', 0, '', '', '', 0, '', '', '', 0, '', '2025-09-19 14:24:15');
 
 -- --------------------------------------------------------
 
@@ -464,6 +443,7 @@ ALTER TABLE `bao_hiem_y_te`
 ALTER TABLE `benh_nhan`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `ma_benh_nhan` (`ma_benh_nhan`),
   ADD KEY `idx_bn_email` (`email`),
   ADD KEY `idx_bao_hiem_y_te_id` (`bao_hiem_y_te_id`);
 
@@ -580,7 +560,7 @@ ALTER TABLE `bao_hiem_y_te`
 -- AUTO_INCREMENT cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT cho bảng `chuyen_khoa`
@@ -610,13 +590,13 @@ ALTER TABLE `le_tan`
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=190;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=217;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec_ngoai_le`
@@ -628,7 +608,7 @@ ALTER TABLE `lich_lam_viec_ngoai_le`
 -- AUTO_INCREMENT cho bảng `phieu_boc_so`
 --
 ALTER TABLE `phieu_boc_so`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_tien_su_di_ung`
