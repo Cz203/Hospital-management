@@ -52,7 +52,8 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('doctor_examination'); ?>" href="./doctor_examination">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('doctor_examination'); ?>"
+                    href="./doctor_examination">
                     <i class="fas fa-stethoscope me-3"></i>
                     <span>Khám bệnh</span>
                 </a>
@@ -101,44 +102,89 @@
 </div>
 
 <style>
-    .sidebar .nav-link {
-        transition: all 0.3s ease;
-        border-left: 3px solid transparent;
+.sidebar {
+    backdrop-filter: blur(6px);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, .08);
+    background: linear-gradient(180deg, #0d6efd 0%, #1f86ff 45%, #f7fbff 100%) !important;
+    color: #ffffff;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar .sidebar-body {
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    color: #ffffff !important;
+    border-left: 3px solid transparent;
+    border-radius: 10px;
+    margin: 4px 8px;
+    padding: 0.75rem 0.9rem;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateX(2px);
+}
+
+.sidebar .nav-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    border-left-color: #0d6efd;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.user-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd 0%, #1f86ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+.sidebar .sidebar-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar .sidebar-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar .sidebar-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.26);
+    border-radius: 8px;
+}
+
+.sidebar .sidebar-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.36);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
     }
 
-    .sidebar .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-left-color: #ffffff;
+    .sidebar.show {
+        transform: translateX(0);
     }
-
-    .sidebar .nav-link.active {
-        background-color: rgba(255, 255, 255, 0.2);
-        border-left-color: #ffffff;
-        font-weight: 600;
-        box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
-    }
-
-    .user-avatar {
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .sidebar {
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar.show {
-            transform: translateX(0);
-        }
-    }
+}
 </style>

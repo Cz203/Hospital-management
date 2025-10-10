@@ -1,0 +1,64 @@
+/* Modern Clinic Theme - white + light blue */
+:root {
+  --primary: #0d6efd;
+  --primary-600: #0b5ed7;
+  --primary-100: #eaf3ff;
+  --bg: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --card-bg: #ffffff;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --radius: 14px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.section {
+  padding: 64px 0;
+}
+
+.hero {
+  background: linear-gradient(180deg, var(--primary-100), #fff 60%);
+}
+.hero-title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.hero-sub {
+  color: var(--muted);
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.btn-primary:hover {
+  background: var(--primary-600);
+  border-color: var(--primary-600);
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.card-header {
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+}
+
+.pill {
+  background: var(--primary-100);
+  color: var(--primary);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-weight: 600;
+}
+
+.grid-gap {
+  gap: 24px;
+}

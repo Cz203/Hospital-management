@@ -376,6 +376,60 @@ body {
   backdrop-filter: blur(10px);
 }
 
+/* Modernize hero search suggestions */
+#search-suggestions {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+#search-suggestions-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+#search-suggestions-list .suggestion-item + .suggestion-item {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+#search-suggestions-list .suggestion-item:hover {
+  background: rgba(13, 110, 253, 0.06);
+}
+
+/* Borderless remove button for suggestions */
+#search-suggestions-list .s-remove {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #dc3545;
+  padding: 2px 8px;
+  line-height: 1;
+}
+#search-suggestions-list .s-remove:hover {
+  background: rgba(220, 53, 69, 0.08) !important;
+}
+#search-suggestions-list .s-remove:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Scrollbar styling */
+#search-suggestions-list::-webkit-scrollbar {
+  width: 8px;
+}
+#search-suggestions-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+}
+#search-suggestions-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+#search-suggestions-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 .suggestion-tags {
   display: flex;
   gap: 0.75rem;
@@ -1183,4 +1237,49 @@ body:not(.loaded)::after {
   .dropdown-divider {
     border-color: rgba(255, 255, 255, 0.2);
   }
+}
+
+/* Hero search suggestions dropdown */
+.hero-section .search-container {
+  position: relative;
+}
+
+#search-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 8px);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 20;
+  overflow: hidden;
+}
+
+#search-suggestions-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+#search-suggestions-list .suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  color: var(--text);
+  border-left: 3px solid transparent;
+}
+
+#search-suggestions-list .suggestion-item + .suggestion-item {
+  border-top: 1px solid var(--border);
+}
+
+#search-suggestions-list .suggestion-item:hover {
+  background: var(--primary-100);
+  border-left-color: var(--primary);
+}
+
+#search-suggestions-list .suggestion-item small {
+  color: var(--muted);
 }

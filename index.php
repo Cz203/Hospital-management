@@ -339,6 +339,10 @@ switch ($action) {
         include 'Views/home.php'; // Trang chủ
         break;
 
+    case 'contact':
+        include 'Views/contact.php'; // Trang liên hệ
+        break;
+
     // ===== DEFAULT ROUTE =====
     default:
         // Nếu action không tồn tại, kiểm tra nếu user đã đăng nhập thì redirect về dashboard tương ứng

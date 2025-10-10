@@ -65,13 +65,14 @@ include 'Views/layouts/header.php';
                                     </button>
                                 </div>
                             </div>
-                            <div class="search-suggestions">
-                                <div class="suggestion-tags">
-                                    <span class="suggestion-tag">Nội khoa</span>
-                                    <span class="suggestion-tag">Ngoại khoa</span>
-                                    <span class="suggestion-tag">Tim mạch</span>
-                                    <span class="suggestion-tag">Nhi khoa</span>
+                            <div id="search-suggestions" class="search-suggestions" style="display:none;">
+                                <div
+                                    class="suggestions-header d-flex align-items-center justify-content-between px-2 py-2">
+                                    <small class="text-muted">Gợi ý</small>
+                                    <button type="button" id="suggestions-clear"
+                                        class="btn btn-sm btn-link text-danger p-0">Xóa tất cả</button>
                                 </div>
+                                <div id="search-suggestions-list"></div>
                             </div>
                         </div>
                     </div>
@@ -84,88 +85,7 @@ include 'Views/layouts/header.php';
 
 
 
-<!-- Appointment Section -->
-<section class="appointment-section" id="appointment">
-    <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-lg-8 mx-auto">
-                <h2 class="display-4 mb-4 text-white animate-on-scroll">Đặt lịch khám bệnh</h2>
-                <p class="lead text-white-50 animate-on-scroll">
-                    Chọn hình thức khám bệnh phù hợp với nhu cầu của bạn. Chúng tôi cung cấp đa dạng dịch vụ
-                    để đảm bảo sự thuận tiện và hiệu quả trong việc chăm sóc sức khỏe.
-                </p>
-            </div>
-        </div>
-
-        <div class="row justify-content-center">
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="appointment-card animate-on-scroll">
-                    <div class="appointment-icon">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <h4>Khám tại nhà</h4>
-                    <p>
-                        Bác sĩ sẽ đến tận nhà để khám bệnh, phù hợp cho người già, trẻ em và người khó di chuyển.
-                        Dịch vụ tận tâm, an toàn và tiết kiệm thời gian.
-                    </p>
-                    <ul class="list-unstyled text-start mb-4">
-                        <li><i class="fas fa-check text-success me-2"></i>Tiết kiệm thời gian</li>
-                        <li><i class="fas fa-check text-success me-2"></i>An toàn, tiện lợi</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Chăm sóc tận tâm</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Phù hợp mọi lứa tuổi</li>
-                    </ul>
-                    <a href="./doctor_team" class="btn btn-warning">
-                        <i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám tại nhà
-                    </a>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="appointment-card animate-on-scroll">
-                    <div class="appointment-icon">
-                        <i class="fas fa-hospital"></i>
-                    </div>
-                    <h4>Khám tại bệnh viện</h4>
-                    <p>
-                        Khám bệnh trực tiếp tại bệnh viện với trang thiết bị hiện đại và đội ngũ bác sĩ chuyên môn cao.
-                        Xét nghiệm toàn diện và chẩn đoán chính xác.
-                    </p>
-                    <ul class="list-unstyled text-start mb-4">
-                        <li><i class="fas fa-check text-success me-2"></i>Trang thiết bị hiện đại</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Bác sĩ chuyên môn cao</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Xét nghiệm toàn diện</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Chẩn đoán chính xác</li>
-                    </ul>
-                    <a href="./doctor_team" class="btn btn-success">
-                        <i class="fas fa-calendar-check me-2"></i>Đặt lịch khám tại viện
-                    </a>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="appointment-card animate-on-scroll">
-                    <div class="appointment-icon">
-                        <i class="fas fa-comments"></i>
-                    </div>
-                    <h4>Tư vấn trực tuyến</h4>
-                    <p>
-                        Tư vấn sức khỏe trực tuyến với bác sĩ chuyên khoa, giải đáp thắc mắc và đưa ra lời khuyên.
-                        Tiện lợi, nhanh chóng và bảo mật thông tin.
-                    </p>
-                    <ul class="list-unstyled text-start mb-4">
-                        <li><i class="fas fa-check text-success me-2"></i>Tiện lợi, nhanh chóng</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Tiết kiệm chi phí</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Bảo mật thông tin</li>
-                        <li><i class="fas fa-check text-success me-2"></i>Mọi lúc, mọi nơi</li>
-                    </ul>
-                    <a href="./consultation_booking" class="btn btn-info">
-                        <i class="fas fa-video me-2"></i>Đặt lịch tư vấn
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<!-- Appointment Section removed per request -->
 
 <!-- Doctors List Section -->
 <section class="doctors-list-section" id="doctors">
@@ -335,3 +255,148 @@ include 'Views/layouts/header.php';
 // Include footer
 include 'Views/layouts/footer.php';
 ?>
+<script>
+// Expose specialty names to help detect exact specialty searches
+window.homeSpecialties = <?php echo json_encode(array_map(function ($s) {
+                                    return $s['ten'] ?? '';
+                                }, $specialties ?? [])); ?>;
+(function() {
+    try {
+        var root = document.querySelector('.hero-section') || document.querySelector('.section.hero');
+        var input = root ? root.querySelector('.search-input') : null;
+        var btn = root ? root.querySelector('.search-btn') : null;
+        var specs = Array.isArray(window.homeSpecialties) ? window.homeSpecialties : [];
+        var suggWrap = document.getElementById('search-suggestions');
+        var suggList = document.getElementById('search-suggestions-list');
+        var clearBtn = document.getElementById('suggestions-clear');
+        var names = [];
+        try {
+            names = (<?php echo json_encode(array_map(function ($d) {
+                                return $d['ten'] ?? '';
+                            }, $doctors ?? [])); ?>) || [];
+        } catch (e) {}
+
+        function handleSearch() {
+            var q = (input && input.value ? input.value : '').trim();
+            if (!q) {
+                window.location.href = './doctor_team';
+                return;
+            }
+            var lower = q.toLowerCase();
+            var matchedSpec = '';
+            for (var i = 0; i < specs.length; i++) {
+                var s = String(specs[i] || '');
+                if (s.toLowerCase() === lower) {
+                    matchedSpec = s;
+                    break;
+                }
+            }
+            var url = './doctor_team?q=' + encodeURIComponent(q);
+            if (matchedSpec) url += '&spec=' + encodeURIComponent(matchedSpec);
+            window.location.href = url;
+        }
+
+        if (btn) btn.addEventListener('click', handleSearch);
+        if (input) input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSearch();
+            }
+            if (e.key === 'Escape') {
+                if (suggWrap) suggWrap.style.display = 'none';
+            }
+        });
+
+        function renderSuggestions(items) {
+            if (!suggWrap || !suggList) return;
+            if (!items.length) {
+                suggWrap.style.display = 'none';
+                suggList.innerHTML = '';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < Math.min(items.length, 8); i++) {
+                var it = items[i];
+                var type = it.type === 'spec' ? 'Chuyên khoa' : 'Bác sĩ';
+                var icon = it.type === 'spec' ? 'fa-stethoscope' : 'fa-user-md';
+                html +=
+                    '<div class="d-flex align-items-center justify-content-between py-2 px-2 suggestion-item" style="cursor:pointer;">' +
+                    '<div class="d-flex align-items-center"><i class="fas ' + icon +
+                    ' text-primary me-2"></i><span class="s-label">' + it.label + '</span></div>' +
+                    '<div class="d-flex align-items-center gap-2"><small class="text-muted me-2">' + type +
+                    '</small><button type="button" class="btn btn-sm btn-outline-danger s-remove">×</button></div>' +
+                    '</div>';
+            }
+            suggList.innerHTML = html;
+            suggWrap.style.display = 'block';
+            Array.prototype.forEach.call(suggList.children, function(row, idx) {
+                // click row to navigate
+                row.addEventListener('click', function(e) {
+                    if (e.target && e.target.classList.contains('s-remove'))
+                        return; // ignore when remove button
+                    var it = items[idx];
+                    if (!it) return;
+                    if (it.type === 'spec') {
+                        window.location.href = './doctor_team?spec=' + encodeURIComponent(it.label);
+                    } else {
+                        window.location.href = './doctor_team?q=' + encodeURIComponent(it.label);
+                    }
+                });
+                // remove single item
+                var removeBtn = row.querySelector('.s-remove');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function(ev) {
+                        ev.stopPropagation();
+                        row.remove();
+                        if (!suggList.children.length) {
+                            suggWrap.style.display = 'none';
+                        }
+                    });
+                }
+            });
+        }
+
+        function onInput() {
+            var q = (input && input.value ? input.value : '').trim().toLowerCase();
+            if (!q) {
+                renderSuggestions([]);
+                return;
+            }
+            var specMatches = specs
+                .filter(function(s) {
+                    return String(s || '').toLowerCase().includes(q);
+                })
+                .map(function(s) {
+                    return {
+                        type: 'spec',
+                        label: String(s)
+                    };
+                });
+            var nameMatches = names
+                .filter(function(n) {
+                    return String(n || '').toLowerCase().includes(q);
+                })
+                .map(function(n) {
+                    return {
+                        type: 'name',
+                        label: String(n)
+                    };
+                });
+            renderSuggestions(specMatches.concat(nameMatches));
+        }
+
+        if (input) input.addEventListener('input', onInput);
+        if (clearBtn) clearBtn.addEventListener('click', function() {
+            if (suggWrap) suggWrap.style.display = 'none';
+            if (suggList) suggList.innerHTML = '';
+        });
+        document.addEventListener('click', function(e) {
+            if (!suggWrap) return;
+            var t = e.target;
+            if (t !== input && !suggWrap.contains(t)) {
+                suggWrap.style.display = 'none';
+            }
+        });
+    } catch (_) {}
+})();
+</script>

@@ -8,11 +8,11 @@
         <a href="./admin_dashboard" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Quay lại</a>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 equal-height-row">
         <div class="col-lg-5">
             <div class="card shadow-sm">
                 <div class="card-header bg-white fw-semibold">Thêm chuyên khoa</div>
-                <div class="card-body">
+                <div class="card-body d-flex flex-column">
                     <form method="POST" action="./specialty_create">
                         <div class="mb-3">
                             <label class="form-label">Tên chuyên khoa</label>
@@ -43,7 +43,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="mt-3 d-flex gap-2">
+                        <div class="mt-5 d-flex gap-2">
                             <button type="submit" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Thêm</button>
                             <button type="reset" class="btn btn-outline-secondary">Làm mới</button>
                         </div>
@@ -55,8 +55,8 @@
         <div class="col-lg-7">
             <div class="card shadow-sm">
                 <div class="card-header bg-white fw-semibold">Danh sách chuyên khoa</div>
-                <div class="card-body">
-                    <div class="table-responsive">
+                <div class="card-body d-flex flex-column">
+                    <div class="table-responsive specialties-scroll">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
@@ -113,6 +113,62 @@
         </div>
     </div>
 </div>
+
+<style>
+.specialties-scroll {
+    max-height: 60vh;
+    overflow: auto;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 10px;
+}
+
+.specialties-scroll thead th {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    z-index: 1;
+}
+
+.specialties-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.specialties-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+.specialties-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+}
+
+.specialties-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+@media (max-width: 768px) {
+    .specialties-scroll {
+        max-height: 50vh;
+    }
+}
+
+/* Equal height columns for the two cards */
+.equal-height-row>[class*="col-"] {
+    display: flex;
+}
+
+.equal-height-row .card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.equal-height-row .card-body {
+    flex: 1 1 auto;
+}
+</style>
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
