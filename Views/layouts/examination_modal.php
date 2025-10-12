@@ -27,6 +27,9 @@
                             <a href="#sec-ultrasound" class="list-group-item list-group-item-action exam-nav">
                                 <i class="fas fa-wave-square me-2"></i>Siêu âm
                             </a>
+                            <a href="#sec-ultrasound-result" class="list-group-item list-group-item-action exam-nav">
+                                <i class="fas fa-file-medical-alt me-2"></i>Kết quả siêu âm
+                            </a>
                             <a href="#sec-xray" class="list-group-item list-group-item-action exam-nav">
                                 <i class="fas fa-x-ray me-2"></i>X-Quang
                             </a>
@@ -80,35 +83,86 @@
                                     <h6 class="mb-0"><i class="fas fa-wave-square me-2"></i>Phiếu yêu cầu Siêu âm</h6>
                                 </div>
                                 <div class="card-body">
-                                    <div class="text-center mb-2">
+                                    <input type="hidden" name="id_phieu_kham_benh" id="ultrasound_examination_id">
+                                    
+                                    <div class="text-center mb-3">
                                         <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU SIÊU ÂM</div>
                                     </div>
-                                    <div class="border border-dark p-2">
-                                        <div class="row g-2 align-items-center mb-2">
-                                            <div class="col-md-6">Họ và tên: <strong id="us_name"></strong></div>
-                                            <div class="col-md-2">Tuổi: <strong id="us_age"></strong></div>
-                                            <div class="col-md-2">Giới: <strong id="us_gender"></strong></div>
-                                            <div class="col-md-2">Số hồ sơ: <input type="text" class="form-control form-control-sm d-inline-block w-auto" id="us_so_ho_so"></div>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Tên phòng khám</label>
+                                            <input type="text" class="form-control" name="ultrasound_clinic_name" id="ultrasound_clinic_name" value="Thịnh Việt" readonly>
                                         </div>
-                                        <div class="row g-2 align-items-center mb-2">
-                                            <div class="col-md-4">Đối tượng: <input type="text" class="form-control form-control-sm" id="us_doi_tuong" placeholder="BHYT / Thu phí"></div>
-                                            <div class="col-md-4">Số thẻ BHYT: <input type="text" class="form-control form-control-sm" id="us_so_the_bhyt"></div>
-                                            <div class="col-md-4">Phòng khám: <input type="text" class="form-control form-control-sm" id="us_phong_kham"></div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Số điện thoại</label>
+                                            <input type="text" class="form-control" name="ultrasound_phone" id="ultrasound_phone" value="0777871608">
                                         </div>
-                                        <div class="row g-2 align-items-center mb-2">
-                                            <div class="col-md-12">Chẩn đoán: <input type="text" class="form-control form-control-sm" id="us_chan_doan"></div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Quận/Huyện</label>
+                                            <input type="text" class="form-control" name="ultrasound_quan" id="ultrasound_quan" value="Gò Vấp">
                                         </div>
-                                        <div class="text-center fw-bold mb-1">Yêu cầu xét nghiệm</div>
-                                        <textarea class="form-control mb-3" id="us_yeu_cau" rows="3" placeholder="Ví dụ: Siêu âm Doppler thai nhi ..."></textarea>
-                                        <div class="d-flex justify-content-between mt-2">
-                                            <div>
-                                                <div class="fw-bold">CHỦ NHIỆM KHOA</div>
+                                    </div>
+
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Mã bệnh nhân</label>
+                                            <input type="text" class="form-control" name="ultrasound_patient_code" id="ultrasound_patient_code" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Họ tên người bệnh</label>
+                                            <input type="text" class="form-control" name="ultrasound_patient_name" id="ultrasound_patient_name" readonly>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Tuổi</label>
+                                            <input type="text" class="form-control" name="ultrasound_patient_age" id="ultrasound_patient_age" readonly>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Nam/Nữ</label>
+                                            <input type="text" class="form-control" name="ultrasound_patient_gender" id="ultrasound_patient_gender" readonly>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-bold">Địa chỉ</label>
+                                            <input type="text" class="form-control" name="ultrasound_patient_address" id="ultrasound_patient_address">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Đối tượng</label>
+                                            <input type="text" class="form-control" name="ultrasound_patient_type" id="ultrasound_patient_type" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Số thẻ BHYT</label>
+                                            <input type="text" class="form-control" name="ultrasound_insurance_number" id="ultrasound_insurance_number" readonly>
+                                        </div>
+                                    </div>
+
+                                    <!-- Chẩn đoán -->
+                                    <div class="mt-3">
+                                        <label class="form-label fw-bold">Chẩn đoán:</label>
+                                        <input type="text" class="form-control" name="ultrasound_diagnosis" id="ultrasound_diagnosis" placeholder="Nhập chẩn đoán...">
+                                    </div>
+
+                                    <!-- Yêu cầu siêu âm -->
+                                    <div class="mt-3 position-relative">
+                                        <label class="form-label fw-bold text-center w-100 d-block" style="font-size:16px">YÊU CẦU SIÊU ÂM</label>
+                                        <textarea class="form-control" name="ultrasound_request" id="ultrasound_request" rows="6" placeholder="Nhập yêu cầu siêu âm..."></textarea>
+                                        <div id="ultrasound_suggestions" class="position-absolute bg-white border rounded shadow" style="display:none; z-index:1000; max-height:200px; overflow-y:auto; width:100%;"></div>
+                                    </div>
+
+                                    <!-- Chữ ký bác sĩ -->
+                                    <div class="row mt-4">
+                                        <div class="col-md-6"></div>
+                                        <div class="col-md-6 text-center">
+                                            <div class="mb-2 d-flex align-items-center justify-content-center gap-2">
+                                                <span>Ngày</span>
+                                                <input type="number" class="form-control text-center" name="ultrasound_ngay" id="ultrasound_ngay" style="width:70px">
+                                                <span>tháng</span>
+                                                <input type="number" class="form-control text-center" name="ultrasound_thang" id="ultrasound_thang" style="width:70px">
+                                                <span>năm</span>
+                                                <input type="number" class="form-control text-center" name="ultrasound_nam" id="ultrasound_nam" style="width:90px">
                                             </div>
-                                            <div class="text-end">
-                                                <div class="mb-1"><em id="us_date_line"></em></div>
-                                                <div class="fw-bold">BÁC SỸ KHÁM</div>
-                                                <div style="min-height:40px" id="us_bac_si"></div>
-                                            </div>
+                                            <div class="fw-bold">BÁC SĨ ĐIỀU TRỊ</div>
+                                            <div class="mt-2" id="ultrasound_doctor_display" style="min-height:40px; border-bottom: 1px solid #000; padding: 5px;">(Ký và ghi rõ họ tên)</div>
+                                            <input type="hidden" name="ultrasound_doctor_name" id="ultrasound_doctor_name">
                                         </div>
                                     </div>
                                 </div>
@@ -132,7 +186,7 @@
                                         </div>
                                         <div class="col-md-6 text-end">
                                             <div class="mb-2">
-                                                <strong>MS:</strong> <input type="text" class="form-control d-inline-block w-auto" name="ma_so" placeholder="42/BV-01">
+                                                <strong>Mã bệnh nhân:</strong> <input type="text" class="form-control d-inline-block w-auto" id="exam_ma_benh_nhan" name="ma_so" placeholder="Mã bệnh nhân" readonly>
                                             </div>
                                             <div class="mb-2">
                                                 <strong>BUỒNG KHÁM BỆNH:</strong> <input type="text" class="form-control d-inline-block w-auto" name="buong_kham" id="buong_kham" readonly>
@@ -415,6 +469,150 @@
                                 </div>
                             </div>
 
+                            <!-- Kết quả siêu âm -->
+                            <div class="card mb-3 exam-section" id="sec-ultrasound-result">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0"><i class="fas fa-file-medical-alt me-2"></i>Kết quả siêu âm</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="nav nav-tabs mb-2" id="us_result_tabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="us_tab_info" data-bs-toggle="tab" data-bs-target="#us_tabpane_info" type="button" role="tab">Thông tin</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="us_tab_images" data-bs-toggle="tab" data-bs-target="#us_tabpane_images" type="button" role="tab">Hình Ảnh Siêu âm</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content">
+                                        <div class="tab-pane fade show active" id="us_tabpane_info" role="tabpanel">
+                                            <style>
+                                                .report { font-family: "Times New Roman", serif; padding: 18px; }
+                                                .title { font-weight: bold; text-transform: uppercase; text-align: center; letter-spacing: .5px; font-size: 18px; margin-bottom: 6px; color: red; }
+                                                .hr { border-top: 2px solid #000; margin: 10px 0; }
+                                                .row-line { display: flex; gap: 8px; margin-bottom: 6px; font-size: 15px; }
+                                                .label { min-width: 150px; font-weight: bold; }
+                                                .dots { flex: 0 0 auto; }
+                                                .value { flex: 1; border-bottom: 1px dotted #333; min-height: 20px; }
+                                                .section { margin-top: 10px; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; color: blue; }
+                                                .signature { min-width: 260px; }
+                                                .conclusion { font-weight: bold; color: blue; }
+                                                .result-content { border: 1px solid #333; padding: 10px; min-height: 100px; white-space: pre-wrap; }
+                                                .conclusion-content { border: 1px solid #333; padding: 10px; min-height: 60px; white-space: pre-wrap; }
+                                            </style>
+                                            
+                                            <div id="ultrasoundResultReadonly" class="report" style="display:none" data-pxid="">
+                                                <div class="text-center mb-3">
+                                                    <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
+                                                    <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA CHẨN ĐOÁN HÌNH ẢNH</div>
+                                                </div>
+                                                <div class="title">KẾT QUẢ SIÊU ÂM</div>
+                                                
+                                                <div class="text-center mb-2">
+                                                    <div class="fw-bold">Máy: Medison Sonoace X6</div>
+                                                </div>
+                                                
+                                                <div class="row-line">
+                                                    <div class="label">ID:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_id">*0000000*</div>
+                                                    <div class="label" style="margin-left: 20px;">Ngày ĐK:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_date">01/01/2025</div>
+                                                    <div class="dots">-</div>
+                                                    <div class="value" id="us_ro_time">08:00</div>
+                                                </div>
+                                                
+                                                <div class="hr"></div>
+                                                
+                                                <div class="row-line">
+                                                    <div class="label">Họ tên:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_ho_ten">-</div>
+                                                </div>
+                                                
+                                                <div class="row-line">
+                                                    <div class="label">Tuổi:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_tuoi">-</div>
+                                                    <div class="label" style="margin-left: 20px;">Giới:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_gioi_tinh">-</div>
+                                                </div>
+                                                
+                                                <div class="row-line">
+                                                    <div class="label">Địa chỉ:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_dia_chi">-</div>
+                                                </div>
+                                                
+                                                <div class="row-line">
+                                                    <div class="label">Chẩn đoán sơ bộ:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_chan_doan">-</div>
+                                                </div>
+                                                
+                                                <div class="row-line">
+                                                    <div class="label">Bác sĩ chỉ định:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_bac_si">-</div>
+                                                </div>
+                                                
+                                                <div class="row-line">
+                                                    <div class="label">Phiếu chỉ định:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_phieu_chi_dinh">-</div>
+                                                </div>
+                                                
+                                                <div class="hr"></div>
+                                                
+                                                <div class="row-line">
+                                                    <div class="label">Vùng khảo sát:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_vung_khao_sat">SIÊU ÂM BỤNG TỔNG QUÁT MÀU</div>
+                                                </div>
+                                                
+                                                <div class="hr"></div>
+                                                
+                                                <div class="section">KẾT QUẢ KHẢO SÁT:</div>
+                                                <div class="result-content" id="us_ro_ket_qua_khao_sat">-</div>
+                                                
+                                                <!-- Hình ảnh siêu âm -->
+                                                <div class="hr" style="margin: 20px 0;"></div>
+                                                <div class="section">HÌNH ẢNH SIÊU ÂM:</div>
+                                                <div class="row mb-3" id="us_ro_images_in_info"></div>
+                                                
+                                                <div class="section">KẾT LUẬN:</div>
+                                                <div class="conclusion-content" id="us_ro_ket_luan">-</div>
+                                                
+                                                <div class="hr"></div>
+                                                
+                                                <div style="margin-top: 30px; text-align: right;">
+                                                    <div class="mb-3">
+                                                        <span>Ngày</span>
+                                                        <input type="text" class="form-control d-inline-block" id="us_ro_signature_date" style="width:60px; margin: 0 5px;" readonly>
+                                                        <span>tháng</span>
+                                                        <input type="text" class="form-control d-inline-block" id="us_ro_signature_month" style="width:60px; margin: 0 5px;" readonly>
+                                                        <span>năm</span>
+                                                        <input type="text" class="form-control d-inline-block" id="us_ro_signature_year" style="width:80px; margin: 0 5px;" readonly>
+                                                    </div>
+                                                    <div style="margin-right: 20px;">
+                                                        <div class="fw-bold">BÁC SĨ SIÊU ÂM</div>
+                                                        <div class="mt-2" id="us_ro_signature_doctor" style="margin-left: -20px;"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="ultrasoundResultEmpty" class="text-muted">Chưa có kết quả siêu âm</div>
+                                        </div>
+                                        <div class="tab-pane fade" id="us_tabpane_images" role="tabpanel">
+                                            <div id="us_images_wrap">
+                                                <div class="text-muted small mb-2">Danh sách hình ảnh siêu âm đã lưu</div>
+                                                <div class="row" id="us_ro_gallery"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Phiếu chụp X-Quang -->
                             <div class="card mb-3 exam-section" id="sec-xray">
                                 <div class="card-header bg-dark text-white">
@@ -445,7 +643,11 @@
 
                                     <!-- Thông tin bệnh nhân -->
                                     <div class="row g-3">
-                                        <div class="col-md-8">
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Mã bệnh nhân</label>
+                                            <input type="text" class="form-control" name="xray_patient_code" id="xray_patient_code" readonly>
+                                        </div>
+                                        <div class="col-md-6">
                                             <label class="form-label fw-bold">Họ tên người bệnh</label>
                                             <input type="text" class="form-control" name="xray_patient_name" id="xray_patient_name" readonly>
                                         </div>
@@ -461,12 +663,20 @@
                                             <label class="form-label fw-bold">Địa chỉ</label>
                                             <input type="text" class="form-control" name="xray_patient_address" id="xray_patient_address">
                                         </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Đối tượng</label>
+                                            <input type="text" class="form-control" name="xray_patient_type" id="xray_patient_type" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Số thẻ BHYT</label>
+                                            <input type="text" class="form-control" name="xray_insurance_number" id="xray_insurance_number" readonly>
+                                        </div>
                                     </div>
 
-                                    <!-- Chẩn đoán vào viện -->
+                                    <!-- Chuẩn đoán -->
                                     <div class="mt-3">
-                                        <label class="form-label fw-bold">Chẩn đoán vào viện:</label>
-                                        <input type="text" class="form-control" name="xray_diagnosis" id="xray_diagnosis" placeholder="Nhập chẩn đoán vào viện...">
+                                        <label class="form-label fw-bold">Chuẩn đoán:</label>
+                                        <input type="text" class="form-control" name="xray_diagnosis" id="xray_diagnosis" placeholder="Nhập chuẩn đoán...">
                                     </div>
 
                                     <!-- Đối tượng (removed per request) -->
@@ -478,13 +688,6 @@
                                             </div>
                                             <small class="text-muted"></small>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">Tỷ lệ thanh toán:</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control text-end fw-bold" id="xray_payment_rate" value="100%" readonly style="color: #dc3545;">
-                                                <span class="input-group-text bg-danger text-white fw-bold">%</span>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <!-- Yêu cầu chụp -->
@@ -493,35 +696,6 @@
                                         <textarea class="form-control" name="xray_request" id="xray_request" rows="6" placeholder="Nhập yêu cầu chụp..."></textarea>
                                         <div id="xray_suggestions" class="position-absolute bg-white border rounded shadow" style="display:none; z-index:1000; max-height:200px; overflow-y:auto; width:100%;"></div>
                                     </div>
-
-                                    <!-- Giá tiền (removed per request) -->
-                                    <div class="row mt-3 d-none">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold">Chi tiết giá tiền</label>
-                                            <div id="xray_price_details" class="border rounded p-2" style="min-height: 100px; background-color: #f8f9fa;">
-                                                <div class="text-muted text-center">Chưa có yêu cầu chụp</div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="row">
-                                                <div class="col-12 mb-2">
-                                                    <label class="form-label fw-bold">Giá gốc</label>
-                                                    <div class="input-group">
-                                                        <input type="text" class="form-control text-end fw-bold" id="xray_original_price" value="0 VNĐ" readonly style="font-size: 16px; color: #6c757d;">
-                                                        <span class="input-group-text bg-secondary text-white fw-bold">VNĐ</span>
-                                                    </div>
-                                                </div>
-                                                <div class="col-12">
-                                                    <label class="form-label fw-bold">Tổng thanh toán</label>
-                                                    <div class="input-group">
-                                                        <input type="text" class="form-control text-end fw-bold" id="xray_total_price" value="0 VNĐ" readonly style="font-size: 18px; color: #dc3545;">
-                                                        <span class="input-group-text bg-danger text-white fw-bold">VNĐ</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
 
                                     <!-- Chữ ký -->
                                     <div class="row mt-4">
@@ -732,6 +906,12 @@
                 </button>
                 <button type="button" class="btn btn-primary" id="printXrayForm" style="display:none" disabled>
                     <i class="fas fa-print me-1"></i>In phiếu chụp X-Quang
+                </button>
+                <button type="button" class="btn btn-success" id="saveUltrasoundForm" style="display:none" onclick="saveUltrasoundForm()">
+                    <i class="fas fa-save me-1"></i>Lưu phiếu siêu âm
+                </button>
+                <button type="button" class="btn btn-primary" id="printUltrasoundForm" style="display:none" onclick="printUltrasoundForm()">
+                    <i class="fas fa-print me-1"></i>In phiếu siêu âm
                 </button>
             </div>
         </div>

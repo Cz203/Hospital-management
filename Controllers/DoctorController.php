@@ -2,20 +2,37 @@
 require_once 'Models/Doctor.php';
 require_once 'Models/XraySuggestion.php';
 require_once 'Models/PhieuChupXquang.php';
+require_once 'Models/PhieuYeuCauSieuAm.php';
+require_once 'Models/KetQuaSieuAm.php';
+require_once 'Models/SieuAmHinhAnh.php';
 require_once 'Controllers/AuthController.php';
+require_once 'config/database.php';
 
 class DoctorController
 {
     private $doctorModel;
     private $xraySuggestionModel;
     private $phieuChupXquangModel;
+    private $phieuYeuCauSieuAmModel;
+    private $ketQuaSieuAmModel;
+    private $sieuAmHinhAnhModel;
     private $auth;
+    private $db;
 
     public function __construct()
     {
         $this->doctorModel = new Doctor();
         $this->xraySuggestionModel = new XraySuggestion();
         $this->phieuChupXquangModel = new PhieuChupXquang();
+        $this->phieuYeuCauSieuAmModel = new PhieuYeuCauSieuAm();
+        
+        // DB connection for simple queries
+        require_once 'config/database.php';
+        $database = new Database();
+        $this->db = $database->getConnection();
+        
+        $this->ketQuaSieuAmModel = new KetQuaSieuAm($this->db);
+        $this->sieuAmHinhAnhModel = new SieuAmHinhAnh($this->db);
         $this->auth = new AuthController();
     }
 
@@ -24,8 +41,8 @@ class DoctorController
      */
     public function manageSchedule()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -123,8 +140,8 @@ class DoctorController
      */
     public function appointmentManagement()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -188,8 +205,8 @@ class DoctorController
      */
     public function updateAppointmentStatus()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -249,8 +266,8 @@ class DoctorController
      */
     public function addSchedule()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -346,8 +363,8 @@ class DoctorController
      */
     public function updateSchedule()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -441,8 +458,8 @@ class DoctorController
      */
     public function deleteSchedule()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -492,8 +509,8 @@ class DoctorController
      */
     public function getScheduleInfo()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -531,8 +548,8 @@ class DoctorController
      */
     public function getSchedulesByDay()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor và xray_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -563,7 +580,11 @@ class DoctorController
      */
     public function modifyScheduleForDate()
     {
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            header("Location: ./login");
+            exit();
+        }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: ./doctor_schedule_management');
             exit();
@@ -670,7 +691,11 @@ class DoctorController
      */
     public function cancelScheduleForDate()
     {
-        $this->auth->requireAuth('doctor');
+        // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            header("Location: ./login");
+            exit();
+        }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: ./doctor_schedule_management');
             exit();
@@ -1378,6 +1403,32 @@ class DoctorController
     }
 
     /**
+     * Lấy gợi ý Siêu âm từ database (bảng sieuam_suggestions)
+     */
+    public function getUltrasoundSuggestions()
+    {
+        // Allow both doctor and xray_doctor; if not logged in, still allow for testing autocomplete
+        if (!isset($_SESSION['user_role'])) {
+            // no-op; continue
+        } elseif ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $keyword = isset($_POST['keyword']) ? trim($_POST['keyword']) : '';
+        try {
+            $sql = "SELECT id, ten_goi_y, gia_tien FROM sieuam_suggestions WHERE trang_thai=1 AND ten_goi_y LIKE :kw ORDER BY thu_tu, ten_goi_y LIMIT 50";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':kw' => '%' . $keyword . '%']);
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Throwable $e) {
+            error_log('getUltrasoundSuggestions error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
      * Tính giá tiền X-Quang
      */
     public function calculateXrayPrice()
@@ -1433,10 +1484,18 @@ class DoctorController
             $quan = $_POST['quan'] ?? 'Gò Vấp';
             $yeuCauChup = $_POST['yeu_cau_chup'] ?? '';
             $bacSiKham = $_POST['bac_si_kham'] ?? '';
+            $chanDoanVaoVien = $_POST['chan_doan_vao_vien'] ?? '';
 
             // Validate required fields
             if (empty($idPhieuKhamBenh) || empty($yeuCauChup)) {
                 echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc']);
+                exit();
+            }
+
+            // Kiểm tra yêu cầu chụp X-Quang có hợp lệ không
+            $validation = $this->phieuChupXquangModel->validateXrayRequests($yeuCauChup);
+            if (!$validation['valid']) {
+                echo json_encode(['success' => false, 'message' => $validation['message']]);
                 exit();
             }
 
@@ -1453,7 +1512,8 @@ class DoctorController
                 'so_dien_thoai' => $soDienThoai,
                 'quan' => $quan,
                 'yeu_cau_chup' => $yeuCauChup,
-                'bac_si_kham' => $bacSiKham
+                'bac_si_kham' => $bacSiKham,
+                'chan_doan_vao_vien' => $chanDoanVaoVien
             ];
 
             if ($existingXray) {
@@ -1741,7 +1801,8 @@ class DoctorController
             $conn = $database->getConnection();
 
             // Lấy dữ liệu kết quả X-Quang
-            $sql = "SELECT kq.*, px.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.chan_doan_vao_vien, pk.nam_sinh,
+            $sql = "SELECT kq.*, px.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.nam_sinh,
+                           COALESCE(px.chan_doan_vao_vien, pk.chan_doan_vao_vien) as chan_doan_vao_vien,
                            bs.ten as bac_si_chi_dinh, ck.ten as khoa_chi_dinh
                     FROM ket_qua_xquang kq
                     JOIN phieu_chup_xquang px ON kq.id_phieu_chup_xquang = px.id
@@ -2060,23 +2121,40 @@ class DoctorController
         }
 
         $date = isset($_GET['date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['date']) ? $_GET['date'] : null;
-        $name = isset($_GET['name']) ? trim($_GET['name']) : '';
+        $requestId = isset($_GET['request_id']) ? trim($_GET['request_id']) : '';
+        $patientCode = isset($_GET['patient_code']) ? trim($_GET['patient_code']) : '';
 
         try {
             $database = new Database();
             $db = $database->getConnection();
 
             $sql = "SELECT px.id, px.trang_thai, px.ngay_tao, kq.ket_luan, kq.noi_dung,
-                           pk.ho_ten, pk.tuoi, pk.gioi_tinh
+                           pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, bn.ma_benh_nhan
                     FROM phieu_chup_xquang px
                     JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
+                    JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                     LEFT JOIN ket_qua_xquang kq ON kq.id_phieu_chup_xquang = px.id";
 
             $conds = [];
             $params = [];
+            $conds[] = 'px.trang_thai = ?'; $params[] = 'Hoàn thành'; // Chỉ hiển thị phiếu đã hoàn thành
             if ($date) { $conds[] = 'DATE(px.ngay_tao) = ?'; $params[] = $date; }
-            if ($name !== '') { $conds[] = 'pk.ho_ten LIKE ?'; $params[] = '%'.$name.'%'; }
-            if (!empty($conds)) { $sql .= ' WHERE ' . implode(' AND ', $conds); }
+            if ($requestId !== '') { 
+                // Search by request ID (px.id)
+                if (is_numeric($requestId)) {
+                    $conds[] = 'px.id = ?'; 
+                    $params[] = $requestId; 
+                } else {
+                    $conds[] = 'px.id LIKE ?'; 
+                    $params[] = '%'.$requestId.'%'; 
+                }
+            }
+            if ($patientCode !== '') { 
+                // Search by patient code (bn.ma_benh_nhan)
+                $conds[] = 'bn.ma_benh_nhan LIKE ?'; 
+                $params[] = '%'.$patientCode.'%'; 
+            }
+            $sql .= ' WHERE ' . implode(' AND ', $conds);
             $sql .= ' ORDER BY px.ngay_tao DESC, px.id DESC LIMIT 200';
 
             $stmt = $db->prepare($sql);
@@ -2111,9 +2189,10 @@ class DoctorController
             $database = new Database();
             $db = $database->getConnection();
 
-            $sql = "SELECT px.id, px.ngay_tao, px.ngay_cap_nhat, px.trang_thai,
+            $sql = "SELECT px.id, px.ngay_tao, px.ngay_cap_nhat, px.trang_thai, px.yeu_cau_chup,
                            pk.ho_ten, pk.nam_sinh, pk.gioi_tinh, pk.dia_chi,
-                           pk.chan_doan_vao_vien, pk.ten_bac_si AS bac_si_chi_dinh,
+                           COALESCE(px.chan_doan_vao_vien, pk.chan_doan_vao_vien) as chan_doan_vao_vien, 
+                           pk.ten_bac_si AS bac_si_chi_dinh,
                            kq.noi_dung, kq.ket_luan, kq.bac_si_xquang
                     FROM phieu_chup_xquang px
                     JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
@@ -2149,7 +2228,8 @@ class DoctorController
             $db = $database->getConnection();
             $sql = "SELECT px.id, px.ngay_tao, px.ngay_cap_nhat, px.trang_thai,
                            pk.ho_ten, pk.nam_sinh, pk.gioi_tinh, pk.dia_chi,
-                           pk.chan_doan_vao_vien, pk.ten_bac_si AS bac_si_chi_dinh,
+                           COALESCE(px.chan_doan_vao_vien, pk.chan_doan_vao_vien) as chan_doan_vao_vien, 
+                           pk.ten_bac_si AS bac_si_chi_dinh,
                            kq.noi_dung, kq.ket_luan, kq.bac_si_xquang
                     FROM phieu_chup_xquang px
                     JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
@@ -2164,6 +2244,86 @@ class DoctorController
         } catch (Exception $e) {
             error_log('getXrayResultByExamIdForView error: '.$e->getMessage());
             echo json_encode(['success'=>false,'message'=>'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy KQ Siêu âm theo id phiếu khám bệnh để hiển thị trong modal khám bệnh (read-only)
+     */
+    public function getUltrasoundResultByExamIdForView()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'admin')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $examId = isset($_GET['exam_id']) ? (int)$_GET['exam_id'] : 0;
+        if ($examId <= 0) { echo json_encode(['success'=>false,'message'=>'Thiếu exam id']); return; }
+
+        try {
+            // Tìm phiếu yêu cầu siêu âm từ exam_id trước
+            $database = new Database();
+            $db = $database->getConnection();
+            $sql = "SELECT pysa.id FROM phieu_yeu_cau_sieu_am pysa 
+                    WHERE pysa.id_phieu_kham_benh = ? AND pysa.trang_thai = 'Hoàn thành'";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([$examId]);
+            $pysaRow = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$pysaRow) {
+                echo json_encode(['success' => false, 'message' => 'Chưa có kết quả siêu âm']);
+                return;
+            }
+            
+            // Lấy kết quả siêu âm từ phieu_id
+            $result = $this->ketQuaSieuAmModel->getByPhieuYeuCauId($pysaRow['id']);
+            
+            if ($result) {
+                // Thêm thông tin bổ sung
+                $result['noi_dung'] = $result['yeu_cau_sieu_am'];
+                
+                echo json_encode([
+                    'success' => true,
+                    'result' => $result
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Chưa có kết quả siêu âm']);
+            }
+        } catch (Exception $e) {
+            error_log('getUltrasoundResultByExamIdForView error: '.$e->getMessage());
+            echo json_encode(['success'=>false,'message'=>'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy hình ảnh siêu âm đã lưu
+     */
+    public function getSavedUltrasoundImages()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'admin')) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $resultId = isset($_GET['result_id']) ? (int)$_GET['result_id'] : 0;
+        if ($resultId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu result_id']);
+            return;
+        }
+
+        try {
+            $images = $this->sieuAmHinhAnhModel->getByKetQuaId($resultId);
+            
+            echo json_encode([
+                'success' => true,
+                'images' => $images
+            ]);
+        } catch (Exception $e) {
+            error_log('getSavedUltrasoundImages error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }
 
@@ -2226,7 +2386,7 @@ class DoctorController
         try {
             // Lấy đối tượng từ phiếu khám bệnh đã lưu
             $sql = "SELECT pk.doi_tuong_bhyt, pk.doi_tuong_thu_phi, pk.doi_tuong_mien, pk.doi_tuong_khac,
-                           bn.id as benh_nhan_id, pk.id as phieu_kham_id
+                           pk.so_the_bhyt, bn.id as benh_nhan_id, pk.id as phieu_kham_id
                     FROM phieu_kham_benh pk
                     JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                     WHERE pk.id = ?";
@@ -2255,23 +2415,16 @@ class DoctorController
             $doiTuongThuPhi = $patient['doi_tuong_thu_phi'];
             $doiTuongMien = $patient['doi_tuong_mien'];
             $doiTuongKhac = $patient['doi_tuong_khac'];
+            $soTheBhyt = $patient['so_the_bhyt'] ?? '';
             
             // Ưu tiên BHYT trước
             $hasBhyt = $doiTuongBhyt == 1;
             
-            // Debug log
-            error_log('Patient Type Debug - Exam ID: ' . $examId);
-            error_log('Patient Type Debug - Benh nhan ID: ' . $patient['benh_nhan_id']);
-            error_log('Patient Type Debug - Phieu kham ID: ' . $patient['phieu_kham_id']);
-            error_log('Patient Type Debug - doi_tuong_bhyt: ' . $doiTuongBhyt);
-            error_log('Patient Type Debug - doi_tuong_thu_phi: ' . $doiTuongThuPhi);
-            error_log('Patient Type Debug - doi_tuong_mien: ' . $doiTuongMien);
-            error_log('Patient Type Debug - doi_tuong_khac: ' . $doiTuongKhac);
-            error_log('Patient Type Debug - hasBhyt: ' . ($hasBhyt ? 'true' : 'false'));
 
             echo json_encode([
                 'success' => true,
                 'hasBhyt' => $hasBhyt,
+                'soTheBhyt' => $soTheBhyt,
                 'doiTuongBhyt' => $doiTuongBhyt,
                 'doiTuongThuPhi' => $doiTuongThuPhi,
                 'doiTuongMien' => $doiTuongMien,
@@ -2282,6 +2435,669 @@ class DoctorController
 
         } catch (Exception $e) {
             error_log('Error getting patient BHYT status: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lưu phiếu yêu cầu siêu âm
+     */
+    public function saveUltrasoundForm()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            if (!isset($_POST['exam_id']) || empty($_POST['exam_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc']);
+                return;
+            }
+
+            $examId = $_POST['exam_id'];
+            $maBenhNhan = $_POST['ma_benh_nhan'] ?? '';
+            $hoTen = $_POST['ho_ten'] ?? '';
+            $tuoi = $_POST['tuoi'] ?? '';
+            $gioiTinh = $_POST['gioi_tinh'] ?? '';
+            $diaChi = $_POST['dia_chi'] ?? '';
+            $doiTuong = $_POST['doi_tuong'] ?? '';
+            $soTheBhyt = $_POST['so_the_bhyt'] ?? '';
+            $phongKham = $_POST['phong_kham'] ?? '';
+            $soDienThoai = $_POST['so_dien_thoai'] ?? '';
+            $quanHuyen = $_POST['quan_huyen'] ?? '';
+            $chanDoan = $_POST['chan_doan'] ?? '';
+            $yeuCau = $_POST['yeu_cau'] ?? '';
+            $bacSiKham = $_POST['bac_si_kham'] ?? '';
+            $ngay = $_POST['ngay'] ?? '';
+            $thang = $_POST['thang'] ?? '';
+            $nam = $_POST['nam'] ?? '';
+            $thoiGianYeuCau = date('Y-m-d H:i:s');
+
+            // Kiểm tra yêu cầu siêu âm có hợp lệ không
+            $validation = $this->phieuYeuCauSieuAmModel->validateUltrasoundRequests($yeuCau);
+            if (!$validation['valid']) {
+                echo json_encode(['success' => false, 'message' => $validation['message']]);
+                return;
+            }
+
+            // Kiểm tra xem đã có phiếu siêu âm chưa
+            $existingForm = $this->phieuYeuCauSieuAmModel->getByExamId($examId);
+
+            $data = [
+                'id_phieu_kham_benh' => $examId,
+                'so_ho_so' => $maBenhNhan,  // Map ma_benh_nhan to so_ho_so
+                'ho_ten' => $hoTen,
+                'tuoi' => $tuoi,
+                'gioi_tinh' => $gioiTinh,
+                'doi_tuong' => $doiTuong,
+                'so_the_bhyt' => $soTheBhyt,
+                'phong_kham' => $phongKham,
+                'chan_doan' => $chanDoan,
+                'yeu_cau' => $yeuCau,
+                'bac_si_kham' => $bacSiKham,
+                'thoi_gian_yeu_cau' => $thoiGianYeuCau
+            ];
+
+            if ($existingForm) {
+                // Cập nhật phiếu đã có
+                $result = $this->phieuYeuCauSieuAmModel->update($existingForm['id'], $data);
+                $message = 'Cập nhật phiếu yêu cầu siêu âm thành công';
+            } else {
+                // Tạo phiếu mới
+                $result = $this->phieuYeuCauSieuAmModel->save($data);
+                $message = 'Lưu phiếu yêu cầu siêu âm thành công';
+            }
+
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => $message]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu phiếu yêu cầu siêu âm']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error saving ultrasound form: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy dữ liệu phiếu yêu cầu siêu âm theo exam ID
+     */
+    public function getUltrasoundFormData()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $examId = $_GET['exam_id'] ?? '';
+            if (empty($examId)) {
+                echo json_encode(['success' => false, 'message' => 'Exam ID không hợp lệ']);
+                return;
+            }
+
+            $formData = $this->phieuYeuCauSieuAmModel->getByExamId($examId);
+            
+            if ($formData) {
+                echo json_encode(['success' => true, 'data' => $formData]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu yêu cầu siêu âm']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error getting ultrasound form data: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * In phiếu yêu cầu siêu âm
+     */
+    public function printUltrasoundForm()
+    {
+        try {
+            $id = $_GET['id'] ?? '';
+            if (empty($id)) {
+                echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
+                return;
+            }
+
+            $formData = $this->phieuYeuCauSieuAmModel->getById($id);
+            if (!$formData) {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu yêu cầu siêu âm']);
+                return;
+            }
+
+            include 'Views/doctor/print_ultrasound_form.php';
+
+        } catch (Exception $e) {
+            error_log('Error printing ultrasound form: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy thống kê siêu âm
+     */
+    public function getUltrasoundStats()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $date = $_GET['date'] ?? date('Y-m-d');
+            
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            // Tổng yêu cầu hôm nay
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as total_today 
+                FROM phieu_yeu_cau_sieu_am 
+                WHERE DATE(ngay_tao) = ?
+            ");
+            $stmt->execute([$date]);
+            $totalToday = $stmt->fetch(PDO::FETCH_ASSOC)['total_today'];
+
+            // Đã siêu âm xong hôm nay
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as completed_today 
+                FROM phieu_yeu_cau_sieu_am 
+                WHERE DATE(ngay_tao) = ? AND trang_thai = 'Hoàn thành'
+            ");
+            $stmt->execute([$date]);
+            $completedToday = $stmt->fetch(PDO::FETCH_ASSOC)['completed_today'];
+
+            // Đang chờ siêu âm
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as pending 
+                FROM phieu_yeu_cau_sieu_am 
+                WHERE trang_thai = 'Đã yêu cầu'
+            ");
+            $stmt->execute();
+            $pending = $stmt->fetch(PDO::FETCH_ASSOC)['pending'];
+
+            echo json_encode([
+                'success' => true,
+                'stats' => [
+                    'total_today' => (int)$totalToday,
+                    'completed_today' => (int)$completedToday,
+                    'pending' => (int)$pending
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            error_log('Error getting ultrasound stats: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy danh sách yêu cầu siêu âm
+     */
+    public function getUltrasoundRequests()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $date = $_GET['date'] ?? date('Y-m-d');
+            $keyword = $_GET['name'] ?? '';
+            
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $sql = "
+                SELECT pysa.*, pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, 
+                       pk.chan_doan_vao_vien as chan_doan, bn.ma_benh_nhan
+                FROM phieu_yeu_cau_sieu_am pysa
+                JOIN phieu_kham_benh pk ON pysa.id_phieu_kham_benh = pk.id
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                WHERE pysa.trang_thai = 'Đã yêu cầu' AND DATE(pysa.ngay_tao) = ?
+            ";
+            $params = [$date];
+
+            if (!empty($keyword)) {
+                $sql .= " AND bn.ma_benh_nhan LIKE ?";
+                $params[] = "%{$keyword}%";
+            }
+
+            $sql .= " ORDER BY pysa.ngay_tao DESC";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'requests' => $requests
+            ]);
+
+        } catch (Exception $e) {
+            error_log('Error getting ultrasound requests: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy kết quả siêu âm
+     */
+    public function getUltrasoundResult()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $id = $_GET['id'] ?? '';
+            
+            if (empty($id)) {
+                echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
+                return;
+            }
+
+            $result = $this->phieuYeuCauSieuAmModel->getById($id);
+            
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'result' => $result
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy kết quả siêu âm']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error getting ultrasound result: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lưu kết quả siêu âm
+     */
+    public function saveUltrasoundResult()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $id = $_POST['id'] ?? '';
+            $ketQua = $_POST['ket_qua'] ?? '';
+            $ketLuan = $_POST['ket_luan'] ?? '';
+            
+            if (empty($id) || empty($ketQua) || empty($ketLuan)) {
+                echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin']);
+                return;
+            }
+
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            // Cập nhật kết quả siêu âm
+            $stmt = $pdo->prepare("
+                UPDATE phieu_yeu_cau_sieu_am 
+                SET ket_qua = ?, ket_luan = ?, trang_thai = 'Hoàn thành', ngay_cap_nhat = NOW()
+                WHERE id = ?
+            ");
+            
+            $result = $stmt->execute([$ketQua, $ketLuan, $id]);
+
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Lưu kết quả siêu âm thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu kết quả siêu âm']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error saving ultrasound result: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lưu kết quả siêu âm với hình ảnh
+     */
+    public function saveSieuAmResult() {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            $phieuId = $_POST['phieu_id'] ?? null;
+            $ketQuaKhaoSat = $_POST['ket_qua_khao_sat'] ?? '';
+            $ketLuan = $_POST['ket_luan'] ?? '';
+            $bacSiSieuAm = $_SESSION['user_name'] ?? '';
+            
+            if (!$phieuId || empty($ketQuaKhaoSat) || empty($ketLuan)) {
+                echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc']);
+                return;
+            }
+            
+            // Kiểm tra xem đã có kết quả chưa
+            $existingResult = $this->ketQuaSieuAmModel->getByPhieuYeuCauId($phieuId);
+            
+            $ketQuaData = [
+                'id_phieu_yeu_cau_sieu_am' => $phieuId,
+                'ket_qua_khao_sat' => $ketQuaKhaoSat,
+                'ket_luan' => $ketLuan,
+                'bac_si_sieu_am' => $bacSiSieuAm
+            ];
+            
+            if ($existingResult) {
+                // Cập nhật kết quả hiện có
+                $result = $this->ketQuaSieuAmModel->update($existingResult['id'], $ketQuaData);
+                $ketQuaId = $existingResult['id'];
+                $message = 'Cập nhật kết quả siêu âm thành công';
+            } else {
+                // Tạo kết quả mới
+                $ketQuaId = $this->ketQuaSieuAmModel->save($ketQuaData);
+                $result = $ketQuaId !== false;
+                $message = 'Lưu kết quả siêu âm thành công';
+            }
+            
+            if ($result) {
+                echo json_encode([
+                    'success' => true, 
+                    'message' => $message,
+                    'ket_qua_id' => $ketQuaId
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu kết quả siêu âm']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error saving sieu am result: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Upload hình ảnh siêu âm
+     */
+    public function uploadSieuAmImages() {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            $ketQuaId = $_POST['ket_qua_id'] ?? null;
+            
+            if (!$ketQuaId) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu ID kết quả siêu âm']);
+                return;
+            }
+            
+            if (!isset($_FILES['images']) || empty($_FILES['images']['name'][0])) {
+                echo json_encode(['success' => false, 'message' => 'Không có file ảnh nào được chọn']);
+                return;
+            }
+            
+            $uploadDir = 'uploads/sieuam/' . $ketQuaId . '/';
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            
+            $uploadedFiles = [];
+            $imageDataArray = [];
+            
+            $files = $_FILES['images'];
+            $fileCount = count($files['name']);
+            
+            for ($i = 0; $i < $fileCount; $i++) {
+                if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                    $fileName = $files['name'][$i];
+                    $fileTmp = $files['tmp_name'][$i];
+                    $fileSize = $files['size'][$i];
+                    $fileType = $files['type'][$i];
+                    
+                    // Tạo tên file unique
+                    $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                    $uniqueFileName = uniqid() . '_' . time() . '.' . $extension;
+                    $filePath = $uploadDir . $uniqueFileName;
+                    
+                    if (move_uploaded_file($fileTmp, $filePath)) {
+                        $imageDataArray[] = [
+                            'ten_file' => $fileName,
+                            'duong_dan' => $filePath,
+                            'kich_thuoc' => $fileSize,
+                            'loai_file' => $fileType
+                        ];
+                        
+                        $uploadedFiles[] = [
+                            'original_name' => $fileName,
+                            'saved_path' => $filePath,
+                            'size' => $fileSize
+                        ];
+                    }
+                }
+            }
+            
+            if (!empty($imageDataArray)) {
+                $savedIds = $this->sieuAmHinhAnhModel->saveMultiple($ketQuaId, $imageDataArray);
+                
+                if ($savedIds) {
+                    echo json_encode([
+                        'success' => true, 
+                        'message' => 'Upload ' . count($uploadedFiles) . ' ảnh thành công',
+                        'uploaded_files' => $uploadedFiles,
+                        'saved_ids' => $savedIds
+                    ]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu thông tin ảnh vào database']);
+                }
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không có ảnh nào được upload thành công']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error uploading sieu am images: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy hình ảnh siêu âm theo ID kết quả
+     */
+    public function getSieuAmImages() {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            $ketQuaId = $_GET['ket_qua_id'] ?? $_GET['result_id'] ?? null;
+            
+            if (!$ketQuaId) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu ID kết quả siêu âm']);
+                return;
+            }
+            
+            $images = $this->sieuAmHinhAnhModel->getByKetQuaId($ketQuaId);
+            
+            if ($images !== false) {
+                echo json_encode([
+                    'success' => true, 
+                    'images' => $images
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi lấy danh sách ảnh']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error getting sieu am images: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy kết quả siêu âm theo ID phiếu yêu cầu
+     */
+    public function getSieuAmResult() {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            $phieuId = $_GET['phieu_id'] ?? null;
+            
+            if (!$phieuId) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu yêu cầu']);
+                return;
+            }
+            
+            $result = $this->ketQuaSieuAmModel->getByPhieuYeuCauId($phieuId);
+            
+            if ($result) {
+                // Lấy thêm hình ảnh nếu có
+                $images = $this->sieuAmHinhAnhModel->getByKetQuaId($result['id']);
+                
+                echo json_encode([
+                    'success' => true, 
+                    'result' => $result,
+                    'images' => $images ?: []
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy kết quả siêu âm']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error getting sieu am result: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Xóa hình ảnh siêu âm
+     */
+    public function deleteSieuAmImage() {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            $imageId = $_POST['image_id'] ?? null;
+            
+            if (!$imageId) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu ID hình ảnh']);
+                return;
+            }
+            
+            $result = $this->sieuAmHinhAnhModel->delete($imageId);
+            
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Xóa ảnh thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi xóa ảnh']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error deleting sieu am image: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy lịch sử siêu âm
+     */
+    public function getSieuamHistory() {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            $date = $_GET['date'] ?? null;
+            $requestId = $_GET['request_id'] ?? null;
+            $patientCode = $_GET['patient_code'] ?? null;
+            
+            $history = $this->getSieuamHistoryData($date, $requestId, $patientCode);
+            
+            echo json_encode([
+                'success' => true,
+                'history' => $history
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Error getting sieuam history: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi hệ thống'
+            ]);
+        }
+    }
+
+    /**
+     * Lấy dữ liệu lịch sử siêu âm
+     */
+    private function getSieuamHistoryData($date = null, $requestId = null, $patientCode = null) {
+        $sql = "SELECT kq.*, kq.bac_si_sieu_am, pysa.id as phieu_id, pysa.yeu_cau as yeu_cau_sieu_am, pysa.chan_doan,
+                       pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.ten_bac_si,
+                       bn.ma_benh_nhan
+                FROM ket_qua_sieu_am kq
+                JOIN phieu_yeu_cau_sieu_am pysa ON kq.id_phieu_yeu_cau_sieu_am = pysa.id
+                JOIN phieu_kham_benh pk ON pysa.id_phieu_kham_benh = pk.id
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                WHERE pysa.trang_thai = 'Hoàn thành'";
+        
+        $params = [];
+        
+        if ($date) {
+            $sql .= " AND DATE(kq.ngay_tao) = :date";
+            $params[':date'] = $date;
+        }
+        
+        if ($requestId) {
+            $sql .= " AND pysa.id = :request_id";
+            $params[':request_id'] = $requestId;
+        }
+        
+        if ($patientCode) {
+            $sql .= " AND bn.ma_benh_nhan LIKE :patient_code";
+            $params[':patient_code'] = '%' . $patientCode . '%';
+        }
+        
+        $sql .= " ORDER BY kq.ngay_tao DESC";
+        
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy thông tin kết quả siêu âm để xem
+     */
+    public function getSieuamResultView() {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            $resultId = $_GET['result_id'] ?? null;
+            
+            if (!$resultId) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu ID kết quả']);
+                return;
+            }
+            
+            $result = $this->ketQuaSieuAmModel->getById($resultId);
+            
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'result' => $result
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy kết quả siêu âm']);
+            }
+            
+        } catch (Exception $e) {
+            error_log('Error getting sieuam result view: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+
+    /**
+     * Hoàn thành phiếu siêu âm - cập nhật trạng thái thành "Hoàn thành"
+     */
+    public function completeSieuAmResult() {
+        header('Content-Type: application/json; charset=utf-8');
+        
+        try {
+            $phieuId = $_POST['phieu_id'] ?? null;
+            
+            if (!$phieuId) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu yêu cầu siêu âm']);
+                return;
+            }
+            
+            // Cập nhật trạng thái của phiếu yêu cầu siêu âm
+            $sql = "UPDATE phieu_yeu_cau_sieu_am SET trang_thai = 'Hoàn thành' WHERE id = :phieu_id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':phieu_id', $phieuId);
+            
+            if ($stmt->execute()) {
+                echo json_encode(['success' => true, 'message' => 'Hoàn thành phiếu siêu âm thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Lỗi khi cập nhật trạng thái phiếu']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error completing sieu am result: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }

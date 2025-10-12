@@ -99,8 +99,8 @@ $content = '
                             <input type="date" class="form-control" id="xray_date">
                           </div>
                           <div class="col-auto">
-                            <label class="form-label mb-1">Tìm kiếm (Tên hoặc ID)</label>
-                            <input type="text" class="form-control" id="xray_name" placeholder="Nhập tên hoặc ID...">
+                            <label class="form-label mb-1">Tìm kiếm (Mã bệnh nhân)</label>
+                            <input type="text" class="form-control" id="xray_name" placeholder="Nhập mã bệnh nhân...">
                           </div>
                           <div class="col-auto">
                             <button type="button" class="btn btn-outline-secondary" id="xray_filter_btn"><i class="fas fa-filter me-1"></i>Lọc</button>
@@ -111,6 +111,7 @@ $content = '
                                 <thead class="table-light">
                                     <tr>
                                         <th style="width:80px" class="text-center">ID</th>
+                                        <th style="width:120px" class="text-center">Mã Bệnh Nhân</th>
                                         <th>Họ tên</th>
                                         <th style="width:80px" class="text-center">Tuổi</th>
                                         <th style="width:90px" class="text-center">Giới tính</th>
@@ -122,7 +123,7 @@ $content = '
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>
+                                    <tr><td colspan="10" class="text-center text-muted">Đang tải...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -164,7 +165,11 @@ $content .= '
         </div>
 
         <div class="row g-3">
-          <div class="col-md-8">
+          <div class="col-md-2">
+            <label class="form-label fw-bold">Mã bệnh nhân</label>
+            <input type="text" class="form-control" id="vx_patient_code" readonly>
+          </div>
+          <div class="col-md-6">
             <label class="form-label fw-bold">Họ tên người bệnh</label>
             <input type="text" class="form-control" id="vx_patient_name" readonly>
           </div>
@@ -180,10 +185,18 @@ $content .= '
             <label class="form-label fw-bold">Địa chỉ</label>
             <input type="text" class="form-control" id="vx_address" readonly>
           </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Đối tượng</label>
+            <input type="text" class="form-control" id="vx_patient_type" readonly>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Số thẻ BHYT</label>
+            <input type="text" class="form-control" id="vx_insurance_number" readonly>
+          </div>
         </div>
 
         <div class="mt-3">
-          <label class="form-label fw-bold">Chẩn đoán vào viện:</label>
+          <label class="form-label fw-bold">Chuẩn đoán:</label>
           <input type="text" class="form-control" id="vx_diagnosis" readonly>
         </div>
 
@@ -346,12 +359,13 @@ document.addEventListener("DOMContentLoaded", function() {
         if(!tbody) return;
         tbody.innerHTML = '';
         if(!json.success || !json.data || json.data.length === 0){
-          tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Không có dữ liệu</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">Không có dữ liệu</td></tr>';
           return;
         }
         json.data.forEach(function(row){
           var tr = document.createElement('tr');
           tr.innerHTML = '<td class="text-center">' + row.id + '</td>'
+            + '<td class="text-center">' + (row.ma_benh_nhan || '') + '</td>'
             + '<td>' + (row.ho_ten || '') + '</td>'
             + '<td class="text-center">' + (row.tuoi || '') + '</td>'
             + '<td class="text-center">' + (row.gioi_tinh || '') + '</td>'
@@ -365,7 +379,7 @@ document.addEventListener("DOMContentLoaded", function() {
       })
       .catch(function(){
         var tbody = document.querySelector('#xrayRequestedTable tbody');
-        if(tbody) tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+        if(tbody) tbody.innerHTML = '<tr><td colspan="10" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
       });
   }
 
@@ -750,10 +764,13 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById('vx_clinic_name').value = 'Thịnh Việt';
     document.getElementById('vx_phone').value = data.so_dien_thoai || '0777871608';
     document.getElementById('vx_quan').value = data.quan || 'Gò Vấp';
+    document.getElementById('vx_patient_code').value = data.ma_benh_nhan || '';
     document.getElementById('vx_patient_name').value = data.ho_ten || '';
     document.getElementById('vx_patient_age').value = data.tuoi || '';
     document.getElementById('vx_patient_gender').value = data.gioi_tinh || '';
     document.getElementById('vx_address').value = data.dia_chi || '';
+    document.getElementById('vx_patient_type').value = data.doi_tuong || '';
+    document.getElementById('vx_insurance_number').value = data.so_the_bhyt || '';
     document.getElementById('vx_diagnosis').value = data.chan_doan_vao_vien || '';
     document.getElementById('vx_request').value = data.yeu_cau_chup || '';
     var p = parseDateParts(data.ngay_tao);

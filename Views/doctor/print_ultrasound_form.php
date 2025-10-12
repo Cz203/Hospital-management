@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phiếu chụp X-Quang</title>
+    <title>Phiếu Yêu Cầu Siêu Âm</title>
     <style>
         @media print {
             body { margin: 0; }
@@ -72,28 +72,6 @@
             min-height: 25px;
         }
         
-        .price-section {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border: 1px solid #000;
-            margin: 15px 0;
-        }
-        
-        .price-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-        
-        .price-label {
-            font-weight: bold;
-        }
-        
-        .price-value {
-            font-weight: bold;
-            color: #dc3545;
-        }
-        
         .signature-section {
             margin-top: 30px;
         }
@@ -157,7 +135,7 @@
         <div style="font-size: 12px;">Địa chỉ: Gò Vấp, TP.HCM &nbsp;|&nbsp; ĐT: 0777871608</div>
     </div>
 
-    <div class="form-title">PHIẾU CHỤP X – QUANG</div>
+    <div class="form-title">PHIẾU YÊU CẦU SIÊU ÂM</div>
 
     <!-- Thông tin bệnh nhân -->
     <div class="form-section">
@@ -165,47 +143,45 @@
         
         <div class="form-row">
             <div class="form-label">Mã bệnh nhân:</div>
-            <div class="form-value"><?php echo htmlspecialchars($phieuChup['ma_benh_nhan'] ?? ''); ?></div>
+            <div class="form-value"><?php echo htmlspecialchars($formData['so_ho_so'] ?? ''); ?></div>
             <div class="form-label" style="margin-left: 20px;">Họ và tên:</div>
-            <div class="form-value underline"><?php echo htmlspecialchars($phieuChup['ho_ten'] ?? ''); ?></div>
+            <div class="form-value underline"><?php echo htmlspecialchars($formData['ho_ten'] ?? ''); ?></div>
         </div>
         
         <div class="form-row">
             <div class="form-label">Tuổi:</div>
-            <div class="form-value"><?php echo htmlspecialchars($phieuChup['tuoi'] ?? ''); ?></div>
+            <div class="form-value"><?php echo htmlspecialchars($formData['tuoi'] ?? ''); ?></div>
             <div class="form-label" style="margin-left: 20px;">Giới tính:</div>
-            <div class="form-value"><?php echo htmlspecialchars($phieuChup['gioi_tinh'] ?? 'N/A'); ?></div>
+            <div class="form-value"><?php echo htmlspecialchars($formData['gioi_tinh'] ?? 'N/A'); ?></div>
         </div>
         
         <div class="form-row">
             <div class="form-label">Địa chỉ:</div>
-            <div class="form-value underline"><?php echo htmlspecialchars($phieuChup['dia_chi'] ?? ''); ?></div>
+            <div class="form-value underline"><?php echo htmlspecialchars($formData['dia_chi'] ?? ''); ?></div>
         </div>
         
         <div class="form-row">
             <div class="form-label">Đối tượng:</div>
-            <div class="form-value underline"><?php echo htmlspecialchars($phieuChup['doi_tuong'] ?? ''); ?></div>
+            <div class="form-value underline"><?php echo htmlspecialchars($formData['doi_tuong'] ?? ''); ?></div>
             <div class="form-label" style="margin-left: 50px;">Số thẻ BHYT:</div>
-            <div class="form-value underline"><?php echo htmlspecialchars($phieuChup['so_the_bhyt'] ?? ''); ?></div>
+            <div class="form-value underline"><?php echo htmlspecialchars($formData['so_the_bhyt'] ?? ''); ?></div>
         </div>
     </div>
 
-    <!-- Thông tin chụp X-Quang -->
+    <!-- Thông tin siêu âm -->
     <div class="form-section">
-        <div class="section-title">II. THÔNG TIN CHỤP X-QUANG</div>
+        <div class="section-title">II. THÔNG TIN SIÊU ÂM</div>
         
         <div class="form-row">
-            <div class="form-label">Chuẩn đoán:</div>
-            <div class="form-value underline"><?php echo htmlspecialchars($phieuChup['chan_doan_vao_vien'] ?? ''); ?></div>
+            <div class="form-label">Chẩn đoán:</div>
+            <div class="form-value underline"><?php echo htmlspecialchars($formData['chan_doan'] ?? ''); ?></div>
         </div>
         
         <div class="form-row" style="align-items: flex-start;">
-            <div class="form-label" style="padding-top: 6px;">Yêu cầu chụp:</div>
-            <div class="form-value underline" style="min-height: 26px; margin-top: 0; padding-top: 0; padding-bottom: 0;"><?php echo nl2br(htmlspecialchars($phieuChup['yeu_cau_chup'] ?? '')); ?></div>
+            <div class="form-label" style="padding-top: 6px;">Yêu cầu siêu âm:</div>
+            <div class="form-value underline" style="min-height: 26px; margin-top: 0; padding-top: 0; padding-bottom: 0;"><?php echo nl2br(htmlspecialchars($formData['yeu_cau'] ?? '')); ?></div>
         </div>
     </div>
-
-    <!-- Giá tiền: removed per request -->
 
     <!-- Chữ ký -->
     <div class="signature-section signature-container">
@@ -214,7 +190,7 @@
         <div class="signature-right">
             <div class="signature-line"></div>
             <div style="font-weight: bold; margin-bottom: 10px;">BÁC SĨ ĐIỀU TRỊ</div>
-            <div style="font-weight: bold;"><?php echo htmlspecialchars($phieuChup['bac_si_kham'] ?? ''); ?></div>
+            <div style="font-weight: bold;"><?php echo htmlspecialchars($formData['bac_si_kham'] ?? ''); ?></div>
         </div>
     </div>
 

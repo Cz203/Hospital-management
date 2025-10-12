@@ -198,6 +198,92 @@ class AuthController
         include 'Views/auth/login_xquang.php';
     }
 
+    public function loginSieuam()
+    {
+        if ($this->isLoggedIn()) {
+            $role = $_SESSION['user_role'];
+            if ($role === 'sieuam_doctor') {
+                header("Location: ./sieuam_dashboard");
+                exit();
+            }
+            switch ($role) {
+                case 'doctor':
+                    header("Location: ./doctor_dashboard");
+                    break;
+                case 'xray_doctor':
+                    header("Location: ./xray_dashboard");
+                    break;
+                case 'admin':
+                    header("Location: ./admin_dashboard");
+                    break;
+                case 'patient':
+                    header("Location: ./patient_dashboard");
+                    break;
+                default:
+                    header("Location: ./home");
+            }
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $email = $_POST['email'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (empty($email) || empty($password)) {
+                $_SESSION['error'] = "Vui lòng nhập đầy đủ thông tin!";
+                header("Location: ./login_sieuam");
+                exit();
+            }
+
+            try {
+                $database = new Database();
+                $pdo = $database->getConnection();
+
+                // Debug: Log thông tin đăng nhập
+                error_log("Sieuam login attempt - Email: $email");
+
+                // Tìm bác sĩ với chuyen_khoa_id = 18 (Siêu âm)
+                $stmt = $pdo->prepare("
+                    SELECT b.*, ck.ten as chuyen_khoa_ten 
+                    FROM bac_si b 
+                    JOIN chuyen_khoa ck ON b.chuyen_khoa_id = ck.id 
+                    WHERE b.email = ? AND b.chuyen_khoa_id = 18
+                ");
+                $stmt->execute([$email]);
+                $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                // Debug: Log kết quả tìm kiếm
+                error_log("Sieuam doctor found: " . ($doctor ? 'YES' : 'NO'));
+                if ($doctor) {
+                    error_log("Doctor ID: " . $doctor['id'] . ", Chuyen khoa: " . $doctor['chuyen_khoa_id']);
+                }
+
+                if ($doctor && password_verify($password, $doctor['mat_khau'])) {
+                    $_SESSION['user_id'] = $doctor['id'];
+                    $_SESSION['user_name'] = $doctor['ten'];
+                    $_SESSION['user_email'] = $doctor['email'];
+                    $_SESSION['user_role'] = 'sieuam_doctor';
+                    $_SESSION['chuyen_khoa_id'] = $doctor['chuyen_khoa_id'];
+                    $_SESSION['chuyen_khoa_ten'] = $doctor['chuyen_khoa_ten'];
+
+
+                    header("Location: ./sieuam_dashboard");
+                    exit();
+                }
+
+                $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
+                header("Location: ./login_sieuam");
+                exit();
+            } catch (Exception $e) {
+                $_SESSION['error'] = "Lỗi hệ thống!";
+                header("Location: ./login_sieuam");
+                exit();
+            }
+        }
+
+        include 'Views/auth/login_sieuam.php';
+    }
+
     public function loginPatient()
     {
         if ($this->isLoggedIn()) {

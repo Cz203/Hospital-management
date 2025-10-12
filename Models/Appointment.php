@@ -431,7 +431,7 @@ class Appointment extends User
     public function getAppointmentsByDoctorAndDate($doctorId, $date)
     {
         try {
-            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau, bn.bao_hiem_y_te, bhy.ngay_het_han
+            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau, bn.bao_hiem_y_te, bn.ma_benh_nhan, bhy.ngay_het_han
                     FROM {$this->table} lh
                     JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
                     LEFT JOIN bao_hiem_y_te bhy ON bn.bao_hiem_y_te_id = bhy.id

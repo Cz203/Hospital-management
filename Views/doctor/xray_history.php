@@ -13,8 +13,12 @@ $content = '<div class="container-fluid">
           <input type="date" class="form-control" id="hx_date">
         </div>
         <div class="col-auto">
-          <label class="form-label mb-1">Tên bệnh nhân</label>
-          <input type="text" class="form-control" id="hx_name" placeholder="Nhập tên...">
+          <label class="form-label mb-1">Số phiếu chỉ định</label>
+          <input type="text" class="form-control" id="hx_request_id" placeholder="Nhập số phiếu chỉ định...">
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-1">Mã Bệnh Nhân</label>
+          <input type="text" class="form-control" id="hx_patient_code" placeholder="Nhập mã bệnh nhân...">
         </div>
         <div class="col-auto">
           <button type="button" class="btn btn-outline-secondary" id="hx_filter_btn"><i class="fas fa-filter me-1"></i>Lọc</button>
@@ -29,6 +33,7 @@ $content = '<div class="container-fluid">
         <thead class="table-light">
           <tr>
             <th style="width:80px" class="text-center">ID</th>
+            <th style="width:120px" class="text-center">Mã Bệnh Nhân</th>
             <th>Họ tên</th>
             <th style="width:90px" class="text-center">Giới tính</th>
             <th style="width:80px" class="text-center">Tuổi</th>
@@ -39,7 +44,7 @@ $content = '<div class="container-fluid">
           </tr>
         </thead>
         <tbody>
-          <tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>
+          <tr><td colspan="9" class="text-center text-muted">Đang tải...</td></tr>
         </tbody>
       </table>
     </div>
@@ -53,13 +58,15 @@ document.addEventListener('DOMContentLoaded', function(){
     var d=new Date();var m=String(d.getMonth()+1).padStart(2,'0');var day=String(d.getDate()).padStart(2,'0');
     return d.getFullYear()+'-'+m+'-'+day;
   }
+  // Set default date to empty to show all records
   var dateEl=document.getElementById('hx_date');
-  if(dateEl){ dateEl.value = formatToday(); }
+  if(dateEl){ dateEl.value = ''; }
 
   function loadHistory(){
     var date = document.getElementById('hx_date')?.value || '';
-    var name = document.getElementById('hx_name')?.value || '';
-    var url='?action=get_xray_history' + (date?('&date='+encodeURIComponent(date)):'') + (name?('&name='+encodeURIComponent(name)):'');
+    var requestId = document.getElementById('hx_request_id')?.value || '';
+    var patientCode = document.getElementById('hx_patient_code')?.value || '';
+    var url='?action=get_xray_history' + (date?('&date='+encodeURIComponent(date)):'') + (requestId?('&request_id='+encodeURIComponent(requestId)):'') + (patientCode?('&patient_code='+encodeURIComponent(patientCode)):'');
     fetch(url)
       .then(function(res){return res.json();})
       .then(function(json){
@@ -67,12 +74,13 @@ document.addEventListener('DOMContentLoaded', function(){
         if(!tbody) return;
         tbody.innerHTML='';
         if(!json.success || !json.data || json.data.length===0){
-          tbody.innerHTML='<tr><td colspan="8" class="text-center text-muted">Không có dữ liệu</td></tr>';
+          tbody.innerHTML='<tr><td colspan="9" class="text-center text-muted">Không có dữ liệu</td></tr>';
           return;
         }
         json.data.forEach(function(row){
           var tr=document.createElement('tr');
           tr.innerHTML = '<td class="text-center">'+row.id+'</td>'
+            + '<td class="text-center">'+ (row.ma_benh_nhan||'') +'</td>'
             + '<td>'+ (row.ho_ten||'') +'</td>'
             + '<td class="text-center">'+ (row.gioi_tinh||'') +'</td>'
             + '<td class="text-center">'+ (row.tuoi||'') +'</td>'
@@ -88,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function(){
       })
       .catch(function(){
         var tbody=document.querySelector('#hx_table tbody');
-        if(tbody) tbody.innerHTML='<tr><td colspan="8" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+        if(tbody) tbody.innerHTML='<tr><td colspan="9" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
       });
   }
 
@@ -157,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function(){
         var dateObj = d.ngay_cap_nhat ? new Date(d.ngay_cap_nhat) : (d.ngay_tao ? new Date(d.ngay_tao) : new Date());
         var dateStr = dateObj.toLocaleDateString('vi-VN');
         var timeStr = dateObj.toLocaleTimeString('vi-VN');
-        modal.innerHTML = '\n<div class="modal-dialog modal-xl">\n  <div class="modal-content">\n    <style>\n      .report{font-family:\"Times New Roman\",serif;padding:18px}\n      .report .title{font-weight:bold;text-transform:uppercase;text-align:center;letter-spacing:.5px;font-size:18px;margin-bottom:6px}\n      .report .subtitle{text-align:center;margin-top:-4px;margin-bottom:8px}\n      .report .hr{border-top:2px solid #000;margin:10px 0}\n      .report .row-line{display:flex;gap:8px;margin-bottom:6px;font-size:15px}\n      .report .label{min-width:150px;font-weight:bold}\n      .report .dots{flex:0 0 auto}\n      .report .value{flex:1;border-bottom:1px dotted #333;min-height:20px}\n      .report .section{margin-top:10px;margin-bottom:6px;font-weight:bold;text-transform:uppercase}\n      .report .signature{min-width:260px}\n    </style>\n    <div class="modal-header">\n      <h5 class="modal-title">XEM PHIẾU CHỤP X-QUANG</h5>\n      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>\n    </div>\n    <div class="modal-body">\n      <div class="report border border-dark">\n        <div class="title">PHÒNG KHÁM ĐA KHOA THINHVIET</div>\n        <div class="title">KHOA CHUẨN ĐOÁN HÌNH ẢNH</div>\n        <div class="subtitle">Địa chỉ: Gò Vấp - Điện thoại: 0777871608</div>\n        <div class="hr"></div>\n        <div class="row-line"><div class="label">Họ và tên</div><div class="dots">:</div><div class="value">' + (d.ho_ten||'') + '</div><div class="label" style="min-width:90px">Giới tính</div><div class="dots">:</div><div class="value">' + (d.gioi_tinh||'') + '</div></div>\n        <div class="row-line"><div class="label">Năm sinh</div><div class="dots">:</div><div class="value">' + (d.nam_sinh||'') + '</div><div class="label" style="min-width:150px">Số phiếu chỉ định</div><div class="dots">:</div><div class="value">' + d.id + '</div></div>\n        <div class="row-line"><div class="label">Địa chỉ</div><div class="dots">:</div><div class="value">' + (d.dia_chi||'') + '</div></div>\n        <div class="row-line"><div class="label">Ngày chỉ định</div><div class="dots">:</div><div class="value">' + dateStr + '</div><div class="label" style="min-width:120px">Giờ chỉ định</div><div class="dots">:</div><div class="value">' + timeStr + '</div></div>\n        <div class="hr"></div>\n        <div class="row-line"><div class="label">Chẩn đoán</div><div class="dots">:</div><div class="value">' + (d.chan_doan_vao_vien||'') + '</div></div>\n        <div class="row-line"><div class="label">Bác sĩ chỉ định</div><div class="dots">:</div><div class="value">' + (d.bac_si_chi_dinh||'') + '</div></div>\n        <div class="row-line"><div class="label">Nội dung</div><div class="dots">:</div><div class="value">' + ('Chụp X-Quang ' + (d.noi_dung? '' : '')).replace(/$/,'') + (d.noi_dung? d.noi_dung : (d.yeu_cau_chup||'')) + '</div></div>\n        <div class="section">Kết quả</div>\n        <div class="value" style="border:1px dotted #333;min-height:80px;padding:8px">' + (d.noi_dung||'') + '</div>\n        <div class="section">Kết luận</div>\n        <div class="value" style="border:1px dotted #333;min-height:80px;padding:8px">' + (d.ket_luan||'') + '</div>\n        <div class="d-flex justify-content-end mt-3">\n          <div class="text-center signature">\n            <div class="mb-1"><em>Ngày ' + (new Date().getDate()) + ' tháng ' + (new Date().getMonth()+1) + ' năm ' + (new Date().getFullYear()) + '</em></div>\n            <div class="fw-bold">Bác sĩ X Quang</div>\n            <div class="mt-3" style="min-height:40px">' + (d.bac_si_xquang||'') + '</div>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>';
+        modal.innerHTML = '\n<div class="modal-dialog modal-xl">\n  <div class="modal-content">\n    <style>\n      .report{font-family:\"Times New Roman\",serif;padding:18px}\n      .report .title{font-weight:bold;text-transform:uppercase;text-align:center;letter-spacing:.5px;font-size:18px;margin-bottom:6px}\n      .report .subtitle{text-align:center;margin-top:-4px;margin-bottom:8px}\n      .report .hr{border-top:2px solid #000;margin:10px 0}\n      .report .row-line{display:flex;gap:8px;margin-bottom:6px;font-size:15px}\n      .report .label{min-width:150px;font-weight:bold}\n      .report .dots{flex:0 0 auto}\n      .report .value{flex:1;border-bottom:1px dotted #333;min-height:20px}\n      .report .section{margin-top:10px;margin-bottom:6px;font-weight:bold;text-transform:uppercase}\n      .report .signature{min-width:260px}\n    </style>\n    <div class="modal-header">\n      <h5 class="modal-title">XEM PHIẾU CHỤP X-QUANG</h5>\n      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>\n    </div>\n    <div class="modal-body">\n      <div class="report border border-dark">\n        <div class="title">PHÒNG KHÁM ĐA KHOA THINHVIET</div>\n        <div class="title">KHOA CHUẨN ĐOÁN HÌNH ẢNH</div>\n        <div class="subtitle">Địa chỉ: Gò Vấp - Điện thoại: 0777871608</div>\n        <div class="hr"></div>\n        <div class="row-line"><div class="label">Họ và tên</div><div class="dots">:</div><div class="value">' + (d.ho_ten||'') + '</div><div class="label" style="min-width:90px">Giới tính</div><div class="dots">:</div><div class="value">' + (d.gioi_tinh||'') + '</div></div>\n        <div class="row-line"><div class="label">Năm sinh</div><div class="dots">:</div><div class="value">' + (d.nam_sinh||'') + '</div><div class="label" style="min-width:150px">Số phiếu chỉ định</div><div class="dots">:</div><div class="value">' + d.id + '</div></div>\n        <div class="row-line"><div class="label">Địa chỉ</div><div class="dots">:</div><div class="value">' + (d.dia_chi||'') + '</div></div>\n        <div class="row-line"><div class="label">Ngày chỉ định</div><div class="dots">:</div><div class="value">' + dateStr + '</div><div class="label" style="min-width:120px">Giờ chỉ định</div><div class="dots">:</div><div class="value">' + timeStr + '</div></div>\n        <div class="hr"></div>\n        <div class="row-line"><div class="label">Chẩn đoán</div><div class="dots">:</div><div class="value">' + (d.chan_doan_vao_vien||'') + '</div></div>\n        <div class="row-line"><div class="label">Bác sĩ chỉ định</div><div class="dots">:</div><div class="value">' + (d.bac_si_chi_dinh||'') + '</div></div>\n        <div class="row-line"><div class="label">Nội dung</div><div class="dots">:</div><div class="value">' + (d.yeu_cau_chup ? ('Chụp X-Quang ' + d.yeu_cau_chup) : '') + '</div></div>\n        <div class="section">Kết quả</div>\n        <div class="value" style="border:1px dotted #333;min-height:80px;padding:8px">' + (d.noi_dung||'') + '</div>\n        <div class="section">Kết luận</div>\n        <div class="value" style="border:1px dotted #333;min-height:80px;padding:8px">' + (d.ket_luan||'') + '</div>\n        <div class="d-flex justify-content-end mt-3">\n          <div class="text-center signature">\n            <div class="mb-1"><em>Ngày ' + (new Date().getDate()) + ' tháng ' + (new Date().getMonth()+1) + ' năm ' + (new Date().getFullYear()) + '</em></div>\n            <div class="fw-bold">Bác sĩ X Quang</div>\n            <div class="mt-3" style="min-height:40px">' + (d.bac_si_xquang||'') + '</div>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>';
         document.body.appendChild(modal);
         var bs = new bootstrap.Modal(modal);
         bs.show();

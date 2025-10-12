@@ -61,6 +61,12 @@ var savedXrayFormId = null;
         if (saveXrayBtn) saveXrayBtn.style.display = (id === '#sec-xray') ? 'inline-block' : 'none';
         if (printXrayBtn) printXrayBtn.style.display = (id === '#sec-xray') ? 'inline-block' : 'none';
         
+        // Hiện/ẩn nút Siêu âm chỉ ở tab "Siêu âm"
+        var saveUltrasoundBtn = document.getElementById('saveUltrasoundForm');
+        var printUltrasoundBtn = document.getElementById('printUltrasoundForm');
+        if (saveUltrasoundBtn) saveUltrasoundBtn.style.display = (id === '#sec-ultrasound') ? 'inline-block' : 'none';
+        if (printUltrasoundBtn) printUltrasoundBtn.style.display = (id === '#sec-ultrasound') ? 'inline-block' : 'none';
+        
         // Khi chuyển sang tab X-Quang, tự đổ dữ liệu bệnh nhân và mặc định
         if (id === '#sec-xray') {
           prefillXRaySection();
@@ -72,6 +78,26 @@ var savedXrayFormId = null;
             checkExistingXrayForm(examId);
           }
         }
+        
+        // Khi chuyển sang tab Siêu âm, hiện nút và load dữ liệu đã lưu
+        if (id === '#sec-ultrasound') {
+          // Delay prefill to ensure DOM is ready
+          setTimeout(function() {
+            prefillUltrasoundSection();
+          }, 100);
+          
+          // Load dữ liệu Siêu âm đã lưu (nếu có)
+          var examId = getCurrentExaminationId();
+          if (examId) {
+            loadUltrasoundFormData(examId);
+          }
+          
+          // Delay initialization to ensure DOM is ready and data is loaded
+          setTimeout(function() {
+            initUltrasoundSuggestions();
+          }, 200);
+        }
+        
       });
     });
   }
@@ -207,6 +233,18 @@ function loadExaminationFormIfAny(){
       set('kham_cac_bo_phan', x.kham_cac_bo_phan); set('tom_tat_lam_sang', x.tom_tat_lam_sang); set('chan_doan_vao_vien', x.chan_doan_vao_vien); set('da_xu_li', x.da_xu_li); set('khoa_dieu_tri', x.khoa_dieu_tri); set('chu_y', x.chu_y);
       set('ngay_ky', x.ngay_ky); set('thang_ky', x.thang_ky); set('nam_ky', x.nam_ky); set('ten_bac_si', x.ten_bac_si);
       window._lastExamFormId = x.id;
+      
+      // Set examination ID for both X-Ray and Ultrasound
+      var examId = getCurrentExaminationId();
+      var xrayExamId = document.getElementById('xray_examination_id');
+      var ultrasoundExamId = document.getElementById('ultrasound_examination_id');
+      
+      console.log('loadExaminationFormIfAny - Setting exam IDs:', examId);
+      if(xrayExamId && examId) xrayExamId.value = examId;
+      if(ultrasoundExamId && examId) ultrasoundExamId.value = examId;
+      
+      // Load dữ liệu Siêu âm đã lưu (nếu có)
+      loadUltrasoundFormData(x.id);
     })
     .catch(function(){});
     
@@ -220,12 +258,52 @@ function prefillXRaySection(){
   var pDob = document.getElementById('patientAge') ? document.getElementById('patientAge').value : ''; // already formatted in page
   var pGender = document.getElementById('patientGender') ? document.getElementById('patientGender').value : '';
   var pAddr = document.getElementById('dia_chi') ? document.getElementById('dia_chi').value : '';
+  var pCode = document.getElementById('exam_ma_benh_nhan') ? document.getElementById('exam_ma_benh_nhan').value : '';
   
   // Map patient info
+  var xCode = document.getElementById('xray_patient_code'); if(xCode) xCode.value = pCode;
   var xName = document.getElementById('xray_patient_name'); if(xName) xName.value = pName;
   var xAge = document.getElementById('xray_patient_age'); if(xAge) xAge.value = pDob;
   var xGen = document.getElementById('xray_patient_gender'); if(xGen) xGen.value = pGender;
   var xAddr = document.getElementById('xray_patient_address'); if(xAddr) xAddr.value = pAddr || 'Gò Vấp';
+  
+  // Get patient BHYT status from database
+  var examId = getCurrentExaminationId();
+  
+  if (examId) {
+    // Get patient BHYT status from database
+    fetch('./get_patient_bhyt_status?exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        var hasBhyt = data.hasBhyt || false;
+        var pType = hasBhyt ? 'BHYT' : 'Thu phí';
+        var xType = document.getElementById('xray_patient_type'); 
+        var xInsurance = document.getElementById('xray_insurance_number');
+        
+        if (xType) {
+          xType.value = pType;
+        }
+        
+        if (xInsurance) {
+          // Get actual BHYT number from database
+          xInsurance.value = hasBhyt ? (data.soTheBhyt || '') : '';
+        }
+      } else {
+        // Default to Thu phí if no data
+        var xType = document.getElementById('xray_patient_type'); 
+        if (xType) xType.value = 'Thu phí';
+      }
+    })
+    .catch(error => {
+      console.error('Error getting patient BHYT status:', error);
+      var xType = document.getElementById('xray_patient_type'); 
+      if (xType) xType.value = 'Thu phí';
+    });
+  } else {
+    var xType = document.getElementById('xray_patient_type'); 
+    if (xType) xType.value = 'Thu phí';
+  }
   
   // Defaults for clinic
   var phone = document.getElementById('xray_phone'); if(phone && !phone.value) phone.value = '0777871608';
@@ -246,12 +324,81 @@ function prefillXRaySection(){
     xrayDoctor.value = doctorName;
     if(xrayDoctorDisplay) xrayDoctorDisplay.textContent = doctorName;
   }
+}
+
+function prefillUltrasoundSection(){
+  var pName = document.getElementById('patientName') ? document.getElementById('patientName').value : '';
+  var pDob = document.getElementById('patientAge') ? document.getElementById('patientAge').value : '';
+  var pGender = document.getElementById('patientGender') ? document.getElementById('patientGender').value : '';
+  var pAddr = document.getElementById('dia_chi') ? document.getElementById('dia_chi').value : '';
+  var pCode = document.getElementById('exam_ma_benh_nhan') ? document.getElementById('exam_ma_benh_nhan').value : '';
   
-  // Get diagnosis from examination form
-  var diagnosis = document.querySelector('[name="chan_doan_vao_vien"]') ? document.querySelector('[name="chan_doan_vao_vien"]').value : '';
-  var xrayDiagnosis = document.getElementById('xray_diagnosis');
-  if(xrayDiagnosis && diagnosis) {
-    xrayDiagnosis.value = diagnosis;
+  // Map patient info
+  var uCode = document.getElementById('ultrasound_patient_code'); if(uCode) uCode.value = pCode;
+  var uName = document.getElementById('ultrasound_patient_name'); if(uName) uName.value = pName;
+  var uAge = document.getElementById('ultrasound_patient_age'); if(uAge) uAge.value = pDob;
+  var uGen = document.getElementById('ultrasound_patient_gender'); if(uGen) uGen.value = pGender;
+  var uAddr = document.getElementById('ultrasound_patient_address'); if(uAddr) uAddr.value = pAddr || 'Gò Vấp';
+  
+  // Get patient BHYT status from database
+  var examId = getCurrentExaminationId();
+  
+  if (examId) {
+    // Get patient BHYT status from database
+    fetch('./get_patient_bhyt_status?exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        var hasBhyt = data.hasBhyt || false;
+        var pType = hasBhyt ? 'BHYT' : 'Thu phí';
+        var uType = document.getElementById('ultrasound_patient_type'); 
+        var uInsurance = document.getElementById('ultrasound_insurance_number');
+        
+        if (uType) {
+          uType.value = pType;
+        }
+        
+        if (uInsurance) {
+          // Get actual BHYT number from database
+          uInsurance.value = hasBhyt ? (data.soTheBhyt || '') : '';
+        }
+        
+      } else {
+        // Default to Thu phí if no data
+        var uType = document.getElementById('ultrasound_patient_type'); 
+        if (uType) uType.value = 'Thu phí';
+      }
+    })
+    .catch(error => {
+      console.error('Error getting patient BHYT status:', error);
+      // Default to Thu phí on error
+      var uType = document.getElementById('ultrasound_patient_type'); 
+      if (uType) uType.value = 'Thu phí';
+    });
+  } else {
+    // Default to Thu phí if no exam ID
+    var uType = document.getElementById('ultrasound_patient_type'); 
+    if (uType) uType.value = 'Thu phí';
+  }
+  
+  // Defaults for clinic
+  var phone = document.getElementById('ultrasound_phone'); if(phone && !phone.value) phone.value = '0777871608';
+  var quan = document.getElementById('ultrasound_quan'); if(quan && !quan.value) quan.value = 'Gò Vấp';
+  
+  // Date today
+  var now = new Date();
+  var d=now.getDate(), m=now.getMonth()+1, y=now.getFullYear();
+  var ud=document.getElementById('ultrasound_ngay'); if(ud && !ud.value) ud.value=d;
+  var um=document.getElementById('ultrasound_thang'); if(um && !um.value) um.value=m;
+  var uy=document.getElementById('ultrasound_nam'); if(uy && !uy.value) uy.value=y;
+  
+  // Doctor name from examination form
+  var doctorName = document.querySelector('[name="ten_bac_si"]') ? document.querySelector('[name="ten_bac_si"]').value : '';
+  var ultrasoundDoctor = document.getElementById('ultrasound_doctor_name');
+  var ultrasoundDoctorDisplay = document.getElementById('ultrasound_doctor_display');
+  if(ultrasoundDoctor && doctorName) {
+    ultrasoundDoctor.value = doctorName;
+    if(ultrasoundDoctorDisplay) ultrasoundDoctorDisplay.textContent = doctorName;
   }
   
   // Get patient type from database (check BHYT status from benh_nhan table)
@@ -289,109 +436,36 @@ function prefillXRaySection(){
         // Set patient type in X-Ray form
         setXrayPatientType(patientType);
         
-        // Display patient type as text
-        displayXrayPatientType(patientType);
       })
       .catch(function(error) {
         console.error('Error getting BHYT status:', error);
-        // Fallback to form checkboxes
-        getPatientTypeFromForm();
+        // Default to Thu phí
+        var xType = document.getElementById('xray_patient_type');
+        if (xType) xType.value = 'Thu phí';
       });
   } else {
-    console.log('No exam ID found, using form checkboxes');
-    getPatientTypeFromForm();
+    console.log('No exam ID found, defaulting to Thu phí');
+    var xType = document.getElementById('xray_patient_type');
+    if (xType) xType.value = 'Thu phí';
   }
   
-  function getPatientTypeFromForm() {
-    // Fallback: Get patient type from examination form checkboxes
-    var doiTuongBhyt = document.getElementById('bhyt');
-    var doiTuongThuPhi = document.getElementById('thu_phi');
-    
-    console.log('Checking patient type from form - BHYT checkbox:', doiTuongBhyt ? doiTuongBhyt.checked : 'not found');
-    console.log('Checking patient type from form - Thu phí checkbox:', doiTuongThuPhi ? doiTuongThuPhi.checked : 'not found');
-    
-    if(doiTuongBhyt && doiTuongBhyt.checked) {
-      patientType = 'bhyt';
-      console.log('Patient type from form: BHYT');
-    } else if(doiTuongThuPhi && doiTuongThuPhi.checked) {
-      patientType = 'thu_phi';
-      console.log('Patient type from form: Thu phí');
-    } else {
-      patientType = 'thu_phi';
-      console.log('Patient type from form: Default to Thu phí');
-    }
-    
-    setXrayPatientType(patientType);
-  }
   
-        function setXrayPatientType(patientType) {
-          console.log('Setting X-Ray form patient type to:', patientType);
-          
-          if(patientType === 'bhyt') {
-            var bhytRadio = document.getElementById('xray_bhyt');
-            var thuPhiRadio = document.getElementById('xray_thu_phi');
-            if(bhytRadio) {
-              bhytRadio.checked = true;
-              console.log('Set X-Ray form to BHYT (checked)');
-            } else {
-              console.log('xray_bhyt radio button not found');
-            }
-            if(thuPhiRadio) {
-              thuPhiRadio.checked = false;
-              console.log('Set X-Ray form Thu phí to unchecked');
-            } else {
-              console.log('xray_thu_phi radio button not found');
-            }
-            updatePaymentRate();
-          } else {
-            var thuPhiRadio = document.getElementById('xray_thu_phi');
-            var bhytRadio = document.getElementById('xray_bhyt');
-            if(thuPhiRadio) {
-              thuPhiRadio.checked = true;
-              console.log('Set X-Ray form to Thu phí (checked)');
-            } else {
-              console.log('xray_thu_phi radio button not found');
-            }
-            if(bhytRadio) {
-              bhytRadio.checked = false;
-              console.log('Set X-Ray form BHYT to unchecked');
-            } else {
-              console.log('xray_bhyt radio button not found');
-            }
-            updatePaymentRate();
+  function setXrayPatientType(patientType) {
+          var xType = document.getElementById('xray_patient_type');
+          if (xType) {
+            xType.value = patientType === 'bhyt' ? 'BHYT' : 'Thu phí';
           }
         }
         
-        function displayXrayPatientType(patientType) {
-          console.log('Displaying X-Ray patient type as text:', patientType);
-          
-          var displayElement = document.getElementById('xray_patient_type_display');
-          if(displayElement) {
-            if(patientType === 'bhyt') {
-              displayElement.innerHTML = '<span class="badge bg-success">BHYT (20%)</span>';
-              console.log('Displayed BHYT badge');
-            } else {
-              displayElement.innerHTML = '<span class="badge bg-danger">Thu phí (100%)</span>';
-              console.log('Displayed Thu phí badge');
-            }
-            
-            // Recalculate price when patient type changes
-            var requestField = document.getElementById('xray_request');
-            if (requestField && requestField.value.trim()) {
-              console.log('Recalculating price after patient type change');
-              calculateXrayPrice();
-            }
-          } else {
-            console.log('xray_patient_type_display element not found');
-          }
-        }
   
   
   // Set examination ID in hidden input
   var examId = getCurrentExaminationId();
   var xrayExamId = document.getElementById('xray_examination_id');
+  var ultrasoundExamId = document.getElementById('ultrasound_examination_id');
   
   if(xrayExamId && examId) xrayExamId.value = examId;
+  if(ultrasoundExamId && examId) ultrasoundExamId.value = examId;
   
   console.log('Set X-Ray Exam ID:', examId);
   
@@ -454,23 +528,6 @@ function checkExistingXrayForm(examId) {
     });
 }
 
-// Update payment rate based on patient type
-function updatePaymentRate() {
-  var thuPhiRadio = document.getElementById('xray_thu_phi');
-  var bhytRadio = document.getElementById('xray_bhyt');
-  var paymentRate = document.getElementById('xray_payment_rate');
-  
-  if (bhytRadio && bhytRadio.checked) {
-    if(paymentRate) paymentRate.value = '20%';
-    if(paymentRate) paymentRate.style.color = '#28a745';
-  } else {
-    if(paymentRate) paymentRate.value = '100%';
-    if(paymentRate) paymentRate.style.color = '#dc3545';
-  }
-  
-  // Recalculate price when payment rate changes
-  calculateXrayPrice();
-}
 
 // Initialize X-Ray suggestions from database
 function initXRaySuggestions(){
@@ -546,12 +603,7 @@ function initXRaySuggestions(){
       var nameSpan = document.createElement('span');
       nameSpan.textContent = suggestion.ten_goi_y;
       
-      var priceSpan = document.createElement('span');
-      priceSpan.className = 'badge bg-success';
-      priceSpan.textContent = formatPrice(suggestion.gia_tien);
-      
       div.appendChild(nameSpan);
-      div.appendChild(priceSpan);
       
       div.addEventListener('click', function(){
         // Thay thế phần cuối cùng bằng gợi ý được chọn
@@ -561,8 +613,6 @@ function initXRaySuggestions(){
         suggestions.style.display = 'none';
         textarea.focus();
         
-        // Tính lại giá tiền
-        calculateXrayPrice();
       });
       
       div.addEventListener('mouseenter', function(){
@@ -624,133 +674,6 @@ function initXRaySuggestions(){
         }
       }
 
-// Calculate X-Ray price with debounce
-var priceCalculationTimeout;
-function calculateXrayPrice() {
-  var textarea = document.getElementById('xray_request');
-  if (!textarea) return;
-  
-  // Clear previous timeout
-  if (priceCalculationTimeout) {
-    clearTimeout(priceCalculationTimeout);
-  }
-  
-  // Debounce calculation
-  priceCalculationTimeout = setTimeout(function() {
-    var suggestions = textarea.value;
-    if (!suggestions.trim()) {
-      updatePriceDisplay(0, []);
-      return;
-    }
-    
-    console.log('Calculating price for:', suggestions);
-    
-    // Try database calculation first
-    fetch('./calculate_xray_price', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'suggestions=' + encodeURIComponent(suggestions)
-    })
-    .then(function(response) { 
-      console.log('Response status:', response.status);
-      return response.json(); 
-    })
-    .then(function(data) {
-      console.log('Price calculation result:', data);
-      if (data.success) {
-        updatePriceDisplay(data.total_price, data.details);
-      } else {
-        console.error('Price calculation failed:', data.message);
-        updatePriceDisplay(0, []);
-      }
-    })
-    .catch(function(error) {
-      console.error('Error calculating price:', error);
-      updatePriceDisplay(0, []);
-    });
-  }, 500); // 500ms debounce
-}
-
-// Update price display
-function updatePriceDisplay(totalPrice, details) {
-  console.log('Updating price display - Total:', totalPrice, 'Details:', details);
-  
-  var originalElement = document.getElementById('xray_original_price');
-  var totalElement = document.getElementById('xray_total_price');
-  var detailsElement = document.getElementById('xray_price_details');
-  
-  console.log('Original element found:', !!originalElement);
-  console.log('Total element found:', !!totalElement);
-  console.log('Details element found:', !!detailsElement);
-  
-  // Calculate payment rate based on current patient type
-  var paymentRate = getCurrentPaymentRate();
-  
-  // Update original price (100%)
-  if (originalElement) {
-    originalElement.value = formatPrice(totalPrice) + ' VNĐ';
-    console.log('Updated original price:', originalElement.value);
-  }
-  
-  // Update total price (after discount)
-  if (totalElement) {
-    var finalPrice = totalPrice * paymentRate;
-    totalElement.value = formatPrice(finalPrice) + ' VNĐ';
-    console.log('Updated total price:', totalElement.value, 'Rate:', paymentRate);
-  }
-  
-  if (detailsElement) {
-    if (details.length === 0) {
-      detailsElement.innerHTML = '<div class="text-muted text-center">Chưa có yêu cầu chụp</div>';
-      console.log('No details, showing empty message');
-    } else {
-      var html = '';
-      details.forEach(function(detail) {
-        html += '<div class="d-flex justify-content-between align-items-center mb-1">';
-        html += '<span>' + detail.ten_goi_y + '</span>';
-        html += '<span class="badge bg-success">' + formatPrice(detail.gia_tien) + ' VNĐ</span>';
-        html += '</div>';
-      });
-      detailsElement.innerHTML = html;
-      console.log('Updated details HTML:', html);
-    }
-  }
-}
-
-
-// Format price
-// Get current payment rate based on patient type
-function getCurrentPaymentRate() {
-  // Check if we have patient type from database
-  var displayElement = document.getElementById('xray_patient_type_display');
-  if (displayElement) {
-    var displayText = displayElement.textContent || displayElement.innerText;
-    console.log('Current patient type display:', displayText);
-    
-    if (displayText.includes('BHYT')) {
-      console.log('Patient type is BHYT - 20% payment rate');
-      return 0.2; // 20% for BHYT
-    } else if (displayText.includes('Thu phí')) {
-      console.log('Patient type is Thu phí - 100% payment rate');
-      return 1.0; // 100% for Thu phí
-    }
-  }
-  
-  // Fallback to radio buttons if display not available
-  var bhytRadio = document.getElementById('xray_bhyt');
-  if (bhytRadio && bhytRadio.checked) {
-    console.log('Fallback: BHYT radio checked - 20% payment rate');
-    return 0.2;
-  }
-  
-  console.log('Default: Thu phí - 100% payment rate');
-  return 1.0; // Default to 100% for Thu phí
-}
-
-function formatPrice(price) {
-  return new Intl.NumberFormat('vi-VN').format(price);
-}
-
 // ===== X-Ray Form Save & Print =====
 var savedXrayFormId = null;
 
@@ -769,14 +692,11 @@ function saveXrayForm() {
     so_dien_thoai: document.getElementById('xray_phone') ? document.getElementById('xray_phone').value : '0777871608',
     quan: document.getElementById('xray_quan') ? document.getElementById('xray_quan').value : 'Gò Vấp',
     yeu_cau_chup: document.getElementById('xray_request') ? document.getElementById('xray_request').value : '',
-    bac_si_kham: document.getElementById('xray_doctor_name') ? document.getElementById('xray_doctor_name').value : ''
+    bac_si_kham: document.getElementById('xray_doctor_name') ? document.getElementById('xray_doctor_name').value : '',
+    chan_doan_vao_vien: document.getElementById('xray_diagnosis') ? document.getElementById('xray_diagnosis').value : ''
   };
   
   console.log('X-Ray form data:', formData);
-  
-  // Debug each field
-  console.log('Exam ID:', formData.id_phieu_kham_benh, 'Type:', typeof formData.id_phieu_kham_benh);
-  console.log('Request:', formData.yeu_cau_chup, 'Type:', typeof formData.yeu_cau_chup);
   
   // Validate required fields
   if (!formData.id_phieu_kham_benh || !formData.yeu_cau_chup) {
@@ -834,6 +754,134 @@ function saveXrayForm() {
   });
 }
 
+// Make it globally accessible
+window.initXRaySuggestions = initXRaySuggestions;
+
+function initUltrasoundSuggestions(){
+  var textarea = document.getElementById('ultrasound_request');
+  var suggestions = document.getElementById('ultrasound_suggestions');
+  if(!textarea || !suggestions) {
+    console.error('Ultrasound elements not found!');
+    return;
+  }
+  
+  console.log('Initializing Ultrasound suggestions...');
+  
+  // Load and show suggestions
+  function loadAndShowSuggestions(keyword) {
+    console.log('Loading suggestions for keyword:', keyword);
+    
+    // Try database first, fallback to hardcoded
+    fetch('./get_ultrasound_suggestions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'keyword=' + encodeURIComponent(keyword || '')
+    })
+    .then(function(response) { 
+      console.log('Suggestions response status:', response.status);
+      return response.json(); 
+    })
+    .then(function(data) {
+      console.log('Suggestions data:', data);
+      if (data.success && data.data && data.data.length > 0) {
+        showSuggestions(data.data, keyword);
+      } else {
+        console.error('No suggestions found in database');
+        suggestions.style.display = 'none';
+      }
+    })
+    .catch(function(error) {
+      console.error('Error loading suggestions:', error);
+      suggestions.style.display = 'none';
+    });
+  }
+  
+  function showSuggestions(suggestionsData, keyword) {
+    console.log('Showing suggestions:', suggestionsData);
+    suggestions.innerHTML = '';
+    
+    suggestionsData.forEach(function(item) {
+      var div = document.createElement('div');
+      div.className = 'suggestion-item p-2 border-bottom';
+      div.style.cursor = 'pointer';
+      div.textContent = item.ten_goi_y;
+      
+      div.addEventListener('click', function() {
+        appendSuggestion(item.ten_goi_y, textarea);
+        suggestions.style.display = 'none';
+      });
+      
+      div.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = '#f8f9fa';
+      });
+      
+      div.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = '';
+      });
+      
+      suggestions.appendChild(div);
+    });
+    
+    suggestions.style.display = suggestionsData.length > 0 ? 'block' : 'none';
+  }
+  
+  function appendSuggestion(suggestion, textarea) {
+    var currentText = textarea.value;
+    var cursorPos = textarea.selectionStart;
+    
+    // Find the current part being typed (after last comma)
+    var beforeCursor = currentText.substring(0, cursorPos);
+    var afterCursor = currentText.substring(cursorPos);
+    
+    var lastCommaIndex = beforeCursor.lastIndexOf(',');
+    var startOfCurrentPart = lastCommaIndex >= 0 ? lastCommaIndex + 1 : 0;
+    
+    // Replace current part with suggestion
+    var newText = currentText.substring(0, startOfCurrentPart) + 
+                  suggestion.trim() + 
+                  (afterCursor.startsWith(',') ? '' : ', ') + 
+                  currentText.substring(cursorPos);
+    
+    textarea.value = newText;
+    textarea.focus();
+    
+    // Position cursor after the suggestion
+    var newCursorPos = startOfCurrentPart + suggestion.trim().length + 2;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+  }
+  
+  var timeout;
+  textarea.addEventListener('input', function(e) {
+    clearTimeout(timeout);
+    timeout = setTimeout(function() {
+      var cursorPos = textarea.selectionStart;
+      var currentText = textarea.value.substring(0, cursorPos);
+      
+      // Find the current part being typed (after last comma)
+      var lastCommaIndex = currentText.lastIndexOf(',');
+      var currentPart = lastCommaIndex >= 0 ? 
+        currentText.substring(lastCommaIndex + 1).trim() : 
+        currentText.trim();
+      
+      if (currentPart.length >= 1) {
+        loadAndShowSuggestions(currentPart);
+      } else {
+        suggestions.style.display = 'none';
+      }
+    }, 200);
+  });
+  
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!textarea.contains(e.target) && !suggestions.contains(e.target)) {
+      suggestions.style.display = 'none';
+    }
+  });
+}
+
+// Make it globally accessible
+window.initUltrasoundSuggestions = initUltrasoundSuggestions;
+
 // Load X-Ray form data after saving
 function loadXrayFormData(formId) {
   console.log('Loading X-Ray form data for ID:', formId);
@@ -865,57 +913,55 @@ function displayXrayFormData(data) {
     var requestField = document.getElementById('xray_request');
     if (requestField) {
       requestField.value = data.yeu_cau_chup;
-      console.log('Set xray_request to:', data.yeu_cau_chup);
-    } else {
-      console.log('xray_request field not found');
     }
   }
   
-  if (data.gia_goc) {
-    var originalPriceField = document.getElementById('xray_original_price');
-    if (originalPriceField) {
-      originalPriceField.value = formatPrice(data.gia_goc) + ' VNĐ';
-      console.log('Set xray_original_price to:', formatPrice(data.gia_goc) + ' VNĐ');
-    } else {
-      console.log('xray_original_price field not found');
+  // Fill diagnosis field
+  if (data.chan_doan_vao_vien) {
+    var diagnosisField = document.getElementById('xray_diagnosis');
+    if (diagnosisField) {
+      diagnosisField.value = data.chan_doan_vao_vien;
     }
   }
   
-  if (data.ty_le_thanh_toan) {
-    var paymentRateField = document.getElementById('xray_payment_rate');
-    if (paymentRateField) {
-      paymentRateField.value = data.ty_le_thanh_toan + '%';
-      if (data.ty_le_thanh_toan === 20) {
-        paymentRateField.style.color = '#28a745';
-      } else {
-        paymentRateField.style.color = '#dc3545';
+  // Ensure patient code is filled from main form
+  var pCode = document.getElementById('exam_ma_benh_nhan') ? document.getElementById('exam_ma_benh_nhan').value : '';
+  var xCode = document.getElementById('xray_patient_code'); 
+  if (xCode && pCode) {
+    xCode.value = pCode;
+  }
+  
+  // Fill patient type and insurance from database
+  var examId = getCurrentExaminationId();
+  if (examId) {
+    fetch('./get_patient_bhyt_status?exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        var hasBhyt = data.hasBhyt || false;
+        var pType = hasBhyt ? 'BHYT' : 'Thu phí';
+        var xType = document.getElementById('xray_patient_type'); 
+        var xInsurance = document.getElementById('xray_insurance_number');
+        if (xType) xType.value = pType;
+        if (xInsurance) {
+          xInsurance.value = hasBhyt ? (data.soTheBhyt || '') : '';
+        }
       }
-      console.log('Set xray_payment_rate to:', data.ty_le_thanh_toan + '%');
-    } else {
-      console.log('xray_payment_rate field not found');
-    }
+    })
+    .catch(error => {
+      console.error('Error getting patient BHYT status in displayXrayFormData:', error);
+    });
   }
   
-  if (data.gia_thanh_toan) {
-    var totalPriceField = document.getElementById('xray_total_price');
-    if (totalPriceField) {
-      totalPriceField.value = formatPrice(data.gia_thanh_toan) + ' VNĐ';
-      console.log('Set xray_total_price to:', formatPrice(data.gia_thanh_toan) + ' VNĐ');
-    } else {
-      console.log('xray_total_price field not found');
-    }
-  }
   
   if (data.bac_si_kham) {
     var doctorNameField = document.getElementById('xray_doctor_name');
     var doctorDisplayField = document.getElementById('xray_doctor_display');
     if (doctorNameField) {
       doctorNameField.value = data.bac_si_kham;
-      console.log('Set xray_doctor_name to:', data.bac_si_kham);
     }
     if (doctorDisplayField) {
       doctorDisplayField.textContent = data.bac_si_kham;
-      console.log('Set xray_doctor_display to:', data.bac_si_kham);
     }
   }
   
@@ -931,8 +977,6 @@ function displayXrayFormData(data) {
             thuPhiRadio.checked = false;
             console.log('Set xray_thu_phi to unchecked');
           }
-          // Display as text
-          displayXrayPatientType('bhyt');
         } else {
           var thuPhiRadio = document.getElementById('xray_thu_phi');
           var bhytRadio = document.getElementById('xray_bhyt');
@@ -944,23 +988,9 @@ function displayXrayFormData(data) {
             bhytRadio.checked = false;
             console.log('Set xray_bhyt to unchecked');
           }
-          // Display as text
-          displayXrayPatientType('thu_phi');
         }
   
-  // Update price details
-  if (data.yeu_cau_chup) {
-    console.log('Calling calculateXrayPrice()');
-    calculateXrayPrice();
-  }
-  
   console.log('X-Ray form data displayed successfully');
-}
-
-// Format price helper function
-function formatPrice(price) {
-  if (!price || price === 0) return '0';
-  return new Intl.NumberFormat('vi-VN').format(price);
 }
 
 // Clear X-Ray form when switching to new patient
@@ -971,32 +1001,11 @@ function clearXrayForm() {
   var requestField = document.getElementById('xray_request');
   if (requestField) requestField.value = '';
   
-  var originalPriceField = document.getElementById('xray_original_price');
-  if (originalPriceField) originalPriceField.value = '0 VNĐ';
-  
-  var totalPriceField = document.getElementById('xray_total_price');
-  if (totalPriceField) totalPriceField.value = '0 VNĐ';
-  
-  var paymentRateField = document.getElementById('xray_payment_rate');
-  if (paymentRateField) paymentRateField.value = '100%';
-  
-  // Clear price details
-  var priceDetails = document.getElementById('xray_price_details');
-  if (priceDetails) {
-    priceDetails.innerHTML = '<div class="text-muted text-center">Chưa có yêu cầu chụp</div>';
-  }
-  
   // Reset patient type to default
-  var thuPhiRadio = document.getElementById('xray_thu_phi');
-  var bhytRadio = document.getElementById('xray_bhyt');
-  if (thuPhiRadio) thuPhiRadio.checked = true;
-  if (bhytRadio) bhytRadio.checked = false;
-  
-  // Reset patient type display
-  var displayElement = document.getElementById('xray_patient_type_display');
-  if (displayElement) {
-    displayElement.innerHTML = '<span class="badge bg-secondary">Chưa xác định</span>';
-  }
+  var xType = document.getElementById('xray_patient_type');
+  var xInsurance = document.getElementById('xray_insurance_number');
+  if (xType) xType.value = 'Thu phí';
+  if (xInsurance) xInsurance.value = '';
   
   // Reset saved form ID
   savedXrayFormId = null;
@@ -1244,4 +1253,161 @@ function filterAppointments(filter){
 function updateActiveFilter(filter){
   var cards=document.querySelectorAll('.stats-card'); cards.forEach(function(c){ c.classList.toggle('active', c.getAttribute('data-filter')===filter); });
   var btns=document.querySelectorAll('.filter-btn'); btns.forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-filter')===filter); });
+}
+
+// ===== Ultrasound Form Functions =====
+
+/**
+ * Lưu phiếu yêu cầu siêu âm
+ */
+function saveUltrasoundForm() {
+  console.log('saveUltrasoundForm called');
+  var examId = getCurrentExaminationId();
+  console.log('Exam ID:', examId);
+  if (!examId) {
+    alert('Không tìm thấy ID phiếu khám bệnh');
+    return;
+  }
+
+  // Thu thập dữ liệu từ form
+  console.log('Collecting form data...');
+  var formData = {
+    exam_id: examId,
+    ma_benh_nhan: document.getElementById('ultrasound_patient_code')?.value || '',
+    ho_ten: document.getElementById('ultrasound_patient_name')?.value || '',
+    tuoi: document.getElementById('ultrasound_patient_age')?.value || '',
+    gioi_tinh: document.getElementById('ultrasound_patient_gender')?.value || '',
+    dia_chi: document.getElementById('ultrasound_patient_address')?.value || '',
+    doi_tuong: document.getElementById('ultrasound_patient_type')?.value || '',
+    so_the_bhyt: document.getElementById('ultrasound_insurance_number')?.value || '',
+    phong_kham: document.getElementById('ultrasound_clinic_name')?.value || '',
+    so_dien_thoai: document.getElementById('ultrasound_phone')?.value || '',
+    quan_huyen: document.getElementById('ultrasound_quan')?.value || '',
+    chan_doan: document.getElementById('ultrasound_diagnosis')?.value || '',
+    yeu_cau: document.getElementById('ultrasound_request')?.value || '',
+    bac_si_kham: document.getElementById('ultrasound_doctor_name')?.value || '',
+    ngay: document.getElementById('ultrasound_ngay')?.value || '',
+    thang: document.getElementById('ultrasound_thang')?.value || '',
+    nam: document.getElementById('ultrasound_nam')?.value || ''
+  };
+  
+  console.log('Form data:', formData);
+
+  // Gửi dữ liệu
+  fetch('./?action=save_ultrasound_form', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams(formData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      // Load lại dữ liệu đã lưu
+      loadUltrasoundFormData(examId);
+    } else {
+      alert('Lỗi: ' + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Lỗi kết nối');
+  });
+}
+
+/**
+ * In phiếu yêu cầu siêu âm
+ */
+function printUltrasoundForm() {
+  var examId = getCurrentExaminationId();
+  if (!examId) {
+    alert('Không tìm thấy ID phiếu khám bệnh');
+    return;
+  }
+
+  // Lấy ID phiếu siêu âm
+  fetch('./?action=get_ultrasound_form_data&exam_id=' + examId)
+  .then(response => response.json())
+  .then(data => {
+    if (data.success && data.data) {
+      // Mở cửa sổ in với ID phiếu siêu âm
+      window.open('./?action=print_ultrasound_form&id=' + data.data.id, '_blank');
+    } else {
+      alert('Chưa có phiếu siêu âm để in. Vui lòng lưu phiếu trước.');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Lỗi kết nối');
+  });
+}
+
+/**
+ * Load dữ liệu phiếu siêu âm đã lưu
+ */
+function loadUltrasoundFormData(examId) {
+  fetch('./?action=get_ultrasound_form_data&exam_id=' + examId)
+  .then(response => response.json())
+  .then(data => {
+    if (data.success && data.data) {
+      displayUltrasoundFormData(data.data);
+    }
+  })
+  .catch(error => {
+    console.error('Error loading ultrasound form data:', error);
+  });
+}
+
+/**
+ * Hiển thị dữ liệu phiếu siêu âm đã lưu
+ */
+function displayUltrasoundFormData(data) {
+  console.log('Displaying Ultrasound form data:', data);
+  
+  // Fill form fields with saved data
+  if (data.yeu_cau) {
+    var requestField = document.getElementById('ultrasound_request');
+    if (requestField) {
+      requestField.value = data.yeu_cau;
+    }
+  }
+  
+  // Fill diagnosis field
+  if (data.chan_doan) {
+    var diagnosisField = document.getElementById('ultrasound_diagnosis');
+    if (diagnosisField) {
+      diagnosisField.value = data.chan_doan;
+    }
+  }
+  
+  // Ensure patient code is filled from main form
+  var pCode = document.getElementById('exam_ma_benh_nhan') ? document.getElementById('exam_ma_benh_nhan').value : '';
+  var uCode = document.getElementById('ultrasound_patient_code'); 
+  if (uCode && pCode) {
+    uCode.value = pCode;
+  }
+  
+  // Fill patient type and insurance from database
+  var examId = getCurrentExaminationId();
+  if (examId) {
+    fetch('./get_patient_bhyt_status?exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        var hasBhyt = data.hasBhyt || false;
+        var pType = hasBhyt ? 'BHYT' : 'Thu phí';
+        var uType = document.getElementById('ultrasound_patient_type'); 
+        var uInsurance = document.getElementById('ultrasound_insurance_number');
+        if (uType) uType.value = pType;
+        if (uInsurance) {
+          uInsurance.value = hasBhyt ? (data.soTheBhyt || '') : '';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error getting patient BHYT status in displayUltrasoundFormData:', error);
+    });
+  }
 }

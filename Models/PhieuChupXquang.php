@@ -18,8 +18,8 @@ class PhieuChupXquang
     {
         $sql = "INSERT INTO phieu_chup_xquang (
             id_phieu_kham_benh, so_dien_thoai, quan, yeu_cau_chup, 
-            bac_si_kham, trang_thai
-        ) VALUES (?, ?, ?, ?, ?, ?)";
+            bac_si_kham, chan_doan_vao_vien, trang_thai
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->db->prepare($sql);
         if (!$stmt) {
@@ -35,6 +35,7 @@ class PhieuChupXquang
             $data['quan'],
             $data['yeu_cau_chup'],
             $data['bac_si_kham'],
+            $data['chan_doan_vao_vien'] ?? '',
             $trangThai
         ]);
 
@@ -53,13 +54,23 @@ class PhieuChupXquang
     {
         $sql = "SELECT 
             px.*,
-            pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.nam_sinh,
-            pk.chan_doan_vao_vien,
+            pk.ho_ten, pk.tuoi, pk.dia_chi, pk.nam_sinh,
+            COALESCE(px.chan_doan_vao_vien, pk.chan_doan_vao_vien) as chan_doan_vao_vien,
             pk.ten_bac_si as ten_bac_si,
             bs.ten as bac_si_chi_dinh,
-            ck.ten as khoa_chi_dinh
+            ck.ten as khoa_chi_dinh,
+            bn.ma_benh_nhan,
+            COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh,
+            CASE 
+                WHEN pk.doi_tuong_bhyt = 1 THEN 'BHYT'
+                WHEN pk.doi_tuong_thu_phi = 1 THEN 'Thu phí'
+                WHEN pk.doi_tuong_mien = 1 THEN 'Miễn'
+                ELSE 'Khác'
+            END as doi_tuong,
+            pk.so_the_bhyt
             FROM phieu_chup_xquang px
             JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
+            JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
             LEFT JOIN bac_si bs ON pk.bac_si_id = bs.id
             LEFT JOIN chuyen_khoa ck ON bs.chuyen_khoa_id = ck.id
             WHERE px.id = ?";
@@ -121,7 +132,28 @@ class PhieuChupXquang
      */
     public function getByExamId($examId)
     {
-        $sql = "SELECT * FROM phieu_chup_xquang WHERE id_phieu_kham_benh = ? ORDER BY id DESC LIMIT 1";
+        $sql = "SELECT 
+            px.*,
+            pk.ho_ten, pk.tuoi, pk.dia_chi, pk.nam_sinh,
+            COALESCE(px.chan_doan_vao_vien, pk.chan_doan_vao_vien) as chan_doan_vao_vien,
+            pk.ten_bac_si as ten_bac_si,
+            bs.ten as bac_si_chi_dinh,
+            ck.ten as khoa_chi_dinh,
+            bn.ma_benh_nhan,
+            COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh,
+            CASE 
+                WHEN pk.doi_tuong_bhyt = 1 THEN 'BHYT'
+                WHEN pk.doi_tuong_thu_phi = 1 THEN 'Thu phí'
+                WHEN pk.doi_tuong_mien = 1 THEN 'Miễn'
+                ELSE 'Khác'
+            END as doi_tuong,
+            pk.so_the_bhyt
+            FROM phieu_chup_xquang px
+            JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
+            JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+            LEFT JOIN bac_si bs ON pk.bac_si_id = bs.id
+            LEFT JOIN chuyen_khoa ck ON bs.chuyen_khoa_id = ck.id
+            WHERE px.id_phieu_kham_benh = ? ORDER BY px.id DESC LIMIT 1";
         
         $stmt = $this->db->prepare($sql);
         if (!$stmt) {
@@ -141,17 +173,14 @@ class PhieuChupXquang
         $whereDate = $date ? " AND DATE(px.ngay_tao) = ?" : "";
         $whereKeyword = '';
         if ($keyword !== null && $keyword !== '') {
-            // If keyword is all digits, search by ID, else by patient name
-            if (ctype_digit($keyword)) {
-                $whereKeyword = " AND px.id = ?";
-            } else {
-                $whereKeyword = " AND pk.ho_ten LIKE ?";
-            }
+            // Search by patient code (ma_benh_nhan)
+            $whereKeyword = " AND bn.ma_benh_nhan LIKE ?";
         }
         $sql = "SELECT px.id, px.id_phieu_kham_benh, px.yeu_cau_chup, px.trang_thai, px.ngay_tao,
-                       pk.ho_ten, pk.tuoi, pk.gioi_tinh
+                       pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, bn.ma_benh_nhan
                 FROM phieu_chup_xquang px
                 JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                 WHERE px.trang_thai = 'Đã yêu cầu'" . $whereDate . $whereKeyword . "
                 ORDER BY px.ngay_tao DESC, px.id DESC
                 LIMIT ? OFFSET ?";
@@ -167,11 +196,7 @@ class PhieuChupXquang
             $stmt->bindValue($bindIndex++, $date, PDO::PARAM_STR);
         }
         if ($keyword !== null && $keyword !== '') {
-            if (ctype_digit($keyword)) {
-                $stmt->bindValue($bindIndex++, (int)$keyword, PDO::PARAM_INT);
-            } else {
-                $stmt->bindValue($bindIndex++, "%" . $keyword . "%", PDO::PARAM_STR);
-            }
+            $stmt->bindValue($bindIndex++, "%" . $keyword . "%", PDO::PARAM_STR);
         }
         $stmt->bindValue($bindIndex++, (int)$limit, PDO::PARAM_INT);
         $stmt->bindValue($bindIndex++, (int)$offset, PDO::PARAM_INT);
@@ -186,7 +211,7 @@ class PhieuChupXquang
     {
         $sql = "UPDATE phieu_chup_xquang SET 
             so_dien_thoai = ?, quan = ?, yeu_cau_chup = ?, 
-            bac_si_kham = ?, ngay_cap_nhat = CURRENT_TIMESTAMP
+            bac_si_kham = ?, chan_doan_vao_vien = ?, ngay_cap_nhat = CURRENT_TIMESTAMP
             WHERE id = ?";
 
         $stmt = $this->db->prepare($sql);
@@ -200,6 +225,7 @@ class PhieuChupXquang
             $data['quan'],
             $data['yeu_cau_chup'],
             $data['bac_si_kham'],
+            $data['chan_doan_vao_vien'] ?? '',
             $id
         ]);
 
@@ -209,5 +235,60 @@ class PhieuChupXquang
         }
 
         return $id; // Trả về ID của bản ghi đã cập nhật
+    }
+
+    /**
+     * Kiểm tra yêu cầu chụp X-Quang có hợp lệ không
+     */
+    public function validateXrayRequests($yeuCauChup) {
+        if (empty($yeuCauChup)) {
+            return ['valid' => false, 'message' => 'Vui lòng nhập yêu cầu chụp X-Quang'];
+        }
+
+        // Tách các yêu cầu theo dấu phẩy và loại bỏ khoảng trắng
+        $requests = array_filter(array_map('trim', explode(',', $yeuCauChup)), function($item) {
+            return !empty($item);
+        });
+        
+        // Nếu không có yêu cầu hợp lệ sau khi filter
+        if (empty($requests)) {
+            return ['valid' => false, 'message' => 'Vui lòng nhập yêu cầu chụp X-Quang'];
+        }
+        
+        $validRequests = [];
+        $invalidRequests = [];
+
+        try {
+            // Lấy tất cả dịch vụ X-Quang từ bảng suggestions
+            $sql = "SELECT ten_goi_y FROM xray_suggestions WHERE trang_thai = 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            $availableServices = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            // Kiểm tra từng yêu cầu
+            foreach ($requests as $request) {
+                if (in_array($request, $availableServices)) {
+                    $validRequests[] = $request;
+                } else {
+                    $invalidRequests[] = $request;
+                }
+            }
+
+            if (!empty($invalidRequests)) {
+                return [
+                    'valid' => false, 
+                    'message' => 'Dịch vụ không tồn tại: ' . implode(', ', $invalidRequests) . '. Vui lòng chọn từ danh sách gợi ý.'
+                ];
+            }
+
+            return [
+                'valid' => true, 
+                'validRequests' => $validRequests
+            ];
+
+        } catch (PDOException $e) {
+            error_log("PhieuChupXquang validateXrayRequests error: " . $e->getMessage());
+            return ['valid' => false, 'message' => 'Lỗi kiểm tra dịch vụ'];
+        }
     }
 }

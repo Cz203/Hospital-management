@@ -172,6 +172,9 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
         case 'xray_doctor':
             include 'Views/layouts/xray_sidebar.php';
             break;
+        case 'sieuam_doctor':
+            include 'Views/layouts/sieuam_sidebar.php';
+            break;
         case 'patient':
             include 'Views/layouts/patient_sidebar.php';
             break;
