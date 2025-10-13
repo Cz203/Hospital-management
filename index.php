@@ -38,8 +38,17 @@ switch ($action) {
         $auth->loginDoctor(); // Đăng nhập bác sĩ
         break;
 
+
     case 'login_reception':
         $auth->loginReception(); // Đăng nhập lễ tân
+        break;
+    case 'login_xquang':
+        $auth->loginXrayDoctor(); // Đăng nhập bác sĩ X-Quang (chuyên khoa 16)
+        break;
+
+    case 'login_sieuam':
+        $auth->loginSieuam(); // Đăng nhập bác sĩ Siêu âm (chuyên khoa 18)
+
         break;
 
     case 'register':
@@ -141,6 +150,16 @@ switch ($action) {
     case 'doctor_dashboard':
         $auth->requireAuth('doctor');
         include 'Views/doctor/dashboard.php'; // Trang chủ bác sĩ
+        break;
+
+    case 'xray_dashboard':
+        $auth->requireAuth('xray_doctor');
+        include 'Views/doctor/xray_dashboard.php'; // Dashboard riêng cho bác sĩ X-Quang
+        break;
+
+    case 'sieuam_dashboard':
+        $auth->requireAuth('sieuam_doctor');
+        include 'Views/doctor/sieuam_dashboard.php'; // Dashboard riêng cho bác sĩ Siêu âm
         break;
 
     case 'patient_dashboard':
@@ -254,6 +273,7 @@ switch ($action) {
         $doctorController->cancelScheduleForDate(); // Hủy lịch cho 1 ngày cụ thể
         break;
 
+
     case 'doctor_examination':
         $doctorController->examination(); // Khám bệnh - danh sách lịch hẹn hôm nay
         break;
@@ -265,6 +285,181 @@ switch ($action) {
         break;
     case 'get_allergy_history':
         $doctorController->getAllergyHistory();
+        break;
+    case 'save_examination_form':
+        $doctorController->saveExaminationForm();
+        break;
+    case 'get_examination_form':
+        $doctorController->getExaminationForm();
+        break;
+    case 'print_examination_form':
+        $doctorController->printExaminationForm();
+        break;
+
+    case 'get_xray_suggestions':
+        $doctorController->getXraySuggestions(); // Lấy gợi ý X-Quang từ database
+        break;
+
+    case 'calculate_xray_price':
+        $doctorController->calculateXrayPrice(); // Tính giá tiền X-Quang
+        break;
+
+    case 'save_xray_form':
+        $doctorController->saveXrayForm(); // Lưu phiếu chụp X-Quang
+        break;
+
+    case 'print_xray_form':
+        $doctorController->printXrayForm(); // In phiếu chụp X-Quang
+        break;
+
+    case 'view_xray_form':
+        $doctorController->viewXrayForm(); // Xem chi tiết phiếu chụp X-Quang
+        break;
+
+    case 'get_xray_form_data':
+        $doctorController->getXrayFormData(); // Lấy dữ liệu phiếu chụp X-Quang
+        break;
+
+    case 'get_xray_form_by_exam_id':
+        $doctorController->getXrayFormByExamId(); // Lấy phiếu chụp X-Quang theo ID phiếu khám bệnh
+        break;
+
+    case 'get_patient_bhyt_status':
+        $doctorController->getPatientBhytStatus(); // Lấy trạng thái BHYT của bệnh nhân
+        break;
+
+    case 'get_xray_result_data':
+        $doctorController->getXrayResultData(); // Dữ liệu trả kết quả X-Quang
+        break;
+
+    case 'upload_xray_images':
+        $doctorController->uploadXrayImages(); // Upload ảnh X-Quang
+        break;
+
+    case 'save_xray_result':
+        $doctorController->saveXrayResult(); // Lưu kết quả X-Quang
+        break;
+
+    case 'print_xray_result':
+        $doctorController->printXrayResult(); // In kết quả X-Quang
+        break;
+
+    case 'complete_xray_result':
+        $doctorController->completeXrayResult(); // Hoàn thành kết quả X-Quang
+        break;
+
+    case 'get_saved_xray_result':
+        $doctorController->getSavedXrayResult(); // Lấy dữ liệu kết quả đã lưu
+        break;
+
+    case 'save_xray_images':
+        $doctorController->saveXrayImages(); // Lưu ảnh X-Quang vào database
+        break;
+
+    case 'get_saved_xray_images':
+        $doctorController->getSavedXrayImages(); // Lấy ảnh X-Quang đã lưu
+        break;
+
+    case 'get_xray_stats_today':
+        $doctorController->getXrayStatsToday(); // Thống kê dashboard hôm nay
+        break;
+
+    case 'get_requested_xray':
+        $doctorController->getRequestedXrayList(); // Danh sách phiếu chụp trạng thái Đã yêu cầu
+        break;
+
+    case 'get_xray_result_by_exam':
+        $doctorController->getXrayResultByExamIdForView(); // KQ X-Quang theo exam id
+        break;
+
+    case 'get_ultrasound_result_by_exam':
+        $doctorController->getUltrasoundResultByExamIdForView(); // KQ Siêu âm theo exam id
+        break;
+
+    case 'get_saved_ultrasound_images':
+        $doctorController->getSavedUltrasoundImages(); // Hình ảnh siêu âm đã lưu
+        break;
+
+    case 'get_ultrasound_suggestions':
+        $doctorController->getUltrasoundSuggestions(); // Gợi ý siêu âm
+        break;
+    case 'save_ultrasound_form':
+        $doctorController->saveUltrasoundForm(); // Lưu phiếu yêu cầu siêu âm
+        break;
+    case 'get_ultrasound_form_data':
+        $doctorController->getUltrasoundFormData(); // Lấy dữ liệu phiếu yêu cầu siêu âm
+        break;
+    case 'print_ultrasound_form':
+        $doctorController->printUltrasoundForm(); // In phiếu yêu cầu siêu âm
+        break;
+
+    case 'get_ultrasound_stats':
+        $doctorController->getUltrasoundStats(); // Lấy thống kê siêu âm
+        break;
+
+    case 'get_ultrasound_requests':
+        $doctorController->getUltrasoundRequests(); // Lấy danh sách yêu cầu siêu âm
+        break;
+
+    case 'get_ultrasound_result':
+        $doctorController->getUltrasoundResult(); // Lấy kết quả siêu âm
+        break;
+
+    case 'save_ultrasound_result':
+        $doctorController->saveUltrasoundResult(); // Lưu kết quả siêu âm
+        break;
+
+    case 'save_sieu_am_result':
+        $doctorController->saveSieuAmResult(); // Lưu kết quả siêu âm với hình ảnh
+        break;
+
+    case 'upload_sieu_am_images':
+        $doctorController->uploadSieuAmImages(); // Upload hình ảnh siêu âm
+        break;
+
+    case 'get_sieu_am_images':
+        $doctorController->getSieuAmImages(); // Lấy hình ảnh siêu âm
+        break;
+
+    case 'get_sieu_am_result':
+        $doctorController->getSieuAmResult(); // Lấy kết quả siêu âm
+        break;
+
+    case 'delete_sieu_am_image':
+        $doctorController->deleteSieuAmImage(); // Xóa hình ảnh siêu âm
+        break;
+
+    case 'complete_sieu_am_result':
+        $doctorController->completeSieuAmResult(); // Hoàn thành phiếu siêu âm
+        break;
+
+    case 'sieuam_history':
+        include 'Views/doctor/sieuam_history.php'; // Lịch sử siêu âm
+        break;
+
+    case 'get_sieuam_history':
+        $doctorController->getSieuamHistory(); // Lấy dữ liệu lịch sử siêu âm
+        break;
+
+    case 'get_sieuam_result_view':
+        $doctorController->getSieuamResultView(); // Lấy thông tin kết quả siêu âm để xem
+        break;
+
+
+    case 'get_sieuam_images':
+        $doctorController->getSieuAmImages(); // Lấy hình ảnh siêu âm
+        break;
+
+    case 'xray_history':
+        include 'Views/doctor/xray_history.php';
+        break;
+
+    case 'get_xray_history':
+        $doctorController->getXrayHistory();
+        break;
+
+    case 'get_xray_result_view':
+        $doctorController->getXrayResultView(); // JSON for read-only modal
         break;
 
     // ===== APPOINTMENT ROUTES =====

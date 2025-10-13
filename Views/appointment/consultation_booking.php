@@ -46,10 +46,10 @@ $patient_info = $patient->getById($_SESSION['user_id']);
 
                         <!-- Thông tin bác sĩ đã chọn -->
                         <?php if (isset($doctor) && $doctor): ?>
-                        <div class="selected-doctor-info">
-                            <div class="doctor-card-selected">
-                                <div class="doctor-avatar">
-                                    <?php
+                            <div class="selected-doctor-info">
+                                <div class="doctor-card-selected">
+                                    <div class="doctor-avatar">
+                                        <?php
                                         $imgSrc = null;
                                         if (!empty($doctor['hinh_anh'])) {
                                             // Xây dựng đường dẫn web và kiểm tra tồn tại theo đường dẫn filesystem tuyệt đối
@@ -71,23 +71,23 @@ $patient_info = $patient->getById($_SESSION['user_id']);
                                             $imgSrc = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9IiNmOGY5ZmEiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjMwIiByPSIxNSIgZmlsbD0iI2RlZTJlNiIvPjxwYXRoIGQ9Ik0xNSA2NSBRNDAgNDUgNjUgNjUiIHN0cm9rZT0iI2RlZTJlNiIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIi8+PC9zdmc+';
                                         }
                                         ?>
-                                    <img src="<?php echo $imgSrc; ?>"
-                                        alt="Bác sĩ <?php echo htmlspecialchars($doctor['ten']); ?>"
-                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                    <div class="avatar-placeholder"
-                                        style="display: none; width: 100%; height: 100%; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 2rem;">
-                                        <i class="fas fa-user-md"></i>
+                                        <img src="<?php echo $imgSrc; ?>"
+                                            alt="Bác sĩ <?php echo htmlspecialchars($doctor['ten']); ?>"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                        <div class="avatar-placeholder"
+                                            style="display: none; width: 100%; height: 100%; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 2rem;">
+                                            <i class="fas fa-user-md"></i>
+                                        </div>
+                                    </div>
+                                    <div class="doctor-details">
+                                        <h5><?php echo htmlspecialchars($doctor['ten']); ?></h5>
+                                        <p class="text-primary">
+                                            <?php echo htmlspecialchars($doctor['chuyen_khoa'] ?? 'Đa khoa'); ?></p>
+                                        <p class="text-muted"><?php echo ($doctor['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh
+                                            nghiệm</p>
                                     </div>
                                 </div>
-                                <div class="doctor-details">
-                                    <h5><?php echo htmlspecialchars($doctor['ten']); ?></h5>
-                                    <p class="text-primary">
-                                        <?php echo htmlspecialchars($doctor['chuyen_khoa'] ?? 'Đa khoa'); ?></p>
-                                    <p class="text-muted"><?php echo ($doctor['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh
-                                        nghiệm</p>
-                                </div>
                             </div>
-                        </div>
                         <?php endif; ?>
 
                         <!-- Đặt khám nhanh (giống lịch hẹn trực tiếp) -->
@@ -149,7 +149,7 @@ $patient_info = $patient->getById($_SESSION['user_id']);
                                                 disabled>
                                         </div>
                                         <div class="mb-3">
-                                            <div class="form-text">Khung giờ 20 phút/lần</div>
+                                            <div class="form-text">Khung giờ 10 phút/lần</div>
                                         </div>
 
                                         <div class="mb-3">

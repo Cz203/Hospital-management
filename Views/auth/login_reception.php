@@ -8,15 +8,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/login.css">
     <style>
-    body {
-        background: #f3f4f6;
-    }
+        body {
+            background: #f3f4f6;
+        }
 
-    .card {
-        border: none;
-        border-radius: 14px;
-        box-shadow: 0 10px 30px rgba(17, 24, 39, .08);
-    }
+        .card {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(17, 24, 39, .08);
+        }
     </style>
 </head>
 
@@ -26,18 +26,17 @@
             <div class="col-md-5">
                 <div class="card p-4">
                     <h4 class="mb-3 text-center">Đăng nhập Lễ tân</h4>
-                    <?php if (isset($_SESSION['error'])): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <?php echo $_SESSION['error'];
+                    <?php if (isset($_SESSION['error'])) : ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <?php echo $_SESSION['error'];
                             unset($_SESSION['error']); ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                     <?php endif; ?>
                     <form method="POST" action="./login_reception">
                         <div class="mb-3">
                             <label class="form-label">Số điện thoại</label>
-                            <input type="tel" name="phone" class="form-control" placeholder="reception@example.com"
-                                required>
+                            <input type="tel" name="phone" class="form-control" placeholder="Số điện thoại" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Mật khẩu</label>
