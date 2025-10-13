@@ -82,7 +82,8 @@
 
                 <!-- Authentication Links + Notifications -->
                 <ul class="navbar-nav">
-                    <?php if (!isset($_SESSION['user_id'])) : ?>
+                    <?php $ctx = getCurrentUserContext(); ?>
+                    <?php if (!$ctx['id']) : ?>
                     <li class="nav-item">
                         <a class="nav-link btn btn-outline-light btn-sm px-3" href="login">
                             <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập
@@ -119,26 +120,20 @@
                             <div class="user-avatar me-2">
                                 <i class="fas fa-user-circle"></i>
                             </div>
-                            <span class="user-name me-1"><?php echo $_SESSION['user_name']; ?></span>
+                            <span
+                                class="user-name me-1"><?php echo htmlspecialchars($ctx['name'] ?: 'Người dùng', ENT_QUOTES, 'UTF-8'); ?></span>
                             <button class="btn btn-link text-white p-0 ms-1" type="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
                                 <i class="fas fa-chevron-down"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li>
-                                    <?php 
-                                        $dashboardRoute = match($_SESSION['user_role']) {
-                                            'xray_doctor' => 'xray_dashboard',
-                                            'sieuam_doctor' => 'sieuam_dashboard',
-                                            default => $_SESSION['user_role'] . '_dashboard'
-                                        };
-                                    ?>
-                                    <a class="dropdown-item" href="./<?php echo $dashboardRoute; ?>">
+                                    <a class="dropdown-item" href="./<?php echo $ctx['role']; ?>_dashboard">
                                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="./<?php echo $_SESSION['user_role']; ?>_profile">
+                                    <a class="dropdown-item" href="./<?php echo $ctx['role']; ?>_profile">
                                         <i class="fas fa-user me-2"></i>Hồ sơ
                                     </a>
                                 </li>

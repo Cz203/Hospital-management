@@ -1,6 +1,9 @@
 <?php
 require_once 'Views/layouts/layout_helper.php';
 
+$ctx = getCurrentUserContext();
+$displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF-8');
+
 $content = '
 <div class="container-fluid">
     <!-- Page Header -->
@@ -10,7 +13,7 @@ $content = '
                 <i class="fas fa-user-injured text-primary me-2"></i>
                 Patient Dashboard
             </h1>
-            <p class="text-muted">Chào mừng ' . $_SESSION['user_name'] . ' - Chăm sóc sức khỏe của bạn</p>
+            <p class="text-muted">Chào mừng ' . $displayName . ' - Chăm sóc sức khỏe của bạn</p>
         </div>
         <div class="d-flex gap-2">
             <a href="./home" class="btn btn-primary">

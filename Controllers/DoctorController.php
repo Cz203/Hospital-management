@@ -1508,7 +1508,7 @@ class DoctorController
      */
     public function saveXrayForm()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
+        // Kiểm tra đăng nhập và quyền bác sĩ (cho phép tất cả bác sĩ)
         if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit();
@@ -2496,6 +2496,13 @@ class DoctorController
     public function saveUltrasoundForm()
     {
         header('Content-Type: application/json; charset=utf-8');
+
+        // Kiểm tra đăng nhập và quyền bác sĩ (cho phép tất cả bác sĩ)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             if (!isset($_POST['exam_id']) || empty($_POST['exam_id'])) {
                 echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc']);
@@ -2791,11 +2798,20 @@ class DoctorController
     {
         header('Content-Type: application/json; charset=utf-8');
 
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             $phieuId = $_POST['phieu_id'] ?? null;
             $ketQuaKhaoSat = $_POST['ket_qua_khao_sat'] ?? '';
             $ketLuan = $_POST['ket_luan'] ?? '';
-            $bacSiSieuAm = $_SESSION['user_name'] ?? '';
+            // Lấy tên bác sĩ từ database
+            $doctorId = $_SESSION['user_id'];
+            $doctor = $this->doctorModel->getById($doctorId);
+            $bacSiSieuAm = $doctor ? $doctor['ten'] : '';
 
             if (!$phieuId || empty($ketQuaKhaoSat) || empty($ketLuan)) {
                 echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc']);
@@ -2845,6 +2861,12 @@ class DoctorController
     public function uploadSieuAmImages()
     {
         header('Content-Type: application/json; charset=utf-8');
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
 
         try {
             $ketQuaId = $_POST['ket_qua_id'] ?? null;
@@ -2928,6 +2950,12 @@ class DoctorController
     {
         header('Content-Type: application/json; charset=utf-8');
 
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             $ketQuaId = $_GET['ket_qua_id'] ?? $_GET['result_id'] ?? null;
 
@@ -2958,6 +2986,12 @@ class DoctorController
     public function getSieuAmResult()
     {
         header('Content-Type: application/json; charset=utf-8');
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
 
         try {
             $phieuId = $_GET['phieu_id'] ?? null;
@@ -2993,6 +3027,12 @@ class DoctorController
     public function deleteSieuAmImage()
     {
         header('Content-Type: application/json; charset=utf-8');
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
 
         try {
             $imageId = $_POST['image_id'] ?? null;
@@ -3122,6 +3162,12 @@ class DoctorController
     public function completeSieuAmResult()
     {
         header('Content-Type: application/json; charset=utf-8');
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
 
         try {
             $phieuId = $_POST['phieu_id'] ?? null;

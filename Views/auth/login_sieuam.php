@@ -20,20 +20,21 @@
 
         <div class="login-body">
             <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle"></i>
-                <?php echo $_SESSION['error']; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php unset($_SESSION['error']); ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <?php echo $_SESSION['error']; ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
             <form method="POST" action="./login_sieuam">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <div class="mb-3">
-                    <label for="email" class="form-label">
-                        <i class="fas fa-envelope"></i> Email
+                    <label for="phone" class="form-label">
+                        <i class="fas fa-phone"></i> Số điện thoại
                     </label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <input type="tel" class="form-control" id="phone" name="phone" required>
                 </div>
 
                 <div class="mb-3">
