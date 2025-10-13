@@ -126,7 +126,14 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li>
-                                    <a class="dropdown-item" href="./<?php echo $_SESSION['user_role']; ?>_dashboard">
+                                    <?php 
+                                        $dashboardRoute = match($_SESSION['user_role']) {
+                                            'xray_doctor' => 'xray_dashboard',
+                                            'sieuam_doctor' => 'sieuam_dashboard',
+                                            default => $_SESSION['user_role'] . '_dashboard'
+                                        };
+                                    ?>
+                                    <a class="dropdown-item" href="./<?php echo $dashboardRoute; ?>">
                                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                                     </a>
                                 </li>

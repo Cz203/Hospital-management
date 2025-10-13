@@ -71,7 +71,7 @@ class AuthController
                 exit();
             }
 
-            $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
+            $_SESSION['error'] = "Số điện thoại & Mật khẩu không hợp lệ!";
             header("Location: ./login_admin");
             exit();
         }
@@ -127,13 +127,14 @@ class AuthController
                 exit();
             }
 
-            $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
+            $_SESSION['error'] = "Số điện thoại & Mật khẩu không hợp lệ!";
             header("Location: ./login_doctor");
             exit();
         }
 
         include 'Views/auth/login_doctor.php';
     }
+
 
     public function loginReception()
     {
@@ -183,12 +184,178 @@ class AuthController
                 exit();
             }
 
-            $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
+            $_SESSION['error'] = "Số điện thoại & Mật khẩu không ";
             header("Location: ./login_reception");
             exit();
         }
 
         include 'Views/auth/login_reception.php';
+    }
+    public function loginXrayDoctor()
+    {
+        if ($this->isLoggedIn()) {
+            $role = $_SESSION['user_role'];
+            if ($role === 'xray_doctor') {
+                header("Location: ./xray_dashboard");
+                exit();
+            }
+            switch ($role) {
+                case 'admin':
+                    header("Location: ./admin_dashboard");
+                    exit();
+                case 'doctor':
+                    header("Location: ./doctor_dashboard");
+                    exit();
+                case 'patient':
+                    header("Location: ./patient_dashboard");
+                    exit();
+            }
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $sdt = $_POST['phone'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (empty($sdt) || empty($password)) {
+                $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
+                header("Location: ./login_xquang");
+                exit();
+            }
+
+            // Chuẩn hóa số điện thoại (chấp nhận 0/84)
+            require_once 'Controllers/SMSController.php';
+            $sms = new SMSController();
+            $normalized = $sms->normalizePhoneNumber($sdt);
+
+            $doctorModel = new Doctor();
+            $user = $doctorModel->login($normalized, $password);
+            if ($user) {
+                // Chỉ cho phép bác sĩ có chuyên khoa id = 16 (Chẩn đoán hình ảnh)
+                $specId = isset($user['chuyen_khoa_id']) ? (int)$user['chuyen_khoa_id'] : 0;
+                if ($specId !== 16) {
+                    $_SESSION['error'] = "Tài khoản không thuộc chuyên khoa Chẩn đoán hình ảnh (ID=16).";
+                    header("Location: ./login_xquang");
+                    exit();
+                }
+
+                session_regenerate_id(true);
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['ten'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = 'xray_doctor';
+                $_SESSION['specialization_id'] = $specId;
+                $_SESSION['last_activity'] = time();
+
+                header("Location: ./xray_dashboard");
+                exit();
+            }
+            $_SESSION['error'] = "Số điện thoại hoặc mật khẩu không đúng!";
+            header("Location: ./login_xquang");
+            exit();
+        }
+
+        include 'Views/auth/login_xquang.php';
+    }
+
+
+    public function loginSieuam()
+    {
+        if ($this->isLoggedIn()) {
+            $role = $_SESSION['user_role'];
+            if ($role === 'sieuam_doctor') {
+                header("Location: ./sieuam_dashboard");
+                exit();
+            }
+            switch ($role) {
+                case 'doctor':
+                    header("Location: ./doctor_dashboard");
+                    break;
+                case 'xray_doctor':
+                    header("Location: ./xray_dashboard");
+                    break;
+                case 'admin':
+                    header("Location: ./admin_dashboard");
+                    break;
+                case 'patient':
+                    header("Location: ./patient_dashboard");
+                    break;
+                default:
+                    header("Location: ./home");
+            }
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $sdt = $_POST['phone'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (empty($sdt) || empty($password)) {
+                $_SESSION['error'] = "Vui lòng nhập đầy đủ thông tin!";
+                header("Location: ./login_sieuam");
+                exit();
+            }
+
+            try {
+                $database = new Database();
+                $pdo = $database->getConnection();
+
+                // Debug: Log thông tin đăng nhập
+                error_log("Sieuam login attempt - Phone: $sdt");
+
+                // Chuẩn hóa đối sánh số điện thoại (hỗ trợ 0/84)
+                $raw = trim($sdt);
+                $p1 = $raw;
+                $p2 = $raw;
+                if (str_starts_with($raw, '84')) {
+                    $p2 = '0' . substr($raw, 2);
+                } elseif (str_starts_with($raw, '0')) {
+                    $p2 = '84' . substr($raw, 1);
+                }
+
+                // Tìm bác sĩ với chuyen_khoa_id = 18 (Siêu âm) theo số điện thoại
+                $stmt = $pdo->prepare("
+                    SELECT b.*, ck.ten as chuyen_khoa_ten 
+                    FROM bac_si b 
+                    JOIN chuyen_khoa ck ON b.chuyen_khoa_id = ck.id 
+                    WHERE (b.so_dien_thoai = :p1 OR b.so_dien_thoai = :p2) AND b.chuyen_khoa_id = 18
+                ");
+                $stmt->bindParam(':p1', $p1);
+                $stmt->bindParam(':p2', $p2);
+                $stmt->execute();
+                $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                // Debug: Log kết quả tìm kiếm
+                error_log("Sieuam doctor found: " . ($doctor ? 'YES' : 'NO'));
+                if ($doctor) {
+                    error_log("Doctor ID: " . $doctor['id'] . ", Chuyen khoa: " . $doctor['chuyen_khoa_id']);
+                }
+
+                if ($doctor && password_verify($password, $doctor['mat_khau'])) {
+                    // Regenerate session ID để tránh session fixation
+                    session_regenerate_id(true);
+                    $_SESSION['user_id'] = $doctor['id'];
+                    $_SESSION['user_name'] = $doctor['ten'];
+                    $_SESSION['user_email'] = $doctor['email'];
+                    $_SESSION['user_role'] = 'sieuam_doctor';
+                    $_SESSION['chuyen_khoa_id'] = $doctor['chuyen_khoa_id'];
+                    $_SESSION['chuyen_khoa_ten'] = $doctor['chuyen_khoa_ten'];
+
+
+                    header("Location: ./sieuam_dashboard");
+                    exit();
+                }
+
+                $_SESSION['error'] = "Số điện thoại hoặc mật khẩu không đúng!";
+                header("Location: ./login_sieuam");
+                exit();
+            } catch (Exception $e) {
+                $_SESSION['error'] = "Lỗi hệ thống!";
+                header("Location: ./login_sieuam");
+                exit();
+            }
+        }
+
+        include 'Views/auth/login_sieuam.php';
     }
 
     public function loginPatient()
@@ -237,7 +404,7 @@ class AuthController
                 exit();
             }
 
-            $_SESSION['error'] = "Email hoặc mật khẩu không đúng!";
+            $_SESSION['error'] = "Số điện thoại & Mật khẩu không ";
             header("Location: login");
             exit();
         }

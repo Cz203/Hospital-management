@@ -174,6 +174,12 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
         case 'doctor':
             include 'Views/layouts/doctor_sidebar.php';
             break;
+        case 'xray_doctor':
+            include 'Views/layouts/xray_sidebar.php';
+            break;
+        case 'sieuam_doctor':
+            include 'Views/layouts/sieuam_sidebar.php';
+            break;
         case 'patient':
             include 'Views/layouts/patient_sidebar.php';
             break;
@@ -230,6 +236,22 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
                     <li class="nav-item">
                         <a class="nav-link" href="#">
                             <i class="fas fa-user-injured me-1"></i>Bệnh nhân
+                        </a>
+                    </li>
+                    <?php elseif ($user_role == 'xray_doctor'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./xray_dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-x-ray me-1"></i>Chụp X-Quang
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-file-medical me-1"></i>Kết quả
                         </a>
                     </li>
                     <?php elseif ($user_role == 'patient'): ?>
@@ -291,6 +313,10 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
                                                 break;
                                             case 'doctor':
                                                 $role_text = 'Bác sĩ';
+                                                $role_class = 'role-doctor';
+                                                break;
+                                            case 'xray_doctor':
+                                                $role_text = 'Bác sĩ X-Quang';
                                                 $role_class = 'role-doctor';
                                                 break;
                                             case 'patient':

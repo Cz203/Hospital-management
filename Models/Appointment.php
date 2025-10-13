@@ -194,7 +194,7 @@ class Appointment extends User
 
     /**
      * Lấy khung giờ khám có sẵn của bác sĩ trong ngày
-     * Mỗi khung giờ 20 phút
+     * Mỗi khung giờ 10 phút
      */
     public function getAvailableTimeSlots($doctorId, $ngayHen, $includeBooked = false)
     {
@@ -231,7 +231,7 @@ class Appointment extends User
                 }
             }
 
-            // Tạo khung giờ 20 phút cho mỗi ca làm việc
+            // Tạo khung giờ 10 phút cho mỗi ca làm việc
             $slots = [];
 
             foreach ($workSchedules as $schedule) {
@@ -242,7 +242,7 @@ class Appointment extends User
                 while ($currentTime < $endTime) {
                     $timeSlot = $currentTime->format('H:i');
                     $nextSlot = clone $currentTime;
-                    $nextSlot->add(new DateInterval('PT20M'));
+                    $nextSlot->add(new DateInterval('PT10M'));
 
                     $isBooked = in_array($timeSlot, $bookedTimes) || !($nextSlot <= $endTime);
 
@@ -265,7 +265,7 @@ class Appointment extends User
                         }
                     }
 
-                    $currentTime->add(new DateInterval('PT20M'));
+                    $currentTime->add(new DateInterval('PT10M'));
                 }
             }
 
@@ -431,7 +431,7 @@ class Appointment extends User
     public function getAppointmentsByDoctorAndDate($doctorId, $date)
     {
         try {
-            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau, bn.bao_hiem_y_te, bhy.ngay_het_han
+            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau, bn.bao_hiem_y_te, bn.ma_benh_nhan, bhy.ngay_het_han
                     FROM {$this->table} lh
                     JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
                     LEFT JOIN bao_hiem_y_te bhy ON bn.bao_hiem_y_te_id = bhy.id

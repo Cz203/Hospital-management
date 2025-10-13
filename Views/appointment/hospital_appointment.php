@@ -38,10 +38,10 @@
 
                         <!-- Thông tin bác sĩ đã chọn -->
                         <?php if (isset($doctor) && $doctor): ?>
-                        <div class="selected-doctor-info">
-                            <div class="doctor-card-selected">
-                                <div class="doctor-avatar">
-                                    <?php
+                            <div class="selected-doctor-info">
+                                <div class="doctor-card-selected">
+                                    <div class="doctor-avatar">
+                                        <?php
                                         $imgSrc = null;
 
                                         // Debug: Kiểm tra dữ liệu doctor
@@ -67,50 +67,50 @@
                                             $imgSrc = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgdmlld0JveD0iMCAwIDgwIDgwIj48cmVjdCB3aWR0aD0iODAiIGhlaWdodD0iODAiIGZpbGw9IiNmOGY5ZmEiLz48Y2lyY2xlIGN4PSI0MCIgY3k9IjMwIiByPSIxNSIgZmlsbD0iI2RlZTJlNiIvPjxwYXRoIGQ9Ik0xNSA2NSBRNDAgNDUgNjUgNjUiIHN0cm9rZT0iI2RlZTJlNiIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIi8+PC9zdmc+';
                                         }
                                         ?>
-                                    <img src="<?php echo $imgSrc; ?>"
-                                        alt="Bác sĩ <?php echo htmlspecialchars($doctor['ten']); ?>"
-                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                    <div class="avatar-placeholder"
-                                        style="display: none; width: 100%; height: 100%; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 2rem;">
-                                        <i class="fas fa-user-md"></i>
+                                        <img src="<?php echo $imgSrc; ?>"
+                                            alt="Bác sĩ <?php echo htmlspecialchars($doctor['ten']); ?>"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                        <div class="avatar-placeholder"
+                                            style="display: none; width: 100%; height: 100%; background: #f8f9fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 2rem;">
+                                            <i class="fas fa-user-md"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="doctor-details">
-                                    <h5><?php echo htmlspecialchars($doctor['ten']); ?></h5>
-                                    <p class="text-primary">
-                                        <?php echo htmlspecialchars($doctor['chuyen_khoa'] ?? 'Đa khoa'); ?></p>
-                                    <p class="text-muted"><?php echo ($doctor['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh
-                                        nghiệm</p>
+                                    <div class="doctor-details">
+                                        <h5><?php echo htmlspecialchars($doctor['ten']); ?></h5>
+                                        <p class="text-primary">
+                                            <?php echo htmlspecialchars($doctor['chuyen_khoa'] ?? 'Đa khoa'); ?></p>
+                                        <p class="text-muted"><?php echo ($doctor['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh
+                                            nghiệm</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- Đặt khám nhanh -->
-                        <div class="card mb-4" id="quickBookingCard" style="display: none;">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-calendar me-2"></i>
-                                        <h6 class="mb-0">Chọn ngày khám</h6>
+                            <!-- Đặt khám nhanh -->
+                            <div class="card mb-4" id="quickBookingCard" style="display: none;">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-calendar me-2"></i>
+                                            <h6 class="mb-0">Chọn ngày khám</h6>
+                                        </div>
+                                        <div>
+                                            <button type="button" id="qbPrev" class="btn btn-sm btn-outline-secondary"><i
+                                                    class="fas fa-chevron-left"></i></button>
+                                            <button type="button" id="qbNext"
+                                                class="btn btn-sm btn-outline-secondary ms-2"><i
+                                                    class="fas fa-chevron-right"></i></button>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <button type="button" id="qbPrev" class="btn btn-sm btn-outline-secondary"><i
-                                                class="fas fa-chevron-left"></i></button>
-                                        <button type="button" id="qbNext"
-                                            class="btn btn-sm btn-outline-secondary ms-2"><i
-                                                class="fas fa-chevron-right"></i></button>
+                                    <div class="d-flex overflow-auto" id="quickDays" style="gap:12px;"></div>
+                                    <div class="mt-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-sun me-2 text-warning"></i>
+                                            <strong class="me-2">Khung giờ</strong>
+                                            <small class="text-muted" id="slotCountLabel"></small>
+                                        </div>
+                                        <div id="quickTimeSlots" class="d-flex flex-wrap" style="gap:10px;"></div>
                                     </div>
-                                </div>
-                                <div class="d-flex overflow-auto" id="quickDays" style="gap:12px;"></div>
-                                <div class="mt-3">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="fas fa-sun me-2 text-warning"></i>
-                                        <strong class="me-2">Khung giờ</strong>
-                                        <small class="text-muted" id="slotCountLabel"></small>
-                                    </div>
-                                    <div id="quickTimeSlots" class="d-flex flex-wrap" style="gap:10px;"></div>
                                 </div>
                             </div>
-                        </div>
                         <?php endif; ?>
 
                         <!-- Form đặt lịch -->
@@ -140,7 +140,7 @@
                                             <label class="form-label">Giờ khám đã chọn</label>
                                             <input type="text" id="selectedTimeDisplay" class="form-control" value=""
                                                 disabled>
-                                            <div class="form-text">Khung giờ 20 phút/lần</div>
+                                            <div class="form-text">Khung giờ 10 phút/lần</div>
                                         </div>
 
                                         <div class="mb-3">
