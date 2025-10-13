@@ -156,6 +156,11 @@ switch ($action) {
         $receptionController->doctorSchedules(); // Trang lịch làm việc bác sĩ (lễ tân)
         break;
 
+    case 'reception_queue':
+        $auth->requireAuth('letan');
+        include 'Views/reception/queue.php'; // Giao diện bốc số
+        break;
+
 
     // ===== PATIENT ROUTES =====
     case 'patient_medical_records':
@@ -311,6 +316,20 @@ switch ($action) {
         $receptionController->patientStore(); // Lưu bệnh nhân mới
         break;
 
+    // ===== RECEPTION QUEUE (WALK-IN) =====
+    case 'reception_issue_ticket':
+        $receptionController->issueQueueTicket();
+        break;
+    case 'reception_queue_list':
+        $receptionController->queueList();
+        break;
+    case 'reception_queue_update':
+        $receptionController->queueUpdateStatus();
+        break;
+    case 'reception_queue_reassign':
+        $receptionController->queueReassign();
+        break;
+
     case 'patient_appointments':
         $appointmentController->patientAppointments(); // Lịch hẹn của bệnh nhân
         break;
@@ -318,6 +337,10 @@ switch ($action) {
     // ===== GENERAL ROUTES =====
     case 'home':
         include 'Views/home.php'; // Trang chủ
+        break;
+
+    case 'contact':
+        include 'Views/contact.php'; // Trang liên hệ
         break;
 
     // ===== DEFAULT ROUTE =====

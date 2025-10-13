@@ -80,15 +80,10 @@ include 'Views/layouts/header.php';
                     <option value="specialty">Theo chuyên khoa</option>
                 </select>
             </div>
-            <div class="col-lg-2 col-md-6">
-                <div class="d-grid">
-                    <a href="./hospital_appointment" class="btn btn-primary btn-lg">
-                        <i class="fas fa-calendar-check me-2"></i>Đặt lịch
-                    </a>
-                </div>
-            </div>
+
         </div>
     </div>
+
 </section>
 
 <!-- Doctors Grid -->
@@ -512,7 +507,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // Make clearFilters available globally
     window.clearFilters = clearFilters;
 
-    // Initialize
+    // Initialize from URL params if provided (q for name, spec for specialty)
+    (function initFromParams() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const q = (params.get('q') || '').trim();
+            const spec = (params.get('spec') || '').trim();
+            if (q) {
+                searchInput.value = q;
+            }
+            if (spec) {
+                // Try to match by exact option value first
+                let matched = false;
+                for (let i = 0; i < specSelect.options.length; i++) {
+                    const opt = specSelect.options[i];
+                    if ((opt.value || '').toLowerCase() === spec.toLowerCase() || (opt.text || '')
+                        .toLowerCase() === spec.toLowerCase()) {
+                        specSelect.value = opt.value;
+                        matched = true;
+                        break;
+                    }
+                }
+                // If not matched, leave select as-is (filters will still apply by name if q is set)
+            }
+        } catch (e) {}
+    })();
+
+    // Apply filters after initializing params
     applyFilters();
 });
 </script>

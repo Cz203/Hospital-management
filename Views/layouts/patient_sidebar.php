@@ -94,33 +94,78 @@
 </div>
 
 <style>
+.sidebar {
+    backdrop-filter: blur(6px);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, .08);
+    background: linear-gradient(180deg, #0d6efd 0%, #1f86ff 45%, #f7fbff 100%) !important;
+    color: #ffffff;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar .sidebar-body {
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+}
+
 .sidebar .nav-link {
-    transition: all 0.3s ease;
+    color: #ffffff !important;
     border-left: 3px solid transparent;
+    border-radius: 10px;
+    margin: 4px 8px;
+    padding: 0.75rem 0.9rem;
+    transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.sidebar .nav-link i {
+    width: 20px;
+    text-align: center;
 }
 
 .sidebar .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-left-color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateX(2px);
 }
 
 .sidebar .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-left-color: #ffffff;
-    font-weight: 600;
-    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+    border-left-color: #0d6efd;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
 .user-avatar {
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    background: linear-gradient(135deg, #0d6efd 0%, #1f86ff 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: 600;
+}
+
+.sidebar .sidebar-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar .sidebar-body::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar .sidebar-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.26);
+    border-radius: 8px;
+}
+
+.sidebar .sidebar-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.36);
 }
 
 /* Responsive */

@@ -18,8 +18,8 @@ function getAllowedOrigins() {
   // defaults for local dev + typical PHP base path
   return [
     "http://localhost:3000",
-    "http://localhost/hospital_management",
-    "http://127.0.0.1/hospital_management",
+    "http://localhost/clinic-management",
+    "http://127.0.0.1/clinic-management",
   ];
 }
 
@@ -95,6 +95,12 @@ app.post("/emit", (req, res) => {
           `Status change notification sent to patient ${data.patientId}`
         );
       }
+    } else if (event === "appointment_update" && data && data.doctorId) {
+      // Target only the intended doctor and doctors group; also notify all receptionists
+      io.to(`doctor_${data.doctorId}`).emit("appointment_update", data);
+      io.to("all_doctors").emit("appointment_update", data);
+      io.to("all_receptionists").emit("appointment_update", data);
+      console.log(`Appointment update sent to doctor ${data.doctorId}`, data);
     } else {
       // Emit to all connected clients (fallback)
       io.emit(event, data);
@@ -113,6 +119,7 @@ const connectedUsers = {
   doctors: new Map(),
   patients: new Map(),
   admins: new Map(),
+  receptionists: new Map(), // lễ tân
 };
 
 // Socket.IO connection handling
@@ -151,6 +158,12 @@ io.on("connection", (socket) => {
         socket.join(`admin_${userId}`);
         socket.join("all_admins");
         console.log(`Admin ${userName} (ID: ${userId}) connected`);
+        break;
+      case "letan":
+        connectedUsers.receptionists.set(userId, socket);
+        socket.join(`reception_${userId}`);
+        socket.join("all_receptionists");
+        console.log(`Receptionist ${userName} (ID: ${userId}) connected`);
         break;
     }
 
@@ -263,6 +276,12 @@ io.on("connection", (socket) => {
             `Admin ${socket.userName} (ID: ${socket.userId}) disconnected`
           );
           break;
+        case "letan":
+          connectedUsers.receptionists.delete(socket.userId);
+          console.log(
+            `Receptionist ${socket.userName} (ID: ${socket.userId}) disconnected`
+          );
+          break;
       }
     }
   });
@@ -279,6 +298,7 @@ function broadcastAppointmentStats() {
     connectedDoctors: connectedUsers.doctors.size,
     connectedPatients: connectedUsers.patients.size,
     connectedAdmins: connectedUsers.admins.size,
+    connectedReceptionists: connectedUsers.receptionists.size,
     timestamp: new Date().toISOString(),
   };
 
@@ -313,7 +333,7 @@ app.get("/health", (req, res) => {
 // Root endpoint
 app.get("/", (req, res) => {
   res.json({
-    message: "Hospital Management Socket Server",
+    message: "Clinic Management Socket Server",
     status: "running",
     timestamp: new Date().toISOString(),
   });

@@ -1,6 +1,7 @@
 <?php
 require_once 'Views/layouts/layout_helper.php';
 
+
 // Helper function để format thời gian
 function formatTime($time)
 {
@@ -192,6 +193,17 @@ if (empty($appointments)) {
 } else {
     $content .= '<div class="row">';
     foreach ($appointments as $appointment) {
+        // Map loai_lich to friendly label
+        $loaiDisplay = '';
+        if (isset($appointment['loai_lich']) && $appointment['loai_lich'] !== '') {
+            if ($appointment['loai_lich'] === 'Trực tiếp') {
+                $loaiDisplay = 'Đã đặt lịch trước';
+            } elseif ($appointment['loai_lich'] === 'Tại viện') {
+                $loaiDisplay = 'Tại viện';
+            } else {
+                $loaiDisplay = $appointment['loai_lich'];
+            }
+        }
         $content .= '
                         <div class="col-lg-6 col-xl-4 mb-4 appointment-item" data-status="' . ($appointment['trang_thai'] === 'Đang khám' ? 'examining' : ($appointment['trang_thai'] === 'Hoàn thành' ? 'completed' : 'confirmed')) . '" data-appointment-id="' . $appointment['id'] . '" data-patient-name="' . htmlspecialchars($appointment['ten_benh_nhan'] ?? '') . '" data-phone="' . htmlspecialchars($appointment['so_dien_thoai'] ?? '') . '" data-dob="' . htmlspecialchars($appointment['ngay_sinh'] ?? '') . '" data-gender="' . htmlspecialchars($appointment['gioi_tinh'] ?? '') . '" data-address="' . htmlspecialchars($appointment['dia_chi'] ?? '') . '" data-patient-code="' . htmlspecialchars($appointment['benh_nhan_id'] ?? '') . '" data-bhyt="' . htmlspecialchars($appointment['bao_hiem_y_te'] ?? '') . '" data-bhyt-het-han="' . htmlspecialchars($appointment['ngay_het_han'] ?? '') . '">
                             <div class="card appointment-card h-100">
@@ -203,6 +215,7 @@ if (empty($appointments)) {
                                         <div>
                                             <h6 class="mb-0">' . formatTime($appointment['gio_hen']) . '</h6>
                                             <small class="text-muted">' . $appointment['trang_thai'] . '</small>
+                                            ' . (!empty($loaiDisplay) ? ('<div><span class="badge bg-secondary mt-1">' . htmlspecialchars($loaiDisplay, ENT_QUOTES, 'UTF-8') . '</span></div>') : '') . '
                                         </div>
                                     </div>
                                     <span class="badge ' . getStatusBadgeClass($appointment['trang_thai']) . '">

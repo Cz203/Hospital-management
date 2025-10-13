@@ -38,10 +38,10 @@ $page_title = 'Đăng nhập';
                 <input type="hidden" name="role" value="patient">
 
                 <div class="mb-4">
-                    <label for="email" class="form-label">
-                        <i class="fas fa-envelope me-2"></i>Email
+                    <label for="phone" class="form-label">
+                        <i class="fas fa-phone me-2"></i>Số điện thoại
                     </label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <input type="tel" class="form-control" id="phone" name="phone" required>
                 </div>
 
                 <div class="mb-4">

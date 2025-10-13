@@ -148,7 +148,7 @@ ob_start();
                 <h5 class="modal-title">Chỉnh sửa thông tin</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="/hospital_management/admin_update_profile">
+            <form method="POST" action="/clinic-management/admin_update_profile">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Họ và tên</label>

@@ -43,23 +43,20 @@ class AuthController
                 exit();
             }
 
-            $email = SecurityConfig::sanitizeInput($_POST['email'] ?? '');
+            $phone = SecurityConfig::sanitizeInput($_POST['phone'] ?? '');
             $password = $_POST['password'] ?? '';
 
-            if (empty($email) || empty($password)) {
+            if (empty($phone) || empty($password)) {
                 $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
                 header("Location: ./login_admin");
                 exit();
             }
-
-            if (!SecurityConfig::validateEmail($email)) {
-                $_SESSION['error'] = "Email không hợp lệ!";
-                header("Location: ./login_admin");
-                exit();
-            }
-
+            // Chuẩn hóa số điện thoại
+            require_once 'Controllers/SMSController.php';
+            $sms = new SMSController();
+            $normalized = $sms->normalizePhoneNumber($phone);
             $admin = new Admin();
-            $user = $admin->login($email, $password);
+            $user = $admin->login($normalized, $password);
             if ($user) {
                 // Regenerate session ID để tránh session fixation
                 session_regenerate_id(true);
@@ -102,17 +99,19 @@ class AuthController
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $email = $_POST['email'] ?? '';
+            $phone = $_POST['phone'] ?? '';
             $password = $_POST['password'] ?? '';
 
-            if (empty($email) || empty($password)) {
+            if (empty($phone) || empty($password)) {
                 $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
                 header("Location: ./login_doctor");
                 exit();
             }
-
+            require_once 'Controllers/SMSController.php';
+            $sms = new SMSController();
+            $normalized = $sms->normalizePhoneNumber($phone);
             $doctorModel = new Doctor();
-            $user = $doctorModel->login($email, $password);
+            $user = $doctorModel->login($normalized, $password);
             if ($user) {
                 // Regenerate session ID để tránh session fixation
                 session_regenerate_id(true);
@@ -158,18 +157,20 @@ class AuthController
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $email = $_POST['email'] ?? '';
+            $phone = $_POST['phone'] ?? '';
             $password = $_POST['password'] ?? '';
 
-            if (empty($email) || empty($password)) {
+            if (empty($phone) || empty($password)) {
                 $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
                 header("Location: ./login_reception");
                 exit();
             }
-
+            require_once 'Controllers/SMSController.php';
+            $sms = new SMSController();
+            $normalized = $sms->normalizePhoneNumber($phone);
             require_once 'Models/Reception.php';
             $model = new Reception();
-            $user = $model->login($email, $password);
+            $user = $model->login($normalized, $password);
             if ($user) {
                 session_regenerate_id(true);
                 $_SESSION['user_id'] = $user['id'];
@@ -209,17 +210,19 @@ class AuthController
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $email = $_POST['email'] ?? '';
+            $phone = $_POST['phone'] ?? '';
             $password = $_POST['password'] ?? '';
 
-            if (empty($email) || empty($password)) {
+            if (empty($phone) || empty($password)) {
                 $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
                 header("Location: ./login");
                 exit();
             }
-
+            require_once 'Controllers/SMSController.php';
+            $sms = new SMSController();
+            $normalized = $sms->normalizePhoneNumber($phone);
             $patient = new Patient();
-            $user = $patient->login($email, $password);
+            $user = $patient->login($normalized, $password);
             if ($user) {
                 // Regenerate session ID để tránh session fixation
                 session_regenerate_id(true);

@@ -43,10 +43,10 @@
                 <input type="hidden" name="role" value="doctor">
 
                 <div class="mb-3">
-                    <label for="email" class="form-label">
-                        <i class="fas fa-envelope"></i> Email
+                    <label for="phone" class="form-label">
+                        <i class="fas fa-phone"></i> Số điện thoại
                     </label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <input type="tel" class="form-control" id="phone" name="phone" required>
                 </div>
 
                 <div class="mb-3">

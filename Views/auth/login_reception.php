@@ -35,8 +35,8 @@
                     <?php endif; ?>
                     <form method="POST" action="./login_reception">
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control" placeholder="reception@example.com"
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="tel" name="phone" class="form-control" placeholder="reception@example.com"
                                 required>
                         </div>
                         <div class="mb-3">
