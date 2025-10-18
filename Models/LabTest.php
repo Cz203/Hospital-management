@@ -175,5 +175,26 @@ class LabTest
             return ['success' => false, 'message' => 'Lỗi hệ thống'];
         }
     }
+
+    public function getById($id)
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT pxn.*, pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, 
+                       pxn.chan_doan, bn.ma_benh_nhan, bn.dia_chi, pk.benh_nhan_id
+                FROM {$this->table_name} pxn
+                JOIN phieu_kham_benh pk ON pxn.id_phieu_kham_benh = pk.id
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                WHERE pxn.id = ?
+            ");
+            $stmt->execute([$id]);
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+
+        } catch (Exception $e) {
+            error_log('Error getting lab test by id: ' . $e->getMessage());
+            return false;
+        }
+    }
+
 }
 ?>

@@ -358,6 +358,100 @@ class AuthController
         include 'Views/auth/login_sieuam.php';
     }
 
+    public function loginXetnghiem()
+    {
+        if ($this->isLoggedIn()) {
+            $role = $_SESSION['user_role'];
+            if ($role === 'xetnghiem_doctor') {
+                header("Location: ./xetnghiem_dashboard");
+                exit();
+            }
+            switch ($role) {
+                case 'doctor':
+                    header("Location: ./doctor_dashboard");
+                    break;
+                case 'sieuam_doctor':
+                    header("Location: ./sieuam_dashboard");
+                    break;
+                case 'xray_doctor':
+                    header("Location: ./xray_dashboard");
+                    break;
+                case 'admin':
+                    header("Location: ./admin_dashboard");
+                    break;
+                case 'patient':
+                    header("Location: ./patient_dashboard");
+                    break;
+                default:
+                    header("Location: ./home");
+            }
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $sdt = $_POST['phone'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (empty($sdt) || empty($password)) {
+                $_SESSION['error'] = "Vui lòng nhập đầy đủ thông tin!";
+                header("Location: ./login_xetnghiem");
+                exit();
+            }
+
+            try {
+                $database = new Database();
+                $pdo = $database->getConnection();
+
+                // Chuẩn hóa đối sánh số điện thoại (hỗ trợ 0/84)
+                $raw = trim($sdt);
+                $p1 = $raw;
+                $p2 = $raw;
+                if (str_starts_with($raw, '84')) {
+                    $p2 = '0' . substr($raw, 2);
+                } elseif (str_starts_with($raw, '0')) {
+                    $p2 = '84' . substr($raw, 1);
+                }
+
+                // Tìm bác sĩ với chuyen_khoa_id = 17 (Xét nghiệm) theo số điện thoại
+                $stmt = $pdo->prepare("
+                    SELECT b.*, ck.ten as chuyen_khoa_ten 
+                    FROM bac_si b 
+                    JOIN chuyen_khoa ck ON b.chuyen_khoa_id = ck.id 
+                    WHERE (b.so_dien_thoai = :p1 OR b.so_dien_thoai = :p2) AND b.chuyen_khoa_id = 17
+                ");
+                $stmt->bindParam(':p1', $p1);
+                $stmt->bindParam(':p2', $p2);
+                $stmt->execute();
+                $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($doctor && password_verify($password, $doctor['mat_khau'])) {
+                    // Regenerate session ID để tránh session fixation
+                    session_regenerate_id(true);
+                    $_SESSION['user_id'] = $doctor['id'];
+                    $_SESSION['user_name'] = $doctor['ten'];
+                    $_SESSION['user_email'] = $doctor['email'];
+                    $_SESSION['user_role'] = 'xetnghiem_doctor';
+                    $_SESSION['chuyen_khoa_id'] = $doctor['chuyen_khoa_id'];
+                    $_SESSION['chuyen_khoa_ten'] = $doctor['chuyen_khoa_ten'];
+                    $_SESSION['last_activity'] = time();
+
+                    header("Location: ./xetnghiem_dashboard");
+                    exit();
+                }
+
+                $_SESSION['error'] = "Số điện thoại hoặc mật khẩu không đúng!";
+                header("Location: ./login_xetnghiem");
+                exit();
+            } catch (Exception $e) {
+                $_SESSION['error'] = "Lỗi hệ thống!";
+                header("Location: ./login_xetnghiem");
+                exit();
+            }
+        }
+
+        include 'Views/auth/login_xetnghiem.php';
+    }
+
     public function loginPatient()
     {
         if ($this->isLoggedIn()) {

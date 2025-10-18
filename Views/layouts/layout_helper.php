@@ -44,6 +44,12 @@ case 'doctor':
 case 'xray_doctor':
 include 'Views/layouts/doctor_sidebar.php';
 break;
+case 'sieuam_doctor':
+include 'Views/layouts/sieuam_sidebar.php';
+break;
+case 'xetnghiem_doctor':
+include 'Views/layouts/xetnghiem_sidebar.php';
+break;
 case 'patient':
 include 'Views/layouts/patient_sidebar.php';
 break;
@@ -107,6 +113,10 @@ case 'doctor':
 return 'Bác sĩ';
 case 'xray_doctor':
 return 'Bác sĩ X-Quang';
+case 'sieuam_doctor':
+return 'Bác sĩ Siêu âm';
+case 'xetnghiem_doctor':
+return 'Bác sĩ Xét nghiệm';
 case 'patient':
 return 'Bệnh nhân';
 case 'letan':
@@ -129,6 +139,10 @@ return 'role-admin';
 case 'doctor':
 case 'xray_doctor':
 return 'role-doctor';
+case 'sieuam_doctor':
+return 'role-sieuam';
+case 'xetnghiem_doctor':
+return 'role-xetnghiem';
 case 'patient':
 return 'role-patient';
 case 'letan':

@@ -46,6 +46,9 @@ switch ($action) {
     case 'login_xquang':
         $auth->loginXrayDoctor(); // Đăng nhập bác sĩ X-Quang (chuyên khoa 16)
         break;
+    case 'login_xetnghiem':
+        $auth->loginXetnghiem(); // Đăng nhập bác sĩ Xét nghiệm (chuyên khoa 17)
+        break;
 
     case 'login_sieuam':
         $auth->loginSieuam(); // Đăng nhập bác sĩ Siêu âm (chuyên khoa 18)
@@ -156,6 +159,10 @@ switch ($action) {
     case 'xray_dashboard':
         $auth->requireAuth('xray_doctor');
         include 'Views/doctor/xray_dashboard.php'; // Dashboard riêng cho bác sĩ X-Quang
+        break;
+    case 'xetnghiem_dashboard':
+        $auth->requireAuth('xetnghiem_doctor');
+        include 'Views/doctor/xetnghiem_dashboard.php'; // Dashboard riêng cho bác sĩ Xét nghiệm
         break;
 
     case 'sieuam_dashboard':
@@ -450,6 +457,27 @@ switch ($action) {
     case 'get_lab_result_by_exam':
         $doctorController->getLabResultByExam(); // Lấy kết quả xét nghiệm theo phiếu khám
         break;
+    case 'get_xetnghiem_requests':
+        $doctorController->getXetnghiemRequests(); // Lấy danh sách yêu cầu xét nghiệm
+        break;
+                case 'get_xetnghiem_result':
+                    $doctorController->getXetnghiemResult(); // Lấy kết quả xét nghiệm
+                    break;
+                case 'get_xetnghiem_detail':
+                    $doctorController->getXetnghiemDetail(); // Lấy chi tiết yêu cầu xét nghiệm
+                    break;
+                case 'get_test_suggestions':
+                    $doctorController->getTestSuggestions(); // Lấy gợi ý xét nghiệm
+                    break;
+                case 'save_xetnghiem_result':
+                    $doctorController->saveXetnghiemResult(); // Lưu kết quả xét nghiệm
+                    break;
+                case 'print_xetnghiem_result':
+                    $doctorController->printXetnghiemResult(); // In kết quả xét nghiệm
+                    break;
+                case 'complete_xetnghiem_request':
+                    $doctorController->completeXetnghiemRequest(); // Hoàn thành yêu cầu xét nghiệm
+                    break;
 
     case 'sieuam_history':
         include 'Views/doctor/sieuam_history.php'; // Lịch sử siêu âm

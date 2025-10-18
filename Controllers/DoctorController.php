@@ -45,7 +45,7 @@ class DoctorController
     public function manageSchedule()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -144,7 +144,7 @@ class DoctorController
     public function appointmentManagement()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -209,7 +209,7 @@ class DoctorController
     public function updateAppointmentStatus()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -337,7 +337,7 @@ class DoctorController
     public function addSchedule()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -434,7 +434,7 @@ class DoctorController
     public function updateSchedule()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -529,7 +529,7 @@ class DoctorController
     public function deleteSchedule()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -580,7 +580,7 @@ class DoctorController
     public function getScheduleInfo()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -619,7 +619,7 @@ class DoctorController
     public function getSchedulesByDay()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -651,7 +651,7 @@ class DoctorController
     public function modifyScheduleForDate()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -762,7 +762,7 @@ class DoctorController
     public function cancelScheduleForDate()
     {
         // Kiểm tra đăng nhập và quyền bác sĩ (cả doctor, xray_doctor và sieuam_doctor)
-        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'xetnghiem_doctor') {
             header("Location: ./login");
             exit();
         }
@@ -3355,4 +3355,440 @@ class DoctorController
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }
+
+    /**
+     * Lấy danh sách yêu cầu xét nghiệm
+     */
+    public function getXetnghiemRequests()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $date = $_GET['date'] ?? date('Y-m-d');
+            $keyword = $_GET['name'] ?? '';
+            
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $sql = "
+                SELECT pxn.*, pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, 
+                       pk.chan_doan_vao_vien as chan_doan, bn.ma_benh_nhan
+                FROM phieu_yeu_cau_xet_nghiem pxn
+                JOIN phieu_kham_benh pk ON pxn.id_phieu_kham_benh = pk.id
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                WHERE pxn.trang_thai = 'Đã yêu cầu' AND DATE(pxn.ngay_tao) = ?
+            ";
+            $params = [$date];
+
+            if (!empty($keyword)) {
+                $sql .= " AND bn.ma_benh_nhan LIKE ?";
+                $params[] = "%{$keyword}%";
+            }
+
+            $sql .= " ORDER BY pxn.ngay_tao DESC";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode(['success' => true, 'requests' => $requests]);
+
+        } catch (Exception $e) {
+            error_log('Error getting xetnghiem requests: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy kết quả xét nghiệm
+     */
+    public function getXetnghiemResult()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $id = $_GET['id'] ?? '';
+            
+            if (empty($id)) {
+                echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
+                return;
+            }
+
+            // First try to get saved result
+            $database = new Database();
+            $pdo = $database->getConnection();
+            
+            $stmt = $pdo->prepare("
+                SELECT pt.*, ct.*, pxn.chan_doan, pxn.yeu_cau
+                FROM phieu_tra_ket_qua_xet_nghiem pt
+                LEFT JOIN chi_tiet_ket_qua_xet_nghiem ct ON pt.id = ct.id_phieu_tra_ket_qua
+                LEFT JOIN phieu_yeu_cau_xet_nghiem pxn ON pt.id_phieu_yeu_cau = pxn.id
+                WHERE pt.id_phieu_yeu_cau = ?
+                ORDER BY ct.stt ASC
+            ");
+            $stmt->execute([$id]);
+            $savedResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if (!empty($savedResults)) {
+                // Return saved result
+                $mainResult = $savedResults[0];
+                $testDetails = array_filter($savedResults, function($row) {
+                    return !empty($row['ten_xet_nghiem']) && !empty($row['stt']);
+                });
+                
+                // Debug log
+                error_log('Saved results count: ' . count($savedResults));
+                error_log('Test details count: ' . count($testDetails));
+                
+                echo json_encode([
+                    'success' => true,
+                    'result' => $mainResult,
+                    'test_details' => array_values($testDetails),
+                    'is_saved' => true
+                ]);
+            } else {
+                // Fallback to original request data
+                $result = $this->labTestModel->getById($id);
+                
+                if ($result) {
+                    echo json_encode([
+                        'success' => true,
+                        'result' => $result,
+                        'is_saved' => false
+                    ]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Không tìm thấy kết quả xét nghiệm']);
+                }
+            }
+
+        } catch (Exception $e) {
+            error_log('Error getting xetnghiem result: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    public function getXetnghiemDetail()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $id = $_GET['id'] ?? '';
+            
+            if (empty($id)) {
+                echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
+                return;
+            }
+
+            // Get original request data for viewing
+            $result = $this->labTestModel->getById($id);
+            
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'result' => $result
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy thông tin yêu cầu xét nghiệm']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error getting xetnghiem detail: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    public function getTestSuggestions()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $keyword = $_GET['keyword'] ?? '';
+            
+            if (empty($keyword)) {
+                echo json_encode(['success' => false, 'message' => 'Từ khóa không hợp lệ']);
+                return;
+            }
+
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $sql = "
+                SELECT xet_nghiem, gia_tri_tham_chieu, don_vi, may_qtkt 
+                FROM chi_so_xet_nghiem 
+                WHERE xet_nghiem LIKE ? 
+                ORDER BY xet_nghiem ASC 
+                LIMIT 10
+            ";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(["%{$keyword}%"]);
+            $suggestions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'suggestions' => $suggestions
+            ]);
+
+        } catch (Exception $e) {
+            error_log('Error getting test suggestions: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    public function saveXetnghiemResult()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $requestId = $_POST['request_id'] ?? '';
+            $testResults = $_POST['test_results'] ?? '';
+            $examiningDoctor = $_POST['examining_doctor'] ?? '';
+            $sampleStatus = $_POST['sample_status'] ?? '';
+            $resultDate = $_POST['result_date'] ?? '';
+
+            // Debug log
+            error_log('Save Xetnghiem Result - Request ID: ' . $requestId);
+            error_log('Save Xetnghiem Result - Test Results: ' . $testResults);
+            error_log('Save Xetnghiem Result - Examining Doctor: ' . $examiningDoctor);
+
+            if (empty($requestId) || empty($testResults)) {
+                echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ']);
+                return;
+            }
+
+            $testResultsArray = json_decode($testResults, true);
+            if (!$testResultsArray) {
+                echo json_encode(['success' => false, 'message' => 'Dữ liệu kết quả không hợp lệ']);
+                return;
+            }
+
+            // Get request details
+            $requestDetails = $this->labTestModel->getById($requestId);
+            if (!$requestDetails) {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy yêu cầu xét nghiệm']);
+                return;
+            }
+            
+            // Debug log request details
+            error_log('Request Details: ' . json_encode($requestDetails));
+
+            $database = new Database();
+            $pdo = $database->getConnection();
+            $pdo->beginTransaction();
+
+            // Check if result already exists
+            $checkResultStmt = $pdo->prepare("
+                SELECT id FROM phieu_tra_ket_qua_xet_nghiem 
+                WHERE id_phieu_yeu_cau = ?
+            ");
+            $checkResultStmt->execute([$requestId]);
+            $existingResult = $checkResultStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($existingResult) {
+                // Update existing result
+                $resultId = $existingResult['id'];
+                $stmt = $pdo->prepare("
+                    UPDATE phieu_tra_ket_qua_xet_nghiem 
+                    SET id_benh_nhan = ?, ma_benh_nhan = ?, ho_ten = ?, tuoi = ?, gioi_tinh = ?, 
+                        dia_chi = ?, chan_doan_so_bo = ?, tinh_trang_mau = ?, bac_si_yeu_cau = ?, 
+                        bac_si_xet_nghiem = ?, ngay_tra_ket_qua = ?, trang_thai = ?
+                    WHERE id = ?
+                ");
+                
+                $stmt->execute([
+                    $requestDetails['benh_nhan_id'] ?? 1,
+                    $requestDetails['ma_benh_nhan'] ?? '',
+                    $requestDetails['ho_ten'] ?? '',
+                    $requestDetails['tuoi'] ?? 0,
+                    $requestDetails['gioi_tinh'] ?? '',
+                    $requestDetails['dia_chi'] ?? '',
+                    $requestDetails['chan_doan'] ?? '',
+                    $sampleStatus,
+                    $requestDetails['bac_si_kham'] ?? '',
+                    $examiningDoctor,
+                    $resultDate,
+                    'Đã trả kết quả',
+                    $resultId
+                ]);
+            } else {
+                // Insert new result record
+                $stmt = $pdo->prepare("
+                    INSERT INTO phieu_tra_ket_qua_xet_nghiem 
+                    (id_phieu_yeu_cau, id_benh_nhan, ma_benh_nhan, ho_ten, tuoi, gioi_tinh, 
+                     dia_chi, chan_doan_so_bo, tinh_trang_mau, bac_si_yeu_cau, bac_si_xet_nghiem,
+                     ngay_dang_ky, ngay_tra_ket_qua, trang_thai)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+                
+                $stmt->execute([
+                    $requestId,
+                    $requestDetails['benh_nhan_id'] ?? 1,
+                    $requestDetails['ma_benh_nhan'] ?? '',
+                    $requestDetails['ho_ten'] ?? '',
+                    $requestDetails['tuoi'] ?? 0,
+                    $requestDetails['gioi_tinh'] ?? '',
+                    $requestDetails['dia_chi'] ?? '',
+                    $requestDetails['chan_doan'] ?? '',
+                    $sampleStatus,
+                    $requestDetails['bac_si_kham'] ?? '',
+                    $examiningDoctor,
+                    $requestDetails['ngay_tao'] ?? date('Y-m-d H:i:s'),
+                    $resultDate,
+                    'Đã trả kết quả'
+                ]);
+
+                $resultId = $pdo->lastInsertId();
+            }
+
+            // Check if test details already exist for this result
+            $checkStmt = $pdo->prepare("
+                SELECT COUNT(*) as count 
+                FROM chi_tiet_ket_qua_xet_nghiem 
+                WHERE id_phieu_tra_ket_qua = ?
+            ");
+            $checkStmt->execute([$resultId]);
+            $existingCount = $checkStmt->fetch(PDO::FETCH_ASSOC)['count'];
+
+            if ($existingCount > 0) {
+                // Delete all existing test details first
+                $deleteStmt = $pdo->prepare("
+                    DELETE FROM chi_tiet_ket_qua_xet_nghiem 
+                    WHERE id_phieu_tra_ket_qua = ?
+                ");
+                $deleteStmt->execute([$resultId]);
+
+                // Insert new test details
+                $stmt = $pdo->prepare("
+                    INSERT INTO chi_tiet_ket_qua_xet_nghiem 
+                    (id_phieu_tra_ket_qua, stt, ten_xet_nghiem, gia_tri_tham_chieu, 
+                     ket_qua, don_vi, may_qtkt)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                foreach ($testResultsArray as $test) {
+                    $stmt->execute([
+                        $resultId,
+                        $test['stt'],
+                        $test['test_name'],
+                        $test['reference_value'],
+                        $test['result'],
+                        $test['unit'],
+                        $test['machine']
+                    ]);
+                }
+            } else {
+                // Insert new test details
+                $stmt = $pdo->prepare("
+                    INSERT INTO chi_tiet_ket_qua_xet_nghiem 
+                    (id_phieu_tra_ket_qua, stt, ten_xet_nghiem, gia_tri_tham_chieu, 
+                     ket_qua, don_vi, may_qtkt)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                foreach ($testResultsArray as $test) {
+                    $stmt->execute([
+                        $resultId,
+                        $test['stt'],
+                        $test['test_name'],
+                        $test['reference_value'],
+                        $test['result'],
+                        $test['unit'],
+                        $test['machine']
+                    ]);
+                }
+            }
+
+            // Don't update request status - keep it as "Đã yêu cầu"
+
+            $pdo->commit();
+            echo json_encode(['success' => true, 'message' => 'Lưu kết quả thành công']);
+
+        } catch (Exception $e) {
+            if (isset($pdo)) {
+                $pdo->rollBack();
+            }
+            error_log('Error saving xetnghiem result: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống: ' . $e->getMessage()]);
+        }
+    }
+
+    public function printXetnghiemResult()
+    {
+        try {
+            $id = $_GET['id'] ?? '';
+            
+            if (empty($id)) {
+                echo "ID không hợp lệ";
+                return;
+            }
+
+            // Get result data
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $stmt = $pdo->prepare("
+                SELECT pt.*, ct.*, pxn.yeu_cau
+                FROM phieu_tra_ket_qua_xet_nghiem pt
+                LEFT JOIN chi_tiet_ket_qua_xet_nghiem ct ON pt.id = ct.id_phieu_tra_ket_qua
+                LEFT JOIN phieu_yeu_cau_xet_nghiem pxn ON pt.id_phieu_yeu_cau = pxn.id
+                WHERE pt.id_phieu_yeu_cau = ?
+                ORDER BY ct.stt ASC
+            ");
+            $stmt->execute([$id]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($results)) {
+                echo "Không tìm thấy kết quả xét nghiệm";
+                return;
+            }
+
+            // Group results
+            $mainResult = $results[0];
+            $testDetails = array_filter($results, function($row) {
+                return !empty($row['ten_xet_nghiem']);
+            });
+
+            // Include print view
+            include 'Views/doctor/print_xetnghiem_result.php';
+
+        } catch (Exception $e) {
+            error_log('Error printing xetnghiem result: ' . $e->getMessage());
+            echo "Lỗi hệ thống";
+        }
+    }
+
+    /**
+     * Hoàn thành yêu cầu xét nghiệm
+     */
+    public function completeXetnghiemRequest()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $requestId = $_POST['request_id'] ?? '';
+            
+            if (empty($requestId)) {
+                echo json_encode(['success' => false, 'message' => 'ID yêu cầu không hợp lệ']);
+                return;
+            }
+
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            // Update status to 'Hoàn thành'
+            $stmt = $pdo->prepare("
+                UPDATE phieu_yeu_cau_xet_nghiem 
+                SET trang_thai = 'Hoàn thành', 
+                    ngay_cap_nhat = NOW()
+                WHERE id = ?
+            ");
+            
+            $result = $stmt->execute([$requestId]);
+            
+            if ($result) {
+                echo json_encode(['success' => true, 'message' => 'Hoàn thành yêu cầu xét nghiệm thành công']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không thể cập nhật trạng thái']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error completing xetnghiem request: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
 }

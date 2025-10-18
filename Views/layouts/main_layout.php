@@ -180,6 +180,9 @@ $page_title = $page_title ?? 'Hệ thống Quản lý Bệnh viện';
         case 'sieuam_doctor':
             include 'Views/layouts/sieuam_sidebar.php';
             break;
+        case 'xetnghiem_doctor':
+            include 'Views/layouts/xetnghiem_sidebar.php';
+            break;
         case 'patient':
             include 'Views/layouts/patient_sidebar.php';
             break;
