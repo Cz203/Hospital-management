@@ -21,6 +21,7 @@ $receptionController = new ReceptionController();
 // Lấy action từ URL - hỗ trợ cả URL đẹp và URL cũ
 $action = $_GET['action'] ?? 'home';
 
+
 // Nếu không có action trong GET, thử lấy từ REQUEST_URI
 
 // Routing
@@ -431,6 +432,23 @@ switch ($action) {
 
     case 'complete_sieu_am_result':
         $doctorController->completeSieuAmResult(); // Hoàn thành phiếu siêu âm
+        break;
+
+    // ===== LAB ROUTES =====
+    case 'get_lab_suggestions':
+        $doctorController->getLabSuggestions(); // Gợi ý xét nghiệm
+        break;
+    case 'save_lab_form':
+        $doctorController->saveLabForm(); // Lưu phiếu yêu cầu xét nghiệm
+        break;
+    case 'get_lab_form_data':
+        $doctorController->getLabFormData(); // Lấy dữ liệu phiếu yêu cầu xét nghiệm
+        break;
+    case 'print_lab_form':
+        $doctorController->printLabForm(); // In phiếu yêu cầu xét nghiệm
+        break;
+    case 'get_lab_result_by_exam':
+        $doctorController->getLabResultByExam(); // Lấy kết quả xét nghiệm theo phiếu khám
         break;
 
     case 'sieuam_history':

@@ -5,6 +5,7 @@ require_once 'Models/PhieuChupXquang.php';
 require_once 'Models/PhieuYeuCauSieuAm.php';
 require_once 'Models/KetQuaSieuAm.php';
 require_once 'Models/SieuAmHinhAnh.php';
+require_once 'Models/LabTest.php';
 require_once 'Controllers/AuthController.php';
 require_once 'config/database.php';
 
@@ -16,6 +17,7 @@ class DoctorController
     private $phieuYeuCauSieuAmModel;
     private $ketQuaSieuAmModel;
     private $sieuAmHinhAnhModel;
+    private $labTestModel;
     private $auth;
     private $db;
 
@@ -25,6 +27,7 @@ class DoctorController
         $this->xraySuggestionModel = new XraySuggestion();
         $this->phieuChupXquangModel = new PhieuChupXquang();
         $this->phieuYeuCauSieuAmModel = new PhieuYeuCauSieuAm();
+        $this->labTestModel = new LabTest();
         
         // DB connection for simple queries
         require_once 'config/database.php';
@@ -3192,6 +3195,163 @@ class DoctorController
 
         } catch (Exception $e) {
             error_log('Error completing sieu am result: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lưu phiếu yêu cầu xét nghiệm
+     */
+    public function saveLabForm()
+    {
+        try {
+            // Debug: Log all POST data
+            error_log('saveLabForm POST data: ' . print_r($_POST, true));
+            
+            // Prepare data for Model
+            $data = [
+                'exam_id' => $_POST['exam_id'] ?? '',
+                'so_ho_so' => $_POST['so_ho_so'] ?? '',
+                'ho_ten' => $_POST['ho_ten'] ?? '',
+                'tuoi' => $_POST['tuoi'] ?? '',
+                'gioi_tinh' => $_POST['gioi_tinh'] ?? '',
+                'doi_tuong' => $_POST['doi_tuong'] ?? '',
+                'so_the_bhyt' => $_POST['so_the_bhyt'] ?? '',
+                'phong_kham' => $_POST['phong_kham'] ?? '',
+                'chan_doan' => $_POST['chan_doan'] ?? '',
+                'yeu_cau' => $_POST['yeu_cau'] ?? '',
+                'bac_si_kham' => $_POST['bac_si_kham'] ?? '',
+                'ngay' => $_POST['ngay'] ?? '',
+                'thang' => $_POST['thang'] ?? '',
+                'nam' => $_POST['nam'] ?? ''
+            ];
+
+            // Use Model to handle business logic
+            $result = $this->labTestModel->saveLabForm($data);
+            echo json_encode($result);
+
+        } catch (Exception $e) {
+            error_log('Error saving lab form: ' . $e->getMessage());
+            error_log('Error trace: ' . $e->getTraceAsString());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Lấy dữ liệu phiếu xét nghiệm
+     */
+    public function getLabFormData()
+    {
+        try {
+            $examId = $_GET['exam_id'] ?? '';
+
+            // Use Model to handle data retrieval
+            $result = $this->labTestModel->getLabFormData($examId);
+            echo json_encode($result);
+
+        } catch (Exception $e) {
+            error_log('Error getting lab form data: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * In phiếu xét nghiệm
+     */
+    public function printLabForm()
+    {
+        try {
+            $formId = $_GET['id'] ?? '';
+
+            if (empty($formId)) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu thông tin phiếu']);
+                return;
+            }
+
+            $stmt = $this->db->prepare("
+                SELECT pxn.*, pkb.ngay_kham, pkb.gio_kham
+                FROM phieu_yeu_cau_xet_nghiem pxn
+                JOIN phieu_kham_benh pkb ON pxn.id_phieu_kham_benh = pkb.id
+                WHERE pxn.id = ?
+            ");
+            $stmt->execute([$formId]);
+            $formData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$formData) {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu xét nghiệm']);
+                return;
+            }
+
+            // Tạo view để in
+            include 'Views/doctor/print_lab_form.php';
+
+        } catch (Exception $e) {
+            error_log('Error printing lab form: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy gợi ý xét nghiệm
+     */
+    public function getLabSuggestions()
+    {
+        try {
+            $query = $_POST['keyword'] ?? '';
+
+            if (empty($query)) {
+                echo json_encode(['success' => true, 'data' => []]);
+                return;
+            }
+
+            $stmt = $this->db->prepare("
+                SELECT * FROM xet_nghiem_suggestions 
+                WHERE ten_goi_y LIKE ? AND trang_thai = 1 
+                ORDER BY thu_tu ASC, ten_goi_y ASC 
+                LIMIT 10
+            ");
+            $searchTerm = '%' . $query . '%';
+            $stmt->execute([$searchTerm]);
+            $suggestions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode(['success' => true, 'data' => $suggestions]);
+
+        } catch (Exception $e) {
+            error_log('Error getting lab suggestions: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy kết quả xét nghiệm theo phiếu khám
+     */
+    public function getLabResultByExam()
+    {
+        try {
+            $examId = $_GET['exam_id'] ?? '';
+
+            if (empty($examId)) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu thông tin phiếu khám']);
+                return;
+            }
+
+            $stmt = $this->db->prepare("
+                SELECT pxn.*, kqxn.ket_qua_khao_sat, kqxn.ket_luan, kqxn.bac_si_xet_nghiem, kqxn.ngay_tao as ngay_ket_qua
+                FROM phieu_yeu_cau_xet_nghiem pxn
+                LEFT JOIN ket_qua_xet_nghiem kqxn ON pxn.id = kqxn.id_phieu_yeu_cau_xet_nghiem
+                WHERE pxn.id_phieu_kham_benh = ?
+            ");
+            $stmt->execute([$examId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result) {
+                echo json_encode(['success' => true, 'result' => $result]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Chưa có kết quả xét nghiệm']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error getting lab result: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }

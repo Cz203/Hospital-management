@@ -531,7 +531,7 @@ if (isset($autoOpenModal) && $autoOpenModal && $appointmentId) {
             // Tải lại phiếu khám đã lưu (nếu có) theo appointment để tiếp tục khám
             try { if (typeof loadExaminationFormIfAny === "function") { loadExaminationFormIfAny(); } } catch (e) {}
             
-            // Tải kết quả siêu âm và X-Quang khi modal mở (delay để đảm bảo examId đã được set)
+            // Tải kết quả siêu âm, X-Quang và xét nghiệm khi modal mở (delay để đảm bảo examId đã được set)
             setTimeout(function() {
                 try { 
                     if (typeof loadUltrasoundResultReadonly === "function") { 
@@ -546,6 +546,13 @@ if (isset($autoOpenModal) && $autoOpenModal && $appointmentId) {
                         loadXrayResultReadonly(); 
                     } 
                 } catch (e) { console.error("Error auto-loading X-Ray result:", e); }
+                
+                try { 
+                    if (typeof loadLabResultReadonly === "function") { 
+                        console.log("Auto-loading lab result when modal opens");
+                        loadLabResultReadonly(); 
+                    } 
+                } catch (e) { console.error("Error auto-loading lab result:", e); }
             }, 500); // Delay 500ms để đảm bảo loadExaminationFormIfAny hoàn thành
             
             // Gợi ý siêu âm
@@ -617,7 +624,7 @@ if (isset($autoOpenModal) && $autoOpenModal && $appointmentId) {
                 fetchAllergyHistory(patientId);
             }
 
-            // Khi chuyển sang tab Kết quả siêu âm thì tải kết quả (read-only)
+            // Khi chuyển sang tab Kết quả siêu âm, X-Quang và xét nghiệm thì tải kết quả (read-only)
             document.querySelectorAll(".exam-nav").forEach(function(a){
                 a.addEventListener("click", function(){
                     if (this.getAttribute("href") === "#sec-ultrasound-result") {
@@ -625,6 +632,9 @@ if (isset($autoOpenModal) && $autoOpenModal && $appointmentId) {
                     }
                     if (this.getAttribute("href") === "#sec-xray-result") {
                         loadXrayResultReadonly();
+                    }
+                    if (this.getAttribute("href") === "#sec-lab-result") {
+                        loadLabResultReadonly();
                     }
                 });
             });

@@ -30,10 +30,10 @@
 
             <form method="POST" action="./login_sieuam">
                 <div class="mb-3">
-                    <label for="email" class="form-label">
-                        <i class="fas fa-envelope"></i> Email
+                    <label for="phone" class="form-label">
+                        <i class="fas fa-phone"></i> Số điện thoại
                     </label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Nhập số điện thoại" required>
                 </div>
 
                 <div class="mb-3">
@@ -51,6 +51,23 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Format số điện thoại khi nhập
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, ''); // Chỉ giữ lại số
+            e.target.value = value;
+        });
+
+        // Validate số điện thoại trước khi submit
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const phone = document.getElementById('phone').value;
+            if (phone.length < 10) {
+                e.preventDefault();
+                alert('Số điện thoại phải có ít nhất 10 chữ số!');
+                return false;
+            }
+        });
+    </script>
 </body>
 
 </html>

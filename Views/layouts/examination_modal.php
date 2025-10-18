@@ -99,12 +99,12 @@
                                         <div class="col-md-4">
                                             <label class="form-label fw-bold">Số điện thoại</label>
                                             <input type="text" class="form-control" name="ultrasound_phone"
-                                                id="ultrasound_phone" value="0777871608">
+                                                id="ultrasound_phone" value="0777871608" readonly>
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-bold">Quận/Huyện</label>
                                             <input type="text" class="form-control" name="ultrasound_quan"
-                                                id="ultrasound_quan" value="Gò Vấp">
+                                                id="ultrasound_quan" value="Gò Vấp" readonly>
                                         </div>
                                     </div>
 
@@ -132,7 +132,7 @@
                                         <div class="col-12">
                                             <label class="form-label fw-bold">Địa chỉ</label>
                                             <input type="text" class="form-control" name="ultrasound_patient_address"
-                                                id="ultrasound_patient_address">
+                                                id="ultrasound_patient_address" readonly>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-bold">Đối tượng</label>
@@ -550,6 +550,325 @@
                                 </div>
                             </div>
 
+                            <!-- Phiếu yêu cầu Xét nghiệm -->
+                            <div class="card mb-3 exam-section" id="sec-lab">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0"><i class="fas fa-vial me-2"></i>Phiếu yêu cầu Xét nghiệm</h6>
+                                </div>
+                                <div class="card-body">
+                                    <input type="hidden" name="id_phieu_kham_benh" id="lab_examination_id">
+
+                                    <div class="text-center mb-3">
+                                        <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU XÉT NGHIỆM</div>
+                                    </div>
+
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Tên phòng khám</label>
+                                            <input type="text" class="form-control" name="lab_clinic_name"
+                                                id="lab_clinic_name" value="Thịnh Việt" readonly>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Số điện thoại</label>
+                                            <input type="text" class="form-control" name="lab_phone"
+                                                id="lab_phone" value="0777871608" readonly>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold">Quận/Huyện</label>
+                                            <input type="text" class="form-control" name="lab_quan"
+                                                id="lab_quan" value="Gò Vấp" readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mt-2">
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Mã bệnh nhân</label>
+                                            <input type="text" class="form-control" name="lab_patient_code"
+                                                id="lab_patient_code" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Họ tên người bệnh</label>
+                                            <input type="text" class="form-control" name="lab_patient_name"
+                                                id="lab_patient_name" readonly>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Tuổi</label>
+                                            <input type="text" class="form-control" name="lab_patient_age"
+                                                id="lab_patient_age" readonly>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label fw-bold">Nam/Nữ</label>
+                                            <input type="text" class="form-control" name="lab_patient_gender"
+                                                id="lab_patient_gender" readonly>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label fw-bold">Địa chỉ</label>
+                                            <input type="text" class="form-control" name="lab_patient_address"
+                                                id="lab_patient_address" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Đối tượng</label>
+                                            <input type="text" class="form-control" name="lab_patient_type"
+                                                id="lab_patient_type" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold">Số thẻ BHYT</label>
+                                            <input type="text" class="form-control" name="lab_insurance_number"
+                                                id="lab_insurance_number" readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <label class="form-label fw-bold">Chẩn đoán:</label>
+                                        <input type="text" class="form-control" name="lab_diagnosis" id="lab_diagnosis" placeholder="Nhập chẩn đoán...">
+                                    </div>
+
+                                    <!-- Yêu cầu xét nghiệm -->
+                                    <div class="mt-3 position-relative">
+                                        <label class="form-label fw-bold text-center w-100 d-block" style="font-size:16px">YÊU CẦU XÉT NGHIỆM</label>
+                                        <textarea class="form-control" name="lab_request" id="lab_request" rows="6" placeholder="Nhập yêu cầu xét nghiệm..."></textarea>
+                                        <div id="lab_suggestions" class="position-absolute bg-white border rounded shadow" style="display:none; z-index:1000; max-height:200px; overflow-y:auto; width:100%;">
+                                        </div>
+                                    </div>
+
+                                    <!-- Chữ ký bác sĩ -->
+                                    <div class="row mt-4">
+                                        <div class="col-md-6"></div>
+                                        <div class="col-md-6 text-center">
+                                            <div class="mb-2 d-flex align-items-center justify-content-center gap-2">
+                                                <span>Ngày</span>
+                                                <input type="number" class="form-control text-center"
+                                                    name="lab_ngay" id="lab_ngay" style="width:70px">
+                                                <span>tháng</span>
+                                                <input type="number" class="form-control text-center"
+                                                    name="lab_thang" id="lab_thang" style="width:70px">
+                                                <span>năm</span>
+                                                <input type="number" class="form-control text-center"
+                                                    name="lab_nam" id="lab_nam" style="width:90px">
+                                            </div>
+                                            <div class="fw-bold">BÁC SĨ ĐIỀU TRỊ</div>
+                                            <div class="mt-2" id="lab_doctor_display"
+                                                style="min-height:40px; border-bottom: 1px solid #000; padding: 5px;">
+                                                (Ký và ghi rõ họ tên)</div>
+                                            <input type="hidden" name="lab_doctor_name"
+                                                id="lab_doctor_name">
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <!-- Kết quả xét nghiệm -->
+                            <div class="card mb-3 exam-section" id="sec-lab-result">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0"><i class="fas fa-file-medical-alt me-2"></i>Kết quả xét nghiệm</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="nav nav-tabs mb-2" id="lab_result_tabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="lab_tab_info" data-bs-toggle="tab" data-bs-target="#lab_tabpane_info" type="button" role="tab">Thông tin</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="lab_tab_results" data-bs-toggle="tab" data-bs-target="#lab_tabpane_results" type="button" role="tab">Kết quả chi tiết</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content">
+                                        <div class="tab-pane fade show active" id="lab_tabpane_info" role="tabpanel">
+                                            <style>
+                                                .lab-report {
+                                                    font-family: "Times New Roman", serif;
+                                                    padding: 18px;
+                                                }
+
+                                                .lab-title {
+                                                    font-weight: bold;
+                                                    text-transform: uppercase;
+                                                    text-align: center;
+                                                    letter-spacing: .5px;
+                                                    font-size: 18px;
+                                                    margin-bottom: 6px;
+                                                    color: red;
+                                                }
+
+                                                .lab-hr {
+                                                    border-top: 2px solid #000;
+                                                    margin: 10px 0;
+                                                }
+
+                                                .lab-row-line {
+                                                    display: flex;
+                                                    gap: 8px;
+                                                    margin-bottom: 6px;
+                                                    font-size: 15px;
+                                                }
+
+                                                .lab-label {
+                                                    min-width: 150px;
+                                                    font-weight: bold;
+                                                }
+
+                                                .lab-dots {
+                                                    flex: 0 0 auto;
+                                                }
+
+                                                .lab-value {
+                                                    flex: 1;
+                                                    border-bottom: 1px dotted #333;
+                                                    min-height: 20px;
+                                                }
+
+                                                .lab-section {
+                                                    margin-top: 10px;
+                                                    margin-bottom: 6px;
+                                                    font-weight: bold;
+                                                    text-transform: uppercase;
+                                                    color: blue;
+                                                }
+
+                                                .lab-signature {
+                                                    min-width: 260px;
+                                                }
+
+                                                .lab-conclusion {
+                                                    font-weight: bold;
+                                                    color: blue;
+                                                }
+
+                                                .lab-result-content {
+                                                    border: 1px solid #333;
+                                                    padding: 10px;
+                                                    min-height: 100px;
+                                                    white-space: pre-wrap;
+                                                }
+
+                                                .lab-conclusion-content {
+                                                    border: 1px solid #333;
+                                                    padding: 10px;
+                                                    min-height: 60px;
+                                                    white-space: pre-wrap;
+                                                }
+                                            </style>
+
+                                            <div id="labResultReadonly" class="lab-report" style="display:none"
+                                                data-pxid="">
+                                                <div class="text-center mb-3">
+                                                    <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG
+                                                        KHÁM ĐA KHOA THINHVIET</div>
+                                                    <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA XÉT
+                                                        NGHIỆM</div>
+                                                </div>
+                                                <div class="lab-title">KẾT QUẢ XÉT NGHIỆM</div>
+
+                                                <div class="text-center mb-2">
+                                                    <div class="fw-bold">Máy: AU480 Beckman Coulter</div>
+                                                </div>
+
+                                                <div class="lab-row-line">
+                                                    <div class="lab-label">ID:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_id">*0000000*</div>
+                                                    <div class="lab-label" style="margin-left: 20px;">Ngày ĐK:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_date">01/01/2025</div>
+                                                    <div class="lab-dots">-</div>
+                                                    <div class="lab-value" id="lab_ro_time">08:00</div>
+                                                </div>
+
+                                                <div class="lab-hr"></div>
+
+                                                <div class="lab-row-line">
+                                                    <div class="lab-label">Họ tên:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_ho_ten">-</div>
+                                                </div>
+
+                                                <div class="lab-row-line">
+                                                    <div class="lab-label">Tuổi:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_tuoi">-</div>
+                                                    <div class="lab-label" style="margin-left: 20px;">Giới:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_gioi_tinh">-</div>
+                                                </div>
+
+                                                <div class="lab-row-line">
+                                                    <div class="lab-label">Địa chỉ:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_dia_chi">-</div>
+                                                </div>
+
+                                                <div class="lab-row-line">
+                                                    <div class="lab-label">Chẩn đoán sơ bộ:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_chan_doan">-</div>
+                                                </div>
+
+                                                <div class="lab-row-line">
+                                                    <div class="lab-label">Bác sĩ chỉ định:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_bac_si">-</div>
+                                                </div>
+
+                                                <div class="lab-row-line">
+                                                    <div class="lab-label">Phiếu chỉ định:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_phieu_chi_dinh">-</div>
+                                                </div>
+
+                                                <div class="lab-hr"></div>
+
+                                                <div class="lab-row-line">
+                                                    <div class="lab-label">Loại xét nghiệm:</div>
+                                                    <div class="lab-dots">:</div>
+                                                    <div class="lab-value" id="lab_ro_loai_xet_nghiem">XÉT NGHIỆM SINH HÓA MÁU</div>
+                                                </div>
+
+                                                <div class="lab-hr"></div>
+
+                                                <div class="lab-section">KẾT QUẢ KHẢO SÁT:</div>
+                                                <div class="lab-result-content" id="lab_ro_ket_qua_khao_sat">-</div>
+
+                                                <div class="lab-section">KẾT LUẬN:</div>
+                                                <div class="lab-conclusion-content" id="lab_ro_ket_luan">-</div>
+
+                                                <div class="lab-hr"></div>
+
+                                                <div style="margin-top: 30px; text-align: right;">
+                                                    <div class="mb-3">
+                                                        <span>Ngày</span>
+                                                        <input type="text" class="form-control d-inline-block"
+                                                            id="lab_ro_signature_date" style="width:60px; margin: 0 5px;"
+                                                            readonly>
+                                                        <span>tháng</span>
+                                                        <input type="text" class="form-control d-inline-block"
+                                                            id="lab_ro_signature_month"
+                                                            style="width:60px; margin: 0 5px;" readonly>
+                                                        <span>năm</span>
+                                                        <input type="text" class="form-control d-inline-block"
+                                                            id="lab_ro_signature_year" style="width:80px; margin: 0 5px;"
+                                                            readonly>
+                                                    </div>
+                                                    <div style="margin-right: 20px;">
+                                                        <div class="fw-bold">BÁC SĨ XÉT NGHIỆM</div>
+                                                        <div class="mt-2" id="lab_ro_signature_doctor"
+                                                            style="margin-left: -20px;"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="labResultEmpty" class="text-muted">Chưa có kết quả xét nghiệm
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane fade" id="lab_tabpane_results" role="tabpanel">
+                                            <div id="lab_results_wrap">
+                                                <div class="text-muted small mb-2">Chi tiết kết quả xét nghiệm
+                                                </div>
+                                                <div id="lab_ro_results_detail"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Kết quả siêu âm -->
                             <div class="card mb-3 exam-section" id="sec-ultrasound-result">
                                 <div class="card-header bg-info text-white">
@@ -794,12 +1113,12 @@
                                         <div class="col-md-4">
                                             <label class="form-label fw-bold">Điện thoại</label>
                                             <input type="text" class="form-control" name="xray_phone" id="xray_phone"
-                                                value="0777871608">
+                                                value="0777871608" readonly>
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label fw-bold">Quận/Huyện</label>
                                             <input type="text" class="form-control" name="xray_quan" id="xray_quan"
-                                                value="Gò Vấp">
+                                                value="Gò Vấp" readonly>
                                         </div>
                                     </div>
 
@@ -828,7 +1147,7 @@
                                         <div class="col-12">
                                             <label class="form-label fw-bold">Địa chỉ</label>
                                             <input type="text" class="form-control" name="xray_patient_address"
-                                                id="xray_patient_address">
+                                                id="xray_patient_address" readonly>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label fw-bold">Đối tượng</label>
@@ -1143,6 +1462,14 @@
                 <button type="button" class="btn btn-primary" id="printUltrasoundForm" style="display:none"
                     onclick="printUltrasoundForm()">
                     <i class="fas fa-print me-1"></i>In phiếu siêu âm
+                </button>
+                <button type="button" class="btn btn-warning" id="saveLabForm" style="display:none"
+                    onclick="saveLabForm()">
+                    <i class="fas fa-save me-1"></i>Lưu phiếu xét nghiệm
+                </button>
+                <button type="button" class="btn btn-info" id="printLabForm" style="display:none"
+                    onclick="printLabForm()">
+                    <i class="fas fa-print me-1"></i>In phiếu xét nghiệm
                 </button>
             </div>
         </div>
