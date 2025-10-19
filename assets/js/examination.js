@@ -120,6 +120,16 @@ var savedXrayFormId = null;
           }, 200);
         }
         
+        // Khi chuyển sang tab Kết quả xét nghiệm, load dữ liệu kết quả
+        if (id === '#sec-lab-result') {
+          var examId = getCurrentExaminationId();
+          if (examId) {
+            loadLabResultData(examId);
+          } else {
+            showLabResultEmpty();
+          }
+        }
+        
       });
     });
   }
@@ -1446,10 +1456,15 @@ function prefillLabSection() {
     console.log('Cannot set lab_examination_id - examId:', examId, 'lExamId element:', !!lExamId);
   }
   
+  // Calculate age from birth year
+  var currentYear = new Date().getFullYear();
+  var birthYear = parseInt(pDob);
+  var calculatedAge = isNaN(birthYear) ? '' : (currentYear - birthYear);
+  
   // Map patient info
   var lCode = document.getElementById('lab_patient_code'); if(lCode) lCode.value = pCode;
   var lName = document.getElementById('lab_patient_name'); if(lName) lName.value = pName;
-  var lAge = document.getElementById('lab_patient_age'); if(lAge) lAge.value = pDob;
+  var lAge = document.getElementById('lab_patient_age'); if(lAge) lAge.value = calculatedAge;
   var lGen = document.getElementById('lab_patient_gender'); if(lGen) lGen.value = pGender;
   var lAddr = document.getElementById('lab_patient_address'); if(lAddr) lAddr.value = pAddr || 'Gò Vấp';
   
@@ -1839,45 +1854,138 @@ function loadLabResultReadonly() {
     .then(response => response.json())
     .then(data => {
       if (data.success && data.result) {
-        displayLabResultReadonly(data.result);
+        showLabResultData(data.result, data.testDetails || []);
       } else {
-        document.getElementById('labResultReadonly').style.display = 'none';
-        document.getElementById('labResultEmpty').style.display = 'block';
+        showLabResultEmpty();
       }
     })
     .catch(error => {
       console.error('Error loading lab result:', error);
-      document.getElementById('labResultReadonly').style.display = 'none';
-      document.getElementById('labResultEmpty').style.display = 'block';
+      showLabResultEmpty();
     });
 }
 
-// Display lab result readonly
-function displayLabResultReadonly(result) {
-  document.getElementById('lab_ro_id').textContent = result.so_ho_so || '-';
-  document.getElementById('lab_ro_date').textContent = result.ngay_tao ? new Date(result.ngay_tao).toLocaleDateString('vi-VN') : '-';
-  document.getElementById('lab_ro_time').textContent = result.ngay_tao ? new Date(result.ngay_tao).toLocaleTimeString('vi-VN') : '-';
-  document.getElementById('lab_ro_ho_ten').textContent = result.ho_ten || '-';
-  document.getElementById('lab_ro_tuoi').textContent = result.tuoi || '-';
-  document.getElementById('lab_ro_gioi_tinh').textContent = result.gioi_tinh || '-';
-  document.getElementById('lab_ro_dia_chi').textContent = result.dia_chi || '-';
-  document.getElementById('lab_ro_chan_doan').textContent = result.chan_doan || '-';
-  document.getElementById('lab_ro_bac_si').textContent = result.bac_si_kham || '-';
-  document.getElementById('lab_ro_phieu_chi_dinh').textContent = result.so_ho_so || '-';
-  document.getElementById('lab_ro_loai_xet_nghiem').textContent = result.yeu_cau || 'XÉT NGHIỆM SINH HÓA MÁU';
-  document.getElementById('lab_ro_ket_qua_khao_sat').textContent = result.ket_qua_khao_sat || '-';
-  document.getElementById('lab_ro_ket_luan').textContent = result.ket_luan || '-';
+
+/**
+ * Load dữ liệu kết quả xét nghiệm
+ */
+function loadLabResultData(examId) {
+  fetch('./?action=get_lab_result_by_exam&exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.result) {
+        showLabResultData(data.result, data.testDetails || []);
+      } else {
+        showLabResultEmpty();
+      }
+    })
+    .catch(error => {
+      console.error('Error loading lab result data:', error);
+      showLabResultEmpty();
+    });
+}
+
+/**
+ * Hiển thị dữ liệu kết quả xét nghiệm
+ */
+function showLabResultData(result, testDetails) {
+  // Hide empty message
+  var emptyDiv = document.getElementById('labResultEmpty');
+  if (emptyDiv) emptyDiv.style.display = 'none';
   
-  // Signature date
+  // Show result div
+  var resultDiv = document.getElementById('labResultReadonly');
+  if (resultDiv) resultDiv.style.display = 'block';
+  
+  // Fill patient info
+  var idEl = document.getElementById('lab_ro_id');
+  if (idEl) idEl.textContent = result.ma_benh_nhan || '-';
+  
+  var hoTenEl = document.getElementById('lab_ro_ho_ten');
+  if (hoTenEl) hoTenEl.textContent = result.ho_ten || '-';
+  
+  var tuoiEl = document.getElementById('lab_ro_tuoi');
+  if (tuoiEl) tuoiEl.textContent = result.tuoi || '-';
+  
+  var gioiTinhEl = document.getElementById('lab_ro_gioi_tinh');
+  if (gioiTinhEl) gioiTinhEl.textContent = result.gioi_tinh || '-';
+  
+  var diaChiEl = document.getElementById('lab_ro_dia_chi');
+  if (diaChiEl) diaChiEl.textContent = result.dia_chi || '-';
+  
+  var chanDoanEl = document.getElementById('lab_ro_chan_doan');
+  if (chanDoanEl) chanDoanEl.textContent = result.chan_doan || '-';
+  
+  var bacSiEl = document.getElementById('lab_ro_bac_si');
+  if (bacSiEl) bacSiEl.textContent = result.bac_si_yeu_cau || '-';
+  
+  var tinhTrangMauEl = document.getElementById('lab_ro_tinh_trang_mau');
+  if (tinhTrangMauEl) tinhTrangMauEl.textContent = result.tinh_trang_mau || '-';
+  
+  var yeuCauEl = document.getElementById('lab_ro_yeu_cau');
+  if (yeuCauEl) yeuCauEl.textContent = result.yeu_cau || 'CHƯA CÓ YÊU CẦU XÉT NGHIỆM';
+  
+  // Date and time
   if (result.ngay_tao) {
     var date = new Date(result.ngay_tao);
-    document.getElementById('lab_ro_signature_date').value = date.getDate();
-    document.getElementById('lab_ro_signature_month').value = date.getMonth() + 1;
-    document.getElementById('lab_ro_signature_year').value = date.getFullYear();
+    var day = String(date.getDate()).padStart(2, '0');
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var year = date.getFullYear();
+    var hours = String(date.getHours()).padStart(2, '0');
+    var minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    var dateEl = document.getElementById('lab_ro_date');
+    if (dateEl) dateEl.textContent = day + '/' + month + '/' + year;
+    
+    var timeEl = document.getElementById('lab_ro_time');
+    if (timeEl) timeEl.textContent = hours + ':' + minutes;
   }
   
-  document.getElementById('lab_ro_signature_doctor').textContent = result.bac_si_xet_nghiem || '-';
+  // Fill test results table
+  var tbody = document.getElementById('lab_ro_results_table');
+  if (tbody && testDetails && testDetails.length > 0) {
+    tbody.innerHTML = '';
+    testDetails.forEach(function(test, index) {
+      var row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="text-center">${test.stt || index + 1}</td>
+        <td>${test.ten_xet_nghiem || ''}</td>
+        <td class="text-center">${test.gia_tri_tham_chieu || ''}</td>
+        <td class="text-center" style="font-weight: bold;">${test.ket_qua || ''}</td>
+        <td class="text-center">${test.don_vi || ''}</td>
+        <td>${test.may_qtkt || ''}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  } else {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Chưa có kết quả xét nghiệm</td></tr>';
+  }
   
-  document.getElementById('labResultReadonly').style.display = 'block';
-  document.getElementById('labResultEmpty').style.display = 'none';
+  // Signature date
+  var now = new Date();
+  var signatureDateEl = document.getElementById('lab_ro_signature_date');
+  if (signatureDateEl) signatureDateEl.textContent = now.getDate();
+  
+  var signatureMonthEl = document.getElementById('lab_ro_signature_month');
+  if (signatureMonthEl) signatureMonthEl.textContent = now.getMonth() + 1;
+  
+  var signatureYearEl = document.getElementById('lab_ro_signature_year');
+  if (signatureYearEl) signatureYearEl.textContent = now.getFullYear();
+  
+  // Doctor signature
+  var signatureDoctorEl = document.getElementById('lab_ro_signature_doctor');
+  if (signatureDoctorEl) signatureDoctorEl.textContent = result.bac_si_xet_nghiem || '-';
+}
+
+/**
+ * Hiển thị thông báo chưa có kết quả
+ */
+function showLabResultEmpty() {
+  // Hide result div
+  var resultDiv = document.getElementById('labResultReadonly');
+  if (resultDiv) resultDiv.style.display = 'none';
+  
+  // Show empty message
+  var emptyDiv = document.getElementById('labResultEmpty');
+  if (emptyDiv) emptyDiv.style.display = 'block';
 }

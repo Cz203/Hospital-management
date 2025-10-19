@@ -25,6 +25,9 @@
                             <a href="#sec-lab" class="list-group-item list-group-item-action exam-nav">
                                 <i class="fas fa-vial me-2"></i>Xét nghiệm
                             </a>
+                            <a href="#sec-lab-result" class="list-group-item list-group-item-action exam-nav">
+                                <i class="fas fa-file-medical-alt me-2"></i>Kết quả xét nghiệm
+                            </a>
                             <a href="#sec-ultrasound" class="list-group-item list-group-item-action exam-nav">
                                 <i class="fas fa-wave-square me-2"></i>Siêu âm
                             </a>
@@ -660,212 +663,115 @@
 
                             <!-- Kết quả xét nghiệm -->
                             <div class="card mb-3 exam-section" id="sec-lab-result">
-                                <div class="card-header bg-warning text-dark">
+                                <div class="card-header bg-success text-white">
                                     <h6 class="mb-0"><i class="fas fa-file-medical-alt me-2"></i>Kết quả xét nghiệm</h6>
                                 </div>
-                                <div class="card-body">
-                                    <ul class="nav nav-tabs mb-2" id="lab_result_tabs" role="tablist">
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link active" id="lab_tab_info" data-bs-toggle="tab" data-bs-target="#lab_tabpane_info" type="button" role="tab">Thông tin</button>
-                                        </li>
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="lab_tab_results" data-bs-toggle="tab" data-bs-target="#lab_tabpane_results" type="button" role="tab">Kết quả chi tiết</button>
-                                        </li>
-                                    </ul>
-                                    <div class="tab-content">
-                                        <div class="tab-pane fade show active" id="lab_tabpane_info" role="tabpanel">
-                                            <style>
-                                                .lab-report {
-                                                    font-family: "Times New Roman", serif;
-                                                    padding: 18px;
-                                                }
-
-                                                .lab-title {
-                                                    font-weight: bold;
-                                                    text-transform: uppercase;
-                                                    text-align: center;
-                                                    letter-spacing: .5px;
-                                                    font-size: 18px;
-                                                    margin-bottom: 6px;
-                                                    color: red;
-                                                }
-
-                                                .lab-hr {
-                                                    border-top: 2px solid #000;
-                                                    margin: 10px 0;
-                                                }
-
-                                                .lab-row-line {
-                                                    display: flex;
-                                                    gap: 8px;
-                                                    margin-bottom: 6px;
-                                                    font-size: 15px;
-                                                }
-
-                                                .lab-label {
-                                                    min-width: 150px;
-                                                    font-weight: bold;
-                                                }
-
-                                                .lab-dots {
-                                                    flex: 0 0 auto;
-                                                }
-
-                                                .lab-value {
-                                                    flex: 1;
-                                                    border-bottom: 1px dotted #333;
-                                                    min-height: 20px;
-                                                }
-
-                                                .lab-section {
-                                                    margin-top: 10px;
-                                                    margin-bottom: 6px;
-                                                    font-weight: bold;
-                                                    text-transform: uppercase;
-                                                    color: blue;
-                                                }
-
-                                                .lab-signature {
-                                                    min-width: 260px;
-                                                }
-
-                                                .lab-conclusion {
-                                                    font-weight: bold;
-                                                    color: blue;
-                                                }
-
-                                                .lab-result-content {
-                                                    border: 1px solid #333;
-                                                    padding: 10px;
-                                                    min-height: 100px;
-                                                    white-space: pre-wrap;
-                                                }
-
-                                                .lab-conclusion-content {
-                                                    border: 1px solid #333;
-                                                    padding: 10px;
-                                                    min-height: 60px;
-                                                    white-space: pre-wrap;
-                                                }
-                                            </style>
-
-                                            <div id="labResultReadonly" class="lab-report" style="display:none"
-                                                data-pxid="">
-                                                <div class="text-center mb-3">
-                                                    <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG
-                                                        KHÁM ĐA KHOA THINHVIET</div>
-                                                    <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA XÉT
-                                                        NGHIỆM</div>
-                                                </div>
-                                                <div class="lab-title">KẾT QUẢ XÉT NGHIỆM</div>
-
-                                                <div class="text-center mb-2">
-                                                    <div class="fw-bold">Máy: AU480 Beckman Coulter</div>
-                                                </div>
-
-                                                <div class="lab-row-line">
-                                                    <div class="lab-label">ID:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_id">*0000000*</div>
-                                                    <div class="lab-label" style="margin-left: 20px;">Ngày ĐK:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_date">01/01/2025</div>
-                                                    <div class="lab-dots">-</div>
-                                                    <div class="lab-value" id="lab_ro_time">08:00</div>
-                                                </div>
-
-                                                <div class="lab-hr"></div>
-
-                                                <div class="lab-row-line">
-                                                    <div class="lab-label">Họ tên:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_ho_ten">-</div>
-                                                </div>
-
-                                                <div class="lab-row-line">
-                                                    <div class="lab-label">Tuổi:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_tuoi">-</div>
-                                                    <div class="lab-label" style="margin-left: 20px;">Giới:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_gioi_tinh">-</div>
-                                                </div>
-
-                                                <div class="lab-row-line">
-                                                    <div class="lab-label">Địa chỉ:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_dia_chi">-</div>
-                                                </div>
-
-                                                <div class="lab-row-line">
-                                                    <div class="lab-label">Chẩn đoán sơ bộ:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_chan_doan">-</div>
-                                                </div>
-
-                                                <div class="lab-row-line">
-                                                    <div class="lab-label">Bác sĩ chỉ định:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_bac_si">-</div>
-                                                </div>
-
-                                                <div class="lab-row-line">
-                                                    <div class="lab-label">Phiếu chỉ định:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_phieu_chi_dinh">-</div>
-                                                </div>
-
-                                                <div class="lab-hr"></div>
-
-                                                <div class="lab-row-line">
-                                                    <div class="lab-label">Loại xét nghiệm:</div>
-                                                    <div class="lab-dots">:</div>
-                                                    <div class="lab-value" id="lab_ro_loai_xet_nghiem">XÉT NGHIỆM SINH HÓA MÁU</div>
-                                                </div>
-
-                                                <div class="lab-hr"></div>
-
-                                                <div class="lab-section">KẾT QUẢ KHẢO SÁT:</div>
-                                                <div class="lab-result-content" id="lab_ro_ket_qua_khao_sat">-</div>
-
-                                                <div class="lab-section">KẾT LUẬN:</div>
-                                                <div class="lab-conclusion-content" id="lab_ro_ket_luan">-</div>
-
-                                                <div class="lab-hr"></div>
-
-                                                <div style="margin-top: 30px; text-align: right;">
-                                                    <div class="mb-3">
-                                                        <span>Ngày</span>
-                                                        <input type="text" class="form-control d-inline-block"
-                                                            id="lab_ro_signature_date" style="width:60px; margin: 0 5px;"
-                                                            readonly>
-                                                        <span>tháng</span>
-                                                        <input type="text" class="form-control d-inline-block"
-                                                            id="lab_ro_signature_month"
-                                                            style="width:60px; margin: 0 5px;" readonly>
-                                                        <span>năm</span>
-                                                        <input type="text" class="form-control d-inline-block"
-                                                            id="lab_ro_signature_year" style="width:80px; margin: 0 5px;"
-                                                            readonly>
-                                                    </div>
-                                                    <div style="margin-right: 20px;">
-                                                        <div class="fw-bold">BÁC SĨ XÉT NGHIỆM</div>
-                                                        <div class="mt-2" id="lab_ro_signature_doctor"
-                                                            style="margin-left: -20px;"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div id="labResultEmpty" class="text-muted">Chưa có kết quả xét nghiệm
+                                <div class="card-body" style="font-family: 'Times New Roman', serif; font-size: 12px;">
+                                    <div id="labResultReadonly" style="display:none">
+                                        <!-- Header -->
+                                        <div class="text-center mb-4">
+                                            <div class="fw-bold" style="font-size: 18px; color: #000;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
+                                            <div class="fw-bold" style="font-size: 14px;">KHOA XÉT NGHIỆM</div>
+                                            <div class="fw-bold" style="font-size: 16px; color: #dc3545;">KẾT QUẢ XÉT NGHIỆM</div>
+                                            <div class="d-flex justify-content-center mt-2" style="gap: 10px;">
+                                                <span>Ngày ĐK: <span id="lab_ro_date">-</span></span>
+                                                <span>|</span>
+                                                <span id="lab_ro_time">-</span>
                                             </div>
                                         </div>
-                                        <div class="tab-pane fade" id="lab_tabpane_results" role="tabpanel">
-                                            <div id="lab_results_wrap">
-                                                <div class="text-muted small mb-2">Chi tiết kết quả xét nghiệm
+                                        <hr>
+
+                                        <!-- Patient Information -->
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">ID:</strong></div>
+                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_id">-</span></div>
                                                 </div>
-                                                <div id="lab_ro_results_detail"></div>
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">Họ và tên:</strong></div>
+                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_ho_ten">-</span></div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">Địa chỉ:</strong></div>
+                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_dia_chi">-</span></div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">Chẩn đoán sơ bộ:</strong></div>
+                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_chan_doan">-</span></div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">Tuổi:</strong></div>
+                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_tuoi">-</span></div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">Giới tính:</strong></div>
+                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_gioi_tinh">-</span></div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">BS yêu cầu:</strong></div>
+                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_bac_si">-</span></div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">Tình trạng mẫu:</strong></div>
+                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_tinh_trang_mau">-</span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Test Results Section -->
+                                        <div class="text-center mb-3">
+                                            <div class="fw-bold" style="font-size: 16px;" id="lab_ro_yeu_cau">CHƯA CÓ YÊU CẦU XÉT NGHIỆM</div>
+                                            <div class="fw-bold" style="font-size: 14px;">BẢNG KẾT QUẢ XÉT NGHIỆM</div>
+                                        </div>
+
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered" style="font-size: 12px;">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-center" style="width: 60px;">STT</th>
+                                                        <th>Xét nghiệm</th>
+                                                        <th class="text-center">Giá trị tham chiếu</th>
+                                                        <th class="text-center" style="font-weight: bold;">Kết quả</th>
+                                                        <th class="text-center">Đơn vị</th>
+                                                        <th>Máy/QTKT</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="lab_ro_results_table">
+                                                    <tr>
+                                                        <td colspan="6" class="text-center text-muted">Chưa có kết quả xét nghiệm</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <!-- Notes -->
+                                        <div class="mt-3" style="font-size: 11px;">
+                                            <div>Ghi chú: Kết quả in đậm là kết quả nằm ngoài khoảng tham chiếu.</div>
+                                            <div>Xét nghiệm đánh dấu (*) là xét nghiệm được thực hiện bởi PXN chuyển gửi.</div>
+                                        </div>
+
+                                        <!-- Footer -->
+                                        <div class="mt-4">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <!-- Trống -->
+                                                </div>
+                                                <div class="col-6">
+                                                    <div class="text-center" style="font-size: 16px; font-weight: bold; margin-bottom: 20px;">
+                                                        Ngày <span id="lab_ro_signature_date">-</span> tháng <span id="lab_ro_signature_month">-</span> năm <span id="lab_ro_signature_year">-</span>
+                                                    </div>
+                                                    <div class="text-center">
+                                                        <div class="fw-bold" style="font-size: 14px;">BÁC SĨ XÉT NGHIỆM</div>
+                                                        <div class="mt-2" style="font-size: 14px;" id="lab_ro_signature_doctor">-</div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                    <div id="labResultEmpty" class="text-muted">Chưa có kết quả xét nghiệm</div>
                                 </div>
                             </div>
 

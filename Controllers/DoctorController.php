@@ -3336,16 +3336,33 @@ class DoctorController
             }
 
             $stmt = $this->db->prepare("
-                SELECT pxn.*, kqxn.ket_qua_khao_sat, kqxn.ket_luan, kqxn.bac_si_xet_nghiem, kqxn.ngay_tao as ngay_ket_qua
+                SELECT pxn.*, pt.ngay_tra_ket_qua, pt.trang_thai, pt.bac_si_xet_nghiem, pt.tinh_trang_mau, pt.bac_si_yeu_cau, pt.ma_benh_nhan, pt.dia_chi
                 FROM phieu_yeu_cau_xet_nghiem pxn
-                LEFT JOIN ket_qua_xet_nghiem kqxn ON pxn.id = kqxn.id_phieu_yeu_cau_xet_nghiem
+                LEFT JOIN phieu_tra_ket_qua_xet_nghiem pt ON pxn.id = pt.id_phieu_yeu_cau
                 WHERE pxn.id_phieu_kham_benh = ?
             ");
             $stmt->execute([$examId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($result) {
-                echo json_encode(['success' => true, 'result' => $result]);
+            if ($result && $result['ngay_tra_ket_qua']) {
+                // Get test details
+                $stmt2 = $this->db->prepare("
+                    SELECT stt, ten_xet_nghiem, gia_tri_tham_chieu, ket_qua, don_vi, may_qtkt
+                    FROM chi_tiet_ket_qua_xet_nghiem 
+                    WHERE id_phieu_tra_ket_qua = (
+                        SELECT id FROM phieu_tra_ket_qua_xet_nghiem 
+                        WHERE id_phieu_yeu_cau = ?
+                    )
+                    ORDER BY stt
+                ");
+                $stmt2->execute([$result['id']]);
+                $testDetails = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+                
+                echo json_encode([
+                    'success' => true, 
+                    'result' => $result,
+                    'testDetails' => $testDetails
+                ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Chưa có kết quả xét nghiệm']);
             }
@@ -3787,6 +3804,173 @@ class DoctorController
 
         } catch (Exception $e) {
             error_log('Error completing xetnghiem request: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy lịch sử xét nghiệm
+     */
+    public function getXetnghiemHistory()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $date = $_GET['date'] ?? '';
+            $requestId = $_GET['request_id'] ?? '';
+            $patientCode = $_GET['patient_code'] ?? '';
+
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $sql = "
+                SELECT pxn.id, pxn.so_ho_so as ma_benh_nhan, pxn.ho_ten, pxn.gioi_tinh, pxn.tuoi,
+                       pxn.ngay_tao, pxn.trang_thai, pxn.yeu_cau as ket_qua,
+                       pt.ngay_tra_ket_qua, pt.trang_thai as ket_qua_trang_thai
+                FROM phieu_yeu_cau_xet_nghiem pxn
+                LEFT JOIN phieu_tra_ket_qua_xet_nghiem pt ON pxn.id = pt.id_phieu_yeu_cau
+                WHERE pxn.trang_thai = 'Hoàn thành'
+            ";
+            $params = [];
+
+            if (!empty($date)) {
+                $sql .= " AND DATE(pxn.ngay_tao) = ?";
+                $params[] = $date;
+            }
+
+            if (!empty($requestId)) {
+                $sql .= " AND pxn.id = ?";
+                $params[] = $requestId;
+            }
+
+            if (!empty($patientCode)) {
+                $sql .= " AND pxn.so_ho_so LIKE ?";
+                $params[] = "%$patientCode%";
+            }
+
+            $sql .= " ORDER BY pxn.ngay_tao DESC";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'history' => $history
+            ]);
+
+        } catch (Exception $e) {
+            error_log('Error getting xetnghiem history: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy thống kê dashboard xét nghiệm
+     */
+    public function getLabDashboardStats()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $date = $_GET['date'] ?? date('Y-m-d');
+            
+            $database = new Database();
+            $pdo = $database->getConnection();
+            
+            // Tổng số phiếu yêu cầu xét nghiệm hôm nay
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as total_today
+                FROM phieu_yeu_cau_xet_nghiem 
+                WHERE DATE(ngay_tao) = ?
+            ");
+            $stmt->execute([$date]);
+            $today = $stmt->fetch(PDO::FETCH_ASSOC)['total_today'];
+            
+            // Số phiếu đã hoàn thành hôm nay
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as completed
+                FROM phieu_yeu_cau_xet_nghiem 
+                WHERE DATE(ngay_tao) = ? AND trang_thai = 'Hoàn thành'
+            ");
+            $stmt->execute([$date]);
+            $completed = $stmt->fetch(PDO::FETCH_ASSOC)['completed'];
+            
+            // Số phiếu đang chờ xử lý hôm nay
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as pending
+                FROM phieu_yeu_cau_xet_nghiem 
+                WHERE DATE(ngay_tao) = ? AND trang_thai = 'Đã yêu cầu'
+            ");
+            $stmt->execute([$date]);
+            $pending = $stmt->fetch(PDO::FETCH_ASSOC)['pending'];
+            
+            echo json_encode([
+                'success' => true,
+                'stats' => [
+                    'today' => (int)$today,
+                    'completed' => (int)$completed,
+                    'pending' => (int)$pending
+                ]
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Error getting lab dashboard stats: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy chi tiết lịch sử xét nghiệm
+     */
+    public function getXetnghiemHistoryDetail()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $id = $_GET['id'] ?? '';
+            
+            if (empty($id)) {
+                echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
+                return;
+            }
+
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $stmt = $pdo->prepare("
+                SELECT pxn.id, pxn.so_ho_so as ma_benh_nhan, pxn.ho_ten, pxn.gioi_tinh, pxn.chan_doan, pxn.yeu_cau, pxn.ngay_tao,
+                       pt.tuoi, pt.dia_chi, pt.ngay_tra_ket_qua, pt.trang_thai as ket_qua_trang_thai, pt.bac_si_xet_nghiem,
+                       pt.tinh_trang_mau, pt.bac_si_yeu_cau
+                FROM phieu_yeu_cau_xet_nghiem pxn
+                LEFT JOIN phieu_tra_ket_qua_xet_nghiem pt ON pxn.id = pt.id_phieu_yeu_cau
+                WHERE pxn.id = ?
+            ");
+            $stmt->execute([$id]);
+            $detail = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($detail) {
+                // Get test results details
+                $stmt2 = $pdo->prepare("
+                    SELECT stt, ten_xet_nghiem, gia_tri_tham_chieu, ket_qua, don_vi, may_qtkt
+                    FROM chi_tiet_ket_qua_xet_nghiem 
+                    WHERE id_phieu_tra_ket_qua = (
+                        SELECT id FROM phieu_tra_ket_qua_xet_nghiem 
+                        WHERE id_phieu_yeu_cau = ?
+                    )
+                    ORDER BY stt
+                ");
+                $stmt2->execute([$id]);
+                $testDetails = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+                
+                echo json_encode([
+                    'success' => true,
+                    'detail' => $detail,
+                    'testDetails' => $testDetails
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy chi tiết']);
+            }
+
+        } catch (Exception $e) {
+            error_log('Error getting xetnghiem history detail: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }

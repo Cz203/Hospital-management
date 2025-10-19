@@ -460,6 +460,9 @@ switch ($action) {
     case 'get_xetnghiem_requests':
         $doctorController->getXetnghiemRequests(); // Lấy danh sách yêu cầu xét nghiệm
         break;
+    case 'get_lab_dashboard_stats':
+        $doctorController->getLabDashboardStats(); // Lấy thống kê dashboard xét nghiệm
+        break;
                 case 'get_xetnghiem_result':
                     $doctorController->getXetnghiemResult(); // Lấy kết quả xét nghiệm
                     break;
@@ -483,8 +486,20 @@ switch ($action) {
         include 'Views/doctor/sieuam_history.php'; // Lịch sử siêu âm
         break;
 
+    case 'xetnghiem_history':
+        include 'Views/doctor/xetnghiem_history.php'; // Lịch sử xét nghiệm
+        break;
+
     case 'get_sieuam_history':
         $doctorController->getSieuamHistory(); // Lấy dữ liệu lịch sử siêu âm
+        break;
+
+    case 'get_xetnghiem_history':
+        $doctorController->getXetnghiemHistory(); // Lấy dữ liệu lịch sử xét nghiệm
+        break;
+
+    case 'get_xetnghiem_history_detail':
+        $doctorController->getXetnghiemHistoryDetail(); // Lấy chi tiết lịch sử xét nghiệm
         break;
 
     case 'get_sieuam_result_view':

@@ -283,7 +283,7 @@ $content = '
         <!-- Test Results Section -->
         <div class="text-center mb-3">
           <div class="fw-bold" style="font-size: 16px;" id="test_section_title">XÉT NGHIỆM MÁU - NƯỚC TIỂU - PHÂN</div>
-          <div class="fw-bold" style="font-size: 14px;">BẢNG KẾT QUẢ XÉT NGHIỆM</div>
+          <div class="fw-bold" style="font-size: 14px;">BẢNG CHỈ SỐ KẾT QUẢ XÉT NGHIỆM</div>
         </div>
 
         <div class="table-responsive">
@@ -368,9 +368,12 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("xetnghiem_filter_btn").addEventListener("click", loadXetnghiemRequests);
 });
 
-function loadLabDashboardData() {
-    // Load stats
-    fetch("./?action=get_lab_dashboard_stats")
+function loadLabDashboardData(selectedDate = null) {
+    // Use selected date or current date
+    const date = selectedDate || new Date().toISOString().split("T")[0];
+    
+    // Load stats with date parameter
+    fetch(`./?action=get_lab_dashboard_stats&date=${date}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -428,6 +431,10 @@ function loadXetnghiemRequests() {
             console.error("Error loading xetnghiem requests:", error);
             document.querySelector("#xetnghiemRequestedTable tbody").innerHTML = 
                 "<tr><td colspan=\"10\" class=\"text-center text-danger\">Lỗi tải dữ liệu</td></tr>";
+        })
+        .finally(() => {
+            // Update dashboard stats with the selected date
+            loadLabDashboardData(date);
         });
 }
 
