@@ -560,6 +560,20 @@ switch ($action) {
         $receptionController->getDoctorSchedules(); // API lấy lịch làm việc (lễ tân)
         break;
 
+        case 'get_doctor_info':
+            $doctorController->getDoctorInfo(); // Lấy thông tin bác sĩ hiện tại
+            break;
+        case 'search_medications':
+            $doctorController->searchMedications(); // Tìm kiếm thuốc
+            break;
+            
+        case 'search_medications_public':
+            // API công khai không cần authentication
+            require_once 'Controllers/DoctorController.php';
+            $controller = new DoctorController();
+            $controller->searchMedicationsPublic();
+            break;
+
     case 'reception_complete_patient':
         $receptionController->completePatientProfile(); // Bổ sung thông tin còn thiếu (AJAX)
         break;

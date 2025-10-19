@@ -3975,4 +3975,134 @@ class DoctorController
         }
     }
 
+    /**
+     * Lấy thông tin bác sĩ hiện tại
+     */
+    public function getDoctorInfo()
+    {
+        $this->auth->requireAuth('doctor');
+
+        try {
+            $doctorId = $_SESSION['user_id'];
+            $doctor = $this->doctorModel->getById($doctorId);
+
+            if ($doctor) {
+                echo json_encode([
+                    'success' => true,
+                    'doctor_name' => $doctor['ten'] ?? 'Bác sĩ',
+                    'doctor_id' => $doctor['id']
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không tìm thấy thông tin bác sĩ'
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log("Get doctor info error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server'
+            ]);
+        }
+        exit();
+    }
+
+    public function searchMedications()
+    {
+        $this->auth->requireAuth('doctor');
+
+        try {
+            $keyword = $_GET['keyword'] ?? '';
+            
+            error_log("Search medications called with keyword: " . $keyword); // Debug log
+            
+            if (empty($keyword)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Từ khóa tìm kiếm không được để trống'
+                ]);
+                exit();
+            }
+
+            $sql = "SELECT MaThuoc, TenThuoc, HoatChatChinh, DonViTinh, LieuDung 
+                    FROM thuoc 
+                    WHERE TenThuoc LIKE ? AND TrangThai = 1 
+                    ORDER BY TenThuoc 
+                    LIMIT 10";
+            
+            error_log("SQL query: " . $sql); // Debug log
+            
+            $stmt = $this->db->prepare($sql);
+            $searchTerm = '%' . $keyword . '%';
+            $stmt->execute([$searchTerm]);
+            
+            $medications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            error_log("Found " . count($medications) . " medications"); // Debug log
+            
+            echo json_encode([
+                'success' => true,
+                'medications' => $medications
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Search medications error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    /**
+     * Tìm kiếm thuốc - API công khai không cần authentication
+     */
+    public function searchMedicationsPublic()
+    {
+        try {
+            $keyword = $_GET['keyword'] ?? '';
+            
+            error_log("Search medications public called with keyword: " . $keyword); // Debug log
+            
+            if (empty($keyword)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Từ khóa tìm kiếm không được để trống'
+                ]);
+                exit();
+            }
+
+            $sql = "SELECT MaThuoc, TenThuoc, HoatChatChinh, DonViTinh, LieuDung 
+                    FROM thuoc 
+                    WHERE TenThuoc LIKE ? AND TrangThai = 1 
+                    ORDER BY TenThuoc 
+                    LIMIT 10";
+            
+            error_log("SQL query: " . $sql); // Debug log
+            
+            $stmt = $this->db->prepare($sql);
+            $searchTerm = '%' . $keyword . '%';
+            $stmt->execute([$searchTerm]);
+            
+            $medications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            error_log("Found " . count($medications) . " medications"); // Debug log
+            
+            echo json_encode([
+                'success' => true,
+                'medications' => $medications
+            ]);
+            
+        } catch (Exception $e) {
+            error_log("Search medications public error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
 }

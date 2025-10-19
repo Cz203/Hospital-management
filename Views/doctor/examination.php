@@ -292,7 +292,9 @@ $content .= '
 $content .= file_get_contents('Views/layouts/examination_modal.php');
 
 $content .= '<link rel="stylesheet" href="assets/css/examination.css">';
+$content .= '<link rel="stylesheet" href="assets/css/prescription.css">';
 $content .= '<script src="assets/js/examination.js"></script>';
+$content .= '<script src="assets/js/prescription.js"></script>';
 
 // Auto open modal nếu có appointment_id
 if (isset($autoOpenModal) && $autoOpenModal && $appointmentId) {
@@ -439,6 +441,32 @@ if (isset($autoOpenModal) && $autoOpenModal && $appointmentId) {
             if (hAddr) hAddr.value = patientAddress;
             if (hPhone) hPhone.value = patientPhone;
             if (hGender) hGender.value = patientGender;
+            
+            // Điền thông tin vào prescription form
+            var presPatientName = document.getElementById("prescription_patient_name");
+            var presPhone = document.getElementById("prescription_phone");
+            var presDob = document.getElementById("prescription_dob");
+            var presGender = document.getElementById("prescription_gender");
+            var presAddress = document.getElementById("prescription_address");
+            var presMaBenhNhan = document.getElementById("prescription_ma_benh_nhan");
+            var presBHYT = document.getElementById("prescription_bhyt");
+            
+            if (presPatientName) presPatientName.value = patientName;
+            if (presPhone) presPhone.value = patientPhone;
+            if (presDob) presDob.value = patientDob;
+            if (presGender) presGender.value = patientGender;
+            if (presAddress) presAddress.value = patientAddress;
+            if (presMaBenhNhan) presMaBenhNhan.value = patientCodeDisplay;
+            
+            // Điền BHYT: nếu có bao_hiem_y_te thì hiển thị, không có thì hiển thị "Thu phí"
+            if (presBHYT) {
+                console.log("BHYT data:", patientBHYT); // Debug
+                if (patientBHYT && patientBHYT.trim() !== "" && patientBHYT !== "null") {
+                    presBHYT.value = patientBHYT;
+                } else {
+                    presBHYT.value = "Thu phí";
+                }
+            }
             // Điền vào header phiếu khám bệnh
             var examMaBN = document.getElementById("exam_ma_benh_nhan");
             if (examMaBN) examMaBN.value = patientCodeDisplay;
