@@ -871,7 +871,6 @@ class AuthController
         // Tìm user theo số điện thoại
         $patient = new Patient();
         $user = $patient->getByPhone($normalizedPhone);
-
         if (!$user) {
             http_response_code(404);
             echo json_encode(['success' => false, 'message' => 'Không tìm thấy tài khoản với số điện thoại này']);
