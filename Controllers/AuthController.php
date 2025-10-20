@@ -761,7 +761,6 @@ class AuthController
             exit();
         }
 
-
         // Kiểm tra mật khẩu hiện tại và cập nhật
         $userId = $_SESSION['user_id'];
         $success = false;

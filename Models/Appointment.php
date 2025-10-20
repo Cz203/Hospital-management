@@ -48,35 +48,17 @@ class Appointment extends User
     public function getByPatientId($patientId)
     {
         try {
-            $sql = "SELECT 
-                lh.id,
-                lh.ngay_hen,
-                lh.gio_hen,
-                lh.ly_do,
-                lh.trang_thai,
-                lh.ghi_chu,
-                lh.loai_lich,
-                lh.dia_chi_kham,
-                lh.link_tu_van,
-                lh.ngay_tao,
-                lh.ngay_cap_nhat,
-                bs.ten as ten_bac_si,
-                bs.chuyen_khoa,
-                bs.hinh_anh as avatar_bac_si,
-                bs.so_nam_kinh_nghiem,
-                bn.ten as ten_benh_nhan,
-                bn.so_dien_thoai,
-                bn.gioi_tinh
-            FROM lich_hen lh
-            JOIN bac_si bs ON lh.bac_si_id = bs.id
-            JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
-            WHERE bn.id = :patient_id
-            ORDER BY lh.ngay_hen DESC, lh.gio_hen DESC";
+            $sql = "SELECT lh.*, bs.ten AS ten_bac_si, bs.chuyen_khoa, bs.hinh_anh AS avatar_bac_si, bs.so_nam_kinh_nghiem,
+                           bn.ten AS ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh
+                    FROM lich_hen lh
+                    JOIN bac_si bs ON lh.bac_si_id = bs.id
+                    JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
+                    WHERE bn.id = :patient_id
+                    ORDER BY lh.ngay_hen DESC, lh.gio_hen DESC";
 
             $stmt = $this->getConnection()->prepare($sql);
             $stmt->execute([':patient_id' => $patientId]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
             return $result;
         } catch (PDOException $e) {
             error_log("Appointment getByPatientId error: " . $e->getMessage());
