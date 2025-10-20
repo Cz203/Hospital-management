@@ -35,6 +35,34 @@ class Doctor extends User
         return false;
     }
 
+    public function loginWithSpecialization($phone, $password, $specializationId)
+    {
+        // Chuẩn hóa số điện thoại (hỗ trợ 0/84)
+        $raw = trim($phone);
+        $p1 = $raw;
+        $p2 = $raw;
+        if (str_starts_with($raw, '84')) {
+            $p2 = '0' . substr($raw, 2);
+        } elseif (str_starts_with($raw, '0')) {
+            $p2 = '84' . substr($raw, 1);
+        }
+
+        $query = "SELECT * FROM " . $this->table_name . " WHERE (so_dien_thoai = :p1 OR so_dien_thoai = :p2) AND chuyen_khoa_id = :specialization_id LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":p1", $p1);
+        $stmt->bindParam(":p2", $p2);
+        $stmt->bindParam(":specialization_id", $specializationId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($this->verifyPassword($password, $row['mat_khau'])) {
+                return $row;
+            }
+        }
+        return false;
+    }
+
     public function emailExists($email)
     {
         $query = "SELECT COUNT(*) FROM " . $this->table_name . " WHERE email = :email";

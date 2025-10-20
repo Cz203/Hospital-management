@@ -2,21 +2,21 @@
 
 ### 🧍‍♂️ Patient
 
-- **Email:** `caoduongvietquoc@gmail.com`
+- **sdt:** `0913998110`
 - **Password:** `123456@`
 
 ### 🧑‍⚕️ Doctor
 
 - link: cziet.id.vn/login_doctor
-- **Email:** `caoviet5.work@gmail.com`
+- **sdt:** `0123456789`
 - **Password:** `123456@`
 
 ### Admin
 
 - link: cziet.id.vn/login_admin
-- **Email:** `admin@gmail.com`
+- **sdt:** `0123456789`
 - **Password:** `123456@`
 
 ## 🔗 Links
 
-- **Live Demo : cziet.id.vn
+- \*\*Live Demo : cziet.id.vn

@@ -1,5 +1,17 @@
 <?php
 require_once 'Views/layouts/layout_helper.php';
+$ctx = getCurrentUserContext();
+$doctorName = htmlspecialchars(($ctx['name'] ?? ''), ENT_QUOTES, 'UTF-8');
+$specialization = '';
+try {
+    if (($ctx['role'] ?? '') === 'doctor' || ($ctx['role'] ?? '') === 'xray_doctor' || ($ctx['role'] ?? '') === 'sieuam_doctor') {
+        require_once 'Models/Doctor.php';
+        $dm = new Doctor();
+        $d = $dm->getById($ctx['id']);
+        $specialization = $d['chuyen_khoa'] ?? '';
+    }
+} catch (Exception $e) {
+}
 
 $content = '
 <div class="container-fluid">
@@ -10,7 +22,7 @@ $content = '
                 <i class="fas fa-user-md text-success me-2"></i>
                 Doctor Dashboard
             </h1>
-            <p class="text-muted">Chào mừng bác sĩ ' . $_SESSION['user_name'] . ' - ' . ($_SESSION['specialization'] ?? 'Chuyên khoa') . '</p>
+            <p class="text-muted">Chào mừng bác sĩ ' . $doctorName . ' - ' . ($specialization ?: 'Chuyên khoa') . '</p>
         </div>
         <div class="d-flex gap-2 align-items-center">
             <!-- Socket Connection Status -->

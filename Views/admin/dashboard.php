@@ -1,6 +1,7 @@
 <?php
 // File này sẽ được include từ AdminController
 // Không cần kiểm tra session ở đây vì đã được kiểm tra trong Controller
+require_once __DIR__ . '/../layouts/layout_helper.php';
 ?>
 
 <div class="container-fluid">
@@ -10,7 +11,9 @@
             <h1 class="h3 mb-0 text-gray-800">
                 <i class="fas fa-tachometer-alt text-primary me-2"></i>Dashboard Admin
             </h1>
-            <p class="mb-0 text-muted">Chào mừng trở lại, <?php echo $_SESSION['user_name']; ?>!</p>
+            <?php $ctx = getCurrentUserContext();
+            $adminName = htmlspecialchars(($ctx['name'] ?? 'Admin'), ENT_QUOTES, 'UTF-8'); ?>
+            <p class="mb-0 text-muted">Chào mừng trở lại, <?php echo $adminName; ?>!</p>
         </div>
     </div>
 

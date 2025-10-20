@@ -30,12 +30,40 @@ function renderLayout($content, $page_title = 'Hệ thống Quản lý Bệnh vi
 echo $layout_content;
 }
 
+// Get current user context (id, role, name, email) from controller helper if available
+function getCurrentUserContext()
+{
+if (session_status() == PHP_SESSION_NONE) {
+session_start();
+}
+$defaults = ['id' => null, 'role' => '', 'name' => '', 'email' => ''];
+try {
+require_once 'Controllers/AuthController.php';
+if (class_exists('AuthController')) {
+$a = new AuthController();
+if (method_exists($a, 'resolveCurrentUserContext')) {
+$ctx = $a->resolveCurrentUserContext();
+if (is_array($ctx) && !empty($ctx)) return array_merge($defaults, $ctx);
+}
+}
+} catch (Exception $e) {
+}
+// Fallback minimal (legacy): only user_id if present; do not read name/email/role from session
+return [
+'id' => $_SESSION['user_id'] ?? null,
+'role' => '',
+'name' => '',
+'email' => '',
+];
+}
+
 /**
 * Render chỉ sidebar cho từng role
 * @param string $role Role của user (admin, doctor, patient)
 */
 function renderSidebar($role)
 {
+
 switch ($role) {
 case 'admin':
 include 'Views/layouts/admin_sidebar.php';
@@ -106,6 +134,7 @@ return (strpos($current_url, $pattern) !== false) ? 'active' : '';
 */
 function getRoleText($role)
 {
+
 switch ($role) {
 case 'admin':
 return 'Quản trị viên';
@@ -133,6 +162,7 @@ return 'Không xác định';
 */
 function getRoleBadgeClass($role)
 {
+
 switch ($role) {
 case 'admin':
 return 'role-admin';

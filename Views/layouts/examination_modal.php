@@ -336,15 +336,15 @@
                                                 <div class="row g-2">
                                                     <div class="col-4">
                                                         <input type="number" class="form-control" name="bhyt_ngay"
-                                                            placeholder="Ngày" min="1" max="31">
+                                                            placeholder="Ngày" min="1" max="31" readonly>
                                                     </div>
                                                     <div class="col-4">
                                                         <input type="number" class="form-control" name="bhyt_thang"
-                                                            placeholder="Tháng" min="1" max="12">
+                                                            placeholder="Tháng" min="1" max="12" readonly>
                                                     </div>
                                                     <div class="col-4">
                                                         <input type="number" class="form-control" name="bhyt_nam"
-                                                            placeholder="Năm" min="2024" max="2030">
+                                                            placeholder="Năm" min="2024" max="2030" readonly>
                                                     </div>
                                                 </div>
                                             </div>

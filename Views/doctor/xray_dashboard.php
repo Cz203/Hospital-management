@@ -1,7 +1,7 @@
 <?php
 require_once 'Views/layouts/layout_helper.php';
-
-$xrayDoctorSessionName = (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'xray_doctor') ? $_SESSION['user_name'] : '';
+$ctx = getCurrentUserContext();
+$xrayDoctorSessionName = ($ctx['role'] === 'xray_doctor') ? ($ctx['name'] ?? '') : '';
 
 $content = '
 <div class="container-fluid">
@@ -12,7 +12,7 @@ $content = '
                 <i class="fas fa-x-ray text-success me-2"></i>
                 X-Ray Dashboard
             </h1>
-            <p class="text-muted">Chào mừng bác sĩ X-Quang ' . $_SESSION['user_name'] . ' - Chẩn đoán hình ảnh</p>
+            <p class="text-muted">Chào mừng bác sĩ X-Quang ' . htmlspecialchars(($ctx['name'] ?? ''), ENT_QUOTES, 'UTF-8') . ' - Chẩn đoán hình ảnh</p>
         </div>
         <div class="d-flex gap-2 align-items-center">
             <button class="btn btn-success">

@@ -634,19 +634,32 @@ switch ($action) {
     default:
         // Nếu action không tồn tại, kiểm tra nếu user đã đăng nhập thì redirect về dashboard tương ứng
         if ($auth->isLoggedIn()) {
-            $role = $_SESSION['user_role'];
+            $role = $_SESSION['user_role'] ?? '';
+            if ($role === '') {
+                $ctx = $auth->resolveCurrentUserContext();
+                $role = $ctx['role'] ?? '';
+            }
             switch ($role) {
                 case 'admin':
-                    header("Location: ./admin_dashboard"); // Redirect admin về dashboard
+                    header("Location: ./admin_dashboard");
                     exit();
                 case 'doctor':
-                    header("Location: ./doctor_dashboard"); // Redirect bác sĩ về dashboard
+                    header("Location: ./doctor_dashboard");
+                    exit();
+                case 'xray_doctor':
+                    header("Location: ./xray_dashboard");
+                    exit();
+                case 'sieuam_doctor':
+                    header("Location: ./sieuam_dashboard");
                     exit();
                 case 'patient':
-                    header("Location: ./patient_dashboard"); // Redirect bệnh nhân về dashboard
+                    header("Location: ./patient_dashboard");
                     exit();
                 case 'letan':
-                    header("Location: ./reception_dashboard"); // Redirect lễ tân về dashboard
+                    header("Location: ./reception_dashboard");
+                    exit();
+                default:
+                    header("Location: ./");
                     exit();
             }
         }

@@ -28,12 +28,11 @@ class DoctorController
         $this->phieuChupXquangModel = new PhieuChupXquang();
         $this->phieuYeuCauSieuAmModel = new PhieuYeuCauSieuAm();
         $this->labTestModel = new LabTest();
-        
         // DB connection for simple queries
         require_once 'config/database.php';
         $database = new Database();
         $this->db = $database->getConnection();
-        
+
         $this->ketQuaSieuAmModel = new KetQuaSieuAm($this->db);
         $this->sieuAmHinhAnhModel = new SieuAmHinhAnh($this->db);
         $this->auth = new AuthController();
@@ -991,11 +990,13 @@ class DoctorController
             if ($newStatus === 'hủy') {
                 // Notify patient about cancellation
                 $notificationData['message'] = "Bác sĩ $doctorName đã hủy lịch hẹn của bạn vào $dateVn lúc {$appointment['gio_hen']}";
-                $this->sendSocketNotification('appointment_cancelled_by_doctor', $notificationData);
+                require_once 'Services/SocketService.php';
+                SocketService::emit('appointment_cancelled_by_doctor', $notificationData);
             } else {
                 // Notify patient about status change
                 $notificationData['message'] = "Bác sĩ $doctorName đã cập nhật trạng thái lịch hẹn ngày $dateVn thành: $newStatus";
-                $this->sendSocketNotification('appointment_status_changed', $notificationData);
+                require_once 'Services/SocketService.php';
+                SocketService::emit('appointment_status_changed', $notificationData);
             }
         } catch (Exception $e) {
             error_log("Appointment status change notification error: " . $e->getMessage());
@@ -1062,70 +1063,6 @@ class DoctorController
     }
 
     /**
-     * Send socket notification via HTTP request
-     */
-    private function sendSocketNotification($event, $data)
-    {
-        try {
-            // Read socket server URL from config; fallback to localhost for dev
-            $cfg = @include __DIR__ . '/../config/socket.php';
-            if (!is_array($cfg) || empty($cfg['server_url'])) {
-                $cfg = @include __DIR__ . '/../../config/socket.php';
-            }
-            $mode = isset($cfg['mode']) ? $cfg['mode'] : 'auto';
-            $prod = isset($cfg['server_url']) ? $cfg['server_url'] : '';
-            $dev = isset($cfg['dev_url']) ? $cfg['dev_url'] : '';
-            $override = isset($_GET['socket']) ? $_GET['socket'] : null;
-            if ($override === 'dev' || $override === 'prod') {
-                $mode = $override;
-            }
-            if ($mode === 'dev') {
-                $baseUrl = $dev ?: 'http://localhost:3001';
-            } elseif ($mode === 'prod') {
-                $baseUrl = $prod ?: ($dev ?: 'http://localhost:3001');
-            } else {
-                $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
-                $baseUrl = $isHttps ? ($prod ?: ($dev ?: 'http://localhost:3001')) : ($dev ?: ($prod ?: 'http://localhost:3001'));
-            }
-            $baseUrl = rtrim($baseUrl, '/');
-            $socketUrl = $baseUrl . '/emit';
-
-            $postData = json_encode([
-                'event' => $event,
-                'data' => $data
-            ]);
-
-            // Use cURL for better reliability
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $socketUrl);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($postData)
-            ]);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-
-            $result = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-            curl_close($ch);
-
-            if ($result === false || $httpCode !== 200) {
-                error_log("Socket notification failed. HTTP Code: $httpCode, Error: $error");
-            } else {
-                error_log("Socket notification sent successfully: " . $result);
-            }
-        } catch (Exception $e) {
-            error_log("Socket notification error: " . $e->getMessage());
-        }
-    }
-
-    /**
      * Trang khám bệnh - hiển thị danh sách lịch hẹn theo ngày
      */
     public function examination()
@@ -1167,7 +1104,8 @@ class DoctorController
                     require_once 'Models/QueueTicket.php';
                     $qt = new QueueTicket();
                     $qt->updateStatusByAppointmentId((int)$appointmentId, 'dang_kham');
-                    $this->sendSocketNotification('appointment_update', [
+                    require_once 'Services/SocketService.php';
+                    SocketService::emit('appointment_update', [
                         'doctorId' => $doctorId,
                         'appointmentId' => (int)$appointmentId,
                         'queueStatus' => 'dang_kham',
@@ -1234,7 +1172,8 @@ class DoctorController
                     $qt = new QueueTicket();
                     $qt->updateStatusByAppointmentId((int)$appointmentId, 'dang_kham');
                     // Emit realtime để lễ tân và bác sĩ cập nhật giao diện
-                    $this->sendSocketNotification('appointment_update', [
+                    require_once 'Services/SocketService.php';
+                    SocketService::emit('appointment_update', [
                         'doctorId' => $doctorId,
                         'appointmentId' => (int)$appointmentId,
                         'queueStatus' => 'dang_kham',
@@ -1433,14 +1372,17 @@ class DoctorController
         }
         try {
             $appointmentId = $_POST['appointment_id'] ?? null;
-            if (!$appointmentId) { echo json_encode(['success'=>false,'message'=>'Thiếu appointment_id']); exit(); }
+            if (!$appointmentId) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu appointment_id']);
+                exit();
+            }
             require_once 'Models/PhieuKhamBenh.php';
             $model = new PhieuKhamBenh();
             $row = $model->getByAppointmentId((int)$appointmentId);
-            echo json_encode(['success'=>true,'data'=>$row]);
+            echo json_encode(['success' => true, 'data' => $row]);
         } catch (Exception $e) {
             error_log('getExaminationForm error: ' . $e->getMessage());
-            echo json_encode(['success'=>false,'message'=>'Server error']);
+            echo json_encode(['success' => false, 'message' => 'Server error']);
         }
         exit();
     }
@@ -1460,7 +1402,7 @@ class DoctorController
             echo 'Không tìm thấy phiếu khám bệnh';
             exit();
         }
-        
+
         // Include the beautiful print view
         include 'Views/doctor/print_examination_form.php';
         exit();
@@ -1478,10 +1420,10 @@ class DoctorController
         }
 
         $keyword = $_POST['keyword'] ?? '';
-        
+
         // Debug log
         error_log('X-Ray Suggestions - Keyword: ' . $keyword);
-        
+
         if (empty($keyword)) {
             // Lấy tất cả gợi ý nếu không có từ khóa
             $suggestions = $this->xraySuggestionModel->getAllActive();
@@ -1489,7 +1431,7 @@ class DoctorController
             // Tìm kiếm theo từ khóa
             $suggestions = $this->xraySuggestionModel->search($keyword);
         }
-        
+
         // Debug log
         error_log('X-Ray Suggestions - Found: ' . count($suggestions) . ' suggestions');
 
@@ -1537,10 +1479,10 @@ class DoctorController
         }
 
         $suggestionNames = $_POST['suggestions'] ?? '';
-        
+
         // Debug log
         error_log('X-Ray Price Calculation - Input: ' . $suggestionNames);
-        
+
         if (empty($suggestionNames)) {
             echo json_encode([
                 'success' => true,
@@ -1552,7 +1494,7 @@ class DoctorController
 
         $totalPrice = $this->xraySuggestionModel->calculateTotalPrice($suggestionNames);
         $details = $this->xraySuggestionModel->getPriceDetails($suggestionNames);
-        
+
         // Debug log
         error_log('X-Ray Price Calculation - Total: ' . $totalPrice . ', Details: ' . json_encode($details));
 
@@ -1568,7 +1510,7 @@ class DoctorController
      */
     public function saveXrayForm()
     {
-        // Kiểm tra đăng nhập và quyền bác sĩ
+        // Kiểm tra đăng nhập và quyền bác sĩ (cho phép tất cả bác sĩ)
         if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor') {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             exit();
@@ -1603,7 +1545,7 @@ class DoctorController
                 error_log('Error getting existing X-Ray form: ' . $e->getMessage());
                 $existingXray = null;
             }
-            
+
             $data = [
                 'id_phieu_kham_benh' => $idPhieuKhamBenh,
                 'so_dien_thoai' => $soDienThoai,
@@ -1637,17 +1579,16 @@ class DoctorController
                     exit();
                 }
             }
-            
+
             if ($id) {
                 echo json_encode([
-                    'success' => true, 
+                    'success' => true,
                     'message' => $message,
                     'id' => $id
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu phiếu chụp X-Quang']);
             }
-
         } catch (Exception $e) {
             error_log('Save X-Ray form error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -1666,14 +1607,14 @@ class DoctorController
         }
 
         $id = $_GET['id'] ?? '';
-        
+
         if (empty($id)) {
             echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu chụp X-Quang']);
             exit();
         }
 
         $phieuChup = $this->phieuChupXquangModel->getById($id);
-        
+
         if (!$phieuChup) {
             echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu chụp X-Quang']);
             exit();
@@ -1793,7 +1734,7 @@ class DoctorController
             $tmp = $files['tmp_name'][$i];
             $name = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $files['name'][$i]);
             $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-            if (!in_array($ext, ['jpg','jpeg','png','gif'])) continue;
+            if (!in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) continue;
             $newName = uniqid('xray_', true) . '.' . $ext;
             $dest = $targetDir . '/' . $newName;
             if (move_uploaded_file($tmp, $dest)) {
@@ -2026,7 +1967,7 @@ class DoctorController
 
         $id_phieu_chup_xquang = (int)$input['id_phieu_chup_xquang'];
         $images = $input['images'];
-        
+
         if ($id_phieu_chup_xquang <= 0 || empty($images)) {
             echo json_encode(['success' => false, 'message' => 'Thiếu dữ liệu ảnh']);
             return;
@@ -2055,10 +1996,10 @@ class DoctorController
             foreach ($images as $imageUrl) {
                 $sql = "INSERT INTO ket_qua_xquang_hinh_anh (ket_qua_id, file_path, file_name, mime_type) VALUES (?, ?, ?, ?)";
                 $stmt = $conn->prepare($sql);
-                
+
                 $fileName = basename($imageUrl);
                 $mimeType = 'image/' . strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-                
+
                 $result = $stmt->execute([
                     $ketQuaId,
                     $imageUrl,
@@ -2187,14 +2128,14 @@ class DoctorController
         }
 
         $id = $_GET['id'] ?? '';
-        
+
         if (empty($id)) {
             echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu chụp X-Quang']);
             exit();
         }
 
         $phieuChup = $this->phieuChupXquangModel->getById($id);
-        
+
         if (!$phieuChup) {
             echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu chụp X-Quang']);
             exit();
@@ -2234,22 +2175,26 @@ class DoctorController
 
             $conds = [];
             $params = [];
-            $conds[] = 'px.trang_thai = ?'; $params[] = 'Hoàn thành'; // Chỉ hiển thị phiếu đã hoàn thành
-            if ($date) { $conds[] = 'DATE(px.ngay_tao) = ?'; $params[] = $date; }
-            if ($requestId !== '') { 
+            $conds[] = 'px.trang_thai = ?';
+            $params[] = 'Hoàn thành'; // Chỉ hiển thị phiếu đã hoàn thành
+            if ($date) {
+                $conds[] = 'DATE(px.ngay_tao) = ?';
+                $params[] = $date;
+            }
+            if ($requestId !== '') {
                 // Search by request ID (px.id)
                 if (is_numeric($requestId)) {
-                    $conds[] = 'px.id = ?'; 
-                    $params[] = $requestId; 
+                    $conds[] = 'px.id = ?';
+                    $params[] = $requestId;
                 } else {
-                    $conds[] = 'px.id LIKE ?'; 
-                    $params[] = '%'.$requestId.'%'; 
+                    $conds[] = 'px.id LIKE ?';
+                    $params[] = '%' . $requestId . '%';
                 }
             }
-            if ($patientCode !== '') { 
+            if ($patientCode !== '') {
                 // Search by patient code (bn.ma_benh_nhan)
-                $conds[] = 'bn.ma_benh_nhan LIKE ?'; 
-                $params[] = '%'.$patientCode.'%'; 
+                $conds[] = 'bn.ma_benh_nhan LIKE ?';
+                $params[] = '%' . $patientCode . '%';
             }
             $sql .= ' WHERE ' . implode(' AND ', $conds);
             $sql .= ' ORDER BY px.ngay_tao DESC, px.id DESC LIMIT 200';
@@ -2298,11 +2243,14 @@ class DoctorController
             $stmt = $db->prepare($sql);
             $stmt->execute([$id]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if(!$row){ echo json_encode(['success'=>false,'message'=>'Không tìm thấy']); return; }
-            echo json_encode(['success'=>true,'data'=>$row]);
+            if (!$row) {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy']);
+                return;
+            }
+            echo json_encode(['success' => true, 'data' => $row]);
         } catch (Exception $e) {
-            error_log('getXrayResultView error: '.$e->getMessage());
-            echo json_encode(['success'=>false,'message'=>'Lỗi hệ thống']);
+            error_log('getXrayResultView error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }
 
@@ -2318,7 +2266,10 @@ class DoctorController
         }
 
         $examId = isset($_GET['exam_id']) ? (int)$_GET['exam_id'] : 0;
-        if ($examId <= 0) { echo json_encode(['success'=>false,'message'=>'Thiếu exam id']); return; }
+        if ($examId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu exam id']);
+            return;
+        }
 
         try {
             $database = new Database();
@@ -2336,11 +2287,14 @@ class DoctorController
             $st = $db->prepare($sql);
             $st->execute([$examId]);
             $row = $st->fetch(PDO::FETCH_ASSOC);
-            if(!$row){ echo json_encode(['success'=>false,'message'=>'Chưa có kết quả X-Quang']); return; }
-            echo json_encode(['success'=>true,'data'=>$row]);
+            if (!$row) {
+                echo json_encode(['success' => false, 'message' => 'Chưa có kết quả X-Quang']);
+                return;
+            }
+            echo json_encode(['success' => true, 'data' => $row]);
         } catch (Exception $e) {
-            error_log('getXrayResultByExamIdForView error: '.$e->getMessage());
-            echo json_encode(['success'=>false,'message'=>'Lỗi hệ thống']);
+            error_log('getXrayResultByExamIdForView error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }
 
@@ -2356,7 +2310,10 @@ class DoctorController
         }
 
         $examId = isset($_GET['exam_id']) ? (int)$_GET['exam_id'] : 0;
-        if ($examId <= 0) { echo json_encode(['success'=>false,'message'=>'Thiếu exam id']); return; }
+        if ($examId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu exam id']);
+            return;
+        }
 
         try {
             // Tìm phiếu yêu cầu siêu âm từ exam_id trước
@@ -2367,19 +2324,19 @@ class DoctorController
             $stmt = $db->prepare($sql);
             $stmt->execute([$examId]);
             $pysaRow = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if (!$pysaRow) {
                 echo json_encode(['success' => false, 'message' => 'Chưa có kết quả siêu âm']);
                 return;
             }
-            
+
             // Lấy kết quả siêu âm từ phieu_id
             $result = $this->ketQuaSieuAmModel->getByPhieuYeuCauId($pysaRow['id']);
-            
+
             if ($result) {
                 // Thêm thông tin bổ sung
                 $result['noi_dung'] = $result['yeu_cau_sieu_am'];
-                
+
                 echo json_encode([
                     'success' => true,
                     'result' => $result
@@ -2388,8 +2345,8 @@ class DoctorController
                 echo json_encode(['success' => false, 'message' => 'Chưa có kết quả siêu âm']);
             }
         } catch (Exception $e) {
-            error_log('getUltrasoundResultByExamIdForView error: '.$e->getMessage());
-            echo json_encode(['success'=>false,'message'=>'Lỗi hệ thống']);
+            error_log('getUltrasoundResultByExamIdForView error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }
 
@@ -2399,7 +2356,7 @@ class DoctorController
     public function getSavedUltrasoundImages()
     {
         header('Content-Type: application/json; charset=utf-8');
-        
+
         if (!isset($_SESSION['user_role']) || ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor' && $_SESSION['user_role'] !== 'admin')) {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
             return;
@@ -2413,7 +2370,7 @@ class DoctorController
 
         try {
             $images = $this->sieuAmHinhAnhModel->getByKetQuaId($resultId);
-            
+
             echo json_encode([
                 'success' => true,
                 'images' => $images
@@ -2436,7 +2393,7 @@ class DoctorController
         }
 
         $examId = $_GET['exam_id'] ?? '';
-        
+
         if (empty($examId)) {
             echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu khám bệnh']);
             exit();
@@ -2450,7 +2407,7 @@ class DoctorController
             echo json_encode(['success' => false, 'message' => 'Lỗi khi lấy phiếu chụp X-Quang']);
             exit();
         }
-        
+
         if (!$phieuChup) {
             echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu chụp X-Quang']);
             exit();
@@ -2474,7 +2431,7 @@ class DoctorController
         }
 
         $examId = $_GET['exam_id'] ?? '';
-        
+
         if (empty($examId)) {
             echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu khám bệnh']);
             exit();
@@ -2487,12 +2444,12 @@ class DoctorController
                     FROM phieu_kham_benh pk
                     JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                     WHERE pk.id = ?";
-            
+
             // Get database connection
             require_once 'config/database.php';
             $database = new Database();
             $db = $database->getConnection();
-            
+
             $stmt = $db->prepare($sql);
             if (!$stmt) {
                 echo json_encode(['success' => false, 'message' => 'Lỗi database']);
@@ -2501,7 +2458,7 @@ class DoctorController
 
             $stmt->execute([$examId]);
             $patient = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if (!$patient) {
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy thông tin bệnh nhân']);
                 exit();
@@ -2513,10 +2470,10 @@ class DoctorController
             $doiTuongMien = $patient['doi_tuong_mien'];
             $doiTuongKhac = $patient['doi_tuong_khac'];
             $soTheBhyt = $patient['so_the_bhyt'] ?? '';
-            
+
             // Ưu tiên BHYT trước
             $hasBhyt = $doiTuongBhyt == 1;
-            
+
 
             echo json_encode([
                 'success' => true,
@@ -2529,7 +2486,6 @@ class DoctorController
                 'benhNhanId' => $patient['benh_nhan_id'],
                 'phieuKhamId' => $patient['phieu_kham_id']
             ]);
-
         } catch (Exception $e) {
             error_log('Error getting patient BHYT status: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2542,6 +2498,13 @@ class DoctorController
     public function saveUltrasoundForm()
     {
         header('Content-Type: application/json; charset=utf-8');
+
+        // Kiểm tra đăng nhập và quyền bác sĩ (cho phép tất cả bác sĩ)
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'xray_doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             if (!isset($_POST['exam_id']) || empty($_POST['exam_id'])) {
                 echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc']);
@@ -2607,7 +2570,6 @@ class DoctorController
             } else {
                 echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu phiếu yêu cầu siêu âm']);
             }
-
         } catch (Exception $e) {
             error_log('Error saving ultrasound form: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2628,13 +2590,12 @@ class DoctorController
             }
 
             $formData = $this->phieuYeuCauSieuAmModel->getByExamId($examId);
-            
+
             if ($formData) {
                 echo json_encode(['success' => true, 'data' => $formData]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu yêu cầu siêu âm']);
             }
-
         } catch (Exception $e) {
             error_log('Error getting ultrasound form data: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2660,7 +2621,6 @@ class DoctorController
             }
 
             include 'Views/doctor/print_ultrasound_form.php';
-
         } catch (Exception $e) {
             error_log('Error printing ultrasound form: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2675,7 +2635,7 @@ class DoctorController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $date = $_GET['date'] ?? date('Y-m-d');
-            
+
             $database = new Database();
             $pdo = $database->getConnection();
 
@@ -2714,7 +2674,6 @@ class DoctorController
                     'pending' => (int)$pending
                 ]
             ]);
-
         } catch (Exception $e) {
             error_log('Error getting ultrasound stats: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2730,7 +2689,7 @@ class DoctorController
         try {
             $date = $_GET['date'] ?? date('Y-m-d');
             $keyword = $_GET['name'] ?? '';
-            
+
             $database = new Database();
             $pdo = $database->getConnection();
 
@@ -2759,7 +2718,6 @@ class DoctorController
                 'success' => true,
                 'requests' => $requests
             ]);
-
         } catch (Exception $e) {
             error_log('Error getting ultrasound requests: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2774,14 +2732,14 @@ class DoctorController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $id = $_GET['id'] ?? '';
-            
+
             if (empty($id)) {
                 echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
                 return;
             }
 
             $result = $this->phieuYeuCauSieuAmModel->getById($id);
-            
+
             if ($result) {
                 echo json_encode([
                     'success' => true,
@@ -2790,7 +2748,6 @@ class DoctorController
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy kết quả siêu âm']);
             }
-
         } catch (Exception $e) {
             error_log('Error getting ultrasound result: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2807,7 +2764,7 @@ class DoctorController
             $id = $_POST['id'] ?? '';
             $ketQua = $_POST['ket_qua'] ?? '';
             $ketLuan = $_POST['ket_luan'] ?? '';
-            
+
             if (empty($id) || empty($ketQua) || empty($ketLuan)) {
                 echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin']);
                 return;
@@ -2822,7 +2779,7 @@ class DoctorController
                 SET ket_qua = ?, ket_luan = ?, trang_thai = 'Hoàn thành', ngay_cap_nhat = NOW()
                 WHERE id = ?
             ");
-            
+
             $result = $stmt->execute([$ketQua, $ketLuan, $id]);
 
             if ($result) {
@@ -2830,7 +2787,6 @@ class DoctorController
             } else {
                 echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu kết quả siêu âm']);
             }
-
         } catch (Exception $e) {
             error_log('Error saving ultrasound result: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2840,30 +2796,40 @@ class DoctorController
     /**
      * Lưu kết quả siêu âm với hình ảnh
      */
-    public function saveSieuAmResult() {
+    public function saveSieuAmResult()
+    {
         header('Content-Type: application/json; charset=utf-8');
-        
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             $phieuId = $_POST['phieu_id'] ?? null;
             $ketQuaKhaoSat = $_POST['ket_qua_khao_sat'] ?? '';
             $ketLuan = $_POST['ket_luan'] ?? '';
-            $bacSiSieuAm = $_SESSION['user_name'] ?? '';
-            
+            // Lấy tên bác sĩ từ database
+            $doctorId = $_SESSION['user_id'];
+            $doctor = $this->doctorModel->getById($doctorId);
+            $bacSiSieuAm = $doctor ? $doctor['ten'] : '';
+
             if (!$phieuId || empty($ketQuaKhaoSat) || empty($ketLuan)) {
                 echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc']);
                 return;
             }
-            
+
             // Kiểm tra xem đã có kết quả chưa
             $existingResult = $this->ketQuaSieuAmModel->getByPhieuYeuCauId($phieuId);
-            
+
             $ketQuaData = [
                 'id_phieu_yeu_cau_sieu_am' => $phieuId,
                 'ket_qua_khao_sat' => $ketQuaKhaoSat,
                 'ket_luan' => $ketLuan,
                 'bac_si_sieu_am' => $bacSiSieuAm
             ];
-            
+
             if ($existingResult) {
                 // Cập nhật kết quả hiện có
                 $result = $this->ketQuaSieuAmModel->update($existingResult['id'], $ketQuaData);
@@ -2875,17 +2841,16 @@ class DoctorController
                 $result = $ketQuaId !== false;
                 $message = 'Lưu kết quả siêu âm thành công';
             }
-            
+
             if ($result) {
                 echo json_encode([
-                    'success' => true, 
+                    'success' => true,
                     'message' => $message,
                     'ket_qua_id' => $ketQuaId
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Lỗi khi lưu kết quả siêu âm']);
             }
-
         } catch (Exception $e) {
             error_log('Error saving sieu am result: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2895,45 +2860,52 @@ class DoctorController
     /**
      * Upload hình ảnh siêu âm
      */
-    public function uploadSieuAmImages() {
+    public function uploadSieuAmImages()
+    {
         header('Content-Type: application/json; charset=utf-8');
-        
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             $ketQuaId = $_POST['ket_qua_id'] ?? null;
-            
+
             if (!$ketQuaId) {
                 echo json_encode(['success' => false, 'message' => 'Thiếu ID kết quả siêu âm']);
                 return;
             }
-            
+
             if (!isset($_FILES['images']) || empty($_FILES['images']['name'][0])) {
                 echo json_encode(['success' => false, 'message' => 'Không có file ảnh nào được chọn']);
                 return;
             }
-            
+
             $uploadDir = 'uploads/sieuam/' . $ketQuaId . '/';
             if (!file_exists($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
-            
+
             $uploadedFiles = [];
             $imageDataArray = [];
-            
+
             $files = $_FILES['images'];
             $fileCount = count($files['name']);
-            
+
             for ($i = 0; $i < $fileCount; $i++) {
                 if ($files['error'][$i] === UPLOAD_ERR_OK) {
                     $fileName = $files['name'][$i];
                     $fileTmp = $files['tmp_name'][$i];
                     $fileSize = $files['size'][$i];
                     $fileType = $files['type'][$i];
-                    
+
                     // Tạo tên file unique
                     $extension = pathinfo($fileName, PATHINFO_EXTENSION);
                     $uniqueFileName = uniqid() . '_' . time() . '.' . $extension;
                     $filePath = $uploadDir . $uniqueFileName;
-                    
+
                     if (move_uploaded_file($fileTmp, $filePath)) {
                         $imageDataArray[] = [
                             'ten_file' => $fileName,
@@ -2941,7 +2913,7 @@ class DoctorController
                             'kich_thuoc' => $fileSize,
                             'loai_file' => $fileType
                         ];
-                        
+
                         $uploadedFiles[] = [
                             'original_name' => $fileName,
                             'saved_path' => $filePath,
@@ -2950,13 +2922,13 @@ class DoctorController
                     }
                 }
             }
-            
+
             if (!empty($imageDataArray)) {
                 $savedIds = $this->sieuAmHinhAnhModel->saveMultiple($ketQuaId, $imageDataArray);
-                
+
                 if ($savedIds) {
                     echo json_encode([
-                        'success' => true, 
+                        'success' => true,
                         'message' => 'Upload ' . count($uploadedFiles) . ' ảnh thành công',
                         'uploaded_files' => $uploadedFiles,
                         'saved_ids' => $savedIds
@@ -2967,7 +2939,6 @@ class DoctorController
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không có ảnh nào được upload thành công']);
             }
-
         } catch (Exception $e) {
             error_log('Error uploading sieu am images: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -2977,28 +2948,34 @@ class DoctorController
     /**
      * Lấy hình ảnh siêu âm theo ID kết quả
      */
-    public function getSieuAmImages() {
+    public function getSieuAmImages()
+    {
         header('Content-Type: application/json; charset=utf-8');
-        
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             $ketQuaId = $_GET['ket_qua_id'] ?? $_GET['result_id'] ?? null;
-            
+
             if (!$ketQuaId) {
                 echo json_encode(['success' => false, 'message' => 'Thiếu ID kết quả siêu âm']);
                 return;
             }
-            
+
             $images = $this->sieuAmHinhAnhModel->getByKetQuaId($ketQuaId);
-            
+
             if ($images !== false) {
                 echo json_encode([
-                    'success' => true, 
+                    'success' => true,
                     'images' => $images
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Lỗi khi lấy danh sách ảnh']);
             }
-
         } catch (Exception $e) {
             error_log('Error getting sieu am images: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3008,32 +2985,38 @@ class DoctorController
     /**
      * Lấy kết quả siêu âm theo ID phiếu yêu cầu
      */
-    public function getSieuAmResult() {
+    public function getSieuAmResult()
+    {
         header('Content-Type: application/json; charset=utf-8');
-        
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             $phieuId = $_GET['phieu_id'] ?? null;
-            
+
             if (!$phieuId) {
                 echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu yêu cầu']);
                 return;
             }
-            
+
             $result = $this->ketQuaSieuAmModel->getByPhieuYeuCauId($phieuId);
-            
+
             if ($result) {
                 // Lấy thêm hình ảnh nếu có
                 $images = $this->sieuAmHinhAnhModel->getByKetQuaId($result['id']);
-                
+
                 echo json_encode([
-                    'success' => true, 
+                    'success' => true,
                     'result' => $result,
                     'images' => $images ?: []
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy kết quả siêu âm']);
             }
-
         } catch (Exception $e) {
             error_log('Error getting sieu am result: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3043,25 +3026,31 @@ class DoctorController
     /**
      * Xóa hình ảnh siêu âm
      */
-    public function deleteSieuAmImage() {
+    public function deleteSieuAmImage()
+    {
         header('Content-Type: application/json; charset=utf-8');
-        
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             $imageId = $_POST['image_id'] ?? null;
-            
+
             if (!$imageId) {
                 echo json_encode(['success' => false, 'message' => 'Thiếu ID hình ảnh']);
                 return;
             }
-            
+
             $result = $this->sieuAmHinhAnhModel->delete($imageId);
-            
+
             if ($result) {
                 echo json_encode(['success' => true, 'message' => 'Xóa ảnh thành công']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Lỗi khi xóa ảnh']);
             }
-
         } catch (Exception $e) {
             error_log('Error deleting sieu am image: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3071,21 +3060,21 @@ class DoctorController
     /**
      * Lấy lịch sử siêu âm
      */
-    public function getSieuamHistory() {
+    public function getSieuamHistory()
+    {
         header('Content-Type: application/json; charset=utf-8');
-        
+
         try {
             $date = $_GET['date'] ?? null;
             $requestId = $_GET['request_id'] ?? null;
             $patientCode = $_GET['patient_code'] ?? null;
-            
+
             $history = $this->getSieuamHistoryData($date, $requestId, $patientCode);
-            
+
             echo json_encode([
                 'success' => true,
                 'history' => $history
             ]);
-            
         } catch (Exception $e) {
             error_log('Error getting sieuam history: ' . $e->getMessage());
             echo json_encode([
@@ -3098,7 +3087,8 @@ class DoctorController
     /**
      * Lấy dữ liệu lịch sử siêu âm
      */
-    private function getSieuamHistoryData($date = null, $requestId = null, $patientCode = null) {
+    private function getSieuamHistoryData($date = null, $requestId = null, $patientCode = null)
+    {
         $sql = "SELECT kq.*, kq.bac_si_sieu_am, pysa.id as phieu_id, pysa.yeu_cau as yeu_cau_sieu_am, pysa.chan_doan,
                        pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.ten_bac_si,
                        bn.ma_benh_nhan
@@ -3107,51 +3097,52 @@ class DoctorController
                 JOIN phieu_kham_benh pk ON pysa.id_phieu_kham_benh = pk.id
                 JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                 WHERE pysa.trang_thai = 'Hoàn thành'";
-        
+
         $params = [];
-        
+
         if ($date) {
             $sql .= " AND DATE(kq.ngay_tao) = :date";
             $params[':date'] = $date;
         }
-        
+
         if ($requestId) {
             $sql .= " AND pysa.id = :request_id";
             $params[':request_id'] = $requestId;
         }
-        
+
         if ($patientCode) {
             $sql .= " AND bn.ma_benh_nhan LIKE :patient_code";
             $params[':patient_code'] = '%' . $patientCode . '%';
         }
-        
+
         $sql .= " ORDER BY kq.ngay_tao DESC";
-        
+
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
         }
         $stmt->execute();
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
      * Lấy thông tin kết quả siêu âm để xem
      */
-    public function getSieuamResultView() {
+    public function getSieuamResultView()
+    {
         header('Content-Type: application/json; charset=utf-8');
-        
+
         try {
             $resultId = $_GET['result_id'] ?? null;
-            
+
             if (!$resultId) {
                 echo json_encode(['success' => false, 'message' => 'Thiếu ID kết quả']);
                 return;
             }
-            
+
             $result = $this->ketQuaSieuAmModel->getById($resultId);
-            
+
             if ($result) {
                 echo json_encode([
                     'success' => true,
@@ -3160,7 +3151,6 @@ class DoctorController
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy kết quả siêu âm']);
             }
-            
         } catch (Exception $e) {
             error_log('Error getting sieuam result view: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3171,28 +3161,34 @@ class DoctorController
     /**
      * Hoàn thành phiếu siêu âm - cập nhật trạng thái thành "Hoàn thành"
      */
-    public function completeSieuAmResult() {
+    public function completeSieuAmResult()
+    {
         header('Content-Type: application/json; charset=utf-8');
-        
+
+        // Kiểm tra đăng nhập và quyền bác sĩ siêu âm
+        if ($_SESSION['user_role'] !== 'doctor' && $_SESSION['user_role'] !== 'sieuam_doctor') {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
         try {
             $phieuId = $_POST['phieu_id'] ?? null;
-            
+
             if (!$phieuId) {
                 echo json_encode(['success' => false, 'message' => 'Thiếu ID phiếu yêu cầu siêu âm']);
                 return;
             }
-            
+
             // Cập nhật trạng thái của phiếu yêu cầu siêu âm
             $sql = "UPDATE phieu_yeu_cau_sieu_am SET trang_thai = 'Hoàn thành' WHERE id = :phieu_id";
             $stmt = $this->db->prepare($sql);
             $stmt->bindParam(':phieu_id', $phieuId);
-            
+
             if ($stmt->execute()) {
                 echo json_encode(['success' => true, 'message' => 'Hoàn thành phiếu siêu âm thành công']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Lỗi khi cập nhật trạng thái phiếu']);
             }
-
         } catch (Exception $e) {
             error_log('Error completing sieu am result: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3207,7 +3203,7 @@ class DoctorController
         try {
             // Debug: Log all POST data
             error_log('saveLabForm POST data: ' . print_r($_POST, true));
-            
+
             // Prepare data for Model
             $data = [
                 'exam_id' => $_POST['exam_id'] ?? '',
@@ -3229,7 +3225,6 @@ class DoctorController
             // Use Model to handle business logic
             $result = $this->labTestModel->saveLabForm($data);
             echo json_encode($result);
-
         } catch (Exception $e) {
             error_log('Error saving lab form: ' . $e->getMessage());
             error_log('Error trace: ' . $e->getTraceAsString());
@@ -3248,7 +3243,6 @@ class DoctorController
             // Use Model to handle data retrieval
             $result = $this->labTestModel->getLabFormData($examId);
             echo json_encode($result);
-
         } catch (Exception $e) {
             error_log('Error getting lab form data: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3284,7 +3278,6 @@ class DoctorController
 
             // Tạo view để in
             include 'Views/doctor/print_lab_form.php';
-
         } catch (Exception $e) {
             error_log('Error printing lab form: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3315,7 +3308,6 @@ class DoctorController
             $suggestions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode(['success' => true, 'data' => $suggestions]);
-
         } catch (Exception $e) {
             error_log('Error getting lab suggestions: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3357,16 +3349,15 @@ class DoctorController
                 ");
                 $stmt2->execute([$result['id']]);
                 $testDetails = $stmt2->fetchAll(PDO::FETCH_ASSOC);
-                
+
                 echo json_encode([
-                    'success' => true, 
+                    'success' => true,
                     'result' => $result,
                     'testDetails' => $testDetails
                 ]);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Chưa có kết quả xét nghiệm']);
             }
-
         } catch (Exception $e) {
             error_log('Error getting lab result: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3382,7 +3373,7 @@ class DoctorController
         try {
             $date = $_GET['date'] ?? date('Y-m-d');
             $keyword = $_GET['name'] ?? '';
-            
+
             $database = new Database();
             $pdo = $database->getConnection();
 
@@ -3408,7 +3399,6 @@ class DoctorController
             $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode(['success' => true, 'requests' => $requests]);
-
         } catch (Exception $e) {
             error_log('Error getting xetnghiem requests: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3423,7 +3413,7 @@ class DoctorController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $id = $_GET['id'] ?? '';
-            
+
             if (empty($id)) {
                 echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
                 return;
@@ -3432,7 +3422,7 @@ class DoctorController
             // First try to get saved result
             $database = new Database();
             $pdo = $database->getConnection();
-            
+
             $stmt = $pdo->prepare("
                 SELECT pt.*, ct.*, pxn.chan_doan, pxn.yeu_cau
                 FROM phieu_tra_ket_qua_xet_nghiem pt
@@ -3443,18 +3433,18 @@ class DoctorController
             ");
             $stmt->execute([$id]);
             $savedResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             if (!empty($savedResults)) {
                 // Return saved result
                 $mainResult = $savedResults[0];
-                $testDetails = array_filter($savedResults, function($row) {
+                $testDetails = array_filter($savedResults, function ($row) {
                     return !empty($row['ten_xet_nghiem']) && !empty($row['stt']);
                 });
-                
+
                 // Debug log
                 error_log('Saved results count: ' . count($savedResults));
                 error_log('Test details count: ' . count($testDetails));
-                
+
                 echo json_encode([
                     'success' => true,
                     'result' => $mainResult,
@@ -3464,7 +3454,7 @@ class DoctorController
             } else {
                 // Fallback to original request data
                 $result = $this->labTestModel->getById($id);
-                
+
                 if ($result) {
                     echo json_encode([
                         'success' => true,
@@ -3475,7 +3465,6 @@ class DoctorController
                     echo json_encode(['success' => false, 'message' => 'Không tìm thấy kết quả xét nghiệm']);
                 }
             }
-
         } catch (Exception $e) {
             error_log('Error getting xetnghiem result: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3487,7 +3476,7 @@ class DoctorController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $id = $_GET['id'] ?? '';
-            
+
             if (empty($id)) {
                 echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
                 return;
@@ -3495,7 +3484,7 @@ class DoctorController
 
             // Get original request data for viewing
             $result = $this->labTestModel->getById($id);
-            
+
             if ($result) {
                 echo json_encode([
                     'success' => true,
@@ -3504,7 +3493,6 @@ class DoctorController
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy thông tin yêu cầu xét nghiệm']);
             }
-
         } catch (Exception $e) {
             error_log('Error getting xetnghiem detail: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3516,7 +3504,7 @@ class DoctorController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $keyword = $_GET['keyword'] ?? '';
-            
+
             if (empty($keyword)) {
                 echo json_encode(['success' => false, 'message' => 'Từ khóa không hợp lệ']);
                 return;
@@ -3532,7 +3520,7 @@ class DoctorController
                 ORDER BY xet_nghiem ASC 
                 LIMIT 10
             ";
-            
+
             $stmt = $pdo->prepare($sql);
             $stmt->execute(["%{$keyword}%"]);
             $suggestions = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -3541,7 +3529,6 @@ class DoctorController
                 'success' => true,
                 'suggestions' => $suggestions
             ]);
-
         } catch (Exception $e) {
             error_log('Error getting test suggestions: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3580,7 +3567,7 @@ class DoctorController
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy yêu cầu xét nghiệm']);
                 return;
             }
-            
+
             // Debug log request details
             error_log('Request Details: ' . json_encode($requestDetails));
 
@@ -3606,7 +3593,7 @@ class DoctorController
                         bac_si_xet_nghiem = ?, ngay_tra_ket_qua = ?, trang_thai = ?
                     WHERE id = ?
                 ");
-                
+
                 $stmt->execute([
                     $requestDetails['benh_nhan_id'] ?? 1,
                     $requestDetails['ma_benh_nhan'] ?? '',
@@ -3631,7 +3618,7 @@ class DoctorController
                      ngay_dang_ky, ngay_tra_ket_qua, trang_thai)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
-                
+
                 $stmt->execute([
                     $requestId,
                     $requestDetails['benh_nhan_id'] ?? 1,
@@ -3714,7 +3701,6 @@ class DoctorController
 
             $pdo->commit();
             echo json_encode(['success' => true, 'message' => 'Lưu kết quả thành công']);
-
         } catch (Exception $e) {
             if (isset($pdo)) {
                 $pdo->rollBack();
@@ -3728,7 +3714,7 @@ class DoctorController
     {
         try {
             $id = $_GET['id'] ?? '';
-            
+
             if (empty($id)) {
                 echo "ID không hợp lệ";
                 return;
@@ -3756,13 +3742,12 @@ class DoctorController
 
             // Group results
             $mainResult = $results[0];
-            $testDetails = array_filter($results, function($row) {
+            $testDetails = array_filter($results, function ($row) {
                 return !empty($row['ten_xet_nghiem']);
             });
 
             // Include print view
             include 'Views/doctor/print_xetnghiem_result.php';
-
         } catch (Exception $e) {
             error_log('Error printing xetnghiem result: ' . $e->getMessage());
             echo "Lỗi hệ thống";
@@ -3777,7 +3762,7 @@ class DoctorController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $requestId = $_POST['request_id'] ?? '';
-            
+
             if (empty($requestId)) {
                 echo json_encode(['success' => false, 'message' => 'ID yêu cầu không hợp lệ']);
                 return;
@@ -3793,15 +3778,14 @@ class DoctorController
                     ngay_cap_nhat = NOW()
                 WHERE id = ?
             ");
-            
+
             $result = $stmt->execute([$requestId]);
-            
+
             if ($result) {
                 echo json_encode(['success' => true, 'message' => 'Hoàn thành yêu cầu xét nghiệm thành công']);
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không thể cập nhật trạng thái']);
             }
-
         } catch (Exception $e) {
             error_log('Error completing xetnghiem request: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3857,7 +3841,6 @@ class DoctorController
                 'success' => true,
                 'history' => $history
             ]);
-
         } catch (Exception $e) {
             error_log('Error getting xetnghiem history: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3872,10 +3855,10 @@ class DoctorController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $date = $_GET['date'] ?? date('Y-m-d');
-            
+
             $database = new Database();
             $pdo = $database->getConnection();
-            
+
             // Tổng số phiếu yêu cầu xét nghiệm hôm nay
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as total_today
@@ -3884,7 +3867,7 @@ class DoctorController
             ");
             $stmt->execute([$date]);
             $today = $stmt->fetch(PDO::FETCH_ASSOC)['total_today'];
-            
+
             // Số phiếu đã hoàn thành hôm nay
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as completed
@@ -3893,7 +3876,7 @@ class DoctorController
             ");
             $stmt->execute([$date]);
             $completed = $stmt->fetch(PDO::FETCH_ASSOC)['completed'];
-            
+
             // Số phiếu đang chờ xử lý hôm nay
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as pending
@@ -3902,7 +3885,7 @@ class DoctorController
             ");
             $stmt->execute([$date]);
             $pending = $stmt->fetch(PDO::FETCH_ASSOC)['pending'];
-            
+
             echo json_encode([
                 'success' => true,
                 'stats' => [
@@ -3911,7 +3894,6 @@ class DoctorController
                     'pending' => (int)$pending
                 ]
             ]);
-            
         } catch (Exception $e) {
             error_log('Error getting lab dashboard stats: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -3926,7 +3908,7 @@ class DoctorController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $id = $_GET['id'] ?? '';
-            
+
             if (empty($id)) {
                 echo json_encode(['success' => false, 'message' => 'ID không hợp lệ']);
                 return;
@@ -3959,7 +3941,7 @@ class DoctorController
                 ");
                 $stmt2->execute([$id]);
                 $testDetails = $stmt2->fetchAll(PDO::FETCH_ASSOC);
-                
+
                 echo json_encode([
                     'success' => true,
                     'detail' => $detail,
@@ -3968,7 +3950,6 @@ class DoctorController
             } else {
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy chi tiết']);
             }
-
         } catch (Exception $e) {
             error_log('Error getting xetnghiem history detail: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -4014,9 +3995,9 @@ class DoctorController
 
         try {
             $keyword = $_GET['keyword'] ?? '';
-            
+
             error_log("Search medications called with keyword: " . $keyword); // Debug log
-            
+
             if (empty($keyword)) {
                 echo json_encode([
                     'success' => false,
@@ -4030,22 +4011,21 @@ class DoctorController
                     WHERE TenThuoc LIKE ? AND TrangThai = 1 
                     ORDER BY TenThuoc 
                     LIMIT 10";
-            
+
             error_log("SQL query: " . $sql); // Debug log
-            
+
             $stmt = $this->db->prepare($sql);
             $searchTerm = '%' . $keyword . '%';
             $stmt->execute([$searchTerm]);
-            
+
             $medications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             error_log("Found " . count($medications) . " medications"); // Debug log
-            
+
             echo json_encode([
                 'success' => true,
                 'medications' => $medications
             ]);
-            
         } catch (Exception $e) {
             error_log("Search medications error: " . $e->getMessage());
             echo json_encode([
@@ -4063,9 +4043,9 @@ class DoctorController
     {
         try {
             $keyword = $_GET['keyword'] ?? '';
-            
+
             error_log("Search medications public called with keyword: " . $keyword); // Debug log
-            
+
             if (empty($keyword)) {
                 echo json_encode([
                     'success' => false,
@@ -4079,22 +4059,21 @@ class DoctorController
                     WHERE TenThuoc LIKE ? AND TrangThai = 1 
                     ORDER BY TenThuoc 
                     LIMIT 10";
-            
+
             error_log("SQL query: " . $sql); // Debug log
-            
+
             $stmt = $this->db->prepare($sql);
             $searchTerm = '%' . $keyword . '%';
             $stmt->execute([$searchTerm]);
-            
+
             $medications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             error_log("Found " . count($medications) . " medications"); // Debug log
-            
+
             echo json_encode([
                 'success' => true,
                 'medications' => $medications
             ]);
-            
         } catch (Exception $e) {
             error_log("Search medications public error: " . $e->getMessage());
             echo json_encode([
@@ -4104,5 +4083,4 @@ class DoctorController
         }
         exit();
     }
-
 }

@@ -34,6 +34,7 @@
                         </div>
                     <?php endif; ?>
                     <form method="POST" action="./login_reception">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                         <div class="mb-3">
                             <label class="form-label">Số điện thoại</label>
                             <input type="tel" name="phone" class="form-control" placeholder="Số điện thoại" required>
