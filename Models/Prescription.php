@@ -5,7 +5,7 @@ class Prescription {
     private $db;
     
     public function __construct() {
-        $this->db = Database::getInstance();
+        $this->db = (new Database())->getConnection();
     }
     
     /**
@@ -29,18 +29,67 @@ class Prescription {
         
         return $result ? $data['MaDonThuoc'] : false;
     }
+
+    /**
+     * Cập nhật đơn thuốc hiện có theo MaDonThuoc
+     */
+    public function updatePrescription($data) {
+        $sql = "UPDATE don_thuoc 
+                SET MaBenhNhan = ?, MaBacSi = ?, id_phieu_kham_benh = ?, NgayKe = ?, ChanDoan = ?, GhiChu = ?, TrangThai = ?, NgayTao = NgayTao
+                WHERE MaDonThuoc = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([
+            $data['MaBenhNhan'],
+            $data['MaBacSi'],
+            $data['id_phieu_kham_benh'],
+            $data['NgayKe'],
+            $data['ChanDoan'],
+            $data['GhiChu'],
+            $data['TrangThai'],
+            $data['MaDonThuoc']
+        ]);
+    }
+
+    /**
+     * Xóa tất cả chi tiết theo MaDonThuoc
+     */
+    public function deleteMedicationDetails($maDonThuoc) {
+        $sql = "DELETE FROM chi_tiet_don_thuoc WHERE MaDonThuoc = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$maDonThuoc]);
+    }
+
+    /**
+     * Giảm tồn kho theo mã thuốc
+     */
+    public function reduceStock(string $maThuoc, int $quantity): bool {
+        $sql = "UPDATE thuoc SET SoLuongTon = GREATEST(SoLuongTon - ?, 0) WHERE MaThuoc = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$quantity, $maThuoc]);
+    }
+
+    /**
+     * Tăng tồn kho (phục hồi) theo mã thuốc
+     */
+    public function increaseStock(string $maThuoc, int $quantity): bool {
+        $sql = "UPDATE thuoc SET SoLuongTon = SoLuongTon + ? WHERE MaThuoc = ?";
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute([$quantity, $maThuoc]);
+    }
     
     /**
      * Lưu chi tiết thuốc trong đơn
      */
     public function saveMedicationDetail($data) {
-        $sql = "INSERT INTO chi_tiet_don_thuoc (MaDonThuoc, MaThuoc, SoLuong, DonViTinh, LieuDung, GhiChu) 
-                VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO chi_tiet_don_thuoc (MaDonThuoc, MaThuoc, TenThuoc, HoatChat, SoLuong, DonViTinh, LieuDung, GhiChu) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $data['MaDonThuoc'],
             $data['MaThuoc'],
+            $data['TenThuoc'] ?? null,
+            $data['HoatChat'] ?? null,
             $data['SoLuong'],
             $data['DonViTinh'],
             $data['LieuDung'],

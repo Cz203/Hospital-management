@@ -27,10 +27,7 @@ class PrescriptionManager {
             this.savePrescription();
         });
         
-        // Print prescription button
-        document.getElementById('print-prescription-btn')?.addEventListener('click', () => {
-            this.printPrescription();
-        });
+        // Print functionality removed
         
         // Clear prescription button
         document.getElementById('clear-prescription-btn')?.addEventListener('click', () => {
@@ -43,6 +40,8 @@ class PrescriptionManager {
         this.generatePrescriptionCode();
         this.setCurrentDateTime();
         this.setupDefaultMedicationRow();
+        // Try load saved prescription
+        this.tryLoadSavedPrescription();
     }
     
     setupDefaultMedicationRow() {
@@ -52,6 +51,24 @@ class PrescriptionManager {
             // Add event listeners giống như trong addMedicationRow
             const nameInput = defaultRow.querySelector('.medication-name-input');
             const suggestionDropdown = defaultRow.querySelector('.medication-suggestion-dropdown');
+            
+            // Add quantity validation for default row
+            const quantityInput = defaultRow.querySelector('.medication-quantity');
+            if (quantityInput) {
+                // Remove existing listeners first to avoid duplicates
+                quantityInput.removeEventListener('input', validateQuantity);
+                quantityInput.removeEventListener('blur', validateQuantity);
+                
+                quantityInput.addEventListener('input', function() {
+                    console.log('Default row input event triggered for quantity:', this.value);
+                    validateQuantity(this);
+                });
+                
+                quantityInput.addEventListener('blur', function() {
+                    console.log('Default row blur event triggered for quantity:', this.value);
+                    validateQuantity(this);
+                });
+            }
             
             if (nameInput && suggestionDropdown) {
                 // Handle input events
@@ -133,6 +150,59 @@ class PrescriptionManager {
                     }
                 });
             }
+        }
+    }
+
+    async tryLoadSavedPrescription() {
+        try {
+            const examId = document.getElementById('prescription_examination_id')?.value || document.getElementById('examinationAppointmentId')?.value || '';
+            if (!examId) return;
+            const resp = await fetch(`./?action=get_prescription_by_exam&exam_id=${encodeURIComponent(examId)}`);
+            const data = await resp.json();
+            if (!data.success || !data.prescription) return;
+            const p = data.prescription;
+            // Fill header fields
+            document.getElementById('ma_don_thuoc') && (document.getElementById('ma_don_thuoc').value = p.MaDonThuoc || '');
+            document.getElementById('prescription-code-display-value') && (document.getElementById('prescription-code-display-value').textContent = p.MaDonThuoc || '');
+            document.getElementById('prescription_patient_name') && (document.getElementById('prescription_patient_name').value = p.ten_benh_nhan || document.getElementById('prescription_patient_name').value);
+            document.getElementById('diagnosis_description') && (document.getElementById('diagnosis_description').value = p.ChanDoan || '');
+            // Fill instructions (Lời dặn) from GhiChu
+            document.getElementById('prescription_instructions') && (document.getElementById('prescription_instructions').value = p.GhiChu || '');
+            // Clear current medication rows
+            const tbody = document.getElementById('medication-tbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                // Render medications
+                (p.medications || []).forEach((m, idx) => {
+                    const row = document.createElement('tr');
+                    row.className = 'medication-row';
+                    row.setAttribute('data-ma-thuoc', m.MaThuoc || '');
+                    row.innerHTML = `
+                        <td class="text-center"><span>${idx + 1}</span></td>
+                        <td class="text-center" style="position: relative;">
+                            <input type="text" class="form-control form-control-sm medication-name-input" value="${m.TenThuoc || ''}" autocomplete="off" />
+                            <div class="medication-suggestion-dropdown" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; width: 100%;"></div>
+                        </td>
+                        <td class="text-center">
+                            <input type="text" class="form-control form-control-sm medication-ingredient" value="${m.HoatChatChinh || m.HoatChat || ''}" readonly>
+                        </td>
+                        <td class="text-center">
+                            <input type="text" class="form-control form-control-sm medication-unit" value="${m.DonViTinh || m.DonViTinhThuoc || ''}" readonly>
+                        </td>
+                        <td class="text-center">
+                            <input type="number" class="form-control form-control-sm medication-quantity" value="${m.SoLuong || 1}" min="1">
+                        </td>
+                        <td class="text-center">
+                            <input type="text" class="form-control form-control-sm medication-usage" value="${m.LieuDung || m.LieuDungThuoc || ''}">
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMedicationRow(this)"><i class="fas fa-minus"></i></button>
+                        </td>`;
+                    tbody.appendChild(row);
+                });
+            }
+        } catch (e) {
+            console.error('Error loading saved prescription:', e);
         }
     }
 
@@ -443,9 +513,16 @@ class PrescriptionManager {
     }
 
     collectPrescriptionData() {
+        const maBenhNhan = document.getElementById('prescription_ma_benh_nhan')?.value || '';
+        // Resolve doctor id if available in a hidden input populated server-side
+        const maBacSi = document.getElementById('current_doctor_id')?.value || '';
+        const appointmentId = document.getElementById('examinationAppointmentId')?.value || '';
+        const phieuKhamId = document.getElementById('prescription_examination_id')?.value || '';
         return {
             ma_don_thuoc: document.getElementById('ma_don_thuoc')?.value || '',
             ho_ten_benh_nhan: document.getElementById('prescription_patient_name')?.value || '',
+            ma_benh_nhan: maBenhNhan,
+            ma_bac_si: maBacSi,
             ma_bhyt: document.getElementById('prescription_bhyt')?.value || '',
             ma_dinh_danh: document.getElementById('prescription_citizen_id')?.value || '',
             ngay_sinh: document.getElementById('prescription_dob')?.value || '',
@@ -465,6 +542,7 @@ class PrescriptionManager {
             ten_nguoi_dua: document.getElementById('prescription_guardian')?.value || '',
             ngay_ky: document.getElementById('prescription_date')?.value || '',
             ten_bac_si: document.getElementById('prescription_doctor')?.value || '',
+            id_phieu_kham_benh: phieuKhamId || appointmentId,
             medications: this.collectMedicationData()
         };
     }
@@ -475,9 +553,11 @@ class PrescriptionManager {
         
         medicationRows.forEach(row => {
             const medication = {
+                ma_thuoc: row.getAttribute('data-ma-thuoc') || '',
                 stt: row.querySelector('td:first-child span')?.textContent || '',
                 ten_thuoc: row.querySelector('.medication-name-input')?.value || '',
                 hoạt_chất: row.querySelector('.medication-ingredient')?.value || '',
+                hoat_chat: row.querySelector('.medication-ingredient')?.value || '',
                 don_vi_tinh: row.querySelector('.medication-unit')?.value || '',
                 so_luong: row.querySelector('.medication-quantity')?.value || '1',
                 cach_dung: row.querySelector('.medication-usage')?.value || ''
@@ -522,6 +602,8 @@ class PrescriptionManager {
             if (data.success) {
                 alert('Lưu đơn thuốc thành công!');
                 this.prescriptionData = prescriptionData;
+                // Reload just-saved prescription back into the form so it persists when reopening
+                await this.tryLoadSavedPrescription();
             } else {
                 alert('Lỗi khi lưu đơn thuốc: ' + (data.message || 'Không xác định'));
             }
@@ -547,33 +629,7 @@ class PrescriptionManager {
         }
     }
 
-    printPrescription() {
-        // Create a new window for printing
-        const printWindow = window.open('', '_blank');
-        const prescriptionContent = document.getElementById('sec-prescription').innerHTML;
-        
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>Đơn thuốc</title>
-                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-                    <style>
-                        body { font-family: Arial, sans-serif; }
-                        .btn { display: none !important; }
-                        .table { border-collapse: collapse; }
-                        .table th, .table td { border: 1px solid #000; padding: 0.25rem; }
-                        .medication-row input, .medication-row select { border: none; background: transparent; }
-                    </style>
-                </head>
-                <body>
-                    ${prescriptionContent}
-                </body>
-            </html>
-        `);
-        
-        printWindow.document.close();
-        printWindow.print();
-    }
+    // print functionality removed
 
     clearPrescription() {
         if (confirm('Bạn có chắc muốn xóa đơn thuốc?')) {
@@ -652,14 +708,17 @@ function loadMedicationSuggestions(keyword, dropdown, row) {
             if (data.success && data.medications && data.medications.length > 0) {
                 dropdown.innerHTML = data.medications.map(medication => `
                     <div class="suggestion-item" 
+                         data-ma-thuoc="${medication.MaThuoc}"
                          data-ten-thuoc="${medication.TenThuoc}" 
                          data-hoat-chat="${medication.HoatChatChinh || ""}" 
                          data-don-vi="${medication.DonViTinh || ""}" 
-                         data-lieu-dung="${medication.LieuDung || ""}">
+                         data-lieu-dung="${medication.LieuDung || ""}"
+                         data-so-luong-ton="${medication.SoLuongTon || 0}">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <strong class="text-primary">${medication.TenThuoc}</strong>
                                 ${medication.HoatChatChinh ? `<br><small class="text-muted">${medication.HoatChatChinh} - ${medication.DonViTinh}</small>` : ""}
+                                <br><small class="text-info">Tồn kho: ${medication.SoLuongTon || 0}</small>
                             </div>
                             <i class="fas fa-arrow-right text-muted"></i>
                         </div>
@@ -737,10 +796,13 @@ function loadMedicationSuggestions(keyword, dropdown, row) {
                         e.stopPropagation();
                         
                         
+                        const maThuoc = this.getAttribute('data-ma-thuoc');
                         const tenThuoc = this.getAttribute('data-ten-thuoc');
                         const hoatChat = this.getAttribute('data-hoat-chat');
                         const donVi = this.getAttribute('data-don-vi');
                         const lieuDung = this.getAttribute('data-lieu-dung');
+                        const soLuongTon = this.getAttribute('data-so-luong-ton');
+                        console.log('Retrieved soLuongTon from suggestion:', soLuongTon, 'type:', typeof soLuongTon);
                         
                         
                         // Fill the form
@@ -749,6 +811,9 @@ function loadMedicationSuggestions(keyword, dropdown, row) {
                         const unitInput = row.querySelector('.medication-unit');
                         const usageInput = row.querySelector('.medication-usage');
                         
+                        // store ma_thuoc at row level for saving
+                        row.setAttribute('data-ma-thuoc', maThuoc || '');
+
                         if (nameInput) {
                             nameInput.value = tenThuoc;
                             nameInput.focus(); // Keep focus on input
@@ -756,6 +821,30 @@ function loadMedicationSuggestions(keyword, dropdown, row) {
                         if (ingredientInput) ingredientInput.value = hoatChat;
                         if (unitInput) unitInput.value = donVi;
                         if (usageInput) usageInput.value = lieuDung;
+                        
+                        // Store stock quantity for validation
+                        const quantityInput = row.querySelector('.medication-quantity');
+                        if (quantityInput) {
+                            console.log('Setting stock quantity:', soLuongTon, 'type:', typeof soLuongTon);
+                            quantityInput.setAttribute('data-stock-quantity', soLuongTon);
+                            quantityInput.setAttribute('max', soLuongTon);
+                            console.log('After setting - data-stock-quantity:', quantityInput.getAttribute('data-stock-quantity'));
+                            
+                            // Remove existing listeners first to avoid duplicates
+                            quantityInput.removeEventListener('input', validateQuantity);
+                            quantityInput.removeEventListener('blur', validateQuantity);
+                            
+                            // Add validation event listener
+                            quantityInput.addEventListener('input', function() {
+                                console.log('Input event triggered for quantity:', this.value);
+                                validateQuantity(this);
+                            });
+                            
+                            quantityInput.addEventListener('blur', function() {
+                                console.log('Blur event triggered for quantity:', this.value);
+                                validateQuantity(this);
+                            });
+                        }
                         
                         // Hide dropdown completely
                         dropdown.style.display = 'none';
@@ -791,6 +880,80 @@ function selectMedication(selectElement) {
 
 function removeMedicationRow(button) {
     window.prescriptionManager.removeMedicationRow(button);
+}
+
+// Function to validate quantity input
+function validateQuantity(input) {
+    const enteredQuantity = parseInt(input.value) || 0;
+    const stockQuantity = parseInt(input.getAttribute('data-stock-quantity')) || 0;
+    
+    // Debug log
+    console.log('Validation:', {
+        enteredQuantity: enteredQuantity,
+        stockQuantity: stockQuantity,
+        inputValue: input.value,
+        dataStock: input.getAttribute('data-stock-quantity')
+    });
+    
+    // Log individual values for easier debugging
+    console.log('enteredQuantity:', enteredQuantity, 'type:', typeof enteredQuantity);
+    console.log('stockQuantity:', stockQuantity, 'type:', typeof stockQuantity);
+    console.log('data-stock-quantity attribute:', input.getAttribute('data-stock-quantity'));
+    
+    // Remove existing error styling
+    input.classList.remove('is-invalid');
+    input.classList.remove('border-danger');
+    
+    // Remove existing error message
+    const existingError = input.parentNode.querySelector('.invalid-feedback');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Check if medication name is filled (indicating medication was selected)
+    const medicationNameInput = input.closest('tr').querySelector('.medication-name-input');
+    const medicationName = medicationNameInput ? medicationNameInput.value.trim() : '';
+    
+    console.log('Validation conditions:', {
+        stockQuantity: stockQuantity,
+        enteredQuantity: enteredQuantity,
+        medicationName: medicationName,
+        stockQuantity_gt_0: stockQuantity > 0,
+        enteredQuantity_gt_0: enteredQuantity > 0,
+        hasMedicationName: !!medicationName,
+        entered_gt_stock: enteredQuantity > stockQuantity,
+        allConditions: stockQuantity > 0 && enteredQuantity > 0 && medicationName && enteredQuantity > stockQuantity
+    });
+    
+    // Log each condition separately
+    console.log('Condition 1 - stockQuantity > 0:', stockQuantity > 0, '(stockQuantity:', stockQuantity, ')');
+    console.log('Condition 2 - enteredQuantity > 0:', enteredQuantity > 0, '(enteredQuantity:', enteredQuantity, ')');
+    console.log('Condition 3 - medicationName exists:', !!medicationName, '(medicationName:', medicationName, ')');
+    console.log('Condition 4 - enteredQuantity > stockQuantity:', enteredQuantity > stockQuantity, '(entered:', enteredQuantity, '> stock:', stockQuantity, ')');
+    console.log('All conditions met:', stockQuantity > 0 && enteredQuantity > 0 && medicationName && enteredQuantity > stockQuantity);
+    
+    // If no stock quantity data, keep as 0 so validation only works with DB-provided stock
+    // User must pick a medication from suggestions to get real SoLuongTon from database
+    
+    // Only validate if we have stock quantity data and entered quantity > 0
+    if (stockQuantity > 0 && enteredQuantity > 0 && medicationName && enteredQuantity > stockQuantity) {
+        // Add error styling
+        input.classList.add('is-invalid');
+        input.classList.add('border-danger');
+        
+        // Add error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'invalid-feedback';
+        errorDiv.textContent = `Số lượng tồn kho không đủ! Chỉ còn ${stockQuantity} trong kho.`;
+        input.parentNode.appendChild(errorDiv);
+        
+        // Focus on input
+        input.focus();
+        
+        return false;
+    }
+    
+    return true;
 }
 
 // Initialize when DOM is loaded

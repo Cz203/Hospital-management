@@ -8,6 +8,7 @@ require_once 'Controllers/AuthController.php';
 require_once 'Controllers/DoctorController.php';
 require_once 'Controllers/AdminController.php';
 require_once 'Controllers/AppointmentController.php';
+require_once 'Controllers/PrescriptionController.php';
 require_once 'Controllers/PatientController.php';
 require_once 'Controllers/ReceptionController.php';
 // Khởi tạo Controllers
@@ -15,6 +16,7 @@ $auth = new AuthController();
 $doctorController = new DoctorController();
 $adminController = new AdminController();
 $appointmentController = new AppointmentController();
+$prescriptionController = new PrescriptionController();
 $patientController = new PatientController();
 $receptionController = new ReceptionController();
 
@@ -573,6 +575,21 @@ switch ($action) {
             $controller = new DoctorController();
             $controller->searchMedicationsPublic();
             break;
+
+        case 'get_prescription_by_exam':
+            header('Content-Type: application/json');
+            $prescriptionController->getPrescriptionByExamId();
+            exit();
+
+        
+
+    case 'save_prescription':
+        header('Content-Type: application/json');
+        // Nhận JSON từ client
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $result = $prescriptionController->savePrescription($input);
+        echo json_encode($result);
+        exit();
 
     case 'reception_complete_patient':
         $receptionController->completePatientProfile(); // Bổ sung thông tin còn thiếu (AJAX)

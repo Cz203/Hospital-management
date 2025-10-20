@@ -25,33 +25,158 @@ class PrescriptionController {
                 ];
             }
             
+            // Resolve doctor id from session if not provided
+            $doctorIdFromSession = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+            if (empty($data['ma_bac_si']) && $doctorIdFromSession) {
+                $data['ma_bac_si'] = $doctorIdFromSession;
+            }
+
+            // Resolve MaBenhNhan: accept either numeric id or patient code, map code -> id
+            if (!empty($data['ma_benh_nhan'])) {
+                $maBn = trim($data['ma_benh_nhan']);
+                if (!ctype_digit((string)$maBn)) {
+                    // Look up by patient code
+                    require_once 'config/database.php';
+                    $pdo = (new Database())->getConnection();
+                    $stmt = $pdo->prepare("SELECT id FROM benh_nhan WHERE ma_benh_nhan = ? LIMIT 1");
+                    $stmt->execute([$maBn]);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($row && isset($row['id'])) {
+                        $data['ma_benh_nhan'] = (int)$row['id'];
+                    } else {
+                        return [
+                            'success' => false,
+                            'message' => 'Không tìm thấy bệnh nhân với mã: ' . $maBn
+                        ];
+                    }
+                } else {
+                    // numeric id is ok
+                    $data['ma_benh_nhan'] = (int)$maBn;
+                }
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'Thiếu MaBenhNhan'
+                ];
+            }
+            if (empty($data['ma_bac_si'])) {
+                return [
+                    'success' => false,
+                    'message' => 'Thiếu MaBacSi'
+                ];
+            }
+
+            // Validate MaBacSi exists in bac_si table; if not, try to resolve from exam/appointment id
+            require_once 'config/database.php';
+            $pdoCheck = (new Database())->getConnection();
+            $stmtDoc = $pdoCheck->prepare("SELECT id FROM bac_si WHERE id = ? LIMIT 1");
+            $stmtDoc->execute([(int)$data['ma_bac_si']]);
+            $docRow = $stmtDoc->fetch(PDO::FETCH_ASSOC);
+            if (!$docRow) {
+                // Try resolve via phieu_kham_benh
+                $resolvedDoctorId = null;
+                if (!empty($data['id_phieu_kham_benh'])) {
+                    // Try phieu_kham_benh
+                    try {
+                        $stmtPKB = $pdoCheck->prepare("SELECT bac_si_id FROM phieu_kham_benh WHERE id = ? LIMIT 1");
+                        $stmtPKB->execute([(int)$data['id_phieu_kham_benh']]);
+                        $rowPKB = $stmtPKB->fetch(PDO::FETCH_ASSOC);
+                        if ($rowPKB && !empty($rowPKB['bac_si_id'])) {
+                            $resolvedDoctorId = (int)$rowPKB['bac_si_id'];
+                        }
+                    } catch (Exception $e) { /* ignore */ }
+                    
+                    // If not found in PKB, try lich_hen
+                    if (!$resolvedDoctorId) {
+                        try {
+                            $stmtLH = $pdoCheck->prepare("SELECT bac_si_id FROM lich_hen WHERE id = ? LIMIT 1");
+                            $stmtLH->execute([(int)$data['id_phieu_kham_benh']]);
+                            $rowLH = $stmtLH->fetch(PDO::FETCH_ASSOC);
+                            if ($rowLH && !empty($rowLH['bac_si_id'])) {
+                                $resolvedDoctorId = (int)$rowLH['bac_si_id'];
+                            }
+                        } catch (Exception $e) { /* ignore */ }
+                    }
+                }
+                
+                if ($resolvedDoctorId) {
+                    // Validate resolved id exists
+                    $stmtDoc2 = $pdoCheck->prepare("SELECT id FROM bac_si WHERE id = ? LIMIT 1");
+                    $stmtDoc2->execute([$resolvedDoctorId]);
+                    if ($stmtDoc2->fetch(PDO::FETCH_ASSOC)) {
+                        $data['ma_bac_si'] = $resolvedDoctorId;
+                    } else {
+                        return [
+                            'success' => false,
+                            'message' => 'MaBacSi không hợp lệ (không tồn tại trong bảng bac_si)'
+                        ];
+                    }
+                } else {
+                    return [
+                        'success' => false,
+                        'message' => 'MaBacSi không hợp lệ (không tồn tại trong bảng bac_si)'
+                    ];
+                }
+            }
+
             // Start transaction
             $this->prescriptionModel->beginTransaction();
             
-            // Save prescription
-            $prescriptionId = $this->prescriptionModel->savePrescription([
-                'MaDonThuoc' => $data['ma_don_thuoc'],
-                'MaBenhNhan' => $data['ma_benh_nhan'] ?? null,
-                'MaBacSi' => $data['ma_bac_si'] ?? null,
-                'id_phieu_kham_benh' => $data['id_phieu_kham_benh'] ?? null,
-                'NgayKe' => $data['ngay_ke'] ?? date('Y-m-d'),
-                'ChanDoan' => $data['chan_doan'] ?? '',
-                'GhiChu' => $data['ghi_chu'] ?? '',
-                'TrangThai' => 'Chưa lấy thuốc'
-            ]);
+            // Upsert prescription: if MaDonThuoc exists -> update, else insert
+            $pdo = (new Database())->getConnection();
+            $stmtExists = $pdo->prepare("SELECT 1 FROM don_thuoc WHERE MaDonThuoc = ? LIMIT 1");
+            $stmtExists->execute([$data['ma_don_thuoc']]);
+            $exists = (bool)$stmtExists->fetchColumn();
+
+            if ($exists) {
+                $this->prescriptionModel->updatePrescription([
+                    'MaDonThuoc' => $data['ma_don_thuoc'],
+                    'MaBenhNhan' => $data['ma_benh_nhan'] ?? null,
+                    'MaBacSi' => $data['ma_bac_si'] ?? null,
+                    'id_phieu_kham_benh' => $data['id_phieu_kham_benh'] ?? null,
+                    'NgayKe' => $data['ngay_ke'] ?? date('Y-m-d'),
+                    'ChanDoan' => $data['chan_doan'] ?? '',
+                    'GhiChu' => ($data['loi_dan'] ?? ($data['ghi_chu'] ?? '')),
+                    'TrangThai' => 'Chưa lấy thuốc'
+                ]);
+                $prescriptionId = $data['ma_don_thuoc'];
+                // Replace medication details: first restore stock from old details, then delete
+                $oldDetails = $this->prescriptionModel->getMedicationDetails($data['ma_don_thuoc']);
+                foreach ($oldDetails as $od) {
+                    if (!empty($od['MaThuoc']) && !empty($od['SoLuong'])) {
+                        $this->prescriptionModel->increaseStock($od['MaThuoc'], (int)$od['SoLuong']);
+                    }
+                }
+                $this->prescriptionModel->deleteMedicationDetails($data['ma_don_thuoc']);
+            } else {
+                $prescriptionId = $this->prescriptionModel->savePrescription([
+                    'MaDonThuoc' => $data['ma_don_thuoc'],
+                    'MaBenhNhan' => $data['ma_benh_nhan'] ?? null,
+                    'MaBacSi' => $data['ma_bac_si'] ?? null,
+                    'id_phieu_kham_benh' => $data['id_phieu_kham_benh'] ?? null,
+                    'NgayKe' => $data['ngay_ke'] ?? date('Y-m-d'),
+                    'ChanDoan' => $data['chan_doan'] ?? '',
+                    'GhiChu' => ($data['loi_dan'] ?? ($data['ghi_chu'] ?? '')),
+                    'TrangThai' => 'Chưa lấy thuốc'
+                ]);
+            }
             
-            // Save medication details
+            // Save medication details and reduce stock
             if (!empty($data['medications'])) {
                 foreach ($data['medications'] as $medication) {
                     if (!empty($medication['ma_thuoc'])) {
                         $this->prescriptionModel->saveMedicationDetail([
                             'MaDonThuoc' => $data['ma_don_thuoc'],
                             'MaThuoc' => $medication['ma_thuoc'],
+                            'TenThuoc' => $medication['ten_thuoc'] ?? null,
+                            'HoatChat' => ($medication['hoat_chất'] ?? ($medication['hoat_chat'] ?? null)),
                             'SoLuong' => $medication['so_luong'] ?? 1,
                             'DonViTinh' => $medication['don_vi_tinh'] ?? '',
                             'LieuDung' => $medication['cach_dung'] ?? '',
                             'GhiChu' => $medication['ghi_chu'] ?? ''
                         ]);
+                        // Reduce stock
+                        $this->prescriptionModel->reduceStock($medication['ma_thuoc'], (int)($medication['so_luong'] ?? 1));
                     }
                 }
             }
@@ -106,6 +231,46 @@ class PrescriptionController {
             ];
         }
     }
+
+    /**
+     * Lấy đơn thuốc theo id_phieu_kham_benh (đơn mới nhất)
+     */
+    public function getPrescriptionByExamId() {
+        try {
+            $examId = $_GET['exam_id'] ?? '';
+            if (empty($examId)) {
+                echo json_encode(['success' => false, 'message' => 'Thiếu exam_id']);
+                exit();
+            }
+
+            // Lấy đơn thuốc mới nhất theo id_phieu_kham_benh
+            $sql = "SELECT * FROM don_thuoc WHERE id_phieu_kham_benh = ? ORDER BY NgayTao DESC LIMIT 1";
+            $pdo = (new Database())->getConnection();
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([(int)$examId]);
+            $prescription = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$prescription) {
+                echo json_encode(['success' => true, 'prescription' => null]);
+                exit();
+            }
+
+            // Lấy chi tiết thuốc
+            $medications = $this->prescriptionModel->getMedicationDetails($prescription['MaDonThuoc']);
+            $prescription['medications'] = $medications;
+
+            echo json_encode(['success' => true, 'prescription' => $prescription]);
+            exit();
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
+            exit();
+        }
+    }
+
+    /**
+     * Trang in đơn thuốc (giống pattern in siêu âm): ?action=print_prescription&code=MaDonThuoc
+     */
+    // print page functionality removed
     
     /**
      * Cập nhật trạng thái đơn thuốc

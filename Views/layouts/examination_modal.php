@@ -51,7 +51,11 @@
 
                     <div class="col-md-9">
                         <form id="examinationForm">
-                            <input type="hidden" id="examinationAppointmentId" name="appointment_id">
+                <input type="hidden" id="examinationAppointmentId" name="appointment_id">
+                <input type="hidden" id="prescription_examination_id" name="prescription_examination_id">
+                <?php if (isset($_SESSION['user_id'])): ?>
+                <input type="hidden" id="current_doctor_id" value="<?php echo htmlspecialchars($_SESSION['user_id']); ?>">
+                <?php endif; ?>
                             <input type="hidden" id="historyPatientId" name="history_patient_id">
 
                             <!-- Basic patient info to avoid null bindings -->
@@ -1369,13 +1373,13 @@
                                         <div class="col-md-6">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Họ tên:</label>
-                                                <input type="text" class="form-control" name="ho_ten" value="thinh" readonly>
+                                                <input type="text" class="form-control" id="prescription_patient_name" name="ho_ten" readonly>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Ngày sinh:</label>
-                                                <input type="text" class="form-control" name="ngay_sinh" value="03/22/2003" readonly>
+                                                <input type="text" class="form-control" id="prescription_dob" name="ngay_sinh" readonly>
                                             </div>
                                         </div>
                                     </div>
@@ -1510,20 +1514,6 @@
                                         </div>
                                     </div>
 
-                                    <!-- Action Buttons -->
-                                    <div class="row mt-4">
-                                        <div class="col-12 text-end">
-                                            <button type="button" class="btn btn-success me-2" id="save-prescription-btn">
-                                                <i class="fas fa-save me-1"></i>Lưu đơn thuốc
-                                            </button>
-                                            <button type="button" class="btn btn-primary me-2" id="print-prescription-btn">
-                                                <i class="fas fa-print me-1"></i>In đơn thuốc
-                                            </button>
-                                            <button type="button" class="btn btn-secondary" id="clear-prescription-btn">
-                                                <i class="fas fa-trash me-1"></i>Xóa đơn
-                                            </button>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
@@ -1598,6 +1588,13 @@
                     onclick="printLabForm()">
                     <i class="fas fa-print me-1"></i>In phiếu xét nghiệm
                 </button>
+                <button type="button" class="btn btn-success" id="save-prescription-btn" style="display:none">
+                    <i class="fas fa-save me-1"></i>Lưu đơn thuốc
+                </button>
+                <button type="button" class="btn btn-primary" id="print-prescription-btn" style="display:none">
+                    <i class="fas fa-print me-1"></i>In đơn thuốc
+                </button>
+                
             </div>
         </div>
     </div>
@@ -1656,6 +1653,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize prescription form when tab is clicked
     document.querySelector('a[href="#sec-prescription"]').addEventListener('click', function() {
         initializePrescriptionForm();
+        
+        // Hide all other buttons
+        document.querySelectorAll('#btnSaveExamForm, #btnPrintExamForm, #btnSaveExam, #saveXrayForm, #printXrayForm, #saveUltrasoundForm, #printUltrasoundForm, #saveLabForm, #printLabForm').forEach(btn => {
+            btn.style.display = 'none';
+        });
+        
+        // Show prescription buttons
+        document.getElementById('save-prescription-btn').style.display = 'inline-block';
+        document.getElementById('print-prescription-btn').style.display = 'inline-block';
+    });
+    
+    // Hide prescription buttons when other tabs are clicked
+    document.querySelectorAll('a[href^="#sec-"]:not([href="#sec-prescription"])').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Hide prescription buttons
+            document.getElementById('save-prescription-btn').style.display = 'none';
+            document.getElementById('print-prescription-btn').style.display = 'none';
+        });
     });
     
     // Add medication button - đã được xử lý trong prescription.js
@@ -1667,16 +1682,18 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('print-prescription-btn').addEventListener('click', printPrescription);
     
     // Clear prescription button
-    document.getElementById('clear-prescription-btn').addEventListener('click', clearPrescription);
 });
 
 function initializePrescriptionForm() {
-    // Auto-fill patient information from examination form
-    const patientName = document.getElementById('patientName')?.value || '';
-    const patientPhone = document.getElementById('patientPhone')?.value || '';
-    const patientDob = document.getElementById('patientAge')?.value || '';
-    const patientGender = document.querySelector('input[name="gioi_tinh"]:checked')?.value || '';
-    const patientAddress = document.querySelector('[name="dia_chi"]')?.value || '';
+    // Prefer data attributes from selected appointment; fallback to form fields
+    const appointmentId = document.getElementById('examinationAppointmentId')?.value;
+    const appointmentItem = appointmentId ? document.querySelector(`[data-appointment-id="${appointmentId}"]`) : null;
+    
+    const patientName = (appointmentItem?.getAttribute('data-patient-name')) || document.getElementById('patientName')?.value || '';
+    const patientPhone = (appointmentItem?.getAttribute('data-phone')) || document.getElementById('patientPhone')?.value || '';
+    const patientDob = (appointmentItem?.getAttribute('data-dob')) || document.getElementById('patientAge')?.value || '';
+    const patientGender = (appointmentItem?.getAttribute('data-gender')) || document.querySelector('input[name="gioi_tinh"]:checked')?.value || '';
+    const patientAddress = (appointmentItem?.getAttribute('data-address')) || document.querySelector('[name="dia_chi"]')?.value || '';
     
     // Fill prescription form
     if (document.getElementById('prescription_patient_name')) {
@@ -1695,10 +1712,17 @@ function initializePrescriptionForm() {
         document.getElementById('prescription_address').value = patientAddress;
     }
     
+    // Determine phieu_kham_benh id from existing hidden ids in other tabs, fallback to appointment
+    const examIdFromUltrasound = document.getElementById('ultrasound_examination_id')?.value || '';
+    const examIdFromLab = document.getElementById('lab_examination_id')?.value || '';
+    const examIdFromXray = document.getElementById('xray_examination_id')?.value || '';
+    const resolvedExamId = examIdFromUltrasound || examIdFromLab || examIdFromXray || '';
+    if (document.getElementById('prescription_examination_id')) {
+        document.getElementById('prescription_examination_id').value = resolvedExamId;
+    }
+
     // Fill patient code and BHYT from appointment data (if available)
-    const appointmentId = document.getElementById('examinationAppointmentId')?.value;
     if (appointmentId) {
-        const appointmentItem = document.querySelector(`[data-appointment-id="${appointmentId}"]`);
         if (appointmentItem) {
             const patientCode = appointmentItem.getAttribute("data-ma-benh-nhan") || appointmentItem.getAttribute("data-patient-code") || "";
             if (document.getElementById('prescription_ma_benh_nhan')) {
@@ -1933,20 +1957,4 @@ function printPrescription() {
     window.print();
 }
 
-function clearPrescription() {
-    if (confirm('Bạn có chắc muốn xóa đơn thuốc?')) {
-        // Clear all form fields
-        document.getElementById('sec-prescription').querySelectorAll('input, textarea, select').forEach(field => {
-            if (field.type !== 'hidden') {
-                field.value = '';
-            }
-        });
-        
-        // Clear medication table
-        document.getElementById('medication-tbody').innerHTML = '';
-        
-        // Reset prescription code
-        generatePrescriptionCode();
-    }
-}
 </script>

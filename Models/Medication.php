@@ -5,7 +5,7 @@ class Medication {
     private $db;
     
     public function __construct() {
-        $this->db = Database::getInstance();
+        $this->db = (new Database())->getConnection();
     }
     
     

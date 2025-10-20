@@ -4025,7 +4025,7 @@ class DoctorController
                 exit();
             }
 
-            $sql = "SELECT MaThuoc, TenThuoc, HoatChatChinh, DonViTinh, LieuDung 
+            $sql = "SELECT MaThuoc, TenThuoc, HoatChatChinh, DonViTinh, LieuDung, SoLuongTon 
                     FROM thuoc 
                     WHERE TenThuoc LIKE ? AND TrangThai = 1 
                     ORDER BY TenThuoc 
@@ -4074,7 +4074,7 @@ class DoctorController
                 exit();
             }
 
-            $sql = "SELECT MaThuoc, TenThuoc, HoatChatChinh, DonViTinh, LieuDung 
+            $sql = "SELECT MaThuoc, TenThuoc, HoatChatChinh, DonViTinh, LieuDung, SoLuongTon 
                     FROM thuoc 
                     WHERE TenThuoc LIKE ? AND TrangThai = 1 
                     ORDER BY TenThuoc 
