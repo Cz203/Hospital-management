@@ -26,141 +26,158 @@ function renderLayout($content, $page_title = 'Hệ thống Quản lý Bệnh vi
     // Replace content placeholder
     $layout_content = str_replace('<?php echo $content ?? \'\'; ?>', $content, $layout_content);
 
-    // Output the final layout
-    echo $layout_content;
+// Output the final layout
+echo $layout_content;
 }
 
 // Get current user context (id, role, name, email) from controller helper if available
 function getCurrentUserContext()
 {
-    if (session_status() == PHP_SESSION_NONE) {
-        session_start();
-    }
-    $defaults = ['id' => null, 'role' => '', 'name' => '', 'email' => ''];
-    try {
-        require_once 'Controllers/AuthController.php';
-        if (class_exists('AuthController')) {
-            $a = new AuthController();
-            if (method_exists($a, 'resolveCurrentUserContext')) {
-                $ctx = $a->resolveCurrentUserContext();
-                if (is_array($ctx) && !empty($ctx)) return array_merge($defaults, $ctx);
-            }
-        }
-    } catch (Exception $e) {
-    }
-    // Fallback minimal (legacy): only user_id if present; do not read name/email/role from session
-    return [
-        'id' => $_SESSION['user_id'] ?? null,
-        'role' => '',
-        'name' => '',
-        'email' => '',
-    ];
+if (session_status() == PHP_SESSION_NONE) {
+session_start();
+}
+$defaults = ['id' => null, 'role' => '', 'name' => '', 'email' => ''];
+try {
+require_once 'Controllers/AuthController.php';
+if (class_exists('AuthController')) {
+$a = new AuthController();
+if (method_exists($a, 'resolveCurrentUserContext')) {
+$ctx = $a->resolveCurrentUserContext();
+if (is_array($ctx) && !empty($ctx)) return array_merge($defaults, $ctx);
+}
+}
+} catch (Exception $e) {
+}
+// Fallback minimal (legacy): only user_id if present; do not read name/email/role from session
+return [
+'id' => $_SESSION['user_id'] ?? null,
+'role' => '',
+'name' => '',
+'email' => '',
+];
 }
 
 /**
- * Render chỉ sidebar cho từng role
- * @param string $role Role của user (admin, doctor, patient)
- */
+* Render chỉ sidebar cho từng role
+* @param string $role Role của user (admin, doctor, patient)
+*/
 function renderSidebar($role)
 {
-    switch ($role) {
-        case 'admin':
-            include 'Views/layouts/admin_sidebar.php';
-            break;
-        case 'doctor':
-        case 'xray_doctor':
-            include 'Views/layouts/doctor_sidebar.php';
-            break;
-        case 'patient':
-            include 'Views/layouts/patient_sidebar.php';
-            break;
-        case 'letan':
-            include 'Views/layouts/reception_sidebar.php';
-            break;
-        default:
-            echo '<div class="alert alert-danger">Role không hợp lệ!</div>';
-    }
+
+switch ($role) {
+case 'admin':
+include 'Views/layouts/admin_sidebar.php';
+break;
+case 'doctor':
+case 'xray_doctor':
+include 'Views/layouts/doctor_sidebar.php';
+break;
+case 'sieuam_doctor':
+include 'Views/layouts/sieuam_sidebar.php';
+break;
+case 'xetnghiem_doctor':
+include 'Views/layouts/xetnghiem_sidebar.php';
+break;
+case 'patient':
+include 'Views/layouts/patient_sidebar.php';
+break;
+case 'letan':
+include 'Views/layouts/reception_sidebar.php';
+break;
+default:
+echo '<div class="alert alert-danger">Role không hợp lệ!</div>';
+}
 }
 
 /**
- * Render chỉ header
- */
+* Render chỉ header
+*/
 function renderHeader()
 {
-    include 'Views/layouts/header.php';
+include 'Views/layouts/header.php';
 }
 
 /**
- * Render chỉ footer
- */
+* Render chỉ footer
+*/
 function renderFooter()
 {
-    include 'Views/layouts/footer.php';
+include 'Views/layouts/footer.php';
 }
 
 /**
- * Kiểm tra và set active menu item
- * @param string $current_page Trang hiện tại
- * @param string $menu_item Menu item cần check
- * @return string CSS class
- */
+* Kiểm tra và set active menu item
+* @param string $current_page Trang hiện tại
+* @param string $menu_item Menu item cần check
+* @return string CSS class
+*/
 function isActiveMenu($current_page, $menu_item)
 {
-    return ($current_page === $menu_item) ? 'active' : '';
+return ($current_page === $menu_item) ? 'active' : '';
 }
 
 /**
- * Kiểm tra URL hiện tại có chứa pattern không
- * @param string $pattern Pattern cần tìm
- * @return string CSS class
- */
+* Kiểm tra URL hiện tại có chứa pattern không
+* @param string $pattern Pattern cần tìm
+* @return string CSS class
+*/
 function isActiveUrl($pattern)
 {
-    $current_url = $_SERVER['REQUEST_URI'] ?? '';
-    return (strpos($current_url, $pattern) !== false) ? 'active' : '';
+$current_url = $_SERVER['REQUEST_URI'] ?? '';
+return (strpos($current_url, $pattern) !== false) ? 'active' : '';
 }
 
 /**
- * Lấy role text từ role code
- * @param string $role Role code
- * @return string Role text
- */
+* Lấy role text từ role code
+* @param string $role Role code
+* @return string Role text
+*/
 function getRoleText($role)
 {
-    switch ($role) {
-        case 'admin':
-            return 'Quản trị viên';
-        case 'doctor':
-            return 'Bác sĩ';
-        case 'xray_doctor':
-            return 'Bác sĩ X-Quang';
-        case 'patient':
-            return 'Bệnh nhân';
-        case 'letan':
-            return 'Lễ tân';
-        default:
-            return 'Không xác định';
-    }
+
+switch ($role) {
+case 'admin':
+return 'Quản trị viên';
+case 'doctor':
+return 'Bác sĩ';
+case 'xray_doctor':
+return 'Bác sĩ X-Quang';
+case 'sieuam_doctor':
+return 'Bác sĩ Siêu âm';
+case 'xetnghiem_doctor':
+return 'Bác sĩ Xét nghiệm';
+case 'patient':
+return 'Bệnh nhân';
+case 'letan':
+return 'Lễ tân';
+default:
+return 'Không xác định';
+}
 }
 
 /**
- * Lấy role badge class
- * @param string $role Role code
- * @return string CSS class
- */
+* Lấy role badge class
+* @param string $role Role code
+* @return string CSS class
+*/
 function getRoleBadgeClass($role)
 {
-    switch ($role) {
-        case 'admin':
-            return 'role-admin';
-        case 'doctor':
-        case 'xray_doctor':
-            return 'role-doctor';
-        case 'patient':
-            return 'role-patient';
-        case 'letan':
-            return 'role-letan';
-        default:
-            return '';
-    }
+
+switch ($role) {
+case 'admin':
+return 'role-admin';
+case 'doctor':
+case 'xray_doctor':
+return 'role-doctor';
+case 'sieuam_doctor':
+return 'role-sieuam';
+case 'xetnghiem_doctor':
+return 'role-xetnghiem';
+case 'patient':
+return 'role-patient';
+case 'letan':
+return 'role-letan';
+default:
+return '';
+}
 }

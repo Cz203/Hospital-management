@@ -8,6 +8,7 @@ require_once 'Controllers/AuthController.php';
 require_once 'Controllers/DoctorController.php';
 require_once 'Controllers/AdminController.php';
 require_once 'Controllers/AppointmentController.php';
+require_once 'Controllers/PrescriptionController.php';
 require_once 'Controllers/PatientController.php';
 require_once 'Controllers/ReceptionController.php';
 // Khởi tạo Controllers
@@ -15,11 +16,13 @@ $auth = new AuthController();
 $doctorController = new DoctorController();
 $adminController = new AdminController();
 $appointmentController = new AppointmentController();
+$prescriptionController = new PrescriptionController();
 $patientController = new PatientController();
 $receptionController = new ReceptionController();
 
 // Lấy action từ URL - hỗ trợ cả URL đẹp và URL cũ
 $action = $_GET['action'] ?? 'home';
+
 
 // Nếu không có action trong GET, thử lấy từ REQUEST_URI
 
@@ -44,6 +47,9 @@ switch ($action) {
         break;
     case 'login_xquang':
         $auth->loginXrayDoctor(); // Đăng nhập bác sĩ X-Quang (chuyên khoa 16)
+        break;
+    case 'login_xetnghiem':
+        $auth->loginXetnghiem(); // Đăng nhập bác sĩ Xét nghiệm (chuyên khoa 17)
         break;
 
     case 'login_sieuam':
@@ -155,6 +161,10 @@ switch ($action) {
     case 'xray_dashboard':
         $auth->requireAuth('xray_doctor');
         include 'Views/doctor/xray_dashboard.php'; // Dashboard riêng cho bác sĩ X-Quang
+        break;
+    case 'xetnghiem_dashboard':
+        $auth->requireAuth('xetnghiem_doctor');
+        include 'Views/doctor/xetnghiem_dashboard.php'; // Dashboard riêng cho bác sĩ Xét nghiệm
         break;
 
     case 'sieuam_dashboard':
@@ -433,12 +443,65 @@ switch ($action) {
         $doctorController->completeSieuAmResult(); // Hoàn thành phiếu siêu âm
         break;
 
+    // ===== LAB ROUTES =====
+    case 'get_lab_suggestions':
+        $doctorController->getLabSuggestions(); // Gợi ý xét nghiệm
+        break;
+    case 'save_lab_form':
+        $doctorController->saveLabForm(); // Lưu phiếu yêu cầu xét nghiệm
+        break;
+    case 'get_lab_form_data':
+        $doctorController->getLabFormData(); // Lấy dữ liệu phiếu yêu cầu xét nghiệm
+        break;
+    case 'print_lab_form':
+        $doctorController->printLabForm(); // In phiếu yêu cầu xét nghiệm
+        break;
+    case 'get_lab_result_by_exam':
+        $doctorController->getLabResultByExam(); // Lấy kết quả xét nghiệm theo phiếu khám
+        break;
+    case 'get_xetnghiem_requests':
+        $doctorController->getXetnghiemRequests(); // Lấy danh sách yêu cầu xét nghiệm
+        break;
+    case 'get_lab_dashboard_stats':
+        $doctorController->getLabDashboardStats(); // Lấy thống kê dashboard xét nghiệm
+        break;
+                case 'get_xetnghiem_result':
+                    $doctorController->getXetnghiemResult(); // Lấy kết quả xét nghiệm
+                    break;
+                case 'get_xetnghiem_detail':
+                    $doctorController->getXetnghiemDetail(); // Lấy chi tiết yêu cầu xét nghiệm
+                    break;
+                case 'get_test_suggestions':
+                    $doctorController->getTestSuggestions(); // Lấy gợi ý xét nghiệm
+                    break;
+                case 'save_xetnghiem_result':
+                    $doctorController->saveXetnghiemResult(); // Lưu kết quả xét nghiệm
+                    break;
+                case 'print_xetnghiem_result':
+                    $doctorController->printXetnghiemResult(); // In kết quả xét nghiệm
+                    break;
+                case 'complete_xetnghiem_request':
+                    $doctorController->completeXetnghiemRequest(); // Hoàn thành yêu cầu xét nghiệm
+                    break;
+
     case 'sieuam_history':
         include 'Views/doctor/sieuam_history.php'; // Lịch sử siêu âm
         break;
 
+    case 'xetnghiem_history':
+        include 'Views/doctor/xetnghiem_history.php'; // Lịch sử xét nghiệm
+        break;
+
     case 'get_sieuam_history':
         $doctorController->getSieuamHistory(); // Lấy dữ liệu lịch sử siêu âm
+        break;
+
+    case 'get_xetnghiem_history':
+        $doctorController->getXetnghiemHistory(); // Lấy dữ liệu lịch sử xét nghiệm
+        break;
+
+    case 'get_xetnghiem_history_detail':
+        $doctorController->getXetnghiemHistoryDetail(); // Lấy chi tiết lịch sử xét nghiệm
         break;
 
     case 'get_sieuam_result_view':
@@ -498,6 +561,35 @@ switch ($action) {
     case 'reception_get_doctor_schedules':
         $receptionController->getDoctorSchedules(); // API lấy lịch làm việc (lễ tân)
         break;
+
+        case 'get_doctor_info':
+            $doctorController->getDoctorInfo(); // Lấy thông tin bác sĩ hiện tại
+            break;
+        case 'search_medications':
+            $doctorController->searchMedications(); // Tìm kiếm thuốc
+            break;
+            
+        case 'search_medications_public':
+            // API công khai không cần authentication
+            require_once 'Controllers/DoctorController.php';
+            $controller = new DoctorController();
+            $controller->searchMedicationsPublic();
+            break;
+
+        case 'get_prescription_by_exam':
+            header('Content-Type: application/json');
+            $prescriptionController->getPrescriptionByExamId();
+            exit();
+
+        
+
+    case 'save_prescription':
+        header('Content-Type: application/json');
+        // Nhận JSON từ client
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $result = $prescriptionController->savePrescription($input);
+        echo json_encode($result);
+        exit();
 
     case 'reception_complete_patient':
         $receptionController->completePatientProfile(); // Bổ sung thông tin còn thiếu (AJAX)

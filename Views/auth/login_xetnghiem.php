@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập Bác sĩ Siêu âm</title>
+    <title>Đăng nhập Bác sĩ Xét nghiệm</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./assets/css/login.css">
@@ -13,32 +13,27 @@
 <body>
     <div class="login-card">
         <div class="login-header">
-            <i class="fas fa-stethoscope fa-3x mb-3"></i>
-            <h3>Đăng nhập Bác sĩ Siêu âm</h3>
-            <p class="mb-0">Chuyên khoa: Siêu âm</p>
+            <i class="fas fa-flask fa-3x mb-3"></i>
+            <h3>Đăng nhập Bác sĩ Xét nghiệm</h3>
+            <p class="mb-0">Chuyên khoa: Xét nghiệm</p>
         </div>
 
         <div class="login-body">
             <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <?php echo $_SESSION['error']; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                <?php unset($_SESSION['error']); ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <?php echo $_SESSION['error']; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
-            <form method="POST" action="./login_sieuam">
-                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+            <form method="POST" action="./login_xetnghiem">
                 <div class="mb-3">
                     <label for="phone" class="form-label">
                         <i class="fas fa-phone"></i> Số điện thoại
                     </label>
-<<<<<<< HEAD
-                    <input type="tel" class="form-control" id="phone" name="phone" required>
-=======
                     <input type="tel" class="form-control" id="phone" name="phone" placeholder="Nhập số điện thoại" required>
->>>>>>> origin/Thinh
                 </div>
 
                 <div class="mb-3">
