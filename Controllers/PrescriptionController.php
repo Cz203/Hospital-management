@@ -2,20 +2,23 @@
 require_once 'Models/Prescription.php';
 require_once 'Models/Medication.php';
 
-class PrescriptionController {
+class PrescriptionController
+{
     private $prescriptionModel;
     private $medicationModel;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->prescriptionModel = new Prescription();
         $this->medicationModel = new Medication();
     }
-    
-    
+
+
     /**
      * Lưu đơn thuốc mới
      */
-    public function savePrescription($data) {
+    public function savePrescription($data)
+    {
         try {
             // Validate required fields
             if (empty($data['ma_don_thuoc']) || empty($data['ho_ten_benh_nhan'])) {
@@ -24,7 +27,7 @@ class PrescriptionController {
                     'message' => 'Thiếu thông tin bắt buộc'
                 ];
             }
-            
+
             // Resolve doctor id from session if not provided
             $doctorIdFromSession = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
             if (empty($data['ma_bac_si']) && $doctorIdFromSession) {
@@ -84,8 +87,9 @@ class PrescriptionController {
                         if ($rowPKB && !empty($rowPKB['bac_si_id'])) {
                             $resolvedDoctorId = (int)$rowPKB['bac_si_id'];
                         }
-                    } catch (Exception $e) { /* ignore */ }
-                    
+                    } catch (Exception $e) { /* ignore */
+                    }
+
                     // If not found in PKB, try lich_hen
                     if (!$resolvedDoctorId) {
                         try {
@@ -95,10 +99,11 @@ class PrescriptionController {
                             if ($rowLH && !empty($rowLH['bac_si_id'])) {
                                 $resolvedDoctorId = (int)$rowLH['bac_si_id'];
                             }
-                        } catch (Exception $e) { /* ignore */ }
+                        } catch (Exception $e) { /* ignore */
+                        }
                     }
                 }
-                
+
                 if ($resolvedDoctorId) {
                     // Validate resolved id exists
                     $stmtDoc2 = $pdoCheck->prepare("SELECT id FROM bac_si WHERE id = ? LIMIT 1");
@@ -121,7 +126,7 @@ class PrescriptionController {
 
             // Start transaction
             $this->prescriptionModel->beginTransaction();
-            
+
             // Upsert prescription: if MaDonThuoc exists -> update, else insert
             $pdo = (new Database())->getConnection();
             $stmtExists = $pdo->prepare("SELECT 1 FROM don_thuoc WHERE MaDonThuoc = ? LIMIT 1");
@@ -160,9 +165,48 @@ class PrescriptionController {
                     'TrangThai' => 'Chưa lấy thuốc'
                 ]);
             }
-            
-            // Save medication details and reduce stock
+
+            // Check stock availability before saving medication details
             if (!empty($data['medications'])) {
+                // First, check if all medications have sufficient stock
+                foreach ($data['medications'] as $medication) {
+                    if (!empty($medication['ma_thuoc'])) {
+                        $maThuoc = $medication['ma_thuoc'];
+                        $soLuongCan = (int)($medication['so_luong'] ?? 1);
+
+                        // Check current stock
+                        $stmtStock = $pdo->prepare("SELECT SoLuongTon FROM thuoc WHERE MaThuoc = ? LIMIT 1");
+                        $stmtStock->execute([$maThuoc]);
+                        $stockRow = $stmtStock->fetch(PDO::FETCH_ASSOC);
+
+                        if (!$stockRow) {
+                            return [
+                                'success' => false,
+                                'message' => 'Không tìm thấy thuốc với mã: ' . $maThuoc
+                            ];
+                        }
+
+                        $soLuongTon = (int)$stockRow['SoLuongTon'];
+
+                        // Chặn nếu tồn kho = 0
+                        if ($soLuongTon <= 0) {
+                            return [
+                                'success' => false,
+                                'message' => "Thuốc mã {$maThuoc} đã hết hàng (tồn kho: {$soLuongTon})"
+                            ];
+                        }
+
+                        // Chặn nếu không đủ tồn kho
+                        if ($soLuongTon < $soLuongCan) {
+                            return [
+                                'success' => false,
+                                'message' => "Thuốc mã {$maThuoc} không đủ số lượng tồn kho. Cần: {$soLuongCan}, Có: {$soLuongTon}"
+                            ];
+                        }
+                    }
+                }
+
+                // If all stock checks pass, save medication details and reduce stock
                 foreach ($data['medications'] as $medication) {
                     if (!empty($medication['ma_thuoc'])) {
                         $this->prescriptionModel->saveMedicationDetail([
@@ -180,50 +224,49 @@ class PrescriptionController {
                     }
                 }
             }
-            
+
             // Commit transaction
             $this->prescriptionModel->commit();
-            
+
             return [
                 'success' => true,
                 'message' => 'Lưu đơn thuốc thành công',
                 'prescription_id' => $prescriptionId
             ];
-            
         } catch (Exception $e) {
             // Rollback transaction
             $this->prescriptionModel->rollback();
-            
+
             return [
                 'success' => false,
                 'message' => 'Lỗi khi lưu đơn thuốc: ' . $e->getMessage()
             ];
         }
     }
-    
+
     /**
      * Lấy thông tin đơn thuốc theo ID
      */
-    public function getPrescription($prescriptionId) {
+    public function getPrescription($prescriptionId)
+    {
         try {
             $prescription = $this->prescriptionModel->getPrescriptionById($prescriptionId);
-            
+
             if (!$prescription) {
                 return [
                     'success' => false,
                     'message' => 'Không tìm thấy đơn thuốc'
                 ];
             }
-            
+
             // Get medication details
             $medications = $this->prescriptionModel->getMedicationDetails($prescriptionId);
             $prescription['medications'] = $medications;
-            
+
             return [
                 'success' => true,
                 'prescription' => $prescription
             ];
-            
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -235,7 +278,8 @@ class PrescriptionController {
     /**
      * Lấy đơn thuốc theo id_phieu_kham_benh (đơn mới nhất)
      */
-    public function getPrescriptionByExamId() {
+    public function getPrescriptionByExamId()
+    {
         try {
             $examId = $_GET['exam_id'] ?? '';
             if (empty($examId)) {
@@ -271,14 +315,15 @@ class PrescriptionController {
      * Trang in đơn thuốc (giống pattern in siêu âm): ?action=print_prescription&code=MaDonThuoc
      */
     // print page functionality removed
-    
+
     /**
      * Cập nhật trạng thái đơn thuốc
      */
-    public function updatePrescriptionStatus($prescriptionId, $status) {
+    public function updatePrescriptionStatus($prescriptionId, $status)
+    {
         try {
             $result = $this->prescriptionModel->updateStatus($prescriptionId, $status);
-            
+
             if ($result) {
                 return [
                     'success' => true,
@@ -290,7 +335,6 @@ class PrescriptionController {
                     'message' => 'Không thể cập nhật trạng thái'
                 ];
             }
-            
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -298,19 +342,19 @@ class PrescriptionController {
             ];
         }
     }
-    
+
     /**
      * Lấy lịch sử đơn thuốc của bệnh nhân
      */
-    public function getPatientPrescriptionHistory($patientId) {
+    public function getPatientPrescriptionHistory($patientId)
+    {
         try {
             $prescriptions = $this->prescriptionModel->getPatientPrescriptions($patientId);
-            
+
             return [
                 'success' => true,
                 'prescriptions' => $prescriptions
             ];
-            
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -318,19 +362,19 @@ class PrescriptionController {
             ];
         }
     }
-    
+
     /**
      * Tìm kiếm thuốc theo tên hoặc mã
      */
-    public function searchMedications($keyword) {
+    public function searchMedications($keyword)
+    {
         try {
             $medications = $this->medicationModel->searchMedications($keyword);
-            
+
             return [
                 'success' => true,
                 'medications' => $medications
             ];
-            
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -338,14 +382,15 @@ class PrescriptionController {
             ];
         }
     }
-    
+
     /**
      * Xóa đơn thuốc
      */
-    public function deletePrescription($prescriptionId) {
+    public function deletePrescription($prescriptionId)
+    {
         try {
             $result = $this->prescriptionModel->deletePrescription($prescriptionId);
-            
+
             if ($result) {
                 return [
                     'success' => true,
@@ -357,7 +402,6 @@ class PrescriptionController {
                     'message' => 'Không thể xóa đơn thuốc'
                 ];
             }
-            
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -365,24 +409,24 @@ class PrescriptionController {
             ];
         }
     }
-    
+
     /**
      * In đơn thuốc
      */
-    public function printPrescription($prescriptionId) {
+    public function printPrescription($prescriptionId)
+    {
         try {
             $prescription = $this->getPrescription($prescriptionId);
-            
+
             if (!$prescription['success']) {
                 return $prescription;
             }
-            
+
             // Generate PDF or return HTML for printing
             return [
                 'success' => true,
                 'prescription' => $prescription['prescription']
             ];
-            
         } catch (Exception $e) {
             return [
                 'success' => false,
@@ -391,4 +435,3 @@ class PrescriptionController {
         }
     }
 }
-?>
