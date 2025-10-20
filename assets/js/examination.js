@@ -67,6 +67,12 @@ var savedXrayFormId = null;
         if (saveUltrasoundBtn) saveUltrasoundBtn.style.display = (id === '#sec-ultrasound') ? 'inline-block' : 'none';
         if (printUltrasoundBtn) printUltrasoundBtn.style.display = (id === '#sec-ultrasound') ? 'inline-block' : 'none';
         
+        // Hiện/ẩn nút Xét nghiệm chỉ ở tab "Xét nghiệm"
+        var saveLabBtn = document.getElementById('saveLabForm');
+        var printLabBtn = document.getElementById('printLabForm');
+        if (saveLabBtn) saveLabBtn.style.display = (id === '#sec-lab') ? 'inline-block' : 'none';
+        if (printLabBtn) printLabBtn.style.display = (id === '#sec-lab') ? 'inline-block' : 'none';
+        
         // Khi chuyển sang tab X-Quang, tự đổ dữ liệu bệnh nhân và mặc định
         if (id === '#sec-xray') {
           prefillXRaySection();
@@ -96,6 +102,32 @@ var savedXrayFormId = null;
           setTimeout(function() {
             initUltrasoundSuggestions();
           }, 200);
+        }
+        
+        // Khi chuyển sang tab Xét nghiệm, tự đổ dữ liệu bệnh nhân và mặc định
+        if (id === '#sec-lab') {
+          prefillLabSection();
+          
+          // Load dữ liệu Xét nghiệm đã lưu (nếu có) - chỉ khi có examination ID
+          var examId = getCurrentExaminationId();
+          if (examId) {
+            loadLabFormData(examId);
+          }
+          
+          // Delay initialization to ensure DOM is ready and data is loaded
+          setTimeout(function() {
+            initLabSuggestions();
+          }, 200);
+        }
+        
+        // Khi chuyển sang tab Kết quả xét nghiệm, load dữ liệu kết quả
+        if (id === '#sec-lab-result') {
+          var examId = getCurrentExaminationId();
+          if (examId) {
+            loadLabResultData(examId);
+          } else {
+            showLabResultEmpty();
+          }
         }
         
       });
@@ -239,7 +271,6 @@ function loadExaminationFormIfAny(){
       var xrayExamId = document.getElementById('xray_examination_id');
       var ultrasoundExamId = document.getElementById('ultrasound_examination_id');
       
-      console.log('loadExaminationFormIfAny - Setting exam IDs:', examId);
       if(xrayExamId && examId) xrayExamId.value = examId;
       if(ultrasoundExamId && examId) ultrasoundExamId.value = examId;
       
@@ -405,32 +436,18 @@ function prefillUltrasoundSection(){
   var patientType = 'thu_phi'; // Default to thu_phi
   var examId = getCurrentExaminationId();
   
-  console.log('Getting patient BHYT status from database for exam ID:', examId);
-  
   if (examId) {
     // Get patient BHYT status from database
     fetch('./get_patient_bhyt_status?exam_id=' + examId)
       .then(function(response) {
-        console.log('BHYT status response status:', response.status);
         return response.json();
       })
       .then(function(data) {
-        console.log('Patient type response:', data);
-        console.log('Patient type - success:', data.success);
-        console.log('Patient type - hasBhyt:', data.hasBhyt);
-        console.log('Patient type - doi_tuong_bhyt:', data.doiTuongBhyt);
-        console.log('Patient type - doi_tuong_thu_phi:', data.doiTuongThuPhi);
-        console.log('Patient type - doi_tuong_mien:', data.doiTuongMien);
-        console.log('Patient type - doi_tuong_khac:', data.doiTuongKhac);
-        console.log('Patient type - benhNhanId:', data.benhNhanId);
-        console.log('Patient type - phieuKhamId:', data.phieuKhamId);
         
         if (data.success && data.hasBhyt) {
           patientType = 'bhyt';
-          console.log('Patient has BHYT from examination form - setting to BHYT');
         } else {
           patientType = 'thu_phi';
-          console.log('Patient does not have BHYT from examination form - setting to Thu phí');
         }
         
         // Set patient type in X-Ray form
@@ -444,7 +461,6 @@ function prefillUltrasoundSection(){
         if (xType) xType.value = 'Thu phí';
       });
   } else {
-    console.log('No exam ID found, defaulting to Thu phí');
     var xType = document.getElementById('xray_patient_type');
     if (xType) xType.value = 'Thu phí';
   }
@@ -467,7 +483,6 @@ function prefillUltrasoundSection(){
   if(xrayExamId && examId) xrayExamId.value = examId;
   if(ultrasoundExamId && examId) ultrasoundExamId.value = examId;
   
-  console.log('Set X-Ray Exam ID:', examId);
   
   // Check if there's already a saved X-Ray form for this examination
   if (examId) {
@@ -477,18 +492,14 @@ function prefillUltrasoundSection(){
 
 // Load X-Ray form data when modal opens (called from examination modal)
 function loadXrayFormOnModalOpen() {
-  console.log('Loading X-Ray form data on modal open...');
   
   // Get examination ID
   var examId = getCurrentExaminationId();
-  console.log('Modal open - Exam ID:', examId);
   
   if (examId) {
     // Check if there's already a saved X-Ray form for this examination
-    console.log('Exam ID found, checking existing X-Ray form...');
     checkExistingXrayForm(examId);
   } else {
-    console.log('No examination ID found, clearing X-Ray form');
     clearXrayForm();
   }
 }
@@ -1097,9 +1108,19 @@ function getCurrentExaminationId() {
     var appointmentId = document.getElementById('examinationAppointmentId') ? document.getElementById('examinationAppointmentId').value : '';
     console.log('examinationAppointmentId element:', !!document.getElementById('examinationAppointmentId'), 'value:', appointmentId);
     if (appointmentId) {
-      // For now, use appointment ID as examination ID (you may need to adjust this logic)
-      examId = appointmentId;
+      // NOTE: Appointment ID is NOT the same as Examination ID
+      // We need to find the actual examination ID, not use appointment ID
+      console.log('WARNING: Using appointment ID as examination ID may cause foreign key errors');
+      console.log('Appointment ID:', appointmentId, 'should not be used as examination ID');
+      // For now, don't use appointment ID as examination ID
+      // examId = appointmentId;
     }
+  }
+  
+  // If still no examId, try to get from window variable set when saving examination form
+  if (!examId) {
+    examId = window._currentExaminationId || '';
+    console.log('window._currentExaminationId:', examId);
   }
   console.log('Final Examination ID found:', examId);
   return examId;
@@ -1265,7 +1286,7 @@ function saveUltrasoundForm() {
   var examId = getCurrentExaminationId();
   console.log('Exam ID:', examId);
   if (!examId) {
-    alert('Không tìm thấy ID phiếu khám bệnh');
+    alert('Vui lòng lưu phiếu khám bệnh trước khi lưu phiếu siêu âm!');
     return;
   }
 
@@ -1323,7 +1344,7 @@ function saveUltrasoundForm() {
 function printUltrasoundForm() {
   var examId = getCurrentExaminationId();
   if (!examId) {
-    alert('Không tìm thấy ID phiếu khám bệnh');
+    alert('Vui lòng lưu phiếu khám bệnh trước khi in phiếu siêu âm!');
     return;
   }
 
@@ -1410,4 +1431,561 @@ function displayUltrasoundFormData(data) {
       console.error('Error getting patient BHYT status in displayUltrasoundFormData:', error);
     });
   }
+}
+
+// ===== LAB FUNCTIONS =====
+
+// Pre-fill lab section with patient data
+function prefillLabSection() {
+  var pName = document.getElementById('patientName') ? document.getElementById('patientName').value : '';
+  var pDob = document.getElementById('patientAge') ? document.getElementById('patientAge').value : '';
+  var pGender = document.getElementById('patientGender') ? document.getElementById('patientGender').value : '';
+  var pAddr = document.getElementById('dia_chi') ? document.getElementById('dia_chi').value : '';
+  var pCode = document.getElementById('exam_ma_benh_nhan') ? document.getElementById('exam_ma_benh_nhan').value : '';
+  
+  // Set examination ID
+  var examId = getCurrentExaminationId();
+  console.log('getCurrentExaminationId() returned:', examId);
+  console.log('examId type:', typeof examId, 'examId length:', examId ? examId.length : 0);
+  var lExamId = document.getElementById('lab_examination_id');
+  if (lExamId && examId) {
+    lExamId.value = examId;
+    console.log('Set lab_examination_id to:', examId);
+    console.log('lab_examination_id value after setting:', lExamId.value);
+  } else {
+    console.log('Cannot set lab_examination_id - examId:', examId, 'lExamId element:', !!lExamId);
+  }
+  
+  // Calculate age from birth year
+  var currentYear = new Date().getFullYear();
+  var birthYear = parseInt(pDob);
+  var calculatedAge = isNaN(birthYear) ? '' : (currentYear - birthYear);
+  
+  // Map patient info
+  var lCode = document.getElementById('lab_patient_code'); if(lCode) lCode.value = pCode;
+  var lName = document.getElementById('lab_patient_name'); if(lName) lName.value = pName;
+  var lAge = document.getElementById('lab_patient_age'); if(lAge) lAge.value = calculatedAge;
+  var lGen = document.getElementById('lab_patient_gender'); if(lGen) lGen.value = pGender;
+  var lAddr = document.getElementById('lab_patient_address'); if(lAddr) lAddr.value = pAddr || 'Gò Vấp';
+  
+  // Set current date
+  var now = new Date();
+  var d = now.getDate();
+  var m = now.getMonth() + 1;
+  var y = now.getFullYear();
+  
+  console.log('Setting lab date:', d, m, y);
+  
+  var ld = document.getElementById('lab_ngay');
+  var lm = document.getElementById('lab_thang');
+  var ly = document.getElementById('lab_nam');
+  
+  if (ld) {
+    ld.value = d;
+    console.log('Set lab_ngay to:', ld.value);
+  }
+  if (lm) {
+    lm.value = m;
+    console.log('Set lab_thang to:', lm.value);
+  }
+  if (ly) {
+    ly.value = y;
+    console.log('Set lab_nam to:', ly.value);
+  }
+  
+  // Doctor name from examination form
+  var doctorName = document.querySelector('[name="ten_bac_si"]') ? document.querySelector('[name="ten_bac_si"]').value : '';
+  var labDoctor = document.getElementById('lab_doctor_name');
+  var labDoctorDisplay = document.getElementById('lab_doctor_display');
+  if(labDoctor && doctorName) {
+    labDoctor.value = doctorName;
+    if(labDoctorDisplay) labDoctorDisplay.textContent = doctorName;
+  }
+  
+  // Get patient BHYT status from database
+  var examId = getCurrentExaminationId();
+  
+  if (examId) {
+    // Get patient BHYT status from database
+    fetch('./get_patient_bhyt_status?exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        var hasBhyt = data.hasBhyt || false;
+        var pType = hasBhyt ? 'BHYT' : 'Thu phí';
+        var lType = document.getElementById('lab_patient_type'); 
+        var lInsurance = document.getElementById('lab_insurance_number');
+        
+        if (lType) {
+          lType.value = pType;
+        }
+        
+        if (lInsurance) {
+          // Get actual BHYT number from database
+          lInsurance.value = hasBhyt ? (data.soTheBhyt || '') : '';
+        }
+        
+      } else {
+        // Default to Thu phí if no data
+        var lType = document.getElementById('lab_patient_type'); 
+        if (lType) lType.value = 'Thu phí';
+      }
+    })
+    .catch(error => {
+      console.error('Error getting patient BHYT status:', error);
+      // Default to Thu phí on error
+      var lType = document.getElementById('lab_patient_type'); 
+      if (lType) lType.value = 'Thu phí';
+    });
+  } else {
+    // Default to Thu phí if no exam ID
+    var lType = document.getElementById('lab_patient_type'); 
+    if (lType) lType.value = 'Thu phí';
+  }
+}
+
+// Gợi ý xét nghiệm
+function initLabSuggestions() {
+  var ta = document.getElementById('lab_request');
+  var box = document.getElementById('lab_suggestions');
+  if (!ta || !box) return;
+  
+  var fetchSug = function(q) {
+    console.log('Fetching lab suggestions for:', q);
+    if (!q || q.length < 1) { 
+      console.log('Query too short, hiding suggestions');
+      box.style.display = 'none'; 
+      return; 
+    }
+    
+    fetch('./?action=get_lab_suggestions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'keyword=' + encodeURIComponent(q)
+    })
+    .then(r => {
+      console.log('Response status:', r.status);
+      return r.json();
+    })
+    .then(d => {
+      console.log('Lab suggestions response:', d);
+      if (d.success && d.data && d.data.length > 0) {
+        console.log('Showing', d.data.length, 'suggestions');
+        
+        // Filter suggestions based on current part
+        var fullValue = ta.value;
+        var parts = fullValue.split(',');
+        var currentPart = parts[parts.length - 1].trim().toLowerCase();
+        
+        var matches = d.data.filter(function(suggestion) {
+          return suggestion.ten_goi_y.toLowerCase().includes(currentPart);
+        });
+        
+        if (matches.length === 0) {
+          box.style.display = 'none';
+          return;
+        }
+        
+        // Show only name, like ultrasound
+        box.innerHTML = '';
+        matches.forEach(function(suggestion) {
+          var div = document.createElement('div');
+          div.className = 'p-2 border-bottom cursor-pointer d-flex justify-content-between align-items-center';
+          div.style.cursor = 'pointer';
+          div.textContent = suggestion.ten_goi_y;
+          
+          div.addEventListener('click', function() {
+            // Replace current part with suggestion
+            var newParts = parts.slice(0, -1);
+            newParts.push(suggestion.ten_goi_y);
+            ta.value = newParts.join(', ');
+            box.style.display = 'none';
+            ta.focus();
+          });
+          
+          div.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+          });
+          div.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+          });
+          
+          box.appendChild(div);
+        });
+        
+        box.style.display = 'block';
+      } else {
+        console.log('No suggestions found');
+        box.style.display = 'none';
+      }
+    })
+    .catch(e => { 
+      console.error('Error loading lab suggestions:', e);
+      box.style.display = 'none'; 
+    });
+  };
+  
+  var render = function() {
+    var v = ta.value;
+    console.log('Lab textarea value:', v);
+    if (!v) { 
+      console.log('Empty value, hiding suggestions');
+      box.style.display = 'none'; 
+      return; 
+    }
+    
+    // Split by comma to get current part being typed
+    var parts = v.split(',');
+    var currentPart = parts[parts.length - 1].trim();
+    console.log('Current part after comma:', currentPart);
+    
+    if (currentPart.length >= 1) {
+      fetchSug(currentPart);
+    } else {
+      console.log('Current part too short, hiding suggestions');
+      box.style.display = 'none';
+    }
+  };
+  
+  ta.addEventListener('input', render);
+  ta.addEventListener('focus', render);
+  
+  // Click handlers are now integrated in the suggestion creation above
+  
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!ta.contains(e.target) && !box.contains(e.target)) {
+      box.style.display = 'none';
+    }
+  });
+}
+
+// Save lab form
+function saveLabForm() {
+  console.log('saveLabForm called');
+  
+  // Get examination ID first
+  var examIdValue = getCurrentExaminationId();
+  console.log('getCurrentExaminationId() returned:', examIdValue);
+  
+  if (!examIdValue) {
+    alert('Vui lòng lưu phiếu khám bệnh trước khi lưu phiếu xét nghiệm!');
+    return;
+  }
+  
+  // Check if all required elements exist
+  var examId = document.getElementById('lab_examination_id');
+  var patientCode = document.getElementById('lab_patient_code');
+  var patientName = document.getElementById('lab_patient_name');
+  var patientAge = document.getElementById('lab_patient_age');
+  var patientGender = document.getElementById('lab_patient_gender');
+  var patientType = document.getElementById('lab_patient_type');
+  var insuranceNumber = document.getElementById('lab_insurance_number');
+  var clinicName = document.getElementById('lab_clinic_name');
+  var diagnosis = document.getElementById('lab_diagnosis');
+  var request = document.getElementById('lab_request');
+  var doctorName = document.getElementById('lab_doctor_name');
+  var day = document.getElementById('lab_ngay');
+  var month = document.getElementById('lab_thang');
+  var year = document.getElementById('lab_nam');
+  
+  console.log('Elements found:', {
+    examId: !!examId,
+    patientCode: !!patientCode,
+    patientName: !!patientName,
+    patientAge: !!patientAge,
+    patientGender: !!patientGender,
+    patientType: !!patientType,
+    insuranceNumber: !!insuranceNumber,
+    clinicName: !!clinicName,
+    diagnosis: !!diagnosis,
+    request: !!request,
+    doctorName: !!doctorName,
+    day: !!day,
+    month: !!month,
+    year: !!year
+  });
+  
+  // Create form data object like ultrasound form
+  var formData = {
+    exam_id: examIdValue,
+    so_ho_so: patientCode ? patientCode.value : '',
+    ho_ten: patientName ? patientName.value : '',
+    tuoi: patientAge ? patientAge.value : '',
+    gioi_tinh: patientGender ? patientGender.value : '',
+    doi_tuong: patientType ? patientType.value : '',
+    so_the_bhyt: insuranceNumber ? insuranceNumber.value : '',
+    phong_kham: clinicName ? clinicName.value : '',
+    chan_doan: diagnosis ? diagnosis.value : '',
+    yeu_cau: request ? request.value : '',
+    bac_si_kham: doctorName ? doctorName.value : '',
+    ngay: day ? day.value : '',
+    thang: month ? month.value : '',
+    nam: year ? year.value : ''
+  };
+  
+  console.log('Form data being sent:', {
+    id_phieu_kham_benh: examId ? examId.value : '',
+    so_ho_so: patientCode ? patientCode.value : '',
+    ho_ten: patientName ? patientName.value : '',
+    yeu_cau: request ? request.value : ''
+  });
+  
+  // Debug: Check if examination ID is valid
+  var examIdValue = examId ? examId.value : '';
+  console.log('Examination ID being sent:', examIdValue, 'Type:', typeof examIdValue);
+  if (!examIdValue || examIdValue === '') {
+    console.error('ERROR: No examination ID found!');
+    alert('Lỗi: Không tìm thấy ID phiếu khám. Vui lòng thử lại.');
+    return;
+  }
+  
+  fetch('./?action=save_lab_form', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams(formData)
+  })
+  .then(response => {
+    console.log('Response status:', response.status);
+    return response.json();
+  })
+  .then(data => {
+    console.log('Response data:', data);
+    if (data.success) {
+      alert(data.message);
+      // Load lại dữ liệu đã lưu
+      loadLabFormData(examIdValue);
+    } else {
+      alert('Lỗi: ' + (data.message || 'Không thể lưu phiếu xét nghiệm'));
+    }
+  })
+  .catch(error => {
+    console.error('Error saving lab form:', error);
+    alert('Lỗi hệ thống khi lưu phiếu xét nghiệm: ' + error.message);
+  });
+}
+
+// Print lab form
+function printLabForm() {
+  var examId = getCurrentExaminationId();
+  if (!examId) {
+    alert('Vui lòng lưu phiếu khám bệnh trước khi in phiếu xét nghiệm!');
+    return;
+  }
+
+  // Lấy ID phiếu xét nghiệm
+  fetch('./?action=get_lab_form_data&exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.form_data) {
+        // Mở cửa sổ in với ID phiếu xét nghiệm
+        window.open('./?action=print_lab_form&id=' + data.form_data.id, '_blank');
+      } else {
+        alert('Chưa có phiếu xét nghiệm để in. Vui lòng lưu phiếu trước.');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Lỗi kết nối');
+    });
+}
+
+// Load lab form data
+function loadLabFormData(examId) {
+  if (!examId) return;
+  
+  fetch('./?action=get_lab_form_data&exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.form_data) {
+        displayLabFormData(data.form_data);
+      }
+    })
+    .catch(error => {
+      console.error('Error loading lab form data:', error);
+    });
+}
+
+// Display lab form data
+function displayLabFormData(data) {
+  document.getElementById('lab_diagnosis').value = data.chan_doan || '';
+  document.getElementById('lab_request').value = data.yeu_cau || '';
+  document.getElementById('lab_doctor_name').value = data.bac_si_kham || '';
+  
+  // Only set date if data exists, otherwise keep current values
+  if (data.ngay) document.getElementById('lab_ngay').value = data.ngay;
+  if (data.thang) document.getElementById('lab_thang').value = data.thang;
+  if (data.nam) document.getElementById('lab_nam').value = data.nam;
+  
+  // Update doctor display
+  var doctorDisplay = document.getElementById('lab_doctor_display');
+  if (doctorDisplay && data.bac_si_kham) {
+    doctorDisplay.textContent = data.bac_si_kham;
+  }
+  
+  // Re-fetch BHYT status to ensure correct patient type and insurance number
+  fetch('./?action=get_patient_bhyt_status&patient_id=' + getCurrentPatientId())
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        var hasBhyt = data.hasBhyt;
+        var pType = hasBhyt ? 'BHYT' : 'Thu phí';
+        var lType = document.getElementById('lab_patient_type'); 
+        var lInsurance = document.getElementById('lab_insurance_number');
+        if (lType) lType.value = pType;
+        if (lInsurance) {
+          lInsurance.value = hasBhyt ? (data.soTheBhyt || '') : '';
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error getting patient BHYT status in displayLabFormData:', error);
+    });
+}
+
+// Load lab result readonly
+function loadLabResultReadonly() {
+  var examId = getCurrentExaminationId();
+  if (!examId) return;
+  
+  fetch('./?action=get_lab_result_by_exam&exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.result) {
+        showLabResultData(data.result, data.testDetails || []);
+      } else {
+        showLabResultEmpty();
+      }
+    })
+    .catch(error => {
+      console.error('Error loading lab result:', error);
+      showLabResultEmpty();
+    });
+}
+
+
+/**
+ * Load dữ liệu kết quả xét nghiệm
+ */
+function loadLabResultData(examId) {
+  fetch('./?action=get_lab_result_by_exam&exam_id=' + examId)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.result) {
+        showLabResultData(data.result, data.testDetails || []);
+      } else {
+        showLabResultEmpty();
+      }
+    })
+    .catch(error => {
+      console.error('Error loading lab result data:', error);
+      showLabResultEmpty();
+    });
+}
+
+/**
+ * Hiển thị dữ liệu kết quả xét nghiệm
+ */
+function showLabResultData(result, testDetails) {
+  // Hide empty message
+  var emptyDiv = document.getElementById('labResultEmpty');
+  if (emptyDiv) emptyDiv.style.display = 'none';
+  
+  // Show result div
+  var resultDiv = document.getElementById('labResultReadonly');
+  if (resultDiv) resultDiv.style.display = 'block';
+  
+  // Fill patient info
+  var idEl = document.getElementById('lab_ro_id');
+  if (idEl) idEl.textContent = result.ma_benh_nhan || '-';
+  
+  var hoTenEl = document.getElementById('lab_ro_ho_ten');
+  if (hoTenEl) hoTenEl.textContent = result.ho_ten || '-';
+  
+  var tuoiEl = document.getElementById('lab_ro_tuoi');
+  if (tuoiEl) tuoiEl.textContent = result.tuoi || '-';
+  
+  var gioiTinhEl = document.getElementById('lab_ro_gioi_tinh');
+  if (gioiTinhEl) gioiTinhEl.textContent = result.gioi_tinh || '-';
+  
+  var diaChiEl = document.getElementById('lab_ro_dia_chi');
+  if (diaChiEl) diaChiEl.textContent = result.dia_chi || '-';
+  
+  var chanDoanEl = document.getElementById('lab_ro_chan_doan');
+  if (chanDoanEl) chanDoanEl.textContent = result.chan_doan || '-';
+  
+  var bacSiEl = document.getElementById('lab_ro_bac_si');
+  if (bacSiEl) bacSiEl.textContent = result.bac_si_yeu_cau || '-';
+  
+  var tinhTrangMauEl = document.getElementById('lab_ro_tinh_trang_mau');
+  if (tinhTrangMauEl) tinhTrangMauEl.textContent = result.tinh_trang_mau || '-';
+  
+  var yeuCauEl = document.getElementById('lab_ro_yeu_cau');
+  if (yeuCauEl) yeuCauEl.textContent = result.yeu_cau || 'CHƯA CÓ YÊU CẦU XÉT NGHIỆM';
+  
+  // Date and time
+  if (result.ngay_tao) {
+    var date = new Date(result.ngay_tao);
+    var day = String(date.getDate()).padStart(2, '0');
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var year = date.getFullYear();
+    var hours = String(date.getHours()).padStart(2, '0');
+    var minutes = String(date.getMinutes()).padStart(2, '0');
+    
+    var dateEl = document.getElementById('lab_ro_date');
+    if (dateEl) dateEl.textContent = day + '/' + month + '/' + year;
+    
+    var timeEl = document.getElementById('lab_ro_time');
+    if (timeEl) timeEl.textContent = hours + ':' + minutes;
+  }
+  
+  // Fill test results table
+  var tbody = document.getElementById('lab_ro_results_table');
+  if (tbody && testDetails && testDetails.length > 0) {
+    tbody.innerHTML = '';
+    testDetails.forEach(function(test, index) {
+      var row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="text-center">${test.stt || index + 1}</td>
+        <td>${test.ten_xet_nghiem || ''}</td>
+        <td class="text-center">${test.gia_tri_tham_chieu || ''}</td>
+        <td class="text-center" style="font-weight: bold;">${test.ket_qua || ''}</td>
+        <td class="text-center">${test.don_vi || ''}</td>
+        <td>${test.may_qtkt || ''}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  } else {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Chưa có kết quả xét nghiệm</td></tr>';
+  }
+  
+  // Signature date
+  var now = new Date();
+  var signatureDateEl = document.getElementById('lab_ro_signature_date');
+  if (signatureDateEl) signatureDateEl.textContent = now.getDate();
+  
+  var signatureMonthEl = document.getElementById('lab_ro_signature_month');
+  if (signatureMonthEl) signatureMonthEl.textContent = now.getMonth() + 1;
+  
+  var signatureYearEl = document.getElementById('lab_ro_signature_year');
+  if (signatureYearEl) signatureYearEl.textContent = now.getFullYear();
+  
+  // Doctor signature
+  var signatureDoctorEl = document.getElementById('lab_ro_signature_doctor');
+  if (signatureDoctorEl) signatureDoctorEl.textContent = result.bac_si_xet_nghiem || '-';
+}
+
+/**
+ * Hiển thị thông báo chưa có kết quả
+ */
+function showLabResultEmpty() {
+  // Hide result div
+  var resultDiv = document.getElementById('labResultReadonly');
+  if (resultDiv) resultDiv.style.display = 'none';
+  
+  // Show empty message
+  var emptyDiv = document.getElementById('labResultEmpty');
+  if (emptyDiv) emptyDiv.style.display = 'block';
 }
