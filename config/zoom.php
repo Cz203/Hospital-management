@@ -35,7 +35,7 @@ class ZoomConfig
     // Meeting settings
     const MEETING_CONFIG = [
         'type' => 2, // Scheduled meeting
-        'duration' => 10, // 10 minutes (match consultation duration)
+        'duration' => 15, // 10 minutes (match consultation duration)
         'timezone' => 'Asia/Ho_Chi_Minh',
         'settings' => [
             'host_video' => true,
