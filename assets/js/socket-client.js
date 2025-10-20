@@ -32,10 +32,10 @@ class SocketManager {
   }
 
   // Initialize socket connection
-  init(userId, userRole, userName) {
+  init(userId, userRole) {
     this.userId = userId;
     this.userRole = userRole;
-    this.userName = userName;
+    this.userName = null;
 
     // Load Socket.IO client library if not already loaded
     if (typeof io === "undefined") {
@@ -274,7 +274,6 @@ class SocketManager {
       this.socket.emit("authenticate", {
         userId: this.userId,
         role: this.userRole,
-        userName: this.userName,
       });
     }
   }

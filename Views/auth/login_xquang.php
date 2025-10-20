@@ -29,6 +29,7 @@
             <?php endif; ?>
 
             <form method="POST" action="./login_xquang">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <div class="mb-3">
                     <label for="phone" class="form-label">
                         <i class="fas fa-phone"></i> Số điện thoại

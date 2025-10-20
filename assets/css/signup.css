@@ -103,6 +103,7 @@ body {
   background: #667eea;
   color: white;
   border: 1px solid #667eea;
+  border-radius: 7%;
 }
 
 .btn-outline-primary:hover {

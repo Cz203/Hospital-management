@@ -7,253 +7,368 @@ require_once 'config/security.php';
 
 class AuthController
 {
+    // ===== Constants =====
+    private const ERROR_MESSAGES = [
+        'empty_fields' => "Vui lòng điền đầy đủ thông tin!",
+        'invalid_credentials' => "Số điện thoại hoặc mật khẩu không đúng!",
+        'invalid_specialization_xray' => "Tài khoản không thuộc chuyên khoa Chẩn đoán hình ảnh.",
+        'invalid_specialization_sieuam' => "Tài khoản không thuộc chuyên khoa Siêu âm.",
+        'invalid_admin_credentials' => "Số điện thoại & Mật khẩu không hợp lệ!"
+    ];
 
-    public function loginAdmin()
+    // ===== Private helpers (no behavior change) =====
+    private function normalizePhoneLocal($raw)
+    {
+        $raw = trim((string)$raw);
+        if ($raw === '') return $raw;
+        // prefer using SMSController if available to keep a single normalization rule
+        try {
+            require_once 'Controllers/SMSController.php';
+            if (class_exists('SMSController')) {
+                $sms = new SMSController();
+                return $sms->normalizePhoneNumber($raw);
+            }
+        } catch (Exception $e) {
+        }
+        // fallback simple normalization for 0/84
+        if (str_starts_with($raw, '0')) return '84' . substr($raw, 1);
+        if (str_starts_with($raw, '84')) return $raw;
+        return $raw;
+    }
+    private function setUserSessionSafe(array $user, $role, array $extra = [])
+    {
+        session_regenerate_id(true);
+        $_SESSION['user_id'] = $user['id'] ?? null;
+        $_SESSION['last_activity'] = time();
+        // Store minimal state: id + role for routing/authorization; avoid PII (name/email)
+        $_SESSION['user_role'] = is_string($role) ? $role : '';
+    }
+
+    // ===== Common Login Logic =====
+    private function handleLogin($role, $modelClass, $redirectPath, $loginPath, $specializationCheck = null, $customErrorMsg = null, $securityOptions = [])
     {
         if ($this->isLoggedIn()) {
-            $role = $_SESSION['user_role'];
-            if ($role === 'admin') {
-                header("Location: ./admin_dashboard");
-                exit();
-            }
-            // Nếu đã đăng nhập role khác thì đưa về dashboard tương ứng
-            switch ($role) {
-                case 'doctor':
-                    header("Location: ./doctor_dashboard");
-                    exit();
-                case 'patient':
-                    header("Location: ./patient_dashboard");
-                    exit();
-            }
+            $this->redirectIfLoggedInToDashboard();
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            // Kiểm tra CSRF token
-            $csrfToken = $_POST['csrf_token'] ?? '';
-            if (!SecurityConfig::validateCSRFToken($csrfToken)) {
-                $_SESSION['error'] = "Token bảo mật không hợp lệ!";
-                header("Location: ./login_admin");
-                exit();
+            // CSRF Protection (chỉ cho admin)
+            if (isset($securityOptions['csrf']) && $securityOptions['csrf']) {
+                $csrfToken = $_POST['csrf_token'] ?? '';
+                if (!SecurityConfig::validateCSRFToken($csrfToken)) {
+                    $_SESSION['error'] = "Token bảo mật không hợp lệ!";
+                    header("Location: ./{$loginPath}");
+                    exit();
+                }
             }
 
-            // Rate limiting
-            if (!SecurityConfig::checkRateLimit('admin_login_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'))) {
-                $_SESSION['error'] = "Quá nhiều lần thử. Vui lòng thử lại sau 15 phút.";
-                header("Location: ./login_admin");
-                exit();
+            // Rate Limiting (chỉ cho admin)
+            if (isset($securityOptions['rate_limit']) && $securityOptions['rate_limit']) {
+                if (!SecurityConfig::checkRateLimit('admin_login_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'))) {
+                    $_SESSION['error'] = "Quá nhiều lần thử. Vui lòng thử lại sau 15 phút.";
+                    header("Location: ./{$loginPath}");
+                    exit();
+                }
             }
 
-            $phone = SecurityConfig::sanitizeInput($_POST['phone'] ?? '');
+            // Input sanitization (chỉ cho admin)
+            if (isset($securityOptions['sanitize']) && $securityOptions['sanitize']) {
+                $phone = SecurityConfig::sanitizeInput($_POST['phone'] ?? '');
+            } else {
+                $phone = $_POST['phone'] ?? '';
+            }
             $password = $_POST['password'] ?? '';
 
             if (empty($phone) || empty($password)) {
-                $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
-                header("Location: ./login_admin");
+                $_SESSION['error'] = self::ERROR_MESSAGES['empty_fields'];
+                header("Location: ./{$loginPath}");
                 exit();
             }
-            // Chuẩn hóa số điện thoại
-            require_once 'Controllers/SMSController.php';
-            $sms = new SMSController();
-            $normalized = $sms->normalizePhoneNumber($phone);
-            $admin = new Admin();
-            $user = $admin->login($normalized, $password);
+
+            $normalized = $this->normalizePhoneLocal($phone);
+            $model = new $modelClass();
+            $user = $model->login($normalized, $password);
+
             if ($user) {
-                // Regenerate session ID để tránh session fixation
-                session_regenerate_id(true);
+                // Specialization check nếu cần
+                if ($specializationCheck && !$specializationCheck($user)) {
+                    $_SESSION['error'] = $customErrorMsg ?? self::ERROR_MESSAGES['invalid_credentials'];
+                    header("Location: ./{$loginPath}");
+                    exit();
+                }
 
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_name'] = $user['ten'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_role'] = 'admin';
-                $_SESSION['last_activity'] = time();
-
-                header("Location: ./admin_dashboard");
+                $this->setUserSessionSafe($user, $role);
+                header("Location: ./{$redirectPath}");
                 exit();
             }
 
-            $_SESSION['error'] = "Số điện thoại & Mật khẩu không hợp lệ!";
-            header("Location: ./login_admin");
+            $errorMsg = $customErrorMsg ?? self::ERROR_MESSAGES['invalid_credentials'];
+            $_SESSION['error'] = $errorMsg;
+            header("Location: ./{$loginPath}");
             exit();
         }
 
-        SecurityConfig::generateCSRFToken();
-        include 'Views/auth/login_admin.php';
+        // Generate CSRF token nếu cần (chỉ cho admin)
+        if (isset($securityOptions['csrf']) && $securityOptions['csrf']) {
+            SecurityConfig::generateCSRFToken();
+        }
+
+        include "Views/auth/{$loginPath}.php";
+    }
+
+    // ===== User Context Resolution Helpers =====
+    private function resolveUserBySessionRole($uid, $sessionRole): ?array
+    {
+        try {
+            if ($sessionRole === 'admin') {
+                $admin = new Admin();
+                $a = $admin->getById($uid);
+                if ($a) {
+                    return ['role' => 'admin', 'name' => $a['ten'] ?? '', 'email' => $a['email'] ?? ''];
+                }
+            } elseif ($sessionRole === 'letan') {
+                require_once 'config/database.php';
+                $db = new Database();
+                $conn = $db->getConnection();
+                $stmt = $conn->prepare('SELECT * FROM le_tan WHERE id = :id');
+                $stmt->execute([':id' => $uid]);
+                $r = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+                if ($r) {
+                    return ['role' => 'letan', 'name' => $r['ten'] ?? '', 'email' => $r['email'] ?? ''];
+                }
+            } elseif (in_array($sessionRole, ['doctor', 'xray_doctor', 'sieuam_doctor'], true)) {
+                $doc = new Doctor();
+                $d = $doc->getById($uid);
+                if ($d) {
+                    return [
+                        'role' => $sessionRole,
+                        'name' => $d['ten'] ?? '',
+                        'email' => $d['email'] ?? '',
+                        'chuyen_khoa_id' => isset($d['chuyen_khoa_id']) ? (int)$d['chuyen_khoa_id'] : null
+                    ];
+                }
+            } elseif ($sessionRole === 'patient') {
+                $pat = new Patient();
+                if (method_exists($pat, 'getById')) {
+                    $p = $pat->getById($uid);
+                    if ($p) {
+                        return ['role' => 'patient', 'name' => $p['ten'] ?? '', 'email' => $p['email'] ?? ''];
+                    }
+                }
+            }
+        } catch (Exception $e) {
+        }
+        return null;
+    }
+
+    private function resolveUserByFallback($uid): ?array
+    {
+        // Try Doctor first (to avoid cross-table ID collision)
+        try {
+            $doc = new Doctor();
+            $d = $doc->getById($uid);
+            if ($d) {
+                $spec = isset($d['chuyen_khoa_id']) ? (int)$d['chuyen_khoa_id'] : 0;
+                $role = ($spec === 16) ? 'xray_doctor' : (($spec === 18) ? 'sieuam_doctor' : 'doctor');
+                return [
+                    'role' => $role,
+                    'name' => $d['ten'] ?? '',
+                    'email' => $d['email'] ?? '',
+                    'chuyen_khoa_id' => $spec
+                ];
+            }
+        } catch (Exception $e) {
+        }
+
+        // Try Reception
+        try {
+            require_once 'config/database.php';
+            $db = new Database();
+            $conn = $db->getConnection();
+            $stmt = $conn->prepare('SELECT * FROM le_tan WHERE id = :id');
+            $stmt->execute([':id' => $uid]);
+            $r = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            if ($r) {
+                return ['role' => 'letan', 'name' => $r['ten'] ?? '', 'email' => $r['email'] ?? ''];
+            }
+        } catch (Exception $e) {
+        }
+
+        // Try Patient
+        try {
+            $pat = new Patient();
+            if (method_exists($pat, 'getById')) {
+                $p = $pat->getById($uid);
+                if ($p) {
+                    return ['role' => 'patient', 'name' => $p['ten'] ?? '', 'email' => $p['email'] ?? ''];
+                }
+            }
+        } catch (Exception $e) {
+        }
+
+        // Try Admin last
+        try {
+            $admin = new Admin();
+            $a = $admin->getById($uid);
+            if ($a) {
+                return ['role' => 'admin', 'name' => $a['ten'] ?? '', 'email' => $a['email'] ?? ''];
+            }
+        } catch (Exception $e) {
+        }
+
+        return null;
+    }
+
+    // Resolve current user context (role/name/email) from DB for this request
+    public function resolveCurrentUserContext(): array
+    {
+        static $cached;
+        if ($cached !== null) return $cached;
+
+        $cached = ['id' => null, 'role' => '', 'name' => '', 'email' => '', 'chuyen_khoa_id' => null];
+        $uid = $_SESSION['user_id'] ?? null;
+        if (!$uid) return $cached;
+
+        $cached['id'] = (int)$uid;
+        $sessionRole = $_SESSION['user_role'] ?? '';
+
+        // If session role is explicitly set by login, honor it to avoid cross-table ID collisions
+        if ($sessionRole !== '') {
+            $result = $this->resolveUserBySessionRole($uid, $sessionRole);
+            if ($result) {
+                $cached = array_merge($cached, $result);
+                return $cached;
+            }
+            // If session role set but record not found, continue with fallback detection below
+        }
+
+        // Fallback detection if session role is not set or record not found for session role
+        $result = $this->resolveUserByFallback($uid);
+        if ($result) {
+            $cached = array_merge($cached, $result);
+        }
+
+        return $cached;
+    }
+
+    private function userHasRole(string $expected): bool
+    {
+        $uid = $_SESSION['user_id'] ?? null;
+        if (!$uid) return false;
+        if ($expected === '') return true;
+        // Prefer session role set by the login route
+        $sessionRole = $_SESSION['user_role'] ?? '';
+        if ($sessionRole !== '') {
+            if ($expected === 'doctor') {
+                return in_array($sessionRole, ['doctor', 'xray_doctor', 'sieuam_doctor'], true);
+            }
+            return $sessionRole === $expected;
+        }
+        // Fallback: resolve from DB when session role is missing
+        $ctx = $this->resolveCurrentUserContext();
+        if ($expected === 'doctor') {
+            return in_array($ctx['role'], ['doctor', 'xray_doctor', 'sieuam_doctor'], true);
+        }
+        return $ctx['role'] === $expected;
+    }
+
+    private function redirectIfLoggedInToDashboard()
+    {
+        if (!$this->isLoggedIn()) return false;
+        // Prefer session role decided by login page
+        $role = $_SESSION['user_role'] ?? '';
+        if ($role === '') {
+            $ctx = $this->resolveCurrentUserContext();
+            $role = $ctx['role'] ?? '';
+        }
+        switch ($role) {
+            case 'admin':
+                header("Location: ./admin_dashboard");
+                break;
+            case 'doctor':
+                header("Location: ./doctor_dashboard");
+                break;
+            case 'xray_doctor':
+                header("Location: ./xray_dashboard");
+                break;
+            case 'sieuam_doctor':
+                header("Location: ./sieuam_dashboard");
+                break;
+            case 'patient':
+                header("Location: ./patient_dashboard");
+                break;
+            case 'letan':
+                header("Location: ./reception_dashboard");
+                break;
+            default:
+                header("Location: ./");
+        }
+        exit();
+    }
+
+    public function loginAdmin()
+    {
+        $securityOptions = [
+            'csrf' => true,
+            'rate_limit' => true,
+            'sanitize' => true
+        ];
+        $this->handleLogin('admin', 'Admin', 'admin_dashboard', 'login_admin', null, self::ERROR_MESSAGES['invalid_admin_credentials'], $securityOptions);
     }
 
     public function loginDoctor()
     {
-        if ($this->isLoggedIn()) {
-            $role = $_SESSION['user_role'];
-            if ($role === 'doctor') {
-                header("Location: ./doctor_dashboard");
-                exit();
-            }
-            switch ($role) {
-                case 'admin':
-                    header("Location: ./admin_dashboard");
-                    exit();
-                case 'patient':
-                    header("Location: ./patient_dashboard");
-                    exit();
-            }
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $phone = $_POST['phone'] ?? '';
-            $password = $_POST['password'] ?? '';
-
-            if (empty($phone) || empty($password)) {
-                $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
-                header("Location: ./login_doctor");
-                exit();
-            }
-            require_once 'Controllers/SMSController.php';
-            $sms = new SMSController();
-            $normalized = $sms->normalizePhoneNumber($phone);
-            $doctorModel = new Doctor();
-            $user = $doctorModel->login($normalized, $password);
-            if ($user) {
-                // Regenerate session ID để tránh session fixation
-                session_regenerate_id(true);
-
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_name'] = $user['ten'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_role'] = 'doctor';
-                $_SESSION['specialization'] = $user['chuyen_khoa'];
-                $_SESSION['last_activity'] = time();
-
-                header("Location: ./doctor_dashboard");
-                exit();
-            }
-
-            $_SESSION['error'] = "Số điện thoại & Mật khẩu không hợp lệ!";
-            header("Location: ./login_doctor");
-            exit();
-        }
-
-        include 'Views/auth/login_doctor.php';
+        $securityOptions = ['csrf' => true];
+        $this->handleLogin('doctor', 'Doctor', 'doctor_dashboard', 'login_doctor', null, self::ERROR_MESSAGES['invalid_admin_credentials'], $securityOptions);
     }
 
 
     public function loginReception()
     {
-        if ($this->isLoggedIn()) {
-            $role = $_SESSION['user_role'];
-            if ($role === 'letan') {
-                header("Location: ./reception_dashboard");
-                exit();
-            }
-            switch ($role) {
-                case 'admin':
-                    header("Location: ./admin_dashboard");
-                    exit();
-                case 'doctor':
-                    header("Location: ./doctor_dashboard");
-                    exit();
-                case 'patient':
-                    header("Location: ./patient_dashboard");
-                    exit();
-            }
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $phone = $_POST['phone'] ?? '';
-            $password = $_POST['password'] ?? '';
-
-            if (empty($phone) || empty($password)) {
-                $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
-                header("Location: ./login_reception");
-                exit();
-            }
-            require_once 'Controllers/SMSController.php';
-            $sms = new SMSController();
-            $normalized = $sms->normalizePhoneNumber($phone);
-            require_once 'Models/Reception.php';
-            $model = new Reception();
-            $user = $model->login($normalized, $password);
-            if ($user) {
-                session_regenerate_id(true);
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_name'] = $user['ten'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_role'] = 'letan';
-                $_SESSION['last_activity'] = time();
-
-                header("Location: ./reception_dashboard");
-                exit();
-            }
-
-            $_SESSION['error'] = "Số điện thoại & Mật khẩu không ";
-            header("Location: ./login_reception");
-            exit();
-        }
-
-        include 'Views/auth/login_reception.php';
+        require_once 'Models/Reception.php';
+        $securityOptions = ['csrf' => true];
+        $this->handleLogin('letan', 'Reception', 'reception_dashboard', 'login_reception', null, null, $securityOptions);
     }
     public function loginXrayDoctor()
     {
         if ($this->isLoggedIn()) {
-            $role = $_SESSION['user_role'];
-            if ($role === 'xray_doctor') {
-                header("Location: ./xray_dashboard");
-                exit();
-            }
-            switch ($role) {
-                case 'admin':
-                    header("Location: ./admin_dashboard");
-                    exit();
-                case 'doctor':
-                    header("Location: ./doctor_dashboard");
-                    exit();
-                case 'patient':
-                    header("Location: ./patient_dashboard");
-                    exit();
-            }
+            $this->redirectIfLoggedInToDashboard();
         }
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $sdt = $_POST['phone'] ?? '';
-            $password = $_POST['password'] ?? '';
-
-            if (empty($sdt) || empty($password)) {
-                $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
+            // CSRF Protection
+            $csrfToken = $_POST['csrf_token'] ?? '';
+            if (!SecurityConfig::validateCSRFToken($csrfToken)) {
+                $_SESSION['error'] = "Token bảo mật không hợp lệ!";
                 header("Location: ./login_xquang");
                 exit();
             }
 
-            // Chuẩn hóa số điện thoại (chấp nhận 0/84)
-            require_once 'Controllers/SMSController.php';
-            $sms = new SMSController();
-            $normalized = $sms->normalizePhoneNumber($sdt);
+            $phone = $_POST['phone'] ?? '';
+            $password = $_POST['password'] ?? '';
 
-            $doctorModel = new Doctor();
-            $user = $doctorModel->login($normalized, $password);
+            if (empty($phone) || empty($password)) {
+                $_SESSION['error'] = self::ERROR_MESSAGES['empty_fields'];
+                header("Location: ./login_xquang");
+                exit();
+            }
+
+            $normalized = $this->normalizePhoneLocal($phone);
+            $doctor = new Doctor();
+            $user = $doctor->loginWithSpecialization($normalized, $password, 16);
+
             if ($user) {
-                // Chỉ cho phép bác sĩ có chuyên khoa id = 16 (Chẩn đoán hình ảnh)
-                $specId = isset($user['chuyen_khoa_id']) ? (int)$user['chuyen_khoa_id'] : 0;
-                if ($specId !== 16) {
-                    $_SESSION['error'] = "Tài khoản không thuộc chuyên khoa Chẩn đoán hình ảnh (ID=16).";
-                    header("Location: ./login_xquang");
-                    exit();
-                }
-
-                session_regenerate_id(true);
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_name'] = $user['ten'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_role'] = 'xray_doctor';
-                $_SESSION['specialization_id'] = $specId;
-                $_SESSION['last_activity'] = time();
-
+                $this->setUserSessionSafe($user, 'xray_doctor');
                 header("Location: ./xray_dashboard");
                 exit();
             }
-            $_SESSION['error'] = "Số điện thoại hoặc mật khẩu không đúng!";
+
+            $_SESSION['error'] = self::ERROR_MESSAGES['invalid_credentials'];
             header("Location: ./login_xquang");
             exit();
         }
 
+        SecurityConfig::generateCSRFToken();
         include 'Views/auth/login_xquang.php';
     }
 
@@ -261,156 +376,52 @@ class AuthController
     public function loginSieuam()
     {
         if ($this->isLoggedIn()) {
-            $role = $_SESSION['user_role'];
-            if ($role === 'sieuam_doctor') {
+            $this->redirectIfLoggedInToDashboard();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            // CSRF Protection
+            $csrfToken = $_POST['csrf_token'] ?? '';
+            if (!SecurityConfig::validateCSRFToken($csrfToken)) {
+                $_SESSION['error'] = "Token bảo mật không hợp lệ!";
+                header("Location: ./login_sieuam");
+                exit();
+            }
+
+            $phone = $_POST['phone'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if (empty($phone) || empty($password)) {
+                $_SESSION['error'] = self::ERROR_MESSAGES['empty_fields'];
+                header("Location: ./login_sieuam");
+                exit();
+            }
+
+            $normalized = $this->normalizePhoneLocal($phone);
+            $doctor = new Doctor();
+            $user = $doctor->loginWithSpecialization($normalized, $password, 18);
+
+            if ($user) {
+                $this->setUserSessionSafe($user, 'sieuam_doctor');
                 header("Location: ./sieuam_dashboard");
                 exit();
             }
-            switch ($role) {
-                case 'doctor':
-                    header("Location: ./doctor_dashboard");
-                    break;
-                case 'xray_doctor':
-                    header("Location: ./xray_dashboard");
-                    break;
-                case 'admin':
-                    header("Location: ./admin_dashboard");
-                    break;
-                case 'patient':
-                    header("Location: ./patient_dashboard");
-                    break;
-                default:
-                    header("Location: ./home");
-            }
+
+            $_SESSION['error'] = self::ERROR_MESSAGES['invalid_credentials'];
+            header("Location: ./login_sieuam");
             exit();
         }
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $sdt = $_POST['phone'] ?? '';
-            $password = $_POST['password'] ?? '';
-
-            if (empty($sdt) || empty($password)) {
-                $_SESSION['error'] = "Vui lòng nhập đầy đủ thông tin!";
-                header("Location: ./login_sieuam");
-                exit();
-            }
-
-            try {
-                $database = new Database();
-                $pdo = $database->getConnection();
-
-                // Debug: Log thông tin đăng nhập
-                error_log("Sieuam login attempt - Phone: $sdt");
-
-                // Chuẩn hóa đối sánh số điện thoại (hỗ trợ 0/84)
-                $raw = trim($sdt);
-                $p1 = $raw;
-                $p2 = $raw;
-                if (str_starts_with($raw, '84')) {
-                    $p2 = '0' . substr($raw, 2);
-                } elseif (str_starts_with($raw, '0')) {
-                    $p2 = '84' . substr($raw, 1);
-                }
-
-                // Tìm bác sĩ với chuyen_khoa_id = 18 (Siêu âm) theo số điện thoại
-                $stmt = $pdo->prepare("
-                    SELECT b.*, ck.ten as chuyen_khoa_ten 
-                    FROM bac_si b 
-                    JOIN chuyen_khoa ck ON b.chuyen_khoa_id = ck.id 
-                    WHERE (b.so_dien_thoai = :p1 OR b.so_dien_thoai = :p2) AND b.chuyen_khoa_id = 18
-                ");
-                $stmt->bindParam(':p1', $p1);
-                $stmt->bindParam(':p2', $p2);
-                $stmt->execute();
-                $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
-
-                // Debug: Log kết quả tìm kiếm
-                error_log("Sieuam doctor found: " . ($doctor ? 'YES' : 'NO'));
-                if ($doctor) {
-                    error_log("Doctor ID: " . $doctor['id'] . ", Chuyen khoa: " . $doctor['chuyen_khoa_id']);
-                }
-
-                if ($doctor && password_verify($password, $doctor['mat_khau'])) {
-                    // Regenerate session ID để tránh session fixation
-                    session_regenerate_id(true);
-                    $_SESSION['user_id'] = $doctor['id'];
-                    $_SESSION['user_name'] = $doctor['ten'];
-                    $_SESSION['user_email'] = $doctor['email'];
-                    $_SESSION['user_role'] = 'sieuam_doctor';
-                    $_SESSION['chuyen_khoa_id'] = $doctor['chuyen_khoa_id'];
-                    $_SESSION['chuyen_khoa_ten'] = $doctor['chuyen_khoa_ten'];
-
-
-                    header("Location: ./sieuam_dashboard");
-                    exit();
-                }
-
-                $_SESSION['error'] = "Số điện thoại hoặc mật khẩu không đúng!";
-                header("Location: ./login_sieuam");
-                exit();
-            } catch (Exception $e) {
-                $_SESSION['error'] = "Lỗi hệ thống!";
-                header("Location: ./login_sieuam");
-                exit();
-            }
-        }
-
+        SecurityConfig::generateCSRFToken();
         include 'Views/auth/login_sieuam.php';
     }
 
     public function loginPatient()
     {
-        if ($this->isLoggedIn()) {
-            $role = $_SESSION['user_role'];
-            if ($role === 'patient') {
-                header("Location: ./patient_dashboard");
-                exit();
-            }
-            switch ($role) {
-                case 'admin':
-                    header("Location: ./admin_dashboard");
-                    exit();
-                case 'doctor':
-                    header("Location: ./doctor_dashboard");
-                    exit();
-            }
-        }
-
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $phone = $_POST['phone'] ?? '';
-            $password = $_POST['password'] ?? '';
-
-            if (empty($phone) || empty($password)) {
-                $_SESSION['error'] = "Vui lòng điền đầy đủ thông tin!";
-                header("Location: ./login");
-                exit();
-            }
-            require_once 'Controllers/SMSController.php';
-            $sms = new SMSController();
-            $normalized = $sms->normalizePhoneNumber($phone);
-            $patient = new Patient();
-            $user = $patient->login($normalized, $password);
-            if ($user) {
-                // Regenerate session ID để tránh session fixation
-                session_regenerate_id(true);
-
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_name'] = $user['ten'];
-                $_SESSION['user_email'] = $user['email'];
-                $_SESSION['user_role'] = 'patient';
-                $_SESSION['last_activity'] = time();
-
-                header("Location: patient_dashboard");
-                exit();
-            }
-
-            $_SESSION['error'] = "Số điện thoại & Mật khẩu không ";
-            header("Location: login");
-            exit();
-        }
-
-        include 'Views/auth/login.php';
+        $securityOptions = ['csrf' => true];
+        $this->handleLogin('patient', 'Patient', 'patient_dashboard', 'login', null, null, $securityOptions);
     }
+
 
     public function register()
     {
@@ -586,7 +597,9 @@ class AuthController
 
     public function logout()
     {
-        session_destroy();
+        // Clear only our keys to avoid nuking unrelated PHP session data
+        unset($_SESSION['user_id'], $_SESSION['user_role'], $_SESSION['last_activity'], $_SESSION['user_name'], $_SESSION['user_email']);
+        session_regenerate_id(true);
         header("Location: ./");
         exit();
     }
@@ -613,7 +626,7 @@ class AuthController
         // Cập nhật last activity
         $_SESSION['last_activity'] = time();
 
-        if ($role && $_SESSION['user_role'] !== $role) {
+        if ($role && !$this->userHasRole($role)) {
             header("Location: ./");
             exit();
         }
@@ -642,6 +655,10 @@ class AuthController
         $newPassword = $input['newPassword'] ?? '';
         $confirmPassword = $input['confirmPassword'] ?? '';
         $role = $_SESSION['user_role'] ?? '';
+        if ($role === '') {
+            $ctx = $this->resolveCurrentUserContext();
+            $role = $ctx['role'] ?? '';
+        }
 
         // Validate dữ liệu
         if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {

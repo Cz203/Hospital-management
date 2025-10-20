@@ -511,7 +511,8 @@ class AppointmentController
             ];
 
             // Send HTTP request to socket server
-            $this->sendSocketNotification('new_appointment', $notificationData);
+            require_once 'Services/SocketService.php';
+            SocketService::emit('new_appointment', $notificationData);
         } catch (Exception $e) {
             error_log("Socket notification error: " . $e->getMessage());
         }
@@ -548,7 +549,8 @@ class AppointmentController
             ];
 
             // Send HTTP request to socket server
-            $this->sendSocketNotification('patient_booking_confirmation', $notificationData);
+            require_once 'Services/SocketService.php';
+            SocketService::emit('patient_booking_confirmation', $notificationData);
         } catch (Exception $e) {
             error_log("Patient booking confirmation error: " . $e->getMessage());
         }
@@ -587,75 +589,10 @@ class AppointmentController
             ];
 
             // Send notification to doctor
-            $this->sendSocketNotification('appointment_cancelled_by_patient', $notificationData);
+            require_once 'Services/SocketService.php';
+            SocketService::emit('appointment_cancelled_by_patient', $notificationData);
         } catch (Exception $e) {
             error_log("Patient cancellation notification error: " . $e->getMessage());
-        }
-    }
-
-    /**
-     * Send socket notification via HTTP request
-     */
-    private function sendSocketNotification($event, $data)
-    {
-        try {
-            // Read socket server URL from config; fallback to localhost for dev
-            $cfg = @include __DIR__ . '/../config/socket.php';
-            if (!is_array($cfg) || empty($cfg['server_url'])) {
-                $cfg = @include __DIR__ . '/../../config/socket.php';
-            }
-            $mode = isset($cfg['mode']) ? $cfg['mode'] : 'auto';
-            $prod = isset($cfg['server_url']) ? $cfg['server_url'] : '';
-            $dev = isset($cfg['dev_url']) ? $cfg['dev_url'] : '';
-            // Allow override via GET param (useful in testing)
-            $override = isset($_GET['socket']) ? $_GET['socket'] : null;
-            if ($override === 'dev' || $override === 'prod') {
-                $mode = $override;
-            }
-            if ($mode === 'dev') {
-                $baseUrl = $dev ?: 'http://localhost:3001';
-            } elseif ($mode === 'prod') {
-                $baseUrl = $prod ?: ($dev ?: 'http://localhost:3001');
-            } else {
-                // auto: if HTTPS assume prod URL else dev URL
-                $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
-                $baseUrl = $isHttps ? ($prod ?: ($dev ?: 'http://localhost:3001')) : ($dev ?: ($prod ?: 'http://localhost:3001'));
-            }
-            $baseUrl = rtrim($baseUrl, '/');
-            $socketUrl = $baseUrl . '/emit';
-
-            $postData = json_encode([
-                'event' => $event,
-                'data' => $data
-            ]);
-
-            // Use cURL for better reliability
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $socketUrl);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($postData)
-            ]);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-
-            $result = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-            curl_close($ch);
-
-            if ($result === false || $httpCode !== 200) {
-                error_log("Socket notification failed. HTTP Code: $httpCode, Error: $error");
-            } else {
-                error_log("Socket notification sent successfully: " . $result);
-            }
-        } catch (Exception $e) {
-            error_log("Socket notification error: " . $e->getMessage());
         }
     }
 }

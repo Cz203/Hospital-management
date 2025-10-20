@@ -13,15 +13,15 @@ $socketProd = is_array($socketCfg) && !empty($socketCfg['server_url']) ? $socket
 $socketDev = is_array($socketCfg) && !empty($socketCfg['dev_url']) ? $socketCfg['dev_url'] : '';
 
 // Current user context (optional for guests)
-$userId = $_SESSION['user_id'] ?? '';
-$userRole = $_SESSION['user_role'] ?? '';
-$userName = $_SESSION['user_name'] ?? '';
+require_once __DIR__ . '/layout_helper.php';
+$ctx = function_exists('getCurrentUserContext') ? getCurrentUserContext() : ['id' => null, 'role' => '', 'name' => ''];
+$userId = $ctx['id'] ?? '';
+$userRole = $ctx['role'] ?? '';
 ?>
 
 <!-- Socket.IO Bootstrap (no UI) -->
 <meta name="user-id" content="<?php echo htmlspecialchars($userId, ENT_QUOTES, 'UTF-8'); ?>">
 <meta name="user-role" content="<?php echo htmlspecialchars($userRole, ENT_QUOTES, 'UTF-8'); ?>">
-<meta name="user-name" content="<?php echo htmlspecialchars($userName, ENT_QUOTES, 'UTF-8'); ?>">
 <meta name="socket-mode" content="<?php echo htmlspecialchars($socketMode, ENT_QUOTES, 'UTF-8'); ?>">
 <meta name="socket-server-url" content="<?php echo htmlspecialchars($socketProd, ENT_QUOTES, 'UTF-8'); ?>">
 <meta name="socket-dev-url" content="<?php echo htmlspecialchars($socketDev, ENT_QUOTES, 'UTF-8'); ?>">

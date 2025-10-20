@@ -394,7 +394,8 @@ class ReceptionController
                 $p = $this->patientModel->getById($patientId);
                 if ($p && !empty($p['ten'])) $patientName = $p['ten'];
             }
-            $this->emitSocketEvent('new_appointment', [
+            require_once 'Services/SocketService.php';
+            SocketService::emit('new_appointment', [
                 'doctorId' => $doctorId,
                 'patientName' => $patientName,
                 'appointmentDate' => $today,
@@ -403,7 +404,7 @@ class ReceptionController
                 'appointmentId' => (int)$appointmentId,
             ]);
             // generic update broadcast (fallback)
-            $this->emitSocketEvent('appointment_update', [
+            SocketService::emit('appointment_update', [
                 'doctorId' => $doctorId,
                 'appointmentId' => (int)$appointmentId,
                 'patientName' => $patientName,
@@ -511,7 +512,8 @@ class ReceptionController
         // Emit realtime generic update for doctor views
         try {
             if (!empty($ticket['bac_si_id'])) {
-                $this->emitSocketEvent('appointment_update', [
+                require_once 'Services/SocketService.php';
+                SocketService::emit('appointment_update', [
                     'doctorId' => (int)$ticket['bac_si_id'],
                     'appointmentId' => isset($ticket['lich_hen_id']) ? (int)$ticket['lich_hen_id'] : null,
                     'queueStatus' => $newStatus,
@@ -596,46 +598,5 @@ class ReceptionController
             }
         }
         return $best;
-    }
-
-    // ---- Socket helper ----
-    private function emitSocketEvent(string $event, array $data): void
-    {
-        // Load socket config
-        $cfg = @include __DIR__ . '/../config/socket.php';
-        $mode = is_array($cfg) && !empty($cfg['mode']) ? $cfg['mode'] : 'auto';
-        $prod = is_array($cfg) && !empty($cfg['server_url']) ? $cfg['server_url'] : '';
-        $dev = is_array($cfg) && !empty($cfg['dev_url']) ? $cfg['dev_url'] : 'http://localhost:3001';
-        $base = ($mode === 'prod') ? ($prod ?: $dev) : $dev;
-        if (!$base) return;
-        $url = rtrim($base, '/') . '/emit';
-
-        $payload = json_encode(['event' => $event, 'data' => $data], JSON_UNESCAPED_UNICODE);
-        if ($payload === false) return;
-
-        // Use cURL if available
-        if (function_exists('curl_init')) {
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-            @curl_exec($ch);
-            @curl_close($ch);
-            return;
-        }
-
-        // Fallback to file_get_contents
-        $opts = [
-            'http' => [
-                'method' => 'POST',
-                'header' => "Content-Type: application/json\r\n",
-                'content' => $payload,
-                'timeout' => 2,
-            ],
-        ];
-        $ctx = stream_context_create($opts);
-        @file_get_contents($url, false, $ctx);
     }
 }

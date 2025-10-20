@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th10 13, 2025 lúc 10:50 AM
--- Phiên bản máy phục vụ: 10.4.32-MariaDB
--- Phiên bản PHP: 8.2.12
+-- Máy chủ: localhost:3306
+-- Thời gian đã tạo: Th10 13, 2025 lúc 05:45 PM
+-- Phiên bản máy phục vụ: 10.5.28-MariaDB
+-- Phiên bản PHP: 8.3.19
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Cơ sở dữ liệu: `clinic-management`
+-- Cơ sở dữ liệu: `he2e829b7e_clinic-management`
 --
 
 -- --------------------------------------------------------
@@ -295,7 +295,7 @@ CREATE TABLE `lich_hen` (
   `ngay_hen` date NOT NULL,
   `gio_hen` time NOT NULL,
   `ly_do` text DEFAULT NULL,
-  `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà') NOT NULL DEFAULT 'Trực tiếp',
+  `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà','Tại viện') NOT NULL DEFAULT 'Trực tiếp',
   `dia_chi_kham` varchar(255) DEFAULT NULL,
   `link_tu_van` varchar(255) DEFAULT NULL,
   `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Đang khám','Hoàn thành','Đã khám xong','hủy') DEFAULT 'Chờ xác nhận',
@@ -303,18 +303,6 @@ CREATE TABLE `lich_hen` (
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `lich_hen`
---
-
-INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(114, 28, 1, '2025-10-13', '15:40:00', '', 'Trực tiếp', NULL, '', 'Chờ xác nhận', '', '2025-10-13 08:28:33', '2025-10-13 08:28:33'),
-(115, 28, 49, '2025-10-13', '15:30:00', NULL, '', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-13 08:29:17', '2025-10-13 08:29:17'),
-(116, 28, 1, '2025-10-13', '15:30:00', NULL, '', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-13 08:29:22', '2025-10-13 08:29:22'),
-(117, 28, 49, '2025-10-13', '15:40:00', NULL, '', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-13 08:29:41', '2025-10-13 08:29:41'),
-(118, 28, 1, '2025-10-13', '15:50:00', NULL, '', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-13 08:29:49', '2025-10-13 08:29:49'),
-(119, 28, 49, '2025-10-13', '15:50:00', NULL, '', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-13 08:30:41', '2025-10-13 08:30:41');
 
 -- --------------------------------------------------------
 
@@ -432,17 +420,6 @@ CREATE TABLE `phieu_boc_so` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `phieu_boc_so`
---
-
-INSERT INTO `phieu_boc_so` (`id`, `ngay`, `so_thu_tu`, `benh_nhan_id`, `bac_si_id`, `lich_hen_id`, `trang_thai`, `uu_tien`, `quay`, `ghi_chu`, `thoi_gian_goi`, `thoi_gian_bat_dau`, `thoi_gian_ket_thuc`, `created_at`, `updated_at`) VALUES
-(14, '2025-10-13', 1, 28, 49, 115, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-10-13 08:29:17', '2025-10-13 08:29:17'),
-(15, '2025-10-13', 2, 28, 1, 116, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-10-13 08:29:22', '2025-10-13 08:29:22'),
-(16, '2025-10-13', 3, 28, 49, 117, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-10-13 08:29:41', '2025-10-13 08:29:41'),
-(17, '2025-10-13', 4, 28, 1, 118, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-10-13 08:29:49', '2025-10-13 08:29:49'),
-(18, '2025-10-13', 5, 28, 49, 119, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-10-13 08:30:41', '2025-10-13 08:30:41');
 
 -- --------------------------------------------------------
 
@@ -1072,7 +1049,7 @@ ALTER TABLE `le_tan`
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=124;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec`
@@ -1147,23 +1124,23 @@ ALTER TABLE `xray_suggestions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
--- Các ràng buộc cho các bảng đã đổ
+-- Ràng buộc đối với các bảng kết xuất
 --
 
 --
--- Các ràng buộc cho bảng `bac_si`
+-- Ràng buộc cho bảng `bac_si`
 --
 ALTER TABLE `bac_si`
   ADD CONSTRAINT `fk_bac_si_chuyen_khoa` FOREIGN KEY (`chuyen_khoa_id`) REFERENCES `chuyen_khoa` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `benh_nhan`
+-- Ràng buộc cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
   ADD CONSTRAINT `fk_benh_nhan_bao_hiem_y_te` FOREIGN KEY (`bao_hiem_y_te_id`) REFERENCES `bao_hiem_y_te` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `ho_so_benh_an`
+-- Ràng buộc cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
   ADD CONSTRAINT `ho_so_benh_an_ibfk_1` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE,
@@ -1171,44 +1148,44 @@ ALTER TABLE `ho_so_benh_an`
   ADD CONSTRAINT `ho_so_benh_an_ibfk_3` FOREIGN KEY (`lich_hen_id`) REFERENCES `lich_hen` (`id`) ON DELETE SET NULL;
 
 --
--- Các ràng buộc cho bảng `ket_qua_sieu_am`
+-- Ràng buộc cho bảng `ket_qua_sieu_am`
 --
 ALTER TABLE `ket_qua_sieu_am`
   ADD CONSTRAINT `fk_ket_qua_sieu_am_phieu` FOREIGN KEY (`id_phieu_yeu_cau_sieu_am`) REFERENCES `phieu_yeu_cau_sieu_am` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `ket_qua_xquang`
+-- Ràng buộc cho bảng `ket_qua_xquang`
 --
 ALTER TABLE `ket_qua_xquang`
   ADD CONSTRAINT `fk_kqxq_px` FOREIGN KEY (`id_phieu_chup_xquang`) REFERENCES `phieu_chup_xquang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `ket_qua_xquang_hinh_anh`
+-- Ràng buộc cho bảng `ket_qua_xquang_hinh_anh`
 --
 ALTER TABLE `ket_qua_xquang_hinh_anh`
   ADD CONSTRAINT `fk_kqxq_img_kq` FOREIGN KEY (`ket_qua_id`) REFERENCES `ket_qua_xquang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `lich_hen`
+-- Ràng buộc cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
   ADD CONSTRAINT `lich_hen_ibfk_1` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `lich_hen_ibfk_2` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `lich_lam_viec`
+-- Ràng buộc cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
   ADD CONSTRAINT `lich_lam_viec_ibfk_1` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_chup_xquang`
+-- Ràng buộc cho bảng `phieu_chup_xquang`
 --
 ALTER TABLE `phieu_chup_xquang`
   ADD CONSTRAINT `phieu_chup_xquang_ibfk_1` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_kham_benh`
+-- Ràng buộc cho bảng `phieu_kham_benh`
 --
 ALTER TABLE `phieu_kham_benh`
   ADD CONSTRAINT `fk_phieu_kham_benh_lich_hen` FOREIGN KEY (`id_lich_hen`) REFERENCES `lich_hen` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
@@ -1217,25 +1194,25 @@ ALTER TABLE `phieu_kham_benh`
   ADD CONSTRAINT `fk_pkb_lich_hen` FOREIGN KEY (`lich_hen`) REFERENCES `lich_hen` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_tien_su_di_ung`
+-- Ràng buộc cho bảng `phieu_tien_su_di_ung`
 --
 ALTER TABLE `phieu_tien_su_di_ung`
   ADD CONSTRAINT `fk_ptsd_benh_nhan` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_yeu_cau_sieu_am`
+-- Ràng buộc cho bảng `phieu_yeu_cau_sieu_am`
 --
 ALTER TABLE `phieu_yeu_cau_sieu_am`
   ADD CONSTRAINT `fk_pycsa_exam` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `sieu_am_hinh_anh`
+-- Ràng buộc cho bảng `sieu_am_hinh_anh`
 --
 ALTER TABLE `sieu_am_hinh_anh`
   ADD CONSTRAINT `fk_sieu_am_hinh_anh_ket_qua` FOREIGN KEY (`id_ket_qua_sieu_am`) REFERENCES `ket_qua_sieu_am` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `thong_bao`
+-- Ràng buộc cho bảng `thong_bao`
 --
 ALTER TABLE `thong_bao`
   ADD CONSTRAINT `fk_tb_bac_si` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE,
