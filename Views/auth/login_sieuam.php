@@ -20,12 +20,12 @@
 
         <div class="login-body">
             <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <?php echo $_SESSION['error']; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                <?php unset($_SESSION['error']); ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <?php echo $_SESSION['error']; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
             <form method="POST" action="./login_sieuam">
@@ -34,11 +34,10 @@
                     <label for="phone" class="form-label">
                         <i class="fas fa-phone"></i> Số điện thoại
                     </label>
-<<<<<<< HEAD
-                    <input type="tel" class="form-control" id="phone" name="phone" required>
-=======
-                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Nhập số điện thoại" required>
->>>>>>> origin/Thinh
+
+                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Nhập số điện thoại"
+                        required>
+
                 </div>
 
                 <div class="mb-3">
@@ -57,21 +56,21 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Format số điện thoại khi nhập
-        document.getElementById('phone').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, ''); // Chỉ giữ lại số
-            e.target.value = value;
-        });
+    // Format số điện thoại khi nhập
+    document.getElementById('phone').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, ''); // Chỉ giữ lại số
+        e.target.value = value;
+    });
 
-        // Validate số điện thoại trước khi submit
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const phone = document.getElementById('phone').value;
-            if (phone.length < 10) {
-                e.preventDefault();
-                alert('Số điện thoại phải có ít nhất 10 chữ số!');
-                return false;
-            }
-        });
+    // Validate số điện thoại trước khi submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const phone = document.getElementById('phone').value;
+        if (phone.length < 10) {
+            e.preventDefault();
+            alert('Số điện thoại phải có ít nhất 10 chữ số!');
+            return false;
+        }
+    });
     </script>
 </body>
 
