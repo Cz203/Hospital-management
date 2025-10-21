@@ -1291,6 +1291,28 @@ class DoctorController
             require_once 'Models/PhieuKhamBenh.php';
             $model = new PhieuKhamBenh();
 
+            // Log raw POST data for debugging
+            error_log('saveExaminationForm - Raw POST data: ' . json_encode([
+                'ngay_sinh_raw' => $_POST['ngay_sinh'] ?? 'NOT_SET',
+                'ngay_sinh_type' => gettype($_POST['ngay_sinh'] ?? null),
+                'ngay_sinh_empty' => empty($_POST['ngay_sinh'] ?? null) ? 'YES' : 'NO',
+                'thang_sinh' => $_POST['thang_sinh'] ?? 'NOT_SET',
+                'nam_sinh' => $_POST['nam_sinh'] ?? 'NOT_SET',
+            ]));
+
+            // Helper function to validate and convert numeric values
+            $toInt = function ($value, $min = null, $max = null) {
+                // Return null if value is null, empty string, or not set
+                if ($value === null || $value === '' || (is_string($value) && trim($value) === '')) {
+                    return null;
+                }
+                $intVal = (int)$value;
+                // Validate range
+                if ($min !== null && $intVal < $min) return null;
+                if ($max !== null && $intVal > $max) return null;
+                return $intVal;
+            };
+
             // Map payload from form names
             $payload = [
                 'benh_nhan_id' => $patientId,
@@ -1299,10 +1321,10 @@ class DoctorController
                 'benh_vien' => $_POST['benh_vien'] ?? null,
                 'buong_kham' => $_POST['buong_kham'] ?? null,
                 'ho_ten' => $_POST['ho_ten'] ?? null,
-                'ngay_sinh' => $_POST['ngay_sinh'] ?? null,
-                'thang_sinh' => $_POST['thang_sinh'] ?? null,
-                'nam_sinh' => $_POST['nam_sinh'] ?? null,
-                'tuoi' => $_POST['tuoi'] ?? null,
+                'ngay_sinh' => $toInt($_POST['ngay_sinh'] ?? null, 1, 31),
+                'thang_sinh' => $toInt($_POST['thang_sinh'] ?? null, 1, 12),
+                'nam_sinh' => $toInt($_POST['nam_sinh'] ?? null, 1900, 2100),
+                'tuoi' => $toInt($_POST['tuoi'] ?? null, 0, 150),
                 'gioi_tinh' => $_POST['gioi_tinh'] ?? null,
                 'nghe_nghiep' => $_POST['nghe_nghiep'] ?? null,
                 'dan_toc' => $_POST['dan_toc'] ?? null,
@@ -1313,38 +1335,50 @@ class DoctorController
                 'doi_tuong_thu_phi' => isset($_POST['doi_tuong']) && in_array('Thu phí', (array)$_POST['doi_tuong']) ? 1 : 0,
                 'doi_tuong_mien' => isset($_POST['doi_tuong']) && in_array('Miễn', (array)$_POST['doi_tuong']) ? 1 : 0,
                 'doi_tuong_khac' => isset($_POST['doi_tuong']) && in_array('Khác', (array)$_POST['doi_tuong']) ? 1 : 0,
-                'bhyt_ngay' => $_POST['bhyt_ngay'] ?? null,
-                'bhyt_thang' => $_POST['bhyt_thang'] ?? null,
-                'bhyt_nam' => $_POST['bhyt_nam'] ?? null,
+                'bhyt_ngay' => $toInt($_POST['bhyt_ngay'] ?? null, 1, 31),
+                'bhyt_thang' => $toInt($_POST['bhyt_thang'] ?? null, 1, 12),
+                'bhyt_nam' => $toInt($_POST['bhyt_nam'] ?? null, 2000, 2100),
                 'so_the_bhyt' => $_POST['so_the_bhyt'] ?? null,
                 'dien_thoai_bao_tin' => $_POST['dien_thoai_bao_tin'] ?? null,
-                'gio_kham' => $_POST['gio_kham'] ?? null,
-                'phut_kham' => $_POST['phut_kham'] ?? null,
-                'ngay_kham' => $_POST['ngay_kham'] ?? null,
-                'thang_kham' => $_POST['thang_kham'] ?? null,
-                'nam_kham' => $_POST['nam_kham'] ?? null,
+                'gio_kham' => $toInt($_POST['gio_kham'] ?? null, 0, 23),
+                'phut_kham' => $toInt($_POST['phut_kham'] ?? null, 0, 59),
+                'ngay_kham' => $toInt($_POST['ngay_kham'] ?? null, 1, 31),
+                'thang_kham' => $toInt($_POST['thang_kham'] ?? null, 1, 12),
+                'nam_kham' => $toInt($_POST['nam_kham'] ?? null, 2000, 2100),
                 'chan_doan_gioi_thieu' => $_POST['chan_doan_gioi_thieu'] ?? null,
                 'qua_trinh_benh_li' => $_POST['qua_trinh_benh_li'] ?? null,
                 'tien_su_ban_than' => $_POST['tien_su_ban_than'] ?? null,
                 'tien_su_gia_dinh' => $_POST['tien_su_gia_dinh'] ?? null,
                 'kham_toan_than' => $_POST['kham_toan_than'] ?? null,
-                'mach' => $_POST['mach'] ?? null,
-                'nhiet_do' => $_POST['nhiet_do'] ?? null,
-                'huyet_ap_tam_thu' => $_POST['huyet_ap_tam_thu'] ?? null,
-                'huyet_ap_tam_truong' => $_POST['huyet_ap_tam_truong'] ?? null,
-                'nhip_tho' => $_POST['nhip_tho'] ?? null,
+                'mach' => $toInt($_POST['mach'] ?? null, 0, 300),
+                'nhiet_do' => !empty($_POST['nhiet_do']) ? (float)$_POST['nhiet_do'] : null,
+                'huyet_ap_tam_thu' => $toInt($_POST['huyet_ap_tam_thu'] ?? null, 0, 300),
+                'huyet_ap_tam_truong' => $toInt($_POST['huyet_ap_tam_truong'] ?? null, 0, 300),
+                'nhip_tho' => $toInt($_POST['nhip_tho'] ?? null, 0, 100),
                 'kham_cac_bo_phan' => $_POST['kham_cac_bo_phan'] ?? null,
                 'tom_tat_lam_sang' => $_POST['tom_tat_lam_sang'] ?? null,
                 'chan_doan_vao_vien' => $_POST['chan_doan_vao_vien'] ?? null,
                 'da_xu_li' => $_POST['da_xu_li'] ?? null,
                 'khoa_dieu_tri' => $_POST['khoa_dieu_tri'] ?? null,
                 'chu_y' => $_POST['chu_y'] ?? null,
-                'ngay_ky' => $_POST['ngay_ky'] ?? null,
-                'thang_ky' => $_POST['thang_ky'] ?? null,
-                'nam_ky' => $_POST['nam_ky'] ?? null,
+                'ngay_ky' => $toInt($_POST['ngay_ky'] ?? null, 1, 31),
+                'thang_ky' => $toInt($_POST['thang_ky'] ?? null, 1, 12),
+                'nam_ky' => $toInt($_POST['nam_ky'] ?? null, 2000, 2100),
                 'ten_bac_si' => $_POST['ten_bac_si'] ?? null,
                 'id_lich_hen' => $_POST['appointment_id'] ?? null,
             ];
+
+            // Log validated payload for debugging
+            error_log('saveExaminationForm - Validated payload: ' . json_encode([
+                'ngay_sinh' => $payload['ngay_sinh'],
+                'ngay_sinh_is_null' => ($payload['ngay_sinh'] === null) ? 'YES' : 'NO',
+                'thang_sinh' => $payload['thang_sinh'],
+                'nam_sinh' => $payload['nam_sinh'],
+                'tuoi' => $payload['tuoi'],
+            ]));
+
+            // Debug: Log what's being sent to database for ngay_sinh
+            error_log('saveExaminationForm - Database bind value for ngay_sinh: ' . var_export($payload['ngay_sinh'], true));
 
             // Upsert by appointment if appointment_id is provided
             if (!empty($payload['id_lich_hen'])) {
@@ -1352,12 +1386,21 @@ class DoctorController
             } else {
                 $newId = $model->create($payload);
             }
+
+            if (!$newId) {
+                error_log('saveExaminationForm: Failed to create/update record');
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Không thể lưu phiếu khám vào database. Vui lòng kiểm tra log.']);
+                exit();
+            }
+
             header('Content-Type: application/json');
-            echo json_encode(['success' => $newId ? true : false, 'id' => $newId]);
+            echo json_encode(['success' => true, 'id' => $newId]);
         } catch (Exception $e) {
             error_log('saveExaminationForm error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
             header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Server error']);
+            echo json_encode(['success' => false, 'message' => 'Lỗi server: ' . $e->getMessage()]);
         }
         exit();
     }

@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Oct 20, 2025 at 07:04 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Máy chủ: 127.0.0.1
+-- Thời gian đã tạo: Th10 21, 2025 lúc 10:02 AM
+-- Phiên bản máy phục vụ: 10.4.32-MariaDB
+-- Phiên bản PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `clinic-management`
+-- Cơ sở dữ liệu: `clinic-management`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `bac_si`
+-- Cấu trúc bảng cho bảng `bac_si`
 --
 
 CREATE TABLE `bac_si` (
@@ -43,7 +43,7 @@ CREATE TABLE `bac_si` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `bac_si`
+-- Đang đổ dữ liệu cho bảng `bac_si`
 --
 
 INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen_khoa_id`, `chuyen_khoa`, `so_giay_phep`, `so_nam_kinh_nghiem`, `ngay_tao`, `ngay_cap_nhat`, `hinh_anh`) VALUES
@@ -55,7 +55,7 @@ INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen
 -- --------------------------------------------------------
 
 --
--- Table structure for table `bao_hiem_y_te`
+-- Cấu trúc bảng cho bảng `bao_hiem_y_te`
 --
 
 CREATE TABLE `bao_hiem_y_te` (
@@ -72,7 +72,7 @@ CREATE TABLE `bao_hiem_y_te` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `bao_hiem_y_te`
+-- Đang đổ dữ liệu cho bảng `bao_hiem_y_te`
 --
 
 INSERT INTO `bao_hiem_y_te` (`id`, `ma_bao_hiem`, `loai_the`, `ten_chu_the`, `ngay_sinh`, `gioi_tinh`, `ngay_bat_dau`, `ngay_het_han`, `noi_cap`, `trang_thai`) VALUES
@@ -83,7 +83,7 @@ INSERT INTO `bao_hiem_y_te` (`id`, `ma_bao_hiem`, `loai_the`, `ten_chu_the`, `ng
 -- --------------------------------------------------------
 
 --
--- Table structure for table `benh_nhan`
+-- Cấu trúc bảng cho bảng `benh_nhan`
 --
 
 CREATE TABLE `benh_nhan` (
@@ -105,7 +105,7 @@ CREATE TABLE `benh_nhan` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `benh_nhan`
+-- Đang đổ dữ liệu cho bảng `benh_nhan`
 --
 
 INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `bao_hiem_y_te`, `bao_hiem_y_te_id`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`, `ma_benh_nhan`) VALUES
@@ -120,7 +120,7 @@ INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `pho
 -- --------------------------------------------------------
 
 --
--- Table structure for table `chi_so_xet_nghiem`
+-- Cấu trúc bảng cho bảng `chi_so_xet_nghiem`
 --
 
 CREATE TABLE `chi_so_xet_nghiem` (
@@ -134,7 +134,7 @@ CREATE TABLE `chi_so_xet_nghiem` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng chỉ số xét nghiệm';
 
 --
--- Dumping data for table `chi_so_xet_nghiem`
+-- Đang đổ dữ liệu cho bảng `chi_so_xet_nghiem`
 --
 
 INSERT INTO `chi_so_xet_nghiem` (`id`, `xet_nghiem`, `gia_tri_tham_chieu`, `don_vi`, `may_qtkt`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -175,7 +175,7 @@ INSERT INTO `chi_so_xet_nghiem` (`id`, `xet_nghiem`, `gia_tri_tham_chieu`, `don_
 -- --------------------------------------------------------
 
 --
--- Table structure for table `chi_tiet_don_thuoc`
+-- Cấu trúc bảng cho bảng `chi_tiet_don_thuoc`
 --
 
 CREATE TABLE `chi_tiet_don_thuoc` (
@@ -192,18 +192,10 @@ CREATE TABLE `chi_tiet_don_thuoc` (
   `NgayCapNhat` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `chi_tiet_don_thuoc`
---
-
-INSERT INTO `chi_tiet_don_thuoc` (`MaChiTiet`, `MaDonThuoc`, `MaThuoc`, `TenThuoc`, `HoatChat`, `DonViTinh`, `SoLuong`, `LieuDung`, `GhiChu`, `NgayTao`, `NgayCapNhat`) VALUES
-(28, 'P271169-727', 'T001', 'Amoxicillin 500mg', 'Amoxicillin', 'Viên', 3, '1-2 viên x 3 lần/ngày', '', '2025-10-20 18:51:36', '2025-10-20 18:51:36'),
-(29, 'P271169-727', 'T002', 'Paracetamol 500mg', 'Paracetamol', 'Viên', 15, '1-2 viên x 3-4 lần/ngày', '', '2025-10-20 18:51:36', '2025-10-20 18:51:36');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `chi_tiet_ket_qua_xet_nghiem`
+-- Cấu trúc bảng cho bảng `chi_tiet_ket_qua_xet_nghiem`
 --
 
 CREATE TABLE `chi_tiet_ket_qua_xet_nghiem` (
@@ -219,19 +211,10 @@ CREATE TABLE `chi_tiet_ket_qua_xet_nghiem` (
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng chi tiết kết quả xét nghiệm';
 
---
--- Dumping data for table `chi_tiet_ket_qua_xet_nghiem`
---
-
-INSERT INTO `chi_tiet_ket_qua_xet_nghiem` (`id`, `id_phieu_tra_ket_qua`, `stt`, `ten_xet_nghiem`, `gia_tri_tham_chieu`, `ket_qua`, `don_vi`, `may_qtkt`, `ghi_chu`, `ngay_tao`) VALUES
-(44, 22, 1, '% Lym', '(19 - 48)', '100', '%', 'AU5800/QTKT.25', NULL, '2025-10-19 09:28:45'),
-(45, 22, 2, 'MCV', '(80 - 100)', '200', 'fL', '01/XN-QTXN.HS.01', NULL, '2025-10-19 09:28:45'),
-(47, 24, 1, 'MCV', '(80 - 100)', '900', 'fL', '01/XN-QTXN.HS.01', NULL, '2025-10-19 09:47:53');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `chuyen_khoa`
+-- Cấu trúc bảng cho bảng `chuyen_khoa`
 --
 
 CREATE TABLE `chuyen_khoa` (
@@ -247,7 +230,7 @@ CREATE TABLE `chuyen_khoa` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `chuyen_khoa`
+-- Đang đổ dữ liệu cho bảng `chuyen_khoa`
 --
 
 INSERT INTO `chuyen_khoa` (`id`, `ten`, `slug`, `mo_ta`, `icon`, `thu_tu`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -272,7 +255,7 @@ INSERT INTO `chuyen_khoa` (`id`, `ten`, `slug`, `mo_ta`, `icon`, `thu_tu`, `tran
 -- --------------------------------------------------------
 
 --
--- Table structure for table `don_thuoc`
+-- Cấu trúc bảng cho bảng `don_thuoc`
 --
 
 CREATE TABLE `don_thuoc` (
@@ -287,17 +270,10 @@ CREATE TABLE `don_thuoc` (
   `NgayTao` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `don_thuoc`
---
-
-INSERT INTO `don_thuoc` (`MaDonThuoc`, `MaBenhNhan`, `MaBacSi`, `id_phieu_kham_benh`, `NgayKe`, `ChanDoan`, `GhiChu`, `TrangThai`, `NgayTao`) VALUES
-('P271169-727', 28, 1, 12, '2025-10-20', 'asd123', '123123', 'Chưa lấy thuốc', '2025-10-20 18:38:18');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ho_so_benh_an`
+-- Cấu trúc bảng cho bảng `ho_so_benh_an`
 --
 
 CREATE TABLE `ho_so_benh_an` (
@@ -316,7 +292,7 @@ CREATE TABLE `ho_so_benh_an` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ket_qua_sieu_am`
+-- Cấu trúc bảng cho bảng `ket_qua_sieu_am`
 --
 
 CREATE TABLE `ket_qua_sieu_am` (
@@ -329,21 +305,10 @@ CREATE TABLE `ket_qua_sieu_am` (
   `bac_si_sieu_am` varchar(255) DEFAULT NULL COMMENT 'Tên bác sĩ siêu âm thực hiện và trả kết quả'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `ket_qua_sieu_am`
---
-
-INSERT INTO `ket_qua_sieu_am` (`id`, `id_phieu_yeu_cau_sieu_am`, `ket_qua_khao_sat`, `ket_luan`, `ngay_tao`, `ngay_cap_nhat`, `bac_si_sieu_am`) VALUES
-(10, 5, '- aaaaa\n- bbbbbb\n- ccccccc', 'aaaasssddd', '2025-10-11 19:37:32', '2025-10-12 07:17:47', 'BS Siêu Âm'),
-(11, 6, '- huhi\n- haha\n- aaaa', 'ngày xưa rất xưa', '2025-10-11 19:44:42', '2025-10-12 07:19:30', 'BS Siêu Âm'),
-(12, 4, '- 123', 'nnnn', '2025-10-11 20:49:48', '2025-10-11 20:49:53', NULL),
-(13, 3, '- hahaha\n- hihihih\n- huhuhu\n- zzzzzz', 'aaaaasssddd', '2025-10-12 06:14:05', '2025-10-12 06:14:11', 'BS Siêu Âm'),
-(14, 8, '- huhu\n- hihi', 'khùng', '2025-10-18 18:55:03', '2025-10-18 18:55:23', 'BS Siêu Âm');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ket_qua_xquang`
+-- Cấu trúc bảng cho bảng `ket_qua_xquang`
 --
 
 CREATE TABLE `ket_qua_xquang` (
@@ -358,22 +323,10 @@ CREATE TABLE `ket_qua_xquang` (
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `ket_qua_xquang`
---
-
-INSERT INTO `ket_qua_xquang` (`id`, `id_phieu_chup_xquang`, `chuan_doan`, `noi_dung`, `ket_luan`, `bac_si_xquang`, `ngay_doc`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 15, 'hihi, haha', 'tật ', 'khùng luôn rồi', 'Bác Sĩ X-Quang', '2025-10-02 04:00:00', '2025-10-01 20:43:01', '2025-10-01 21:00:00'),
-(2, 24, 'haha', 'hahahi', 'hihaha', 'Bác Sĩ X-Quang', '2025-10-11 13:30:15', '2025-10-11 06:24:33', '2025-10-11 06:30:15'),
-(3, 20, '', '', '', 'Bác Sĩ X-Quang', '2025-10-11 13:30:03', '2025-10-11 06:30:03', '2025-10-11 06:30:03'),
-(4, 28, 'aaaa', 'ccccc', 'dddd', 'Bác Sĩ X-Quang', '2025-10-11 16:07:00', '2025-10-11 09:07:00', '2025-10-11 09:07:00'),
-(5, 29, 'bbbbb', 'asd', 'zxxc', 'Bác Sĩ X-Quang', '2025-10-11 16:09:28', '2025-10-11 09:09:28', '2025-10-11 09:09:28'),
-(6, 31, '9999', 'gãy rồi', 'hư rồi', 'Bác Sĩ X-Quang', '2025-10-19 01:57:28', '2025-10-18 18:57:28', '2025-10-18 18:57:28');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ket_qua_xquang_hinh_anh`
+-- Cấu trúc bảng cho bảng `ket_qua_xquang_hinh_anh`
 --
 
 CREATE TABLE `ket_qua_xquang_hinh_anh` (
@@ -386,27 +339,10 @@ CREATE TABLE `ket_qua_xquang_hinh_anh` (
   `ngay_tai` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `ket_qua_xquang_hinh_anh`
---
-
-INSERT INTO `ket_qua_xquang_hinh_anh` (`id`, `ket_qua_id`, `file_path`, `file_name`, `mime_type`, `file_size`, `ngay_tai`) VALUES
-(1, 1, './uploads/xray/15/xray_68dd9757524540.50665851.png', 'xray_68dd9757524540.50665851.png', 'image/png', NULL, '2025-10-01 21:05:41'),
-(2, 1, './uploads/xray/15/xray_68dd9757524540.50665851.png', 'xray_68dd9757524540.50665851.png', 'image/png', NULL, '2025-10-10 21:21:23'),
-(3, 2, './uploads/xray/24/xray_68e9f986de0721.22046326.jpg', 'xray_68e9f986de0721.22046326.jpg', 'image/jpg', NULL, '2025-10-11 06:30:54'),
-(4, 2, './uploads/xray/24/xray_68e9f996bed137.08507415.jpg', 'xray_68e9f996bed137.08507415.jpg', 'image/jpg', NULL, '2025-10-11 06:30:54'),
-(5, 4, './uploads/xray/28/xray_68ea1e41aa8a22.17864679.jpg', 'xray_68ea1e41aa8a22.17864679.jpg', 'image/jpg', NULL, '2025-10-11 09:07:21'),
-(6, 4, './uploads/xray/28/xray_68ea1e473a5ee2.88752995.jpg', 'xray_68ea1e473a5ee2.88752995.jpg', 'image/jpg', NULL, '2025-10-11 09:07:21'),
-(7, 5, './uploads/xray/29/xray_68ea1efa3fa836.64025353.png', 'xray_68ea1efa3fa836.64025353.png', 'image/png', NULL, '2025-10-11 09:10:21'),
-(8, 2, './uploads/xray/24/xray_68e9f986de0721.22046326.jpg', 'xray_68e9f986de0721.22046326.jpg', 'image/jpg', NULL, '2025-10-11 09:41:31'),
-(9, 2, './uploads/xray/24/xray_68e9f996bed137.08507415.jpg', 'xray_68e9f996bed137.08507415.jpg', 'image/jpg', NULL, '2025-10-11 09:41:31'),
-(10, 6, './uploads/xray/31/xray_68f3e329cdb905.04273032.jpg', 'xray_68f3e329cdb905.04273032.jpg', 'image/jpg', NULL, '2025-10-18 18:57:54'),
-(11, 6, './uploads/xray/31/xray_68f3e330854d79.39164630.jpg', 'xray_68f3e330854d79.39164630.jpg', 'image/jpg', NULL, '2025-10-18 18:57:54');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `le_tan`
+-- Cấu trúc bảng cho bảng `le_tan`
 --
 
 CREATE TABLE `le_tan` (
@@ -419,10 +355,17 @@ CREATE TABLE `le_tan` (
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Đang đổ dữ liệu cho bảng `le_tan`
+--
+
+INSERT INTO `le_tan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 'zxcvzxv', '', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', '2025-10-20 21:03:32', '2025-10-20 21:03:32');
+
 -- --------------------------------------------------------
 
 --
--- Table structure for table `lich_hen`
+-- Cấu trúc bảng cho bảng `lich_hen`
 --
 
 CREATE TABLE `lich_hen` (
@@ -432,7 +375,7 @@ CREATE TABLE `lich_hen` (
   `ngay_hen` date NOT NULL,
   `gio_hen` time NOT NULL,
   `ly_do` text DEFAULT NULL,
-  `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà') NOT NULL DEFAULT 'Trực tiếp',
+  `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà','Tại viện') NOT NULL DEFAULT 'Trực tiếp',
   `dia_chi_kham` varchar(255) DEFAULT NULL,
   `link_tu_van` varchar(255) DEFAULT NULL,
   `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Đang khám','Hoàn thành','Đã khám xong','hủy') DEFAULT 'Chờ xác nhận',
@@ -442,28 +385,28 @@ CREATE TABLE `lich_hen` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `lich_hen`
+-- Đang đổ dữ liệu cho bảng `lich_hen`
 --
 
 INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(89, 28, 1, '2025-09-24', '12:00:00', '', 'Trực tiếp', NULL, '', 'Đã xác nhận', '', '2025-09-23 10:53:12', '2025-09-23 10:53:27'),
-(90, 28, 1, '2025-09-24', '12:20:00', '', 'Tư vấn', NULL, 'https://us05web.zoom.us/j/88038802020?pwd=TOQy4lo2jZzOt6fCdiFsCgFcpvckPj.1', 'Đã xác nhận', '', '2025-09-23 10:59:37', '2025-09-23 10:59:50'),
-(91, 28, 1, '2025-09-28', '12:00:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-09-25 14:45:05', '2025-09-25 16:57:15'),
-(92, 28, 1, '2025-09-26', '09:40:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-09-25 14:45:18', '2025-09-25 14:45:56'),
-(93, 29, 1, '2025-09-29', '12:00:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-09-28 14:43:12', '2025-09-28 14:46:44'),
-(94, 29, 1, '2025-10-11', '18:00:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-10-11 05:28:27', '2025-10-11 05:29:32'),
-(95, 29, 1, '2025-10-11', '18:20:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-10-11 05:28:51', '2025-10-11 05:29:56'),
-(96, 29, 1, '2025-10-12', '12:00:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-10-11 08:50:19', '2025-10-11 08:51:22'),
-(97, 28, 1, '2025-10-12', '12:20:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-10-11 08:50:44', '2025-10-11 08:56:16'),
-(98, 29, 1, '2025-10-12', '16:20:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-10-12 09:02:46', '2025-10-12 09:03:03'),
-(99, 28, 1, '2025-10-19', '12:00:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-10-18 18:46:14', '2025-10-18 18:47:52'),
-(100, 29, 1, '2025-10-19', '12:10:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-10-18 18:46:50', '2025-10-18 18:48:37'),
-(101, 28, 1, '2025-10-19', '16:50:00', '', 'Trực tiếp', NULL, '', 'Đang khám', NULL, '2025-10-19 09:41:43', '2025-10-19 10:12:57');
+(105, 28, 1, '2025-10-21', '08:20:00', NULL, 'Tại viện', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-21 01:14:22', '2025-10-21 01:14:22'),
+(106, 28, 1, '2025-10-21', '14:00:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 06:50:45', '2025-10-21 06:52:26'),
+(107, 28, 1, '2025-10-21', '14:10:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 07:07:14', '2025-10-21 07:30:05'),
+(108, 28, 1, '2025-10-21', '14:20:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 07:07:22', '2025-10-21 07:07:39'),
+(109, 28, 1, '2025-10-21', '14:40:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 07:32:03', '2025-10-21 07:32:24'),
+(110, 28, 1, '2025-10-21', '14:50:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 07:34:54', '2025-10-21 07:36:32'),
+(111, 28, 1, '2025-10-21', '15:00:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 07:39:50', '2025-10-21 07:43:02'),
+(112, 28, 1, '2025-10-21', '15:10:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 07:41:44', '2025-10-21 07:44:40'),
+(113, 28, 1, '2025-10-21', '15:20:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 07:41:49', '2025-10-21 07:49:14'),
+(114, 28, 1, '2025-10-21', '15:30:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 07:41:53', '2025-10-21 07:52:04'),
+(115, 28, 1, '2025-10-21', '15:40:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-10-21 07:41:57', '2025-10-21 07:52:13'),
+(116, 28, 1, '2025-10-21', '15:50:00', NULL, 'Tại viện', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-21 07:42:01', '2025-10-21 07:42:01'),
+(117, 28, 1, '2025-10-21', '16:00:00', NULL, 'Tại viện', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-10-21 07:44:30', '2025-10-21 07:44:30');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `lich_lam_viec`
+-- Cấu trúc bảng cho bảng `lich_lam_viec`
 --
 
 CREATE TABLE `lich_lam_viec` (
@@ -480,7 +423,7 @@ CREATE TABLE `lich_lam_viec` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `lich_lam_viec`
+-- Đang đổ dữ liệu cho bảng `lich_lam_viec`
 --
 
 INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`, `gio_ket_thuc`, `loai_ca`, `ghi_chu`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -501,7 +444,7 @@ INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`,
 -- --------------------------------------------------------
 
 --
--- Table structure for table `lich_lam_viec_ngoai_le`
+-- Cấu trúc bảng cho bảng `lich_lam_viec_ngoai_le`
 --
 
 CREATE TABLE `lich_lam_viec_ngoai_le` (
@@ -518,7 +461,7 @@ CREATE TABLE `lich_lam_viec_ngoai_le` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `lich_lam_viec_ngoai_le`
+-- Đang đổ dữ liệu cho bảng `lich_lam_viec_ngoai_le`
 --
 
 INSERT INTO `lich_lam_viec_ngoai_le` (`id`, `bac_si_id`, `schedule_id`, `ngay`, `action`, `gio_bat_dau`, `gio_ket_thuc`, `loai_ca`, `ghi_chu`, `created_at`) VALUES
@@ -555,7 +498,7 @@ INSERT INTO `lich_lam_viec_ngoai_le` (`id`, `bac_si_id`, `schedule_id`, `ngay`, 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `phieu_boc_so`
+-- Cấu trúc bảng cho bảng `phieu_boc_so`
 --
 
 CREATE TABLE `phieu_boc_so` (
@@ -579,7 +522,7 @@ CREATE TABLE `phieu_boc_so` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `phieu_chup_xquang`
+-- Cấu trúc bảng cho bảng `phieu_chup_xquang`
 --
 
 CREATE TABLE `phieu_chup_xquang` (
@@ -595,24 +538,10 @@ CREATE TABLE `phieu_chup_xquang` (
   `chan_doan_vao_vien` text DEFAULT NULL COMMENT 'Chuẩn đoán nhập vào'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `phieu_chup_xquang`
---
-
-INSERT INTO `phieu_chup_xquang` (`id`, `id_phieu_kham_benh`, `so_dien_thoai`, `quan`, `yeu_cau_chup`, `bac_si_kham`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`, `chan_doan_vao_vien`) VALUES
-(15, 5, '0777871608', 'Gò Vấp', 'Khuỷu tay phải,  Khớp háng trái, Khớp gối phải', 'GSTS. Cao Việt', 'Đã yêu cầu', '2025-09-28 12:01:24', '2025-10-11 08:47:24', '123123haha'),
-(19, 6, '0777871608', 'Gò Vấp', 'Khớp háng phải', 'GSTS. Cao Việt', 'Đã yêu cầu', '2025-09-29 07:46:41', '2025-09-29 07:51:03', NULL),
-(20, 7, '0777871608', 'Gò Vấp', 'Vai phải, Vai trái', 'GSTS. Cao Việt', 'Hoàn thành', '2025-10-11 05:32:06', '2025-10-11 09:42:00', 'gãy tay'),
-(24, 8, '0777871608', 'Gò Vấp', 'Khớp gối phải', 'GSTS. Cao Việt', 'Hoàn thành', '2025-10-11 06:06:47', '2025-10-11 09:41:31', 'haha'),
-(28, 10, '0777871608', 'Gò Vấp', 'Cột sống cổ thẳng, Xương cánh tay trái', 'GSTS. Cao Việt', 'Đã yêu cầu', '2025-10-11 08:59:13', '2025-10-18 18:07:28', 'aaaa'),
-(29, 9, '0777871608', 'Gò Vấp', 'Cột sống cổ thẳng', 'GSTS. Cao Việt', 'Hoàn thành', '2025-10-11 09:03:19', '2025-10-11 09:10:21', 'bbbbb'),
-(30, 13, '0777871608', 'Gò Vấp', 'Xương cánh tay phải, Xương cánh tay trái', 'GSTS. Cao Việt', 'Đã yêu cầu', '2025-10-18 18:51:47', '2025-10-18 18:51:47', 'aaa'),
-(31, 12, '0777871608', 'Gò Vấp', 'Xương cánh tay phải', 'GSTS. Cao Việt', 'Hoàn thành', '2025-10-18 18:53:03', '2025-10-18 18:57:55', '9999');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `phieu_kham_benh`
+-- Cấu trúc bảng cho bảng `phieu_kham_benh`
 --
 
 CREATE TABLE `phieu_kham_benh` (
@@ -673,27 +602,10 @@ CREATE TABLE `phieu_kham_benh` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `phieu_kham_benh`
---
-
-INSERT INTO `phieu_kham_benh` (`id`, `id_lich_hen`, `benh_nhan_id`, `bac_si_id`, `so_y_te`, `benh_vien`, `buong_kham`, `ho_ten`, `ngay_sinh`, `thang_sinh`, `nam_sinh`, `tuoi`, `gioi_tinh`, `nghe_nghiep`, `dan_toc`, `ngoai_kieu`, `noi_lam_viec`, `dia_chi`, `doi_tuong_bhyt`, `doi_tuong_thu_phi`, `doi_tuong_mien`, `doi_tuong_khac`, `bhyt_ngay`, `bhyt_thang`, `bhyt_nam`, `so_the_bhyt`, `dien_thoai_bao_tin`, `gio_kham`, `phut_kham`, `ngay_kham`, `thang_kham`, `nam_kham`, `chan_doan_gioi_thieu`, `qua_trinh_benh_li`, `tien_su_ban_than`, `tien_su_gia_dinh`, `kham_toan_than`, `mach`, `nhiet_do`, `huyet_ap_tam_thu`, `huyet_ap_tam_truong`, `nhip_tho`, `kham_cac_bo_phan`, `tom_tat_lam_sang`, `chan_doan_vao_vien`, `da_xu_li`, `khoa_dieu_tri`, `chu_y`, `ngay_ky`, `thang_ky`, `nam_ky`, `ten_bac_si`, `lich_hen`, `created_at`, `updated_at`) VALUES
-(4, 92, 28, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', '51/16A Phạm Văn Chiêu', 1, 0, 0, 0, 31, 12, 2024, '0791034568', '84913998110', 6, 0, 28, 9, 2025, NULL, '', '', '', '', 0, 0.0, 0, 0, 0, '', '', 'bị khùng', '', '', '', 28, 9, 2025, 'GSTS. Cao Việt', NULL, '2025-09-28 11:00:47', '2025-09-28 11:00:47'),
-(5, 91, 28, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', '51/16A Phạm Văn Chiêu', 1, 0, 0, 0, 31, 12, 2024, '0791034568', '84913998110', 0, 0, 10, 10, 2025, NULL, '', '', '', '', 0, 0.0, 0, 0, 0, '', '', '123123haha', '', '', '', 10, 10, 2025, 'GSTS. Cao Việt', NULL, '2025-09-28 11:21:55', '2025-10-09 19:34:43'),
-(6, 93, 29, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'THINH', 22, 3, 2003, 22, NULL, '', '', '', '', '51/16A Phạm Văn Chiêu', 0, 1, 0, 0, 0, 0, 0, '', '', 0, 0, 29, 9, 2025, NULL, '', '', '', '', 0, 0.0, 0, 0, 0, '', '', 'bị khùng', '', '', '', 29, 9, 2025, 'GSTS. Cao Việt', NULL, '2025-09-29 07:41:24', '2025-09-29 07:41:24'),
-(7, 94, 29, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'THINH', 22, 3, 2003, 22, NULL, '', '', '', '', '51/16A Phạm Văn Chiêu', 0, 1, 0, 0, 0, 0, 0, '', '', 0, 0, 11, 10, 2025, NULL, '', '', '', '', 1, 2.0, 3, 4, 5, 'qqqqq', 'aaaa', 'bị này bị kia', 'sadasdsa', 'ffff', '123qwe', 11, 10, 2025, 'GSTS. Cao Việt', NULL, '2025-10-11 05:31:00', '2025-10-11 05:31:00'),
-(8, 95, 29, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'THINH', 22, 3, 2003, 22, 'Nam', '', '', '', '', '51/16A Phạm Văn Chiêu', 0, 1, 0, 0, 0, 0, 0, '', '', 0, 0, 11, 10, 2025, NULL, '', '', '', '', 0, 0.0, 0, 0, 0, '', '', '', '', '', '', 11, 10, 2025, 'GSTS. Cao Việt', NULL, '2025-10-11 06:05:09', '2025-10-11 06:05:09'),
-(9, 96, 29, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'THINH', 22, 3, 2003, 22, 'Nam', '', '', '', '', '51/16A Phạm Văn Chiêu', 0, 1, 0, 0, 0, 0, 0, '', '84913998199', 0, 0, 11, 10, 2025, NULL, '', '', '', '', 0, 0.0, 0, 0, 0, '', '', '', '', '', '', 11, 10, 2025, 'GSTS. Cao Việt', NULL, '2025-10-11 08:51:36', '2025-10-11 08:51:36'),
-(10, 97, 28, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', '51/16A Phạm Văn Chiêu', 1, 0, 0, 0, 31, 12, 2024, '0791034568', '84913998110', 0, 0, 11, 10, 2025, NULL, '', '', '', '', 3, 2.0, 5, 7, 15, 'aaasssdd', 'dấdasd', '', '', '', '', 11, 10, 2025, 'GSTS. Cao Việt', NULL, '2025-10-11 08:58:07', '2025-10-18 17:47:09'),
-(11, 98, 29, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'THINH', 22, 3, 2003, 22, 'Nam', '', '', '', '', '51/16A Phạm Văn Chiêu', 0, 1, 0, 0, 0, 0, 0, '', '84913998199', 0, 0, 19, 10, 2025, NULL, '', '', '', '', 0, 0.0, 0, 0, 0, '', '', '', '', '', '', 19, 10, 2025, 'GSTS. Cao Việt', NULL, '2025-10-18 17:43:50', '2025-10-18 17:43:50'),
-(12, 99, 28, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'VIỆT', 22, 3, 2003, 22, 'Nam', 'aaassss', 'dsadsad', 'ádsadsad', 'ádsad', '51/16A Phạm Văn Chiêu', 1, 0, 0, 0, 31, 12, 2024, '0791034568', '84913998110', 0, 0, 19, 10, 2025, NULL, 'xcv', 'xcvcxv', 'xcvxc', 'xcvxcv', 15, 16.0, 17, 18, 20, 'fgfdg', 'dfgfdg', 'dfgfdg', 'dfg', 'dfg', 'dfgfdg', 19, 10, 2025, 'GSTS. Cao Việt', NULL, '2025-10-18 18:48:24', '2025-10-18 18:48:24'),
-(13, 100, 29, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'THINH', 22, 3, 2003, 22, 'Nam', 'jkljkl', 'jklkjl', 'jkljkl', 'jklkjl', '51/16A Phạm Văn Chiêu', 0, 1, 0, 0, 0, 0, 0, '', '84913998199', 0, 0, 19, 10, 2025, NULL, 'jkljkl', 'jklkjl', 'jklkjl', 'jkljkl', 1, 1.0, 1, 1, 1, 'jhkjh', 'hjk', 'hjkhk', 'hjkjh', 'hjkhjk', 'hjkjhk', 19, 10, 2025, 'GSTS. Cao Việt', NULL, '2025-10-18 18:49:04', '2025-10-18 18:49:04'),
-(14, 101, 28, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', '51/16A Phạm Văn Chiêu', 1, 0, 0, 0, 31, 12, 2024, '0791034568', '84913998110', 0, 0, 19, 10, 2025, NULL, '', '', '', '', 0, 0.0, 0, 0, 0, '', '', '', '', '', '', 19, 10, 2025, 'GSTS. Cao Việt', NULL, '2025-10-19 09:42:30', '2025-10-19 09:42:30');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `phieu_tien_su_di_ung`
+-- Cấu trúc bảng cho bảng `phieu_tien_su_di_ung`
 --
 
 CREATE TABLE `phieu_tien_su_di_ung` (
@@ -727,7 +639,7 @@ CREATE TABLE `phieu_tien_su_di_ung` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `phieu_tien_su_di_ung`
+-- Đang đổ dữ liệu cho bảng `phieu_tien_su_di_ung`
 --
 
 INSERT INTO `phieu_tien_su_di_ung` (`id`, `benh_nhan_id`, `thuoc_hoac_di_nguyen`, `so_lan_thuoc`, `khong_thuoc`, `ghi_chu_thuoc`, `con_trung`, `so_lan_con_trung`, `khong_con_trung`, `ghi_chu_con_trung`, `thuc_pham`, `so_lan_thuc_pham`, `khong_thuc_pham`, `ghi_chu_thuc_pham`, `tac_nhan_khac`, `so_lan_tac_nhan_khac`, `khong_tac_nhan_khac`, `ghi_chu_tac_nhan_khac`, `tien_su_ca_nhan`, `so_lan_tien_su_ca_nhan`, `khong_tien_su_ca_nhan`, `ghi_chu_tien_su_ca_nhan`, `tien_su_gia_dinh`, `so_lan_tien_su_gia_dinh`, `khong_tien_su_gia_dinh`, `ghi_chu_tien_su_gia_dinh`, `ngay_tao`) VALUES
@@ -737,7 +649,7 @@ INSERT INTO `phieu_tien_su_di_ung` (`id`, `benh_nhan_id`, `thuoc_hoac_di_nguyen`
 -- --------------------------------------------------------
 
 --
--- Table structure for table `phieu_tra_ket_qua_xet_nghiem`
+-- Cấu trúc bảng cho bảng `phieu_tra_ket_qua_xet_nghiem`
 --
 
 CREATE TABLE `phieu_tra_ket_qua_xet_nghiem` (
@@ -761,18 +673,10 @@ CREATE TABLE `phieu_tra_ket_qua_xet_nghiem` (
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng lưu phiếu trả kết quả xét nghiệm';
 
---
--- Dumping data for table `phieu_tra_ket_qua_xet_nghiem`
---
-
-INSERT INTO `phieu_tra_ket_qua_xet_nghiem` (`id`, `id_phieu_yeu_cau`, `id_benh_nhan`, `ma_benh_nhan`, `ho_ten`, `tuoi`, `gioi_tinh`, `dia_chi`, `chan_doan_so_bo`, `tinh_trang_mau`, `bac_si_yeu_cau`, `bac_si_xet_nghiem`, `ngay_dang_ky`, `ngay_tra_ket_qua`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(22, 15, 28, 'BN002', 'VIỆT', 22, 'Nam', '51/16A Phạm Văn Chiêu', 'xxxx', 'Tốt', 'GSTS. Cao Việt', 'Thinh', '2025-10-19 16:25:14', '2025-10-19', 'Đã trả kết quả', NULL, '2025-10-19 09:28:04', '2025-10-19 09:28:04'),
-(24, 17, 28, 'BN002', 'VIỆT', 22, 'Nam', '51/16A Phạm Văn Chiêu', '999', 'Tốt', 'GSTS. Cao Việt', 'Thinh', '2025-10-19 16:42:45', '2025-10-19', 'Đã trả kết quả', NULL, '2025-10-19 09:47:53', '2025-10-19 09:47:53');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `phieu_yeu_cau_sieu_am`
+-- Cấu trúc bảng cho bảng `phieu_yeu_cau_sieu_am`
 --
 
 CREATE TABLE `phieu_yeu_cau_sieu_am` (
@@ -794,23 +698,10 @@ CREATE TABLE `phieu_yeu_cau_sieu_am` (
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Phiếu yêu cầu siêu âm';
 
---
--- Dumping data for table `phieu_yeu_cau_sieu_am`
---
-
-INSERT INTO `phieu_yeu_cau_sieu_am` (`id`, `id_phieu_kham_benh`, `so_ho_so`, `ho_ten`, `tuoi`, `gioi_tinh`, `doi_tuong`, `so_the_bhyt`, `phong_kham`, `chan_doan`, `yeu_cau`, `bac_si_kham`, `thoi_gian_yeu_cau`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(2, 5, 'BN002', 'Việt', 255, 'Nam', 'BHYT', '0791034568', 'Thịnh Việt', 'mang thai nè', 'Siêu âm ổ bụng tổng quát, Siêu âm gan – mật – tụy – lách', 'GSTS. Cao Việt', '2025-10-11 10:47:38', 'Đã yêu cầu', '2025-10-09 20:30:15', '2025-10-11 08:47:38'),
-(3, 7, 'BN001', 'thinh', 255, 'Nam', 'Thu phí', '', 'Thịnh Việt', 'aaaaaaaaaa', 'Siêu âm tử cung – phần phụ, Siêu âm vùng hạ vị', 'GSTS. Cao Việt', '2025-10-11 09:53:33', 'Hoàn thành', '2025-10-11 07:10:47', '2025-10-12 06:14:46'),
-(4, 8, 'BN001', 'thinh', 255, 'Nam', 'Thu phí', '', 'Thịnh Việt', 'nà ní', 'Siêu âm vùng hạ vị,Siêu âm ổ bụng tổng quát, ', 'GSTS. Cao Việt', '2025-10-11 10:07:09', 'Hoàn thành', '2025-10-11 08:00:07', '2025-10-11 20:50:04'),
-(5, 10, 'BN002', 'Việt', 255, 'Nam', 'BHYT', '0791034568', 'Thịnh Việt', 'qqqq', 'Siêu âm gan – mật – tụy – lách,Siêu âm thận – bàng quang', 'GSTS. Cao Việt', '2025-10-18 19:54:29', 'Đã yêu cầu', '2025-10-11 09:40:19', '2025-10-18 17:54:29'),
-(6, 9, 'BN001', 'thinh', 255, 'Nam', 'Thu phí', '', 'Thịnh Việt', '111222333', 'Siêu âm tuyến thượng thận, ', 'GSTS. Cao Việt', '2025-10-12 09:16:45', 'Hoàn thành', '2025-10-11 09:41:01', '2025-10-12 07:19:39'),
-(7, 13, 'BN001', 'thinh', 255, 'Nam', 'Thu phí', '', 'Thịnh Việt', 'aaaaa', 'Siêu âm ổ bụng tổng quát,Siêu âm gan – mật – tụy – lách', 'GSTS. Cao Việt', '2025-10-18 20:51:13', 'Đã yêu cầu', '2025-10-18 18:51:13', '2025-10-18 18:51:13'),
-(8, 12, 'BN002', 'Việt', 255, 'Nam', 'BHYT', '0791034568', 'Thịnh Việt', '789', 'Siêu âm ổ bụng tổng quát', 'GSTS. Cao Việt', '2025-10-18 20:52:52', 'Hoàn thành', '2025-10-18 18:52:52', '2025-10-18 18:55:40');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `phieu_yeu_cau_xet_nghiem`
+-- Cấu trúc bảng cho bảng `phieu_yeu_cau_xet_nghiem`
 --
 
 CREATE TABLE `phieu_yeu_cau_xet_nghiem` (
@@ -832,19 +723,10 @@ CREATE TABLE `phieu_yeu_cau_xet_nghiem` (
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `phieu_yeu_cau_xet_nghiem`
---
-
-INSERT INTO `phieu_yeu_cau_xet_nghiem` (`id`, `id_phieu_kham_benh`, `so_ho_so`, `ho_ten`, `tuoi`, `gioi_tinh`, `doi_tuong`, `so_the_bhyt`, `phong_kham`, `chan_doan`, `yeu_cau`, `bac_si_kham`, `thoi_gian_yeu_cau`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(15, 12, 'BN002', 'Việt', 22, 'Nam', 'BHYT', '0791034568', 'Thịnh Việt', 'xxxx', 'Xét nghiệm máu, Xét nghiệm nước tiểu', 'GSTS. Cao Việt', '2025-10-19 16:27:07', 'Hoàn thành', '2025-10-19 09:25:14', '2025-10-19 09:29:04'),
-(16, 13, 'BN001', 'thinh', 22, 'Nam', 'Thu phí', '', 'Thịnh Việt', '1111', 'Xét nghiệm phân', 'GSTS. Cao Việt', '2025-10-19 16:40:36', 'Hoàn thành', '2025-10-19 09:35:58', '2025-10-19 09:40:36'),
-(17, 14, 'BN002', 'Việt', 22, 'Nam', 'BHYT', '0791034568', 'Thịnh Việt', '999', 'Xét nghiệm máu', 'GSTS. Cao Việt', '2025-10-19 16:42:45', 'Hoàn thành', '2025-10-19 09:42:45', '2025-10-19 09:47:59');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `quan_tri_vien`
+-- Cấu trúc bảng cho bảng `quan_tri_vien`
 --
 
 CREATE TABLE `quan_tri_vien` (
@@ -858,7 +740,7 @@ CREATE TABLE `quan_tri_vien` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `quan_tri_vien`
+-- Đang đổ dữ liệu cho bảng `quan_tri_vien`
 --
 
 INSERT INTO `quan_tri_vien` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -867,7 +749,7 @@ INSERT INTO `quan_tri_vien` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sieuam_suggestions`
+-- Cấu trúc bảng cho bảng `sieuam_suggestions`
 --
 
 CREATE TABLE `sieuam_suggestions` (
@@ -883,7 +765,7 @@ CREATE TABLE `sieuam_suggestions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng gợi ý Siêu âm';
 
 --
--- Dumping data for table `sieuam_suggestions`
+-- Đang đổ dữ liệu cho bảng `sieuam_suggestions`
 --
 
 INSERT INTO `sieuam_suggestions` (`id`, `ten_goi_y`, `gia_tien`, `mo_ta`, `loai_chup`, `trang_thai`, `thu_tu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -926,7 +808,7 @@ INSERT INTO `sieuam_suggestions` (`id`, `ten_goi_y`, `gia_tien`, `mo_ta`, `loai_
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sieu_am_hinh_anh`
+-- Cấu trúc bảng cho bảng `sieu_am_hinh_anh`
 --
 
 CREATE TABLE `sieu_am_hinh_anh` (
@@ -939,25 +821,10 @@ CREATE TABLE `sieu_am_hinh_anh` (
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `sieu_am_hinh_anh`
---
-
-INSERT INTO `sieu_am_hinh_anh` (`id`, `id_ket_qua_sieu_am`, `ten_file`, `duong_dan`, `kich_thuoc`, `loai_file`, `ngay_tao`) VALUES
-(9, 11, 'chupnguc.jpg', 'uploads/sieuam/11/68eab3aa3718f_1760211882.jpg', 12670, 'image/jpeg', '2025-10-11 19:44:42'),
-(10, 12, 'chupnguc.jpg', 'uploads/sieuam/12/68eac2ec9c8eb_1760215788.jpg', 12670, 'image/jpeg', '2025-10-11 20:49:48'),
-(11, 13, 'chupnguc.jpg', 'uploads/sieuam/13/68eb472d3b051_1760249645.jpg', 12670, 'image/jpeg', '2025-10-12 06:14:05'),
-(12, 10, 'chupnguc.jpg', 'uploads/sieuam/10/68eb561254136_1760253458.jpg', 12670, 'image/jpeg', '2025-10-12 07:17:38'),
-(13, 10, 'imagess.png', 'uploads/sieuam/10/68eb56171bb4d_1760253463.png', 3147, 'image/png', '2025-10-12 07:17:43'),
-(14, 11, 'chupnguc.jpg', 'uploads/sieuam/11/68eb567c443c0_1760253564.jpg', 12670, 'image/jpeg', '2025-10-12 07:19:24'),
-(15, 11, 'chupnguc.jpg', 'uploads/sieuam/11/68eb5680b5069_1760253568.jpg', 12670, 'image/jpeg', '2025-10-12 07:19:28'),
-(16, 14, 'hinh-anh-sieu-am-2d.jpg', 'uploads/sieuam/14/68f3e287bf203_1760813703.jpg', 39945, 'image/jpeg', '2025-10-18 18:55:03'),
-(17, 14, 'hinh-anh-sieu-am-2d.jpg', 'uploads/sieuam/14/68f3e28ea93ea_1760813710.jpg', 39945, 'image/jpeg', '2025-10-18 18:55:10');
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `thong_bao`
+-- Cấu trúc bảng cho bảng `thong_bao`
 --
 
 CREATE TABLE `thong_bao` (
@@ -974,7 +841,7 @@ CREATE TABLE `thong_bao` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `thong_bao`
+-- Đang đổ dữ liệu cho bảng `thong_bao`
 --
 
 INSERT INTO `thong_bao` (`id`, `doi_tuong`, `bac_si_id`, `benh_nhan_id`, `quan_tri_vien_id`, `loai`, `noi_dung`, `du_lieu_kem_theo`, `da_doc`, `ngay_tao`) VALUES
@@ -991,7 +858,7 @@ INSERT INTO `thong_bao` (`id`, `doi_tuong`, `bac_si_id`, `benh_nhan_id`, `quan_t
 -- --------------------------------------------------------
 
 --
--- Table structure for table `thuoc`
+-- Cấu trúc bảng cho bảng `thuoc`
 --
 
 CREATE TABLE `thuoc` (
@@ -1018,7 +885,7 @@ CREATE TABLE `thuoc` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `thuoc`
+-- Đang đổ dữ liệu cho bảng `thuoc`
 --
 
 INSERT INTO `thuoc` (`MaThuoc`, `TenThuoc`, `HoatChatChinh`, `DangBaoChe`, `DonViTinh`, `HamLuong`, `ChiDinh`, `ChongChiDinh`, `LieuDung`, `DonGia`, `SoLuongTon`, `NgaySanXuat`, `HanSuDung`, `NhaSanXuat`, `NuocSanXuat`, `BaoHiem`, `GhiChu`, `TrangThai`, `NgayTao`, `NgayCapNhat`) VALUES
@@ -1031,7 +898,7 @@ INSERT INTO `thuoc` (`MaThuoc`, `TenThuoc`, `HoatChatChinh`, `DangBaoChe`, `DonV
 -- --------------------------------------------------------
 
 --
--- Table structure for table `xet_nghiem_suggestions`
+-- Cấu trúc bảng cho bảng `xet_nghiem_suggestions`
 --
 
 CREATE TABLE `xet_nghiem_suggestions` (
@@ -1047,7 +914,7 @@ CREATE TABLE `xet_nghiem_suggestions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng gợi ý xét nghiệm';
 
 --
--- Dumping data for table `xet_nghiem_suggestions`
+-- Đang đổ dữ liệu cho bảng `xet_nghiem_suggestions`
 --
 
 INSERT INTO `xet_nghiem_suggestions` (`id`, `ten_goi_y`, `gia_tien`, `mo_ta`, `loai_xet_nghiem`, `trang_thai`, `thu_tu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -1065,7 +932,7 @@ INSERT INTO `xet_nghiem_suggestions` (`id`, `ten_goi_y`, `gia_tien`, `mo_ta`, `l
 -- --------------------------------------------------------
 
 --
--- Table structure for table `xray_suggestions`
+-- Cấu trúc bảng cho bảng `xray_suggestions`
 --
 
 CREATE TABLE `xray_suggestions` (
@@ -1081,7 +948,7 @@ CREATE TABLE `xray_suggestions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng gợi ý X-Quang';
 
 --
--- Dumping data for table `xray_suggestions`
+-- Đang đổ dữ liệu cho bảng `xray_suggestions`
 --
 
 INSERT INTO `xray_suggestions` (`id`, `ten_goi_y`, `gia_tien`, `mo_ta`, `loai_chup`, `trang_thai`, `thu_tu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
@@ -1120,11 +987,11 @@ INSERT INTO `xray_suggestions` (`id`, `ten_goi_y`, `gia_tien`, `mo_ta`, `loai_ch
 (33, 'Cột sống cổ', 200000.00, 'Chụp X-quang cột sống cổ tổng quát', 'Cột sống', 1, 33, '2025-09-27 11:24:24', '2025-09-27 11:24:24');
 
 --
--- Indexes for dumped tables
+-- Chỉ mục cho các bảng đã đổ
 --
 
 --
--- Indexes for table `bac_si`
+-- Chỉ mục cho bảng `bac_si`
 --
 ALTER TABLE `bac_si`
   ADD PRIMARY KEY (`id`),
@@ -1132,14 +999,14 @@ ALTER TABLE `bac_si`
   ADD KEY `idx_bac_si_chuyen_khoa_id` (`chuyen_khoa_id`);
 
 --
--- Indexes for table `bao_hiem_y_te`
+-- Chỉ mục cho bảng `bao_hiem_y_te`
 --
 ALTER TABLE `bao_hiem_y_te`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `ma_bao_hiem` (`ma_bao_hiem`);
 
 --
--- Indexes for table `benh_nhan`
+-- Chỉ mục cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
   ADD PRIMARY KEY (`id`),
@@ -1149,7 +1016,7 @@ ALTER TABLE `benh_nhan`
   ADD KEY `idx_bao_hiem_y_te_id` (`bao_hiem_y_te_id`);
 
 --
--- Indexes for table `chi_so_xet_nghiem`
+-- Chỉ mục cho bảng `chi_so_xet_nghiem`
 --
 ALTER TABLE `chi_so_xet_nghiem`
   ADD PRIMARY KEY (`id`),
@@ -1157,7 +1024,7 @@ ALTER TABLE `chi_so_xet_nghiem`
   ADD KEY `idx_ngay_tao` (`ngay_tao`);
 
 --
--- Indexes for table `chi_tiet_don_thuoc`
+-- Chỉ mục cho bảng `chi_tiet_don_thuoc`
 --
 ALTER TABLE `chi_tiet_don_thuoc`
   ADD PRIMARY KEY (`MaChiTiet`),
@@ -1165,7 +1032,7 @@ ALTER TABLE `chi_tiet_don_thuoc`
   ADD KEY `idx_ctdt_math` (`MaThuoc`);
 
 --
--- Indexes for table `chi_tiet_ket_qua_xet_nghiem`
+-- Chỉ mục cho bảng `chi_tiet_ket_qua_xet_nghiem`
 --
 ALTER TABLE `chi_tiet_ket_qua_xet_nghiem`
   ADD PRIMARY KEY (`id`),
@@ -1173,7 +1040,7 @@ ALTER TABLE `chi_tiet_ket_qua_xet_nghiem`
   ADD KEY `idx_stt` (`stt`);
 
 --
--- Indexes for table `chuyen_khoa`
+-- Chỉ mục cho bảng `chuyen_khoa`
 --
 ALTER TABLE `chuyen_khoa`
   ADD PRIMARY KEY (`id`),
@@ -1181,7 +1048,7 @@ ALTER TABLE `chuyen_khoa`
   ADD UNIQUE KEY `uniq_chuyen_khoa_slug` (`slug`);
 
 --
--- Indexes for table `don_thuoc`
+-- Chỉ mục cho bảng `don_thuoc`
 --
 ALTER TABLE `don_thuoc`
   ADD PRIMARY KEY (`MaDonThuoc`),
@@ -1190,7 +1057,7 @@ ALTER TABLE `don_thuoc`
   ADD KEY `idx_phieu_kham` (`id_phieu_kham_benh`);
 
 --
--- Indexes for table `ho_so_benh_an`
+-- Chỉ mục cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
   ADD PRIMARY KEY (`id`),
@@ -1199,28 +1066,34 @@ ALTER TABLE `ho_so_benh_an`
   ADD KEY `idx_hs_bac_si` (`bac_si_id`);
 
 --
--- Indexes for table `ket_qua_sieu_am`
+-- Chỉ mục cho bảng `ket_qua_sieu_am`
 --
 ALTER TABLE `ket_qua_sieu_am`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_phieu_yeu_cau` (`id_phieu_yeu_cau_sieu_am`);
 
 --
--- Indexes for table `ket_qua_xquang`
+-- Chỉ mục cho bảng `ket_qua_xquang`
 --
 ALTER TABLE `ket_qua_xquang`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `uniq_kq_by_px` (`id_phieu_chup_xquang`);
 
 --
--- Indexes for table `ket_qua_xquang_hinh_anh`
+-- Chỉ mục cho bảng `ket_qua_xquang_hinh_anh`
 --
 ALTER TABLE `ket_qua_xquang_hinh_anh`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_ket_qua` (`ket_qua_id`);
 
 --
--- Indexes for table `lich_hen`
+-- Chỉ mục cho bảng `le_tan`
+--
+ALTER TABLE `le_tan`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Chỉ mục cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
   ADD PRIMARY KEY (`id`),
@@ -1229,7 +1102,7 @@ ALTER TABLE `lich_hen`
   ADD KEY `idx_lich_ngay` (`ngay_hen`);
 
 --
--- Indexes for table `lich_lam_viec`
+-- Chỉ mục cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
   ADD PRIMARY KEY (`id`),
@@ -1238,7 +1111,7 @@ ALTER TABLE `lich_lam_viec`
   ADD KEY `idx_trang_thai` (`trang_thai`);
 
 --
--- Indexes for table `lich_lam_viec_ngoai_le`
+-- Chỉ mục cho bảng `lich_lam_viec_ngoai_le`
 --
 ALTER TABLE `lich_lam_viec_ngoai_le`
   ADD PRIMARY KEY (`id`),
@@ -1246,14 +1119,20 @@ ALTER TABLE `lich_lam_viec_ngoai_le`
   ADD KEY `idx_bacsi_ngay` (`bac_si_id`,`ngay`);
 
 --
--- Indexes for table `phieu_chup_xquang`
+-- Chỉ mục cho bảng `phieu_boc_so`
+--
+ALTER TABLE `phieu_boc_so`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Chỉ mục cho bảng `phieu_chup_xquang`
 --
 ALTER TABLE `phieu_chup_xquang`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_phieu_kham_benh` (`id_phieu_kham_benh`);
 
 --
--- Indexes for table `phieu_kham_benh`
+-- Chỉ mục cho bảng `phieu_kham_benh`
 --
 ALTER TABLE `phieu_kham_benh`
   ADD PRIMARY KEY (`id`),
@@ -1263,14 +1142,14 @@ ALTER TABLE `phieu_kham_benh`
   ADD KEY `fk_pkb_lich_hen` (`lich_hen`);
 
 --
--- Indexes for table `phieu_tien_su_di_ung`
+-- Chỉ mục cho bảng `phieu_tien_su_di_ung`
 --
 ALTER TABLE `phieu_tien_su_di_ung`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_ptsd_benh_nhan` (`benh_nhan_id`);
 
 --
--- Indexes for table `phieu_tra_ket_qua_xet_nghiem`
+-- Chỉ mục cho bảng `phieu_tra_ket_qua_xet_nghiem`
 --
 ALTER TABLE `phieu_tra_ket_qua_xet_nghiem`
   ADD PRIMARY KEY (`id`),
@@ -1281,7 +1160,7 @@ ALTER TABLE `phieu_tra_ket_qua_xet_nghiem`
   ADD KEY `idx_trang_thai` (`trang_thai`);
 
 --
--- Indexes for table `phieu_yeu_cau_sieu_am`
+-- Chỉ mục cho bảng `phieu_yeu_cau_sieu_am`
 --
 ALTER TABLE `phieu_yeu_cau_sieu_am`
   ADD PRIMARY KEY (`id`),
@@ -1291,14 +1170,14 @@ ALTER TABLE `phieu_yeu_cau_sieu_am`
   ADD KEY `idx_ngay_tao` (`ngay_tao`);
 
 --
--- Indexes for table `phieu_yeu_cau_xet_nghiem`
+-- Chỉ mục cho bảng `phieu_yeu_cau_xet_nghiem`
 --
 ALTER TABLE `phieu_yeu_cau_xet_nghiem`
   ADD PRIMARY KEY (`id`),
   ADD KEY `id_phieu_kham_benh` (`id_phieu_kham_benh`);
 
 --
--- Indexes for table `quan_tri_vien`
+-- Chỉ mục cho bảng `quan_tri_vien`
 --
 ALTER TABLE `quan_tri_vien`
   ADD PRIMARY KEY (`id`),
@@ -1306,7 +1185,7 @@ ALTER TABLE `quan_tri_vien`
   ADD KEY `idx_qtv_email` (`email`);
 
 --
--- Indexes for table `sieuam_suggestions`
+-- Chỉ mục cho bảng `sieuam_suggestions`
 --
 ALTER TABLE `sieuam_suggestions`
   ADD PRIMARY KEY (`id`),
@@ -1315,14 +1194,14 @@ ALTER TABLE `sieuam_suggestions`
   ADD KEY `idx_thu_tu` (`thu_tu`);
 
 --
--- Indexes for table `sieu_am_hinh_anh`
+-- Chỉ mục cho bảng `sieu_am_hinh_anh`
 --
 ALTER TABLE `sieu_am_hinh_anh`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_ket_qua_sieu_am` (`id_ket_qua_sieu_am`);
 
 --
--- Indexes for table `thong_bao`
+-- Chỉ mục cho bảng `thong_bao`
 --
 ALTER TABLE `thong_bao`
   ADD PRIMARY KEY (`id`),
@@ -1333,7 +1212,7 @@ ALTER TABLE `thong_bao`
   ADD KEY `idx_da_doc` (`da_doc`);
 
 --
--- Indexes for table `thuoc`
+-- Chỉ mục cho bảng `thuoc`
 --
 ALTER TABLE `thuoc`
   ADD PRIMARY KEY (`MaThuoc`),
@@ -1342,7 +1221,7 @@ ALTER TABLE `thuoc`
   ADD KEY `idx_thuoc_trang_thai` (`TrangThai`);
 
 --
--- Indexes for table `xet_nghiem_suggestions`
+-- Chỉ mục cho bảng `xet_nghiem_suggestions`
 --
 ALTER TABLE `xet_nghiem_suggestions`
   ADD PRIMARY KEY (`id`),
@@ -1351,7 +1230,7 @@ ALTER TABLE `xet_nghiem_suggestions`
   ADD KEY `idx_thu_tu` (`thu_tu`);
 
 --
--- Indexes for table `xray_suggestions`
+-- Chỉ mục cho bảng `xray_suggestions`
 --
 ALTER TABLE `xray_suggestions`
   ADD PRIMARY KEY (`id`),
@@ -1360,196 +1239,208 @@ ALTER TABLE `xray_suggestions`
   ADD KEY `idx_thu_tu` (`thu_tu`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT cho các bảng đã đổ
 --
 
 --
--- AUTO_INCREMENT for table `bac_si`
+-- AUTO_INCREMENT cho bảng `bac_si`
 --
 ALTER TABLE `bac_si`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
--- AUTO_INCREMENT for table `bao_hiem_y_te`
+-- AUTO_INCREMENT cho bảng `bao_hiem_y_te`
 --
 ALTER TABLE `bao_hiem_y_te`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
--- AUTO_INCREMENT for table `benh_nhan`
+-- AUTO_INCREMENT cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
--- AUTO_INCREMENT for table `chi_so_xet_nghiem`
+-- AUTO_INCREMENT cho bảng `chi_so_xet_nghiem`
 --
 ALTER TABLE `chi_so_xet_nghiem`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
--- AUTO_INCREMENT for table `chi_tiet_don_thuoc`
+-- AUTO_INCREMENT cho bảng `chi_tiet_don_thuoc`
 --
 ALTER TABLE `chi_tiet_don_thuoc`
   MODIFY `MaChiTiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
--- AUTO_INCREMENT for table `chi_tiet_ket_qua_xet_nghiem`
+-- AUTO_INCREMENT cho bảng `chi_tiet_ket_qua_xet_nghiem`
 --
 ALTER TABLE `chi_tiet_ket_qua_xet_nghiem`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
--- AUTO_INCREMENT for table `chuyen_khoa`
+-- AUTO_INCREMENT cho bảng `chuyen_khoa`
 --
 ALTER TABLE `chuyen_khoa`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
--- AUTO_INCREMENT for table `ho_so_benh_an`
+-- AUTO_INCREMENT cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `ket_qua_sieu_am`
+-- AUTO_INCREMENT cho bảng `ket_qua_sieu_am`
 --
 ALTER TABLE `ket_qua_sieu_am`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
--- AUTO_INCREMENT for table `ket_qua_xquang`
+-- AUTO_INCREMENT cho bảng `ket_qua_xquang`
 --
 ALTER TABLE `ket_qua_xquang`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
--- AUTO_INCREMENT for table `ket_qua_xquang_hinh_anh`
+-- AUTO_INCREMENT cho bảng `ket_qua_xquang_hinh_anh`
 --
 ALTER TABLE `ket_qua_xquang_hinh_anh`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- AUTO_INCREMENT for table `lich_hen`
+-- AUTO_INCREMENT cho bảng `le_tan`
 --
-ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=102;
+ALTER TABLE `le_tan`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `lich_lam_viec`
+-- AUTO_INCREMENT cho bảng `lich_hen`
+--
+ALTER TABLE `lich_hen`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=118;
+
+--
+-- AUTO_INCREMENT cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
--- AUTO_INCREMENT for table `lich_lam_viec_ngoai_le`
+-- AUTO_INCREMENT cho bảng `lich_lam_viec_ngoai_le`
 --
 ALTER TABLE `lich_lam_viec_ngoai_le`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
--- AUTO_INCREMENT for table `phieu_chup_xquang`
+-- AUTO_INCREMENT cho bảng `phieu_boc_so`
+--
+ALTER TABLE `phieu_boc_so`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT cho bảng `phieu_chup_xquang`
 --
 ALTER TABLE `phieu_chup_xquang`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
--- AUTO_INCREMENT for table `phieu_kham_benh`
+-- AUTO_INCREMENT cho bảng `phieu_kham_benh`
 --
 ALTER TABLE `phieu_kham_benh`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
--- AUTO_INCREMENT for table `phieu_tien_su_di_ung`
+-- AUTO_INCREMENT cho bảng `phieu_tien_su_di_ung`
 --
 ALTER TABLE `phieu_tien_su_di_ung`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT for table `phieu_tra_ket_qua_xet_nghiem`
+-- AUTO_INCREMENT cho bảng `phieu_tra_ket_qua_xet_nghiem`
 --
 ALTER TABLE `phieu_tra_ket_qua_xet_nghiem`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
--- AUTO_INCREMENT for table `phieu_yeu_cau_sieu_am`
+-- AUTO_INCREMENT cho bảng `phieu_yeu_cau_sieu_am`
 --
 ALTER TABLE `phieu_yeu_cau_sieu_am`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
--- AUTO_INCREMENT for table `phieu_yeu_cau_xet_nghiem`
+-- AUTO_INCREMENT cho bảng `phieu_yeu_cau_xet_nghiem`
 --
 ALTER TABLE `phieu_yeu_cau_xet_nghiem`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
--- AUTO_INCREMENT for table `quan_tri_vien`
+-- AUTO_INCREMENT cho bảng `quan_tri_vien`
 --
 ALTER TABLE `quan_tri_vien`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `sieuam_suggestions`
+-- AUTO_INCREMENT cho bảng `sieuam_suggestions`
 --
 ALTER TABLE `sieuam_suggestions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
--- AUTO_INCREMENT for table `sieu_am_hinh_anh`
+-- AUTO_INCREMENT cho bảng `sieu_am_hinh_anh`
 --
 ALTER TABLE `sieu_am_hinh_anh`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
--- AUTO_INCREMENT for table `thong_bao`
+-- AUTO_INCREMENT cho bảng `thong_bao`
 --
 ALTER TABLE `thong_bao`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
--- AUTO_INCREMENT for table `xet_nghiem_suggestions`
+-- AUTO_INCREMENT cho bảng `xet_nghiem_suggestions`
 --
 ALTER TABLE `xet_nghiem_suggestions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
--- AUTO_INCREMENT for table `xray_suggestions`
+-- AUTO_INCREMENT cho bảng `xray_suggestions`
 --
 ALTER TABLE `xray_suggestions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
--- Constraints for dumped tables
+-- Các ràng buộc cho các bảng đã đổ
 --
 
 --
--- Constraints for table `bac_si`
+-- Các ràng buộc cho bảng `bac_si`
 --
 ALTER TABLE `bac_si`
   ADD CONSTRAINT `fk_bac_si_chuyen_khoa` FOREIGN KEY (`chuyen_khoa_id`) REFERENCES `chuyen_khoa` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `benh_nhan`
+-- Các ràng buộc cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
   ADD CONSTRAINT `fk_benh_nhan_bao_hiem_y_te` FOREIGN KEY (`bao_hiem_y_te_id`) REFERENCES `bao_hiem_y_te` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `chi_tiet_don_thuoc`
+-- Các ràng buộc cho bảng `chi_tiet_don_thuoc`
 --
 ALTER TABLE `chi_tiet_don_thuoc`
   ADD CONSTRAINT `fk_ctdt_donthuoc` FOREIGN KEY (`MaDonThuoc`) REFERENCES `don_thuoc` (`MaDonThuoc`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_ctdt_thuoc` FOREIGN KEY (`MaThuoc`) REFERENCES `thuoc` (`MaThuoc`) ON UPDATE CASCADE;
 
 --
--- Constraints for table `chi_tiet_ket_qua_xet_nghiem`
+-- Các ràng buộc cho bảng `chi_tiet_ket_qua_xet_nghiem`
 --
 ALTER TABLE `chi_tiet_ket_qua_xet_nghiem`
   ADD CONSTRAINT `chi_tiet_ket_qua_xet_nghiem_ibfk_1` FOREIGN KEY (`id_phieu_tra_ket_qua`) REFERENCES `phieu_tra_ket_qua_xet_nghiem` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `don_thuoc`
+-- Các ràng buộc cho bảng `don_thuoc`
 --
 ALTER TABLE `don_thuoc`
   ADD CONSTRAINT `fk_dt_bacsi` FOREIGN KEY (`MaBacSi`) REFERENCES `bac_si` (`id`) ON UPDATE CASCADE,
@@ -1557,7 +1448,7 @@ ALTER TABLE `don_thuoc`
   ADD CONSTRAINT `fk_dt_phieukham` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `ho_so_benh_an`
+-- Các ràng buộc cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
   ADD CONSTRAINT `ho_so_benh_an_ibfk_1` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE,
@@ -1565,44 +1456,44 @@ ALTER TABLE `ho_so_benh_an`
   ADD CONSTRAINT `ho_so_benh_an_ibfk_3` FOREIGN KEY (`lich_hen_id`) REFERENCES `lich_hen` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints for table `ket_qua_sieu_am`
+-- Các ràng buộc cho bảng `ket_qua_sieu_am`
 --
 ALTER TABLE `ket_qua_sieu_am`
   ADD CONSTRAINT `fk_ket_qua_sieu_am_phieu` FOREIGN KEY (`id_phieu_yeu_cau_sieu_am`) REFERENCES `phieu_yeu_cau_sieu_am` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `ket_qua_xquang`
+-- Các ràng buộc cho bảng `ket_qua_xquang`
 --
 ALTER TABLE `ket_qua_xquang`
   ADD CONSTRAINT `fk_kqxq_px` FOREIGN KEY (`id_phieu_chup_xquang`) REFERENCES `phieu_chup_xquang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `ket_qua_xquang_hinh_anh`
+-- Các ràng buộc cho bảng `ket_qua_xquang_hinh_anh`
 --
 ALTER TABLE `ket_qua_xquang_hinh_anh`
   ADD CONSTRAINT `fk_kqxq_img_kq` FOREIGN KEY (`ket_qua_id`) REFERENCES `ket_qua_xquang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `lich_hen`
+-- Các ràng buộc cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
   ADD CONSTRAINT `lich_hen_ibfk_1` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `lich_hen_ibfk_2` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `lich_lam_viec`
+-- Các ràng buộc cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
   ADD CONSTRAINT `lich_lam_viec_ibfk_1` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `phieu_chup_xquang`
+-- Các ràng buộc cho bảng `phieu_chup_xquang`
 --
 ALTER TABLE `phieu_chup_xquang`
   ADD CONSTRAINT `phieu_chup_xquang_ibfk_1` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `phieu_kham_benh`
+-- Các ràng buộc cho bảng `phieu_kham_benh`
 --
 ALTER TABLE `phieu_kham_benh`
   ADD CONSTRAINT `fk_phieu_kham_benh_lich_hen` FOREIGN KEY (`id_lich_hen`) REFERENCES `lich_hen` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
@@ -1611,38 +1502,38 @@ ALTER TABLE `phieu_kham_benh`
   ADD CONSTRAINT `fk_pkb_lich_hen` FOREIGN KEY (`lich_hen`) REFERENCES `lich_hen` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Constraints for table `phieu_tien_su_di_ung`
+-- Các ràng buộc cho bảng `phieu_tien_su_di_ung`
 --
 ALTER TABLE `phieu_tien_su_di_ung`
   ADD CONSTRAINT `fk_ptsd_benh_nhan` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `phieu_tra_ket_qua_xet_nghiem`
+-- Các ràng buộc cho bảng `phieu_tra_ket_qua_xet_nghiem`
 --
 ALTER TABLE `phieu_tra_ket_qua_xet_nghiem`
   ADD CONSTRAINT `phieu_tra_ket_qua_xet_nghiem_ibfk_1` FOREIGN KEY (`id_phieu_yeu_cau`) REFERENCES `phieu_yeu_cau_xet_nghiem` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `phieu_tra_ket_qua_xet_nghiem_ibfk_2` FOREIGN KEY (`id_benh_nhan`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `phieu_yeu_cau_sieu_am`
+-- Các ràng buộc cho bảng `phieu_yeu_cau_sieu_am`
 --
 ALTER TABLE `phieu_yeu_cau_sieu_am`
   ADD CONSTRAINT `fk_pycsa_exam` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `phieu_yeu_cau_xet_nghiem`
+-- Các ràng buộc cho bảng `phieu_yeu_cau_xet_nghiem`
 --
 ALTER TABLE `phieu_yeu_cau_xet_nghiem`
   ADD CONSTRAINT `fk_xn_phieu_kham` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `sieu_am_hinh_anh`
+-- Các ràng buộc cho bảng `sieu_am_hinh_anh`
 --
 ALTER TABLE `sieu_am_hinh_anh`
   ADD CONSTRAINT `fk_sieu_am_hinh_anh_ket_qua` FOREIGN KEY (`id_ket_qua_sieu_am`) REFERENCES `ket_qua_sieu_am` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `thong_bao`
+-- Các ràng buộc cho bảng `thong_bao`
 --
 ALTER TABLE `thong_bao`
   ADD CONSTRAINT `fk_tb_bac_si` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE,

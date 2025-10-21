@@ -51,11 +51,12 @@
 
                     <div class="col-md-9">
                         <form id="examinationForm">
-                <input type="hidden" id="examinationAppointmentId" name="appointment_id">
-                <input type="hidden" id="prescription_examination_id" name="prescription_examination_id">
-                <?php if (isset($_SESSION['user_id'])): ?>
-                <input type="hidden" id="current_doctor_id" value="<?php echo htmlspecialchars($_SESSION['user_id']); ?>">
-                <?php endif; ?>
+                            <input type="hidden" id="examinationAppointmentId" name="appointment_id">
+                            <input type="hidden" id="prescription_examination_id" name="prescription_examination_id">
+                            <?php if (isset($_SESSION['user_id'])): ?>
+                            <input type="hidden" id="current_doctor_id"
+                                value="<?php echo htmlspecialchars($_SESSION['user_id']); ?>">
+                            <?php endif; ?>
                             <input type="hidden" id="historyPatientId" name="history_patient_id">
 
                             <!-- Basic patient info to avoid null bindings -->
@@ -577,13 +578,13 @@
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-bold">Số điện thoại</label>
-                                            <input type="text" class="form-control" name="lab_phone"
-                                                id="lab_phone" value="0777871608" readonly>
+                                            <input type="text" class="form-control" name="lab_phone" id="lab_phone"
+                                                value="0777871608" readonly>
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label fw-bold">Quận/Huyện</label>
-                                            <input type="text" class="form-control" name="lab_quan"
-                                                id="lab_quan" value="Gò Vấp" readonly>
+                                            <input type="text" class="form-control" name="lab_quan" id="lab_quan"
+                                                value="Gò Vấp" readonly>
                                         </div>
                                     </div>
 
@@ -627,14 +628,19 @@
 
                                     <div class="mt-3">
                                         <label class="form-label fw-bold">Chẩn đoán:</label>
-                                        <input type="text" class="form-control" name="lab_diagnosis" id="lab_diagnosis" placeholder="Nhập chẩn đoán...">
+                                        <input type="text" class="form-control" name="lab_diagnosis" id="lab_diagnosis"
+                                            placeholder="Nhập chẩn đoán...">
                                     </div>
 
                                     <!-- Yêu cầu xét nghiệm -->
                                     <div class="mt-3 position-relative">
-                                        <label class="form-label fw-bold text-center w-100 d-block" style="font-size:16px">YÊU CẦU XÉT NGHIỆM</label>
-                                        <textarea class="form-control" name="lab_request" id="lab_request" rows="6" placeholder="Nhập yêu cầu xét nghiệm..."></textarea>
-                                        <div id="lab_suggestions" class="position-absolute bg-white border rounded shadow" style="display:none; z-index:1000; max-height:200px; overflow-y:auto; width:100%;">
+                                        <label class="form-label fw-bold text-center w-100 d-block"
+                                            style="font-size:16px">YÊU CẦU XÉT NGHIỆM</label>
+                                        <textarea class="form-control" name="lab_request" id="lab_request" rows="6"
+                                            placeholder="Nhập yêu cầu xét nghiệm..."></textarea>
+                                        <div id="lab_suggestions"
+                                            class="position-absolute bg-white border rounded shadow"
+                                            style="display:none; z-index:1000; max-height:200px; overflow-y:auto; width:100%;">
                                         </div>
                                     </div>
 
@@ -644,21 +650,20 @@
                                         <div class="col-md-6 text-center">
                                             <div class="mb-2 d-flex align-items-center justify-content-center gap-2">
                                                 <span>Ngày</span>
-                                                <input type="number" class="form-control text-center"
-                                                    name="lab_ngay" id="lab_ngay" style="width:70px">
+                                                <input type="number" class="form-control text-center" name="lab_ngay"
+                                                    id="lab_ngay" style="width:70px">
                                                 <span>tháng</span>
-                                                <input type="number" class="form-control text-center"
-                                                    name="lab_thang" id="lab_thang" style="width:70px">
+                                                <input type="number" class="form-control text-center" name="lab_thang"
+                                                    id="lab_thang" style="width:70px">
                                                 <span>năm</span>
-                                                <input type="number" class="form-control text-center"
-                                                    name="lab_nam" id="lab_nam" style="width:90px">
+                                                <input type="number" class="form-control text-center" name="lab_nam"
+                                                    id="lab_nam" style="width:90px">
                                             </div>
                                             <div class="fw-bold">BÁC SĨ ĐIỀU TRỊ</div>
                                             <div class="mt-2" id="lab_doctor_display"
                                                 style="min-height:40px; border-bottom: 1px solid #000; padding: 5px;">
                                                 (Ký và ghi rõ họ tên)</div>
-                                            <input type="hidden" name="lab_doctor_name"
-                                                id="lab_doctor_name">
+                                            <input type="hidden" name="lab_doctor_name" id="lab_doctor_name">
                                         </div>
                                     </div>
 
@@ -674,9 +679,11 @@
                                     <div id="labResultReadonly" style="display:none">
                                         <!-- Header -->
                                         <div class="text-center mb-4">
-                                            <div class="fw-bold" style="font-size: 18px; color: #000;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
+                                            <div class="fw-bold" style="font-size: 18px; color: #000;">PHÒNG KHÁM ĐA
+                                                KHOA THINHVIET</div>
                                             <div class="fw-bold" style="font-size: 14px;">KHOA XÉT NGHIỆM</div>
-                                            <div class="fw-bold" style="font-size: 16px; color: #dc3545;">KẾT QUẢ XÉT NGHIỆM</div>
+                                            <div class="fw-bold" style="font-size: 16px; color: #dc3545;">KẾT QUẢ XÉT
+                                                NGHIỆM</div>
                                             <div class="d-flex justify-content-center mt-2" style="gap: 10px;">
                                                 <span>Ngày ĐK: <span id="lab_ro_date">-</span></span>
                                                 <span>|</span>
@@ -689,45 +696,70 @@
                                         <div class="row mb-4">
                                             <div class="col-md-6">
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">ID:</strong></div>
-                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_id">-</span></div>
+                                                    <div class="col-4"><strong style="font-size: 14px;">ID:</strong>
+                                                    </div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_id">-</span></div>
                                                 </div>
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">Họ và tên:</strong></div>
-                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_ho_ten">-</span></div>
+                                                    <div class="col-4"><strong style="font-size: 14px;">Họ và
+                                                            tên:</strong></div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_ho_ten">-</span></div>
                                                 </div>
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">Địa chỉ:</strong></div>
-                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_dia_chi">-</span></div>
+                                                    <div class="col-4"><strong style="font-size: 14px;">Địa
+                                                            chỉ:</strong></div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_dia_chi">-</span></div>
                                                 </div>
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">Chẩn đoán sơ bộ:</strong></div>
-                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_chan_doan">-</span></div>
+                                                    <div class="col-4"><strong style="font-size: 14px;">Chẩn đoán sơ
+                                                            bộ:</strong></div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_chan_doan">-</span></div>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">Tuổi:</strong></div>
-                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_tuoi">-</span></div>
+                                                    <div class="col-4"><strong style="font-size: 14px;">Tuổi:</strong>
+                                                    </div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_tuoi">-</span></div>
                                                 </div>
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">Giới tính:</strong></div>
-                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_gioi_tinh">-</span></div>
+                                                    <div class="col-4"><strong style="font-size: 14px;">Giới
+                                                            tính:</strong></div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_gioi_tinh">-</span></div>
                                                 </div>
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">BS yêu cầu:</strong></div>
-                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_bac_si">-</span></div>
+                                                    <div class="col-4"><strong style="font-size: 14px;">BS yêu
+                                                            cầu:</strong></div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_bac_si">-</span></div>
                                                 </div>
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">Tình trạng mẫu:</strong></div>
-                                                    <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;" id="lab_ro_tinh_trang_mau">-</span></div>
+                                                    <div class="col-4"><strong style="font-size: 14px;">Tình trạng
+                                                            mẫu:</strong></div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_tinh_trang_mau">-</span></div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <!-- Test Results Section -->
                                         <div class="text-center mb-3">
-                                            <div class="fw-bold" style="font-size: 16px;" id="lab_ro_yeu_cau">CHƯA CÓ YÊU CẦU XÉT NGHIỆM</div>
+                                            <div class="fw-bold" style="font-size: 16px;" id="lab_ro_yeu_cau">CHƯA CÓ
+                                                YÊU CẦU XÉT NGHIỆM</div>
                                             <div class="fw-bold" style="font-size: 14px;">BẢNG KẾT QUẢ XÉT NGHIỆM</div>
                                         </div>
 
@@ -745,7 +777,8 @@
                                                 </thead>
                                                 <tbody id="lab_ro_results_table">
                                                     <tr>
-                                                        <td colspan="6" class="text-center text-muted">Chưa có kết quả xét nghiệm</td>
+                                                        <td colspan="6" class="text-center text-muted">Chưa có kết quả
+                                                            xét nghiệm</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -754,7 +787,8 @@
                                         <!-- Notes -->
                                         <div class="mt-3" style="font-size: 11px;">
                                             <div>Ghi chú: Kết quả in đậm là kết quả nằm ngoài khoảng tham chiếu.</div>
-                                            <div>Xét nghiệm đánh dấu (*) là xét nghiệm được thực hiện bởi PXN chuyển gửi.</div>
+                                            <div>Xét nghiệm đánh dấu (*) là xét nghiệm được thực hiện bởi PXN chuyển
+                                                gửi.</div>
                                         </div>
 
                                         <!-- Footer -->
@@ -764,12 +798,17 @@
                                                     <!-- Trống -->
                                                 </div>
                                                 <div class="col-6">
-                                                    <div class="text-center" style="font-size: 16px; font-weight: bold; margin-bottom: 20px;">
-                                                        Ngày <span id="lab_ro_signature_date">-</span> tháng <span id="lab_ro_signature_month">-</span> năm <span id="lab_ro_signature_year">-</span>
+                                                    <div class="text-center"
+                                                        style="font-size: 16px; font-weight: bold; margin-bottom: 20px;">
+                                                        Ngày <span id="lab_ro_signature_date">-</span> tháng <span
+                                                            id="lab_ro_signature_month">-</span> năm <span
+                                                            id="lab_ro_signature_year">-</span>
                                                     </div>
                                                     <div class="text-center">
-                                                        <div class="fw-bold" style="font-size: 14px;">BÁC SĨ XÉT NGHIỆM</div>
-                                                        <div class="mt-2" style="font-size: 14px;" id="lab_ro_signature_doctor">-</div>
+                                                        <div class="fw-bold" style="font-size: 14px;">BÁC SĨ XÉT NGHIỆM
+                                                        </div>
+                                                        <div class="mt-2" style="font-size: 14px;"
+                                                            id="lab_ro_signature_doctor">-</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -800,78 +839,78 @@
                                     <div class="tab-content">
                                         <div class="tab-pane fade show active" id="us_tabpane_info" role="tabpanel">
                                             <style>
-                                                .report {
-                                                    font-family: "Times New Roman", serif;
-                                                    padding: 18px;
-                                                }
+                                            .report {
+                                                font-family: "Times New Roman", serif;
+                                                padding: 18px;
+                                            }
 
-                                                .title {
-                                                    font-weight: bold;
-                                                    text-transform: uppercase;
-                                                    text-align: center;
-                                                    letter-spacing: .5px;
-                                                    font-size: 18px;
-                                                    margin-bottom: 6px;
-                                                    color: red;
-                                                }
+                                            .title {
+                                                font-weight: bold;
+                                                text-transform: uppercase;
+                                                text-align: center;
+                                                letter-spacing: .5px;
+                                                font-size: 18px;
+                                                margin-bottom: 6px;
+                                                color: red;
+                                            }
 
-                                                .hr {
-                                                    border-top: 2px solid #000;
-                                                    margin: 10px 0;
-                                                }
+                                            .hr {
+                                                border-top: 2px solid #000;
+                                                margin: 10px 0;
+                                            }
 
-                                                .row-line {
-                                                    display: flex;
-                                                    gap: 8px;
-                                                    margin-bottom: 6px;
-                                                    font-size: 15px;
-                                                }
+                                            .row-line {
+                                                display: flex;
+                                                gap: 8px;
+                                                margin-bottom: 6px;
+                                                font-size: 15px;
+                                            }
 
-                                                .label {
-                                                    min-width: 150px;
-                                                    font-weight: bold;
-                                                }
+                                            .label {
+                                                min-width: 150px;
+                                                font-weight: bold;
+                                            }
 
-                                                .dots {
-                                                    flex: 0 0 auto;
-                                                }
+                                            .dots {
+                                                flex: 0 0 auto;
+                                            }
 
-                                                .value {
-                                                    flex: 1;
-                                                    border-bottom: 1px dotted #333;
-                                                    min-height: 20px;
-                                                }
+                                            .value {
+                                                flex: 1;
+                                                border-bottom: 1px dotted #333;
+                                                min-height: 20px;
+                                            }
 
-                                                .section {
-                                                    margin-top: 10px;
-                                                    margin-bottom: 6px;
-                                                    font-weight: bold;
-                                                    text-transform: uppercase;
-                                                    color: blue;
-                                                }
+                                            .section {
+                                                margin-top: 10px;
+                                                margin-bottom: 6px;
+                                                font-weight: bold;
+                                                text-transform: uppercase;
+                                                color: blue;
+                                            }
 
-                                                .signature {
-                                                    min-width: 260px;
-                                                }
+                                            .signature {
+                                                min-width: 260px;
+                                            }
 
-                                                .conclusion {
-                                                    font-weight: bold;
-                                                    color: blue;
-                                                }
+                                            .conclusion {
+                                                font-weight: bold;
+                                                color: blue;
+                                            }
 
-                                                .result-content {
-                                                    border: 1px solid #333;
-                                                    padding: 10px;
-                                                    min-height: 100px;
-                                                    white-space: pre-wrap;
-                                                }
+                                            .result-content {
+                                                border: 1px solid #333;
+                                                padding: 10px;
+                                                min-height: 100px;
+                                                white-space: pre-wrap;
+                                            }
 
-                                                .conclusion-content {
-                                                    border: 1px solid #333;
-                                                    padding: 10px;
-                                                    min-height: 60px;
-                                                    white-space: pre-wrap;
-                                                }
+                                            .conclusion-content {
+                                                border: 1px solid #333;
+                                                padding: 10px;
+                                                min-height: 60px;
+                                                white-space: pre-wrap;
+                                            }
                                             </style>
 
                                             <div id="ultrasoundResultReadonly" class="report" style="display:none"
@@ -1356,13 +1395,14 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Prescription Code -->
                                     <div class="row mb-4">
                                         <div class="col-12">
                                             <div class="text-end">
                                                 <span class="form-label fw-bold text-muted me-2">Mã đơn thuốc:</span>
-                                                <span class="prescription-code-small" id="prescription-code-display-value">P946008-122</span>
+                                                <span class="prescription-code-small"
+                                                    id="prescription-code-display-value">P946008-122</span>
                                                 <input type="hidden" id="ma_don_thuoc" name="ma_don_thuoc" value="">
                                             </div>
                                         </div>
@@ -1373,13 +1413,15 @@
                                         <div class="col-md-6">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Họ tên:</label>
-                                                <input type="text" class="form-control" id="prescription_patient_name" name="ho_ten" readonly>
+                                                <input type="text" class="form-control" id="prescription_patient_name"
+                                                    name="prescription_ho_ten_display" readonly>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Ngày sinh:</label>
-                                                <input type="text" class="form-control" id="prescription_dob" name="ngay_sinh" readonly>
+                                                <input type="text" class="form-control" id="prescription_dob"
+                                                    name="prescription_ngay_sinh_display" readonly>
                                             </div>
                                         </div>
                                     </div>
@@ -1388,13 +1430,15 @@
                                         <div class="col-md-6">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Mã Bệnh nhân:</label>
-                                                <input type="text" class="form-control" name="ma_benh_nhan" id="prescription_ma_benh_nhan" readonly>
+                                                <input type="text" class="form-control" name="ma_benh_nhan"
+                                                    id="prescription_ma_benh_nhan" readonly>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Giới tính:</label>
-                                                <input type="text" class="form-control" name="gioi_tinh" value="Nam" readonly>
+                                                <input type="text" class="form-control" name="gioi_tinh" value="Nam"
+                                                    readonly>
                                             </div>
                                         </div>
                                     </div>
@@ -1403,13 +1447,15 @@
                                         <div class="col-md-6">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Mã số BHYT (nếu có):</label>
-                                                <input type="text" class="form-control" name="ma_bhyt" id="prescription_bhyt" placeholder="Nhập mã BHYT" readonly>
+                                                <input type="text" class="form-control" name="ma_bhyt"
+                                                    id="prescription_bhyt" placeholder="Nhập mã BHYT" readonly>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Số điện thoại:</label>
-                                                <input type="text" class="form-control" name="so_dien_thoai" value="84913998199" readonly>
+                                                <input type="text" class="form-control" name="so_dien_thoai"
+                                                    value="84913998199" readonly>
                                             </div>
                                         </div>
                                     </div>
@@ -1418,7 +1464,8 @@
                                         <div class="col-12">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Địa chỉ liên hệ:</label>
-                                                <textarea class="form-control" name="dia_chi_lien_he" rows="2" readonly>51/16A Pham Văn Chiêu</textarea>
+                                                <textarea class="form-control" name="dia_chi_lien_he" rows="2"
+                                                    readonly>51/16A Pham Văn Chiêu</textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -1428,7 +1475,8 @@
                                         <div class="col-12">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Chẩn đoán:</label>
-                                                <input type="text" class="form-control" name="chan_doan" placeholder="Nhập chẩn đoán" id="diagnosis_description">
+                                                <input type="text" class="form-control" name="chan_doan"
+                                                    placeholder="Nhập chẩn đoán" id="diagnosis_description">
                                             </div>
                                         </div>
                                     </div>
@@ -1438,11 +1486,12 @@
                                         <div class="col-12">
                                             <div class="d-flex justify-content-between align-items-center mb-3">
                                                 <h6 class="mb-0 fw-bold">Thuốc điều trị</h6>
-                                                <button type="button" class="btn btn-primary btn-sm" id="add-medication-btn">
+                                                <button type="button" class="btn btn-primary btn-sm"
+                                                    id="add-medication-btn">
                                                     <i class="fas fa-plus me-1"></i>Thêm thuốc
                                                 </button>
                                             </div>
-                                            
+
                                             <div class="table-responsive">
                                                 <table class="table table-bordered table-striped" id="medication-table">
                                                     <thead class="table-success">
@@ -1461,23 +1510,38 @@
                                                         <tr class="medication-row">
                                                             <td class="text-center"><span>1</span></td>
                                                             <td style="position: relative;">
-                                                                <input type="text" class="form-control form-control-sm medication-name-input" placeholder="Nhập tên thuốc..." autocomplete="off" />
-                                                                <div class="medication-suggestion-dropdown" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; width: 100%;"></div>
+                                                                <input type="text"
+                                                                    class="form-control form-control-sm medication-name-input"
+                                                                    placeholder="Nhập tên thuốc..."
+                                                                    autocomplete="off" />
+                                                                <div class="medication-suggestion-dropdown"
+                                                                    style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; width: 100%;">
+                                                                </div>
                                                             </td>
                                                             <td class="text-center">
-                                                                <input type="text" class="form-control form-control-sm medication-ingredient" placeholder="Hoạt chất" readonly />
+                                                                <input type="text"
+                                                                    class="form-control form-control-sm medication-ingredient"
+                                                                    placeholder="Hoạt chất" readonly />
                                                             </td>
                                                             <td class="text-center">
-                                                                <input type="text" class="form-control form-control-sm medication-unit" placeholder="ĐVT" readonly />
+                                                                <input type="text"
+                                                                    class="form-control form-control-sm medication-unit"
+                                                                    placeholder="ĐVT" readonly />
                                                             </td>
                                                             <td class="text-center">
-                                                                <input type="number" class="form-control form-control-sm medication-quantity" placeholder="SL" value="1" min="1" />
+                                                                <input type="number"
+                                                                    class="form-control form-control-sm medication-quantity"
+                                                                    placeholder="SL" value="1" min="1" />
                                                             </td>
                                                             <td class="text-center">
-                                                                <input type="text" class="form-control form-control-sm medication-usage" placeholder="Cách dùng" readonly />
+                                                                <input type="text"
+                                                                    class="form-control form-control-sm medication-usage"
+                                                                    placeholder="Cách dùng" readonly />
                                                             </td>
                                                             <td class="text-center">
-                                                                <button type="button" class="btn btn-danger btn-sm remove-medication-btn" onclick="removeMedicationRow(this)">
+                                                                <button type="button"
+                                                                    class="btn btn-danger btn-sm remove-medication-btn"
+                                                                    onclick="removeMedicationRow(this)">
                                                                     <i class="fas fa-minus"></i>
                                                                 </button>
                                                             </td>
@@ -1493,7 +1557,9 @@
                                         <div class="col-12">
                                             <div class="form-group prescription-field">
                                                 <label class="form-label fw-bold">Lời dặn:</label>
-                                                <input type="text" class="form-control" name="loi_dan" id="prescription_instructions" placeholder="Bất thường đến khám lại">
+                                                <input type="text" class="form-control" name="loi_dan"
+                                                    id="prescription_instructions"
+                                                    placeholder="Bất thường đến khám lại">
                                             </div>
                                         </div>
                                     </div>
@@ -1524,23 +1590,31 @@
                                         <span>1</span>
                                     </td>
                                     <td class="text-center" style="position: relative;">
-                                        <input type="text" class="form-control form-control-sm medication-name-input" placeholder="Nhập tên thuốc..." autocomplete="off" />
-                                        <div class="medication-suggestion-dropdown" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; width: 100%;"></div>
+                                        <input type="text" class="form-control form-control-sm medication-name-input"
+                                            placeholder="Nhập tên thuốc..." autocomplete="off" />
+                                        <div class="medication-suggestion-dropdown"
+                                            style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; width: 100%;">
+                                        </div>
                                     </td>
                                     <td class="text-center">
-                                        <input type="text" class="form-control form-control-sm medication-ingredient" placeholder="Hoạt chất" readonly>
+                                        <input type="text" class="form-control form-control-sm medication-ingredient"
+                                            placeholder="Hoạt chất" readonly>
                                     </td>
                                     <td class="text-center">
-                                        <input type="text" class="form-control form-control-sm medication-unit" placeholder="ĐVT" readonly>
+                                        <input type="text" class="form-control form-control-sm medication-unit"
+                                            placeholder="ĐVT" readonly>
                                     </td>
                                     <td class="text-center">
-                                        <input type="number" class="form-control form-control-sm medication-quantity" placeholder="SL" min="1" value="1">
+                                        <input type="number" class="form-control form-control-sm medication-quantity"
+                                            placeholder="SL" min="1" value="1">
                                     </td>
                                     <td class="text-center">
-                                        <input type="text" class="form-control form-control-sm medication-usage" placeholder="Cách dùng">
+                                        <input type="text" class="form-control form-control-sm medication-usage"
+                                            placeholder="Cách dùng">
                                     </td>
                                     <td class="text-center">
-                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMedicationRow(this)">
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                            onclick="removeMedicationRow(this)">
                                             <i class="fas fa-minus"></i>
                                         </button>
                                     </td>
@@ -1594,7 +1668,7 @@
                 <button type="button" class="btn btn-primary" id="print-prescription-btn" style="display:none">
                     <i class="fas fa-print me-1"></i>In đơn thuốc
                 </button>
-                
+
             </div>
         </div>
     </div>
@@ -1602,12 +1676,14 @@
 
 <!-- CSS Styles for Prescription Form -->
 <style>
-.medication-row input, .medication-row select {
+.medication-row input,
+.medication-row select {
     border: none;
     background: transparent;
 }
 
-.medication-row input:focus, .medication-row select:focus {
+.medication-row input:focus,
+.medication-row select:focus {
     border: 1px solid #007bff;
     background: white;
 }
@@ -1653,17 +1729,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize prescription form when tab is clicked
     document.querySelector('a[href="#sec-prescription"]').addEventListener('click', function() {
         initializePrescriptionForm();
-        
+
         // Hide all other buttons
-        document.querySelectorAll('#btnSaveExamForm, #btnPrintExamForm, #btnSaveExam, #saveXrayForm, #printXrayForm, #saveUltrasoundForm, #printUltrasoundForm, #saveLabForm, #printLabForm').forEach(btn => {
+        document.querySelectorAll(
+            '#btnSaveExamForm, #btnPrintExamForm, #btnSaveExam, #saveXrayForm, #printXrayForm, #saveUltrasoundForm, #printUltrasoundForm, #saveLabForm, #printLabForm'
+        ).forEach(btn => {
             btn.style.display = 'none';
         });
-        
+
         // Show prescription buttons
         document.getElementById('save-prescription-btn').style.display = 'inline-block';
         document.getElementById('print-prescription-btn').style.display = 'inline-block';
     });
-    
+
     // Hide prescription buttons when other tabs are clicked
     document.querySelectorAll('a[href^="#sec-"]:not([href="#sec-prescription"])').forEach(tab => {
         tab.addEventListener('click', function() {
@@ -1672,15 +1750,15 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('print-prescription-btn').style.display = 'none';
         });
     });
-    
+
     // Add medication button - đã được xử lý trong prescription.js
-    
+
     // Save prescription button
     document.getElementById('save-prescription-btn').addEventListener('click', savePrescription);
-    
+
     // Print prescription button
     document.getElementById('print-prescription-btn').addEventListener('click', printPrescription);
-    
+
     // Clear prescription button
 });
 
@@ -1688,13 +1766,18 @@ function initializePrescriptionForm() {
     // Prefer data attributes from selected appointment; fallback to form fields
     const appointmentId = document.getElementById('examinationAppointmentId')?.value;
     const appointmentItem = appointmentId ? document.querySelector(`[data-appointment-id="${appointmentId}"]`) : null;
-    
-    const patientName = (appointmentItem?.getAttribute('data-patient-name')) || document.getElementById('patientName')?.value || '';
-    const patientPhone = (appointmentItem?.getAttribute('data-phone')) || document.getElementById('patientPhone')?.value || '';
-    const patientDob = (appointmentItem?.getAttribute('data-dob')) || document.getElementById('patientAge')?.value || '';
-    const patientGender = (appointmentItem?.getAttribute('data-gender')) || document.querySelector('input[name="gioi_tinh"]:checked')?.value || '';
-    const patientAddress = (appointmentItem?.getAttribute('data-address')) || document.querySelector('[name="dia_chi"]')?.value || '';
-    
+
+    const patientName = (appointmentItem?.getAttribute('data-patient-name')) || document.getElementById('patientName')
+        ?.value || '';
+    const patientPhone = (appointmentItem?.getAttribute('data-phone')) || document.getElementById('patientPhone')
+        ?.value || '';
+    const patientDob = (appointmentItem?.getAttribute('data-dob')) || document.getElementById('patientAge')?.value ||
+        '';
+    const patientGender = (appointmentItem?.getAttribute('data-gender')) || document.querySelector(
+        'input[name="gioi_tinh"]:checked')?.value || '';
+    const patientAddress = (appointmentItem?.getAttribute('data-address')) || document.querySelector('[name="dia_chi"]')
+        ?.value || '';
+
     // Fill prescription form
     if (document.getElementById('prescription_patient_name')) {
         document.getElementById('prescription_patient_name').value = patientName;
@@ -1711,7 +1794,7 @@ function initializePrescriptionForm() {
     if (document.getElementById('prescription_address')) {
         document.getElementById('prescription_address').value = patientAddress;
     }
-    
+
     // Determine phieu_kham_benh id from existing hidden ids in other tabs, fallback to appointment
     const examIdFromUltrasound = document.getElementById('ultrasound_examination_id')?.value || '';
     const examIdFromLab = document.getElementById('lab_examination_id')?.value || '';
@@ -1724,11 +1807,12 @@ function initializePrescriptionForm() {
     // Fill patient code and BHYT from appointment data (if available)
     if (appointmentId) {
         if (appointmentItem) {
-            const patientCode = appointmentItem.getAttribute("data-ma-benh-nhan") || appointmentItem.getAttribute("data-patient-code") || "";
+            const patientCode = appointmentItem.getAttribute("data-ma-benh-nhan") || appointmentItem.getAttribute(
+                "data-patient-code") || "";
             if (document.getElementById('prescription_ma_benh_nhan')) {
                 document.getElementById('prescription_ma_benh_nhan').value = patientCode;
             }
-            
+
             // Fill BHYT: if has bao_hiem_y_te then show it, otherwise show "Thu phí"
             const patientBHYT = appointmentItem.getAttribute("data-bhyt") || "";
             if (document.getElementById('prescription_bhyt')) {
@@ -1740,23 +1824,23 @@ function initializePrescriptionForm() {
             }
         }
     }
-    
+
     // Set current date and doctor name
     const now = new Date();
-    const dateStr = now.getDate().toString().padStart(2, '0') + '/' + 
-                   (now.getMonth() + 1).toString().padStart(2, '0') + '/' + 
-                   now.getFullYear();
-    
+    const dateStr = now.getDate().toString().padStart(2, '0') + '/' +
+        (now.getMonth() + 1).toString().padStart(2, '0') + '/' +
+        now.getFullYear();
+
     document.getElementById('prescription_date').textContent = dateStr;
-    
+
     // Lấy tên bác sĩ từ form khám bệnh hoặc từ session
     let doctorName = 'Bác sĩ';
-    
+
     // Thử lấy từ các trường có thể có tên bác sĩ
-    const doctorNameField = document.querySelector('[name="ten_bac_si"]') || 
-                           document.getElementById('ten_bac_si') ||
-                           document.querySelector('input[name="ten_bac_si"]');
-    
+    const doctorNameField = document.querySelector('[name="ten_bac_si"]') ||
+        document.getElementById('ten_bac_si') ||
+        document.querySelector('input[name="ten_bac_si"]');
+
     if (doctorNameField && doctorNameField.value) {
         doctorName = doctorNameField.value;
     } else {
@@ -1773,19 +1857,18 @@ function initializePrescriptionForm() {
                         document.getElementById('prescription_doctor').textContent = data.doctor_name;
                     }
                 })
-                .catch(error => {
-                });
+                .catch(error => {});
         }
     }
-    
+
     document.getElementById('prescription_doctor').textContent = doctorName;
-    
+
     // Generate prescription code
     generatePrescriptionCode();
-    
+
     // Cập nhật STT cho các hàng thuốc hiện có
     updateMedicationSTT();
-    
+
 }
 
 function generatePrescriptionCode() {
@@ -1805,9 +1888,9 @@ function updateMedicationSTT() {
     if (!tbody) {
         return;
     }
-    
+
     const rows = tbody.querySelectorAll('tr'); // Sử dụng "tr" thay vì ".medication-row"
-    
+
     rows.forEach((row, index) => {
         const sttSpan = row.querySelector('td:first-child span'); // Tìm span trong cột đầu tiên
         if (sttSpan) {
@@ -1824,15 +1907,15 @@ function removeMedicationRow(button) {
         // Fallback nếu không có prescription manager (giống như trong xetnghiem_dashboard)
         const row = button.closest('.medication-row');
         const tbody = document.getElementById('medication-tbody');
-        
+
         if (row && tbody) {
-            
+
             // Remove the row
             tbody.removeChild(row);
-            
+
             // Update STT for remaining rows (giống như trong xetnghiem_dashboard)
             const remainingRows = tbody.querySelectorAll('tr'); // Sử dụng "tr" thay vì ".medication-row"
-            
+
             remainingRows.forEach((row, index) => {
                 // Sử dụng cách tìm STT giống như trong xetnghiem
                 const sttCell = row.querySelector('td:first-child span');
@@ -1874,7 +1957,7 @@ function loadMedicationOptions() {
 function selectMedication(selectElement) {
     const selectedOption = selectElement.options[selectElement.selectedIndex];
     const row = selectElement.closest('tr');
-    
+
     if (selectedOption.value) {
         row.querySelector('.medication-code').value = selectedOption.value;
         row.querySelector('.medication-ingredient').value = selectedOption.dataset.ingredient || '';
@@ -1914,7 +1997,7 @@ function savePrescription() {
         ten_bac_si: document.getElementById('prescription_doctor').textContent,
         medications: []
     };
-    
+
     // Collect medication data
     const medicationRows = document.querySelectorAll('.medication-row');
     medicationRows.forEach(row => {
@@ -1929,32 +2012,31 @@ function savePrescription() {
         };
         prescriptionData.medications.push(medication);
     });
-    
+
     // Send to server
     fetch('./?action=save_prescription', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(prescriptionData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Lưu đơn thuốc thành công!');
-        } else {
-            alert('Lỗi khi lưu đơn thuốc: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Lỗi khi lưu đơn thuốc');
-    });
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(prescriptionData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Lưu đơn thuốc thành công!');
+            } else {
+                alert('Lỗi khi lưu đơn thuốc: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Lỗi khi lưu đơn thuốc');
+        });
 }
 
 function printPrescription() {
     // Implementation for printing prescription
     window.print();
 }
-
 </script>
