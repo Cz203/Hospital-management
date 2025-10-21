@@ -286,18 +286,26 @@ function saveExaminationForm() {
   fd.append("appointment_id", appointmentId);
   fetch("./save_examination_form", { method: "POST", body: fd })
     .then(function (r) {
+      if (!r.ok) {
+        console.error("HTTP Error:", r.status, r.statusText);
+        throw new Error("HTTP " + r.status + ": " + r.statusText);
+      }
       return r.json();
     })
     .then(function (d) {
+      console.log("Server response:", d);
       if (d && d.success) {
         alert("Lưu phiếu khám thành công! Mã số: " + d.id);
         window._lastExamFormId = d.id;
       } else {
-        alert("Không thể lưu phiếu khám");
+        var errorMsg = d && d.message ? d.message : "Không rõ lý do";
+        console.error("Save failed:", errorMsg);
+        alert("Không thể lưu phiếu khám: " + errorMsg);
       }
     })
-    .catch(function () {
-      alert("Lỗi khi lưu phiếu khám");
+    .catch(function (err) {
+      console.error("Error saving examination form:", err);
+      alert("Lỗi khi lưu phiếu khám: " + err.message);
     });
 }
 
