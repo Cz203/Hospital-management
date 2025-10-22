@@ -8,7 +8,7 @@
 ### 🧑‍⚕️ Doctor
 
 - link: cziet.id.vn/login_doctor
-- **sdt:** `0123456789`
+- **sdt:** `0901000001`
 - **Password:** `123456@`
 
 ### Admin
