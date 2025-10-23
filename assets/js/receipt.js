@@ -13,6 +13,13 @@ async function initializeReceiptForm() {
     const year = today.getFullYear();
     const currentDate = `Ngày ${day} tháng ${month} năm ${year}`;
     
+    // Clear existing receipt data before reloading
+    const tbody = document.querySelector('#receipt_services');
+    if (tbody) {
+        tbody.innerHTML = '';
+        console.log('Cleared existing receipt data');
+    }
+    
     // Calculate age from birth date if patientAge contains date
     let displayAge = patientAge;
     if (patientAge && patientAge.includes('-')) {
@@ -38,6 +45,11 @@ async function initializeReceiptForm() {
     
     // Get exam ID from current appointment
     const examId = getCurrentExamId();
+    
+    // Load receipt code (Số HD)
+    if (examId) {
+        loadReceiptCode(examId);
+    }
     
     if (!examId) {
         console.error('Không tìm thấy ID phiếu khám');
@@ -327,8 +339,6 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
                 totalPatientAmount = basicPatientAmount;
                 
                 
-                // Now add other services after basic exam price is set
-                addOtherServices();
             } else {
                 // Hiển thị lỗi thay vì fallback
                 basicExamRow.innerHTML = `
@@ -344,9 +354,6 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
                 `;
                 console.error('Lỗi lấy đơn giá:', data.message || 'Không tìm thấy đơn giá dịch vụ');
                 alert('Lỗi: ' + (data.message || 'Không tìm thấy đơn giá dịch vụ "Khám bệnh" trong database'));
-                
-                // Still add other services even if basic exam fails
-                addOtherServices();
             }
         })
         .catch(error => {
@@ -365,8 +372,10 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
                 <td class="text-end text-danger">LỖI</td>
             `;
             alert('Lỗi kết nối: Không thể lấy đơn giá dịch vụ từ database');
-            
-            // Still add other services even if basic exam fails
+        })
+        .finally(() => {
+            // Always add other services after basic exam is processed (success or error)
+            console.log('Basic exam processed, adding other services...');
             addOtherServices();
         });
     
@@ -486,10 +495,25 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
         
         if (num === 0) return 'không';
         if (num < 10) return ones[num];
-        if (num < 20) return num === 10 ? 'mười' : 'mười ' + ones[num - 10];
+        if (num < 20) {
+            if (num === 10) return 'mười';
+            if (num === 11) return 'mười một';
+            if (num === 12) return 'mười hai';
+            if (num === 13) return 'mười ba';
+            if (num === 14) return 'mười bốn';
+            if (num === 15) return 'mười lăm';
+            if (num === 16) return 'mười sáu';
+            if (num === 17) return 'mười bảy';
+            if (num === 18) return 'mười tám';
+            if (num === 19) return 'mười chín';
+            return 'mười ' + (ones[num - 10] || '');
+        }
         if (num < 100) {
             const ten = Math.floor(num / 10);
             const one = num % 10;
+            if (ten === 1) {
+                return 'mười' + (one > 0 ? ' ' + ones[one] : '');
+            }
             return tens[ten] + (one > 0 ? ' ' + ones[one] : '');
         }
         if (num < 1000) {
@@ -501,6 +525,12 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
             const thousand = Math.floor(num / 1000);
             const remainder = num % 1000;
             return numberToWords(thousand) + ' ngàn' + (remainder > 0 ? ' ' + numberToWords(remainder) : '');
+        }
+        if (num < 1000000000) {
+            const million = Math.floor(num / 1000000);
+            const remainder = num % 1000000;
+            const millionText = numberToWords(million);
+            return millionText + ' triệu' + (remainder > 0 ? ' ' + numberToWords(remainder) : '');
         }
         return num.toString();
     };
@@ -526,3 +556,164 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/**
+ * Lưu biên lai viện phí
+ */
+function saveReceipt() {
+    console.log("saveReceipt called");
+    
+    var examId = getCurrentExamId();
+    if (!examId) {
+        alert("Vui lòng lưu phiếu khám bệnh trước khi lưu biên lai!");
+        return;
+    }
+    
+    // Lấy dữ liệu từ receipt form
+    var receiptData = collectReceiptData();
+    if (!receiptData) {
+        alert("Không thể thu thập dữ liệu biên lai!");
+        return;
+    }
+    
+    
+    // Gửi dữ liệu lên server
+    fetch("./?action=save_receipt", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(receiptData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.is_update) {
+                alert("Cập nhật biên lai thành công! Mã biên lai: " + data.ma_bien_lai);
+            } else {
+                alert("Lưu biên lai thành công! Mã biên lai: " + data.ma_bien_lai);
+            }
+            
+            // Reload tab Kê biên lai sau khi lưu thành công
+            setTimeout(() => {
+                reloadReceiptTab();
+            }, 1000);
+        } else {
+            alert("Lỗi khi lưu biên lai: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("Lỗi kết nối khi lưu biên lai");
+    });
+}
+
+/**
+ * Thu thập dữ liệu biên lai từ form
+ */
+function collectReceiptData() {
+    try {
+        var examId = getCurrentExamId();
+        if (!examId) return null;
+        
+        // Lấy tổng tiền từ các element
+        var totalBase = parseFloat(document.getElementById('receipt_total_base')?.textContent?.replace(/[^\d]/g, '') || 0);
+        var totalBhyt = parseFloat(document.getElementById('receipt_total_bhyt')?.textContent?.replace(/[^\d]/g, '') || 0);
+        var totalPatient = parseFloat(document.getElementById('receipt_total_patient')?.textContent?.replace(/[^\d]/g, '') || 0);
+        
+        // Thu thập chi tiết từ bảng receipt
+        var chiTiet = [];
+        var receiptTable = document.querySelector('#receipt_services');
+        
+        if (receiptTable) {
+            var rows = receiptTable.querySelectorAll('tr');
+            
+            rows.forEach(function(row, index) {
+                var cells = row.querySelectorAll('td');
+                
+                if (cells.length >= 6) {
+                    var tenDichVu = cells[1]?.textContent?.trim() || '';
+                    var soLuong = parseInt(cells[2]?.textContent?.trim() || '1');
+                    var donGia = parseFloat(cells[3]?.textContent?.replace(/[^\d]/g, '') || '0');
+                    var thanhTien = parseFloat(cells[4]?.textContent?.replace(/[^\d]/g, '') || '0');
+                    var quyBhyt = parseFloat(cells[5]?.textContent?.replace(/[^\d]/g, '') || '0');
+                    var nguoiBenh = parseFloat(cells[6]?.textContent?.replace(/[^\d]/g, '') || '0');
+                    
+                    // Bỏ qua các dòng tiêu đề hoặc trống
+                    if (tenDichVu && tenDichVu !== 'Tên dịch vụ' && donGia > 0) {
+                        chiTiet.push({
+                            loai_dich_vu: getLoaiDichVu(tenDichVu),
+                            ten_dich_vu: tenDichVu,
+                            so_luong: soLuong,
+                            don_gia: donGia,
+                            thanh_tien: thanhTien,
+                            quy_bhyt: quyBhyt,
+                            nguoi_benh: nguoiBenh,
+                            bao_hiem: quyBhyt > 0 ? 1 : 0,
+                            ghi_chu: ''
+                        });
+                    }
+                }
+            });
+        }
+        
+        return {
+            id_phieu_kham_benh: examId,
+            tong_tien_co_ban: totalBase,
+            tong_quy_bhyt: totalBhyt,
+            tong_nguoi_benh: totalPatient,
+            ghi_chu: "Biên lai tự động tạo từ hệ thống",
+            chi_tiet: chiTiet
+        };
+    } catch (error) {
+        console.error("Error collecting receipt data:", error);
+        return null;
+    }
+}
+
+// Helper function để xác định loại dịch vụ
+function getLoaiDichVu(tenDichVu) {
+    if (tenDichVu.toLowerCase().includes('khám bệnh')) return 'Kham benh';
+    if (tenDichVu.toLowerCase().includes('xét nghiệm') || tenDichVu.toLowerCase().includes('xet nghiem')) return 'Xet nghiem';
+    if (tenDichVu.toLowerCase().includes('siêu âm') || tenDichVu.toLowerCase().includes('sieu am')) return 'Sieu am';
+    if (tenDichVu.toLowerCase().includes('x-quang') || tenDichVu.toLowerCase().includes('xquang')) return 'X-Quang';
+    if (tenDichVu.toLowerCase().includes('thuốc') || tenDichVu.toLowerCase().includes('thuoc')) return 'Thuoc';
+    return 'Kham benh'; // Default
+}
+
+// Load receipt code (Số HD) from API
+async function loadReceiptCode(examId) {
+    try {
+        const response = await fetch(`./?action=get_receipt_code&exam_id=${encodeURIComponent(examId)}`);
+        const data = await response.json();
+        
+        const soHdElement = document.getElementById('receipt_so_hd');
+        if (soHdElement) {
+            if (data.success && data.ma_bien_lai) {
+                soHdElement.textContent = data.ma_bien_lai;
+            } else {
+                soHdElement.textContent = '-';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading receipt code:', error);
+        const soHdElement = document.getElementById('receipt_so_hd');
+        if (soHdElement) {
+            soHdElement.textContent = '-';
+        }
+    }
+}
+
+// Reload tab Kê biên lai sau khi lưu thành công
+function reloadReceiptTab() {
+    console.log("Reloading receipt tab...");
+    
+    // Đảm bảo tab Kê biên lai vẫn active
+    const receiptTab = document.querySelector('a[href="#sec-result"]');
+    if (receiptTab) {
+        // Trigger click để đảm bảo tab vẫn active và tự động gọi initializeReceiptForm()
+        receiptTab.click();
+    }
+    
+    console.log("Receipt tab reloaded successfully!");
+}

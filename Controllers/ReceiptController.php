@@ -1,14 +1,17 @@
 <?php
 
 require_once 'Models/ReceiptData.php';
+require_once 'Models/BienLai.php';
 
 class ReceiptController
 {
     private $receiptDataModel;
+    private $bienLaiModel;
 
     public function __construct($database)
     {
         $this->receiptDataModel = new ReceiptData($database);
+        $this->bienLaiModel = new BienLai();
     }
 
     /**
@@ -35,6 +38,39 @@ class ReceiptController
             
         } catch (Exception $e) {
             error_log('ReceiptController getReceiptData error: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy mã biên lai theo ID phiếu khám
+     */
+    public function getReceiptCode()
+    {
+        try {
+            $examId = $_GET['exam_id'] ?? '';
+            
+            if (empty($examId)) {
+                echo json_encode(['success' => false, 'message' => 'ID phiếu khám không hợp lệ']);
+                return;
+            }
+
+            $bienLai = $this->bienLaiModel->getByExamId($examId);
+            
+            if ($bienLai) {
+                echo json_encode([
+                    'success' => true,
+                    'ma_bien_lai' => $bienLai['ma_bien_lai']
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Chưa có biên lai'
+                ]);
+            }
+            
+        } catch (Exception $e) {
+            error_log('ReceiptController getReceiptCode error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }
@@ -93,10 +129,25 @@ class ReceiptController
         
         if ($num === 0) return 'không';
         if ($num < 10) return $ones[$num];
-        if ($num < 20) return $num === 10 ? 'mười' : 'mười ' . $ones[$num - 10];
+        if ($num < 20) {
+            if ($num === 10) return 'mười';
+            if ($num === 11) return 'mười một';
+            if ($num === 12) return 'mười hai';
+            if ($num === 13) return 'mười ba';
+            if ($num === 14) return 'mười bốn';
+            if ($num === 15) return 'mười lăm';
+            if ($num === 16) return 'mười sáu';
+            if ($num === 17) return 'mười bảy';
+            if ($num === 18) return 'mười tám';
+            if ($num === 19) return 'mười chín';
+            return 'mười ' . ($ones[$num - 10] ?: '');
+        }
         if ($num < 100) {
             $ten = floor($num / 10);
             $one = $num % 10;
+            if ($ten === 1) {
+                return 'mười' . ($one > 0 ? ' ' . $ones[$one] : '');
+            }
             return $tens[$ten] . ($one > 0 ? ' ' . $ones[$one] : '');
         }
         if ($num < 1000) {
@@ -109,6 +160,87 @@ class ReceiptController
             $remainder = $num % 1000;
             return $this->numberToWords($thousand) . ' ngàn' . ($remainder > 0 ? ' ' . $this->numberToWords($remainder) : '');
         }
+        if ($num < 1000000000) {
+            $million = floor($num / 1000000);
+            $remainder = $num % 1000000;
+            $millionText = $this->numberToWords($million);
+            return $millionText . ' triệu' . ($remainder > 0 ? ' ' . $this->numberToWords($remainder) : '');
+        }
         return $num;
+    }
+
+    /**
+     * Lưu biên lai viện phí
+     */
+    public function saveReceipt()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!$input) {
+                echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ']);
+                return;
+            }
+            
+            // Validate required fields
+            $requiredFields = ['id_phieu_kham_benh', 'tong_tien_co_ban', 'tong_quy_bhyt', 'tong_nguoi_benh'];
+            foreach ($requiredFields as $field) {
+                if (!isset($input[$field])) {
+                    echo json_encode(['success' => false, 'message' => "Thiếu trường bắt buộc: $field"]);
+                    return;
+                }
+            }
+            
+            // Kiểm tra biên lai đã tồn tại chưa
+            $existingReceipt = $this->bienLaiModel->getByExamId($input['id_phieu_kham_benh']);
+            $isUpdate = $existingReceipt !== false;
+            
+            if ($isUpdate) {
+                // Cập nhật biên lai đã tồn tại
+                $receiptData = [
+                    'id' => $existingReceipt['id'],
+                    'tong_tien_co_ban' => $input['tong_tien_co_ban'],
+                    'tong_quy_bhyt' => $input['tong_quy_bhyt'],
+                    'tong_nguoi_benh' => $input['tong_nguoi_benh'],
+                    'nguoi_lap' => $_SESSION['user_name'] ?? 'Bác sĩ',
+                    'ghi_chu' => $input['ghi_chu'] ?? '',
+                    'chi_tiet' => $input['chi_tiet'] ?? []
+                ];
+                
+                $bienLaiId = $this->bienLaiModel->updateReceipt($receiptData);
+                $maBienLai = $existingReceipt['ma_bien_lai'];
+            } else {
+                // Tạo biên lai mới
+                $maBienLai = 'BL' . date('Ymd') . rand(1000, 9999);
+                
+                $receiptData = [
+                    'ma_bien_lai' => $maBienLai,
+                    'id_phieu_kham_benh' => $input['id_phieu_kham_benh'],
+                    'tong_tien_co_ban' => $input['tong_tien_co_ban'],
+                    'tong_quy_bhyt' => $input['tong_quy_bhyt'],
+                    'tong_nguoi_benh' => $input['tong_nguoi_benh'],
+                    'ngay_lap' => date('Y-m-d H:i:s'),
+                    'nguoi_lap' => $_SESSION['user_name'] ?? 'Bác sĩ',
+                    'trang_thai' => 'Chưa thanh toán',
+                    'ghi_chu' => $input['ghi_chu'] ?? '',
+                    'chi_tiet' => $input['chi_tiet'] ?? []
+                ];
+                
+                $bienLaiId = $this->bienLaiModel->saveReceipt($receiptData);
+            }
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => $isUpdate ? 'Cập nhật biên lai thành công' : 'Lưu biên lai thành công',
+                'bien_lai_id' => $bienLaiId,
+                'ma_bien_lai' => $maBienLai,
+                'is_update' => $isUpdate
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Error saving receipt: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống khi lưu biên lai']);
+        }
     }
 }

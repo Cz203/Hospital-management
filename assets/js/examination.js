@@ -133,6 +133,12 @@ var savedXrayFormId = null;
           }, 200);
         }
 
+        // Hiện/ẩn nút Lưu Biên Lai chỉ ở tab "Kê biên lai"
+        var saveReceiptBtn = document.getElementById("save-receipt-btn");
+        if (saveReceiptBtn)
+          saveReceiptBtn.style.display =
+            id === "#sec-result" ? "inline-block" : "none";
+
         // Khi chuyển sang tab Xét nghiệm, tự đổ dữ liệu bệnh nhân và mặc định
         if (id === "#sec-lab") {
           prefillLabSection();
@@ -2759,3 +2765,5 @@ function loadReferenceRanges() {
       console.error("Error loading reference ranges:", error);
     });
 }
+
+

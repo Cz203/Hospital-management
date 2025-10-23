@@ -258,6 +258,7 @@ class PrescriptionManager {
     }
   }
 
+
   autoFillPatientInfo() {
     // Get patient info from examination form
     const patientName = document.getElementById("patientName")?.value || "";
@@ -1308,6 +1309,85 @@ function validateQuantity(input) {
   }
 
   return true;
+}
+
+/**
+ * Lấy ID phiếu khám bệnh hiện tại
+ */
+function getCurrentExaminationId() {
+    // Try multiple sources for examination ID
+    var examId = document.getElementById("id_phieu_kham_benh")?.value || "";
+    
+    if (!examId) {
+        examId = document.getElementById("examinationId")?.value || "";
+    }
+    
+    if (!examId) {
+        examId = document.getElementById("phieu_kham_id")?.value || "";
+    }
+    
+    if (!examId) {
+        examId = document.getElementById("#examinationId")?.value || "";
+    }
+    
+    if (!examId) {
+        examId = window._lastExamFormId || "";
+    }
+    
+    if (!examId) {
+        var appointmentId = document.getElementById("examinationAppointmentId")?.value || "";
+        if (appointmentId) {
+            // NOTE: Appointment ID is NOT the same as Examination ID
+            console.log("WARNING: Using appointment ID as examination ID may cause foreign key errors");
+            console.log("Appointment ID:", appointmentId, "should not be used as examination ID");
+        }
+    }
+    
+    if (!examId) {
+        examId = window._currentExaminationId || "";
+    }
+    
+    return examId;
+}
+
+/**
+ * In đơn thuốc
+ */
+function printPrescriptionForm() {
+    console.log("printPrescriptionForm called");
+    var examId = getCurrentExaminationId();
+    console.log("Exam ID:", examId);
+    
+    if (!examId) {
+        alert("Vui lòng lưu phiếu khám bệnh trước khi in đơn thuốc!");
+        return;
+    }
+
+    console.log("Fetching prescription data for exam ID:", examId);
+    // Lấy ID đơn thuốc
+    fetch("./?action=get_prescription_form_data&exam_id=" + examId)
+        .then((response) => {
+            console.log("Response status:", response.status);
+            return response.json();
+        })
+        .then((data) => {
+            console.log("Prescription data response:", data);
+            if (data.success && data.data) {
+                console.log("Opening print window with prescription ID:", data.data.MaDonThuoc);
+                // Mở cửa sổ in với ID đơn thuốc
+                window.open(
+                    "./?action=print_prescription_form&id=" + data.data.MaDonThuoc,
+                    "_blank"
+                );
+            } else {
+                console.log("No prescription data found:", data.message);
+                alert("Chưa có đơn thuốc để in. Vui lòng lưu đơn thuốc trước.");
+            }
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            alert("Lỗi kết nối: " + error.message);
+        });
 }
 
 // Initialize when DOM is loaded

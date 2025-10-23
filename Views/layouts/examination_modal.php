@@ -1444,6 +1444,7 @@
                                         </div>
                                     </div>
 
+
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <div class="form-group prescription-field">
@@ -1627,7 +1628,7 @@
                         <div class="card mb-3 exam-section" id="sec-result">
                             <div class="card-header bg-warning text-dark">
                                 <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Kê biên lai</h6>
-                            </div>
+                    </div>
                             <div class="card-body">
                                 <!-- Biên lai viện phí -->
                                 <div class="receipt-container">
@@ -1641,6 +1642,10 @@
                         <div class="receipt-stt">
                             <span class="stt-label">Mã BN:</span>
                             <span class="stt-number" id="receipt_patient_code"></span>
+                        </div>
+                        <div class="receipt-stt">
+                            <span class="stt-label">Số HD:</span>
+                            <span class="stt-number" id="receipt_so_hd">-</span>
                         </div>
                                     </div>
 
@@ -1799,6 +1804,9 @@
                 <button type="button" class="btn btn-primary" id="print-prescription-btn" style="display:none">
                     <i class="fas fa-print me-1"></i>In đơn thuốc
                 </button>
+                <button type="button" class="btn btn-warning" id="save-receipt-btn" style="display:none">
+                    <i class="fas fa-save me-1"></i>Lưu Biên Lai
+                </button>
 
             </div>
         </div>
@@ -1918,9 +1926,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Print prescription button
     document.getElementById('print-prescription-btn').addEventListener('click', function() {
-        // Print functionality - can be implemented later if needed
-        console.log('Print prescription clicked');
-        alert('Chức năng in đơn thuốc sẽ được phát triển sau');
+        console.log('Print prescription clicked - calling printPrescriptionForm()');
+        if (typeof printPrescriptionForm === 'function') {
+            console.log('printPrescriptionForm function exists, calling it...');
+            printPrescriptionForm();
+        } else {
+            console.error('printPrescriptionForm function not found!');
+            alert('Function printPrescriptionForm not found!');
+        }
+    });
+
+    // Save receipt button
+    document.getElementById('save-receipt-btn').addEventListener('click', function() {
+        console.log('Save receipt clicked - calling saveReceipt()');
+        if (typeof saveReceipt === 'function') {
+            console.log('saveReceipt function exists, calling it...');
+            saveReceipt();
+        } else {
+            console.error('saveReceipt function not found!');
+            alert('Function saveReceipt not found!');
+        }
     });
 
     // Clear prescription button
@@ -2199,5 +2224,7 @@ function savePrescription() {
         });
 }
 
-
 </script>
+
+<!-- Load prescription.js for print functionality -->
+<script src="assets/js/prescription.js"></script>

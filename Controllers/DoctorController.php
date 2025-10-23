@@ -18,6 +18,7 @@ class DoctorController
     private $ketQuaSieuAmModel;
     private $sieuAmHinhAnhModel;
     private $labTestModel;
+    private $prescriptionModel;
     private $auth;
     private $db;
 
@@ -28,6 +29,7 @@ class DoctorController
         $this->phieuChupXquangModel = new PhieuChupXquang();
         $this->phieuYeuCauSieuAmModel = new PhieuYeuCauSieuAm();
         $this->labTestModel = new LabTest();
+        $this->prescriptionModel = new Prescription();
         // DB connection for simple queries
         require_once 'config/database.php';
         $database = new Database();
@@ -2665,6 +2667,61 @@ class DoctorController
         } catch (Exception $e) {
             error_log('Error printing ultrasound form: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy dữ liệu đơn thuốc theo exam ID
+     */
+    public function getPrescriptionFormData()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $examId = $_GET['exam_id'] ?? '';
+            if (empty($examId)) {
+                echo json_encode(['success' => false, 'message' => 'Exam ID không hợp lệ']);
+                return;
+            }
+
+            $prescriptionData = $this->prescriptionModel->getPrescriptionByExamId($examId);
+
+            if ($prescriptionData) {
+                echo json_encode(['success' => true, 'data' => $prescriptionData]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy đơn thuốc']);
+            }
+        } catch (Exception $e) {
+            error_log('Error getting prescription form data: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * In đơn thuốc
+     */
+    public function printPrescriptionForm()
+    {
+        try {
+            $id = $_GET['id'] ?? '';
+            if (empty($id)) {
+                echo "ID không hợp lệ";
+                return;
+            }
+
+            $prescriptionData = $this->prescriptionModel->getPrescriptionById($id);
+            if (!$prescriptionData) {
+                echo "Không tìm thấy đơn thuốc";
+                return;
+            }
+
+            // Lấy chi tiết thuốc
+            $medicationDetails = $this->prescriptionModel->getMedicationDetails($id);
+            $prescriptionData['medications'] = $medicationDetails;
+
+            include 'Views/doctor/print_prescription_form.php';
+        } catch (Exception $e) {
+            error_log('Error printing prescription form: ' . $e->getMessage());
+            echo "Lỗi hệ thống: " . $e->getMessage();
         }
     }
 

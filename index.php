@@ -11,6 +11,7 @@ require_once 'Controllers/AppointmentController.php';
 require_once 'Controllers/PrescriptionController.php';
 require_once 'Controllers/PatientController.php';
 require_once 'Controllers/ReceptionController.php';
+require_once 'Controllers/ReceiptController.php';
 // Khởi tạo Controllers
 $auth = new AuthController();
 $doctorController = new DoctorController();
@@ -19,6 +20,12 @@ $appointmentController = new AppointmentController();
 $prescriptionController = new PrescriptionController();
 $patientController = new PatientController();
 $receptionController = new ReceptionController();
+
+// Khởi tạo ReceiptController
+require_once 'config/database.php';
+$database = new Database();
+$db = $database->getConnection();
+$receiptController = new ReceiptController($db);
 
 // Lấy action từ URL - hỗ trợ cả URL đẹp và URL cũ
 $action = $_GET['action'] ?? 'home';
@@ -403,12 +410,28 @@ switch ($action) {
         $doctorController->printUltrasoundForm(); // In phiếu yêu cầu siêu âm
         break;
 
+    case 'get_prescription_form_data':
+        $doctorController->getPrescriptionFormData(); // Lấy dữ liệu đơn thuốc theo exam ID
+        break;
+
+    case 'print_prescription_form':
+        $doctorController->printPrescriptionForm(); // In đơn thuốc
+        break;
+
+    case 'save_receipt':
+        $receiptController->saveReceipt(); // Lưu biên lai viện phí
+        break;
+
     case 'get_ultrasound_stats':
         $doctorController->getUltrasoundStats(); // Lấy thống kê siêu âm
         break;
 
     case 'getReceiptData':
         $doctorController->getReceiptData(); // Lấy dữ liệu yêu cầu cho biên lai
+        break;
+
+    case 'get_receipt_code':
+        $receiptController->getReceiptCode(); // Lấy mã biên lai
         break;
 
     case 'get_medications':
