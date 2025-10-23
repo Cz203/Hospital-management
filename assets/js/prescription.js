@@ -696,8 +696,37 @@ class PrescriptionManager {
         return;
       }
 
+      // Validation: Check if diagnosis is filled
+      const diagnosis = document.getElementById("diagnosis_description");
+      console.log("Diagnosis element:", diagnosis);
+      console.log("Diagnosis value:", diagnosis ? diagnosis.value : "element not found");
+      if (!diagnosis || !diagnosis.value.trim()) {
+        alert("Vui lòng nhập Chẩn đoán trước khi lưu!");
+        if (diagnosis) diagnosis.focus();
+        return;
+      }
+
       if (prescriptionData.medications.length === 0) {
         alert("Vui lòng thêm ít nhất một loại thuốc");
+        return;
+      }
+
+      // Validation: Check for duplicate medication names
+      const medicationNames = prescriptionData.medications.map(med => med.ten_thuoc?.trim()).filter(name => name);
+      const uniqueNames = [...new Set(medicationNames)];
+      
+      if (medicationNames.length !== uniqueNames.length) {
+        alert("Bảng Thuốc điều trị có các tên thuốc trùng lặp! Vui lòng kiểm tra lại.");
+        return;
+      }
+
+      // Validation: Check for zero quantity
+      const zeroQuantityMedications = prescriptionData.medications.filter(med => 
+        med.so_luong <= 0 || !med.so_luong || med.so_luong === ''
+      );
+      
+      if (zeroQuantityMedications.length > 0) {
+        alert("Số lượng thuốc phải lớn hơn 0! Vui lòng kiểm tra lại cột SL trong bảng Thuốc điều trị.");
         return;
       }
 

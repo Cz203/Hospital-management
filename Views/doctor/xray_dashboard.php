@@ -288,10 +288,6 @@ $content .= '
               <div class="mt-3" id="rx_doctor" style="min-height:40px"></div>
             </div>
           </div>
-          <div class="mt-3 text-center">
-            <button type="button" class="btn btn-primary me-2" id="rx_save_btn">Lưu</button>
-            <button type="button" class="btn btn-info" id="rx_print_btn">In</button>
-          </div>
             </div>
           </div>
           <div class="tab-pane fade" id="tab-images" role="tabpanel">
@@ -302,13 +298,13 @@ $content .= '
               <div class="text-muted" id="rx_upload_status"></div>
             </div>
             <div class="row mt-3" id="rx_image_gallery"></div>
-            <div class="mt-3 text-center">
-              <button type="button" class="btn btn-success" id="rx_complete_btn">Hoàn thành</button>
-            </div>
           </div>
         </div>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn btn-primary me-2" id="rx_save_btn">Lưu</button>
+        <button type="button" class="btn btn-info me-2" id="rx_print_btn">In</button>
+        <button type="button" class="btn btn-success me-2" id="rx_complete_btn">Hoàn thành</button>
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
       </div>
     </div>
@@ -682,11 +678,28 @@ document.addEventListener("DOMContentLoaded", function() {
       var idText = document.getElementById('rx_id')?.textContent || '';
       var xrayId = idText.trim();
       if(!xrayId){ alert('Thiếu Số phiếu chỉ định'); return; }
+      
+      // Validation: Check if Kết quả and KẾT LUẬN are filled
+      var ketQua = document.getElementById('rx_suggestion_input')?.value?.trim() || '';
+      var ketLuan = document.getElementById('rx_ket_luan_input')?.value?.trim() || '';
+      
+      if(!ketQua){
+        alert('Vui lòng nhập Kết quả trước khi lưu!');
+        document.getElementById('rx_suggestion_input')?.focus();
+        return;
+      }
+      
+      if(!ketLuan){
+        alert('Vui lòng nhập KẾT LUẬN trước khi lưu!');
+        document.getElementById('rx_ket_luan_input')?.focus();
+        return;
+      }
+      
       var data = {
         id_phieu_chup_xquang: xrayId,
         chuan_doan: document.getElementById('rx_chuan_doan')?.textContent || '',
-        noi_dung: document.getElementById('rx_suggestion_input')?.value || '',
-        ket_luan: document.getElementById('rx_ket_luan_input')?.value || '',
+        noi_dung: ketQua,
+        ket_luan: ketLuan,
         bac_si_xquang: (typeof XRAY_DOCTOR_NAME !== 'undefined' && XRAY_DOCTOR_NAME) ? XRAY_DOCTOR_NAME : ''
       };
       fetch('?action=save_xray_result', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) })
@@ -705,6 +718,23 @@ document.addEventListener("DOMContentLoaded", function() {
       var idText = document.getElementById('rx_id')?.textContent || '';
       var xrayId = idText.trim();
       if(!xrayId){ alert('Thiếu Số phiếu chỉ định'); return; }
+      
+      // Validation: Check if Kết quả and KẾT LUẬN are filled
+      var ketQua = document.getElementById('rx_suggestion_input')?.value?.trim() || '';
+      var ketLuan = document.getElementById('rx_ket_luan_input')?.value?.trim() || '';
+      
+      if(!ketQua){
+        alert('Vui lòng nhập Kết quả trước khi in!');
+        document.getElementById('rx_suggestion_input')?.focus();
+        return;
+      }
+      
+      if(!ketLuan){
+        alert('Vui lòng nhập KẾT LUẬN trước khi in!');
+        document.getElementById('rx_ket_luan_input')?.focus();
+        return;
+      }
+      
       window.open('?action=print_xray_result&id=' + encodeURIComponent(xrayId), '_blank');
     }
   });
@@ -715,6 +745,35 @@ document.addEventListener("DOMContentLoaded", function() {
       var idText = document.getElementById('rx_id')?.textContent || '';
       var xrayId = idText.trim();
       if(!xrayId){ alert('Thiếu Số phiếu chỉ định'); return; }
+      
+      // Validation: Check if Kết quả and KẾT LUẬN are filled
+      var ketQua = document.getElementById('rx_suggestion_input')?.value?.trim() || '';
+      var ketLuan = document.getElementById('rx_ket_luan_input')?.value?.trim() || '';
+      
+      if(!ketQua){
+        alert('Vui lòng nhập Kết quả trước khi hoàn thành!');
+        document.getElementById('rx_suggestion_input')?.focus();
+        return;
+      }
+      
+      if(!ketLuan){
+        alert('Vui lòng nhập KẾT LUẬN trước khi hoàn thành!');
+        document.getElementById('rx_ket_luan_input')?.focus();
+        return;
+      }
+      
+      // Validation: Check if at least one image is uploaded
+      if(window.uploadedImages.length === 0){
+        alert('Vui lòng tải ít nhất 1 ảnh X-Quang trước khi hoàn thành!');
+        // Switch to images tab
+        var imagesTab = document.getElementById('tab-images-tab');
+        if(imagesTab) {
+          var tab = new bootstrap.Tab(imagesTab);
+          tab.show();
+        }
+        return;
+      }
+      
       if(!confirm('Xác nhận hoàn thành kết quả X-Quang?')) return;
       
       // Save images to database first

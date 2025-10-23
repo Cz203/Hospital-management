@@ -164,17 +164,10 @@ function updateReceiptWithData(requests, patientBHYT, medications) {
     
     const hasBHYT = patientBHYT && patientBHYT !== '-' && patientBHYT !== 'Thu phí';
     
-    // Base price for basic exam (khám bệnh)
-    const baseExamPrice = 100000;
-    let totalBasePrice = baseExamPrice;
+    // Totals will be calculated in updateReceiptTable with correct price from database
+    let totalBasePrice = 0;
     let totalBhytAmount = 0;
-    let totalPatientAmount = baseExamPrice;
-    
-    // Calculate BHYT for basic exam
-    if (hasBHYT) {
-        totalBhytAmount = Math.round(baseExamPrice * 0.8);
-        totalPatientAmount = baseExamPrice - totalBhytAmount;
-    }
+    let totalPatientAmount = 0;
     
     // Group requests by type (tab)
     const groupedRequests = {
@@ -276,9 +269,7 @@ function updateReceiptWithData(requests, patientBHYT, medications) {
         });
     }
     
-    // Update basic exam payment amounts
-    document.getElementById('receipt_bhyt_amount').textContent = (hasBHYT ? Math.round(baseExamPrice * 0.8) : 0).toLocaleString('vi-VN');
-    document.getElementById('receipt_patient_amount').textContent = (hasBHYT ? baseExamPrice - Math.round(baseExamPrice * 0.8) : baseExamPrice).toLocaleString('vi-VN');
+    // Basic exam payment amounts will be updated in updateReceiptTable with correct price from database
     
     
     // Update the receipt table with grouped requests
@@ -301,12 +292,18 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
     // Update row 2: "Khám bệnh" (basic exam) - Get price from database
     const basicExamRow = document.createElement('tr');
     
-    // Get basic exam price from database
+    // Get basic exam price from database first, then add other services
+    console.log("Fetching basic exam price from database...");
     fetch('./get_dich_vu_kham')
-        .then(response => response.json())
+        .then(response => {
+            console.log("get_dich_vu_kham response status:", response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log("get_dich_vu_kham response data:", data);
             if (data.success && data.don_gia) {
                 const basicExamPrice = data.don_gia;
+                console.log("Basic exam price from database:", basicExamPrice);
                 const hasBHYT = document.getElementById('receipt_patient_bhyt')?.textContent !== '-' && 
                                document.getElementById('receipt_patient_bhyt')?.textContent !== 'Thu phí';
                 const basicBhytAmount = hasBHYT ? Math.round(basicExamPrice * 0.8) : 0;
@@ -324,10 +321,14 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
                     <td class="text-end" id="receipt_patient_amount">${basicPatientAmount.toLocaleString('vi-VN')}</td>
                 `;
                 
-                // Update totals
-                totalBasePrice += basicExamPrice;
-                totalBhytAmount += basicBhytAmount;
-                totalPatientAmount += basicPatientAmount;
+                // Update totals (basic exam is the first item, so set totals instead of adding)
+                totalBasePrice = basicExamPrice;
+                totalBhytAmount = basicBhytAmount;
+                totalPatientAmount = basicPatientAmount;
+                
+                
+                // Now add other services after basic exam price is set
+                addOtherServices();
             } else {
                 // Hiển thị lỗi thay vì fallback
                 basicExamRow.innerHTML = `
@@ -343,10 +344,14 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
                 `;
                 console.error('Lỗi lấy đơn giá:', data.message || 'Không tìm thấy đơn giá dịch vụ');
                 alert('Lỗi: ' + (data.message || 'Không tìm thấy đơn giá dịch vụ "Khám bệnh" trong database'));
+                
+                // Still add other services even if basic exam fails
+                addOtherServices();
             }
         })
         .catch(error => {
             console.error('Error fetching dich vu kham:', error);
+            console.log("API call failed, showing error in UI");
             // Hiển thị lỗi thay vì fallback
             basicExamRow.innerHTML = `
                 <td>1</td>
@@ -360,11 +365,16 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
                 <td class="text-end text-danger">LỖI</td>
             `;
             alert('Lỗi kết nối: Không thể lấy đơn giá dịch vụ từ database');
+            
+            // Still add other services even if basic exam fails
+            addOtherServices();
         });
     
     tbody.appendChild(basicExamRow);
     
-    // Add row 3: "Khám bệnh cận lâm sàng" (title row, no data)
+    // Function to add other services after basic exam price is loaded
+    function addOtherServices() {
+        // Add row 3: "Khám bệnh cận lâm sàng" (title row, no data)
     const cậnLâmSàngRow = document.createElement('tr');
     cậnLâmSàngRow.innerHTML = `
         <td colspan="7" class="text-start">
@@ -398,6 +408,12 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
                 <td class="text-end">${group.patientAmount.toLocaleString('vi-VN')}</td>
             `;
             tbody.appendChild(row);
+            
+            // Add to totals
+            totalBasePrice += group.basePrice;
+            totalBhytAmount += group.bhytAmount;
+            totalPatientAmount += group.patientAmount;
+            
         });
     }
     
@@ -444,6 +460,7 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
             totalBasePrice += thanhTien;
             totalBhytAmount += thanhTienBhytAmount;
             totalPatientAmount += thanhTienPatientAmount;
+            
         });
     } else {
         // Show "Không có thuốc" if no medications
@@ -489,6 +506,7 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
     };
     
     document.getElementById('receipt_total_words').textContent = numberToWords(totalPatientAmount) + ' đồng';
+    } // End of addOtherServices function
 }
 
 // Initialize receipt form when DOM is loaded

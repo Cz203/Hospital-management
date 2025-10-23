@@ -37,7 +37,7 @@
                             <a href="#sec-xray" class="list-group-item list-group-item-action exam-nav">
                                 <i class="fas fa-x-ray me-2"></i>X-Quang
                             </a>
-                            <a href="#sec-xray-result" class="list-group-item list-group-item-action exam-nav">
+                            <a href="#sec-xray-result" class="list-group-item list-group-item-action exam-nav" id="xray-result-tab">
                                 <i class="fas fa-file-medical-alt me-2"></i>Kết quả X-Quang
                             </a>
                             <a href="#sec-prescription" class="list-group-item list-group-item-action exam-nav">

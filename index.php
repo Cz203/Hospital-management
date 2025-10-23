@@ -423,6 +423,10 @@ switch ($action) {
         $doctorController->getDichVuKham(); // Lấy đơn giá dịch vụ khám bệnh
         break;
 
+    case 'check_lab_duplicate':
+        $doctorController->checkLabDuplicate(); // Kiểm tra trùng lặp yêu cầu xét nghiệm
+        break;
+
     case 'get_ultrasound_requests':
         $doctorController->getUltrasoundRequests(); // Lấy danh sách yêu cầu siêu âm
         break;
@@ -496,9 +500,13 @@ switch ($action) {
                 case 'print_xetnghiem_result':
                     $doctorController->printXetnghiemResult(); // In kết quả xét nghiệm
                     break;
-                case 'complete_xetnghiem_request':
-                    $doctorController->completeXetnghiemRequest(); // Hoàn thành yêu cầu xét nghiệm
-                    break;
+    case 'complete_xetnghiem_request':
+        $doctorController->completeXetnghiemRequest(); // Hoàn thành yêu cầu xét nghiệm
+        break;
+
+    case 'get_chi_so_xet_nghiem':
+        $doctorController->getChiSoXetNghiem(); // Lấy dữ liệu chỉ số xét nghiệm
+        break;
 
     case 'sieuam_history':
         include 'Views/doctor/sieuam_history.php'; // Lịch sử siêu âm

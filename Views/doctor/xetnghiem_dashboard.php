@@ -352,6 +352,9 @@ $content = '
   </div>
 </div>
 
+<!-- Include CSS for result validation -->
+<link rel="stylesheet" href="assets/css/xetnghiem_result.css">
+
 <script>
 // Load dashboard data
 document.addEventListener("DOMContentLoaded", function() {
@@ -373,7 +376,7 @@ function loadLabDashboardData(selectedDate = null) {
     const date = selectedDate || new Date().toISOString().split("T")[0];
     
     // Load stats with date parameter
-    fetch(`./?action=get_lab_dashboard_stats&date=${date}`)
+    fetch("./?action=get_lab_dashboard_stats&date=" + date)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -391,38 +394,38 @@ function loadXetnghiemRequests() {
     const date = document.getElementById("xetnghiem_date").value || today;
     const name = document.getElementById("xetnghiem_name").value;
     
-    fetch(`./?action=get_xetnghiem_requests&date=${date}&name=${encodeURIComponent(name)}`)
+    fetch("./?action=get_xetnghiem_requests&date=" + date + "&name=" + encodeURIComponent(name))
         .then(response => response.json())
         .then(data => {
             const tbody = document.querySelector("#xetnghiemRequestedTable tbody");
             
             if (data.success && data.requests && data.requests.length > 0) {
-                tbody.innerHTML = data.requests.map(req => `
-                    <tr>
-                        <td class="text-center">${req.id}</td>
-                        <td class="text-center">${req.ma_benh_nhan || ""}</td>
-                        <td>${req.ho_ten || ""}</td>
-                        <td class="text-center">${req.tuoi || ""}</td>
-                        <td class="text-center">${req.gioi_tinh || ""}</td>
-                        <td>${req.yeu_cau || ""}</td>
-                        <td>${formatDateTime(req.ngay_cap_nhat || req.ngay_tao)}</td>
-                        <td class="text-center">
-                            <span class="badge ${getXetnghiemStatusBadge(req.trang_thai)}">
-                                ${req.trang_thai || "Đã yêu cầu"}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <button class="btn btn-info btn-sm" onclick="viewXetnghiemDetail(${req.id})">
-                                <i class="fas fa-eye me-1"></i>Xem
-                            </button>
-                        </td>
-                        <td class="text-center">
-                            <button class="btn btn-success btn-sm" onclick="returnXetnghiemResult(${req.id})">
-                                <i class="fas fa-reply me-1"></i>Trả kết quả
-                            </button>
-                        </td>
-                    </tr>
-                `).join("");
+                tbody.innerHTML = data.requests.map(req => 
+                    "<tr>" +
+                        "<td class=\"text-center\">" + (req.id || "") + "</td>" +
+                        "<td class=\"text-center\">" + (req.ma_benh_nhan || "") + "</td>" +
+                        "<td>" + (req.ho_ten || "") + "</td>" +
+                        "<td class=\"text-center\">" + (req.tuoi || "") + "</td>" +
+                        "<td class=\"text-center\">" + (req.gioi_tinh || "") + "</td>" +
+                        "<td>" + (req.yeu_cau || "") + "</td>" +
+                        "<td>" + formatDateTime(req.ngay_cap_nhat || req.ngay_tao) + "</td>" +
+                        "<td class=\"text-center\">" +
+                            "<span class=\"badge " + getXetnghiemStatusBadge(req.trang_thai) + "\">" +
+                                (req.trang_thai || "Đã yêu cầu") +
+                            "</span>" +
+                        "</td>" +
+                        "<td class=\"text-center\">" +
+                            "<button class=\"btn btn-info btn-sm\" onclick=\"viewXetnghiemDetail(" + req.id + ")\">" +
+                                "<i class=\"fas fa-eye me-1\"></i>Xem" +
+                            "</button>" +
+                        "</td>" +
+                        "<td class=\"text-center\">" +
+                            "<button class=\"btn btn-success btn-sm\" onclick=\"returnXetnghiemResult(" + req.id + ")\">" +
+                                "<i class=\"fas fa-reply me-1\"></i>Trả kết quả" +
+                            "</button>" +
+                        "</td>" +
+                    "</tr>"
+                ).join("");
             } else {
                 tbody.innerHTML = "<tr><td colspan=\"10\" class=\"text-center text-muted\">Không có dữ liệu</td></tr>";
             }
@@ -448,7 +451,7 @@ function getXetnghiemStatusBadge(status) {
 }
 
 function viewXetnghiemDetail(id) {
-    fetch(`./?action=get_xetnghiem_detail&id=${id}`)
+    fetch("./?action=get_xetnghiem_detail&id=" + id)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.result) {
@@ -487,7 +490,7 @@ function viewXetnghiemDetail(id) {
 
 function returnXetnghiemResult(id) {
     // Load patient data and show return result modal
-    fetch(`./?action=get_xetnghiem_result&id=${id}`)
+    fetch("./?action=get_xetnghiem_result&id=" + id)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.result) {
@@ -534,6 +537,14 @@ function returnXetnghiemResult(id) {
                         inputs[2].value = test.ket_qua || "";
                         inputs[3].value = test.don_vi || "";
                         inputs[4].value = test.may_qtkt || "";
+                        
+                        // Check for duplicate test names after loading
+                        checkDuplicateTestName(inputs[0]);
+                        
+                        // Validate result after loading
+                        if (window.xetNghiemValidator && inputs[2].value) {
+                            window.xetNghiemValidator.validateResult(inputs[2]);
+                        }
                     });
                 } else {
                     addTestRow(); // Add initial row
@@ -543,6 +554,13 @@ function returnXetnghiemResult(id) {
                 document.getElementById("returnXetnghiemResultModal").setAttribute("data-request-id", id);
                 
                 new bootstrap.Modal(document.getElementById("returnXetnghiemResultModal")).show();
+                
+                // Validate all results after modal is shown
+                setTimeout(() => {
+                    if (window.xetNghiemValidator) {
+                        window.xetNghiemValidator.validateAllResults();
+                    }
+                }, 500);
             } else {
                 alert("Không tìm thấy thông tin yêu cầu xét nghiệm");
             }
@@ -568,47 +586,62 @@ function addTestRow() {
     testRowCounter = currentRows + 1;
     
     const row = document.createElement("tr");
-    row.innerHTML = `
-        <td class="text-center">
-            <span>${testRowCounter}</span>
-        </td>
-        <td>
-            <input type="text" class="form-control form-control-sm test-name-input" placeholder="Nhập chỉ số xét nghiệm..." autocomplete="off" />
-            <div class="suggestion-dropdown" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; width: 100%;"></div>
-        </td>
-        <td>
-            <input type="text" class="form-control form-control-sm" />
-        </td>
-        <td>
-            <input type="text" class="form-control form-control-sm" />
-        </td>
-        <td>
-            <input type="text" class="form-control form-control-sm" />
-        </td>
-        <td>
-            <input type="text" class="form-control form-control-sm" />
-        </td>
-        <td class="text-center">
-            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeTestRow(this)">
-                <i class="fas fa-minus"></i>
-            </button>
-        </td>
-    `;
+    row.innerHTML = 
+        "<td class=\"text-center\">" +
+            "<span>" + testRowCounter + "</span>" +
+        "</td>" +
+        "<td>" +
+            "<input type=\"text\" class=\"form-control form-control-sm test-name-input\" placeholder=\"Nhập chỉ số xét nghiệm...\" autocomplete=\"off\" />" +
+            "<div class=\"suggestion-dropdown\" style=\"display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; width: 100%;\"></div>" +
+        "</td>" +
+        "<td>" +
+            "<input type=\"text\" class=\"form-control form-control-sm\" />" +
+        "</td>" +
+        "<td>" +
+            "<input type=\"text\" class=\"form-control form-control-sm result-input\" />" +
+        "</td>" +
+        "<td>" +
+            "<input type=\"text\" class=\"form-control form-control-sm\" />" +
+        "</td>" +
+        "<td>" +
+            "<input type=\"text\" class=\"form-control form-control-sm\" />" +
+        "</td>" +
+        "<td class=\"text-center\">" +
+            "<button type=\"button\" class=\"btn btn-outline-danger btn-sm\" onclick=\"removeTestRow(this)\">" +
+                "<i class=\"fas fa-minus\"></i>" +
+            "</button>" +
+        "</td>";
     tbody.appendChild(row);
     
     // Add event listeners for suggestion
     const testNameInput = row.querySelector(".test-name-input");
     const suggestionDropdown = row.querySelector(".suggestion-dropdown");
+    const resultInput = row.querySelector(".result-input");
     
-    // Handle input events
+    // Handle input events for test name
     testNameInput.addEventListener("input", function() {
         const keyword = this.value.trim();
+        
+        // Check for duplicate test names
+        checkDuplicateTestName(this);
+        
         if (keyword.length >= 1) {
             loadTestSuggestions(keyword, suggestionDropdown, row);
         } else {
             suggestionDropdown.style.display = "none";
         }
     });
+    
+    // Handle input events for result validation
+    if (resultInput) {
+        resultInput.addEventListener("input", function() {
+            validateResultInput(this);
+        });
+        
+        resultInput.addEventListener("blur", function() {
+            validateResultInput(this);
+        });
+    }
     
     // Handle focus events
     testNameInput.addEventListener("focus", function() {
@@ -624,23 +657,77 @@ function addTestRow() {
             suggestionDropdown.style.display = "none";
         }
     });
+    
+    // Re-attach event listeners for dynamically added rows
+    if (window.xetNghiemValidator) {
+        window.xetNghiemValidator.addResultInputListeners();
+    }
+}
+
+// Function to check for duplicate test names
+function checkDuplicateTestName(inputElement) {
+    const currentValue = inputElement.value.trim();
+    if (!currentValue) {
+        inputElement.style.borderColor = "";
+        return;
+    }
+    
+    const rows = document.querySelectorAll("#testResultsBody tr");
+    let duplicateCount = 0;
+    
+    rows.forEach(row => {
+        const testNameInput = row.querySelector(".test-name-input");
+        if (testNameInput && testNameInput !== inputElement) {
+            if (testNameInput.value.trim() === currentValue) {
+                duplicateCount++;
+            }
+        }
+    });
+    
+    if (duplicateCount > 0) {
+        inputElement.style.borderColor = "#dc3545";
+        inputElement.title = "Tên xét nghiệm \"" + currentValue + "\" đã được sử dụng!";
+    } else {
+        inputElement.style.borderColor = "";
+        inputElement.title = "";
+    }
+}
+
+// Function to validate result input
+function validateResultInput(inputElement) {
+    const currentValue = inputElement.value.trim();
+    
+    // Reset styling
+    inputElement.style.borderColor = "";
+    inputElement.title = "";
+    
+    if (!currentValue) {
+        return; // Empty is allowed for now, will be validated on save
+    }
+    
+    // Check if result is a negative number
+    const resultNum = parseFloat(currentValue);
+    if (!isNaN(resultNum) && resultNum < 0) {
+        inputElement.style.borderColor = "#dc3545";
+        inputElement.title = "Kết quả xét nghiệm không được là số âm!";
+    }
 }
 
 function loadTestSuggestions(keyword, dropdown, row) {
-    fetch(`./?action=get_test_suggestions&keyword=${encodeURIComponent(keyword)}`)
+    fetch("./?action=get_test_suggestions&keyword=" + encodeURIComponent(keyword))
         .then(response => response.json())
         .then(data => {
             if (data.success && data.suggestions && data.suggestions.length > 0) {
-                dropdown.innerHTML = data.suggestions.map(suggestion => `
-                    <div class="suggestion-item" style="padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;" 
-                         data-xet-nghiem="${suggestion.xet_nghiem}" 
-                         data-gia-tri="${suggestion.gia_tri_tham_chieu || ""}" 
-                         data-don-vi="${suggestion.don_vi || ""}" 
-                         data-may="${suggestion.may_qtkt || ""}">
-                        <strong>${suggestion.xet_nghiem}</strong>
-                        ${suggestion.gia_tri_tham_chieu ? `<br><small class="text-muted">${suggestion.gia_tri_tham_chieu}</small>` : ""}
-                    </div>
-                `).join("");
+                dropdown.innerHTML = data.suggestions.map(suggestion => 
+                    "<div class=\"suggestion-item\" style=\"padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;\"" +
+                         " data-xet-nghiem=\"" + (suggestion.xet_nghiem || "") + "\"" +
+                         " data-gia-tri=\"" + (suggestion.gia_tri_tham_chieu || "") + "\"" +
+                         " data-don-vi=\"" + (suggestion.don_vi || "") + "\"" +
+                         " data-may=\"" + (suggestion.may_qtkt || "") + "\">" +
+                        "<strong>" + (suggestion.xet_nghiem || "") + "</strong>" +
+                        (suggestion.gia_tri_tham_chieu ? "<br><small class=\"text-muted\">" + suggestion.gia_tri_tham_chieu + "</small>" : "") +
+                    "</div>"
+                ).join("");
                 
                 dropdown.style.display = "block";
                 
@@ -658,6 +745,14 @@ function loadTestSuggestions(keyword, dropdown, row) {
                         inputs[1].value = giaTri;
                         inputs[3].value = donVi;
                         inputs[4].value = may;
+                        
+                        // Check for duplicate test names after filling
+                        checkDuplicateTestName(inputs[0]);
+                        
+                        // Validate result if there is a value
+                        if (window.xetNghiemValidator && inputs[2].value) {
+                            window.xetNghiemValidator.validateResult(inputs[2]);
+                        }
                         
                         // Hide dropdown
                         dropdown.style.display = "none";
@@ -691,6 +786,14 @@ function removeTestRow(button) {
     
     // Update counter
     testRowCounter = remainingRows.length;
+    
+    // Re-check all test names for duplicates after removal
+    remainingRows.forEach(row => {
+        const testNameInput = row.querySelector(".test-name-input");
+        if (testNameInput) {
+            checkDuplicateTestName(testNameInput);
+        }
+    });
 }
 
 function saveTestResult() {
@@ -700,9 +803,53 @@ function saveTestResult() {
         return;
     }
 
-    // Collect test results
-    const testResults = [];
+    // Validation: Check if sample status is filled
+    const sampleStatus = document.getElementById("result_sample_status");
+    if (!sampleStatus || !sampleStatus.value.trim()) {
+        alert("Vui lòng nhập Tình trạng mẫu trước khi lưu!");
+        if (sampleStatus) sampleStatus.focus();
+        return;
+    }
+
+    // Validation: Check for duplicate test names and result validation
+    const testNames = [];
     const rows = document.querySelectorAll("#testResultsBody tr");
+    
+    for (let row of rows) {
+        const inputs = row.querySelectorAll("input");
+        if (inputs.length >= 5) {
+            const testName = inputs[0].value.trim();
+            const result = inputs[2].value.trim();
+            
+            // Check for duplicate test names
+            if (testName) {
+                if (testNames.includes(testName)) {
+                    alert("Tên xét nghiệm \"" + testName + "\" đã được sử dụng! Vui lòng kiểm tra lại cột Xét nghiệm.");
+                    inputs[0].focus();
+                    return; // Exit the entire function
+                }
+                testNames.push(testName);
+            }
+            
+            // Check if result is required and valid
+            if (testName && result) {
+                // Check if result is a negative number
+                const resultNum = parseFloat(result);
+                if (!isNaN(resultNum) && resultNum < 0) {
+                    alert("Kết quả xét nghiệm không được là số âm! Vui lòng kiểm tra lại cột Kết quả.");
+                    inputs[2].focus();
+                    return; // Exit the entire function
+                }
+            } else if (testName && !result) {
+                alert("Vui lòng nhập Kết quả cho xét nghiệm \"" + testName + "\"!");
+                inputs[2].focus();
+                return; // Exit the entire function
+            }
+        }
+    }
+
+    // Collect test results (after validation passed)
+    const testResults = [];
     
     rows.forEach((row, index) => {
         const inputs = row.querySelectorAll("input");
@@ -739,7 +886,7 @@ function saveTestResult() {
     formData.append("test_results", JSON.stringify(testResults));
     formData.append("examining_doctor", document.getElementById("result_examining_doctor").value);
     formData.append("sample_status", document.getElementById("result_sample_status").value);
-    formData.append("result_date", `${document.getElementById("result_year").value}-${document.getElementById("result_month").value}-${document.getElementById("result_day").value}`);
+    formData.append("result_date", document.getElementById("result_year").value + "-" + document.getElementById("result_month").value + "-" + document.getElementById("result_day").value);
 
     // Save test result
     fetch("./?action=save_xetnghiem_result", {
@@ -754,6 +901,13 @@ function saveTestResult() {
         if (data.success) {
             alert("Lưu kết quả xét nghiệm thành công!");
             loadXetnghiemRequests(); // Refresh the list
+            
+            // Re-validate all results after save
+            setTimeout(() => {
+                if (window.xetNghiemValidator) {
+                    window.xetNghiemValidator.validateAllResults();
+                }
+            }, 100);
         } else {
             alert("Lỗi: " + (data.message || "Không thể lưu kết quả"));
         }
@@ -770,9 +924,61 @@ function printTestResult() {
         alert("Không tìm thấy ID yêu cầu xét nghiệm");
         return;
     }
+
+    // Validation: Check if sample status is filled
+    const sampleStatus = document.getElementById("result_sample_status");
+    if (!sampleStatus || !sampleStatus.value.trim()) {
+        alert("Vui lòng nhập Tình trạng mẫu trước khi in!");
+        if (sampleStatus) sampleStatus.focus();
+        return;
+    }
+
+    // Validation: Check for duplicate test names and result validation
+    const testNames = [];
+    const rows = document.querySelectorAll("#testResultsBody tr");
+    
+    for (let row of rows) {
+        const inputs = row.querySelectorAll("input");
+        if (inputs.length >= 5) {
+            const testName = inputs[0].value.trim();
+            const result = inputs[2].value.trim();
+            
+            // Check for duplicate test names
+            if (testName) {
+                if (testNames.includes(testName)) {
+                    alert("Tên xét nghiệm \"" + testName + "\" đã được sử dụng! Vui lòng kiểm tra lại cột Xét nghiệm.");
+                    inputs[0].focus();
+                    return;
+                }
+                testNames.push(testName);
+            }
+            
+            // Check if result is required and valid
+            if (testName && result) {
+                // Check if result is a negative number
+                const resultNum = parseFloat(result);
+                if (!isNaN(resultNum) && resultNum < 0) {
+                    alert("Kết quả xét nghiệm không được là số âm! Vui lòng kiểm tra lại cột Kết quả.");
+                    inputs[2].focus();
+                    return;
+                }
+            } else if (testName && !result) {
+                alert("Vui lòng nhập Kết quả cho xét nghiệm \"" + testName + "\"!");
+                inputs[2].focus();
+                return;
+            }
+        }
+    }
     
     // Open print window
     window.open("./?action=print_xetnghiem_result&id=" + requestId, "_blank");
+    
+    // Re-validate all results after print
+    setTimeout(() => {
+        if (window.xetNghiemValidator) {
+            window.xetNghiemValidator.validateAllResults();
+        }
+    }, 100);
 }
 
 function completeTestResult() {
@@ -780,6 +986,51 @@ function completeTestResult() {
     if (!requestId) {
         alert("Không tìm thấy ID yêu cầu xét nghiệm");
         return;
+    }
+
+    // Validation: Check if sample status is filled
+    const sampleStatus = document.getElementById("result_sample_status");
+    if (!sampleStatus || !sampleStatus.value.trim()) {
+        alert("Vui lòng nhập Tình trạng mẫu trước khi hoàn thành!");
+        if (sampleStatus) sampleStatus.focus();
+        return;
+    }
+
+    // Validation: Check for duplicate test names and result validation
+    const testNames = [];
+    const rows = document.querySelectorAll("#testResultsBody tr");
+    
+    for (let row of rows) {
+        const inputs = row.querySelectorAll("input");
+        if (inputs.length >= 5) {
+            const testName = inputs[0].value.trim();
+            const result = inputs[2].value.trim();
+            
+            // Check for duplicate test names
+            if (testName) {
+                if (testNames.includes(testName)) {
+                    alert("Tên xét nghiệm \"" + testName + "\" đã được sử dụng! Vui lòng kiểm tra lại cột Xét nghiệm.");
+                    inputs[0].focus();
+                    return;
+                }
+                testNames.push(testName);
+            }
+            
+            // Check if result is required and valid
+            if (testName && result) {
+                // Check if result is a negative number
+                const resultNum = parseFloat(result);
+                if (!isNaN(resultNum) && resultNum < 0) {
+                    alert("Kết quả xét nghiệm không được là số âm! Vui lòng kiểm tra lại cột Kết quả.");
+                    inputs[2].focus();
+                    return;
+                }
+            } else if (testName && !result) {
+                alert("Vui lòng nhập Kết quả cho xét nghiệm \"" + testName + "\"!");
+                inputs[2].focus();
+                return;
+            }
+        }
     }
     
     if (!confirm("Bạn có chắc chắn muốn hoàn thành yêu cầu xét nghiệm này?")) {
@@ -805,6 +1056,13 @@ function completeTestResult() {
         } else {
             alert("Lỗi: " + (data.message || "Không thể hoàn thành yêu cầu"));
         }
+        
+        // Re-validate all results after complete
+        setTimeout(() => {
+            if (window.xetNghiemValidator) {
+                window.xetNghiemValidator.validateAllResults();
+            }
+        }, 100);
     })
     .catch(error => {
         console.error("Error completing test request:", error);
@@ -825,6 +1083,20 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // Complete test result button
     document.getElementById("completeTestResult").addEventListener("click", completeTestResult);
+});
+
+// Include result validation JavaScript
+</script>
+<script src="assets/js/xetnghiem_result_validation.js"></script>
+<script>
+// Initialize validator when page loads
+document.addEventListener("DOMContentLoaded", function() {
+    if (typeof XetNghiemResultValidator !== "undefined") {
+        window.xetNghiemValidator = new XetNghiemResultValidator();
+        console.log("XetNghiemResultValidator initialized");
+    } else {
+        console.error("XetNghiemResultValidator not found");
+    }
 });
 </script>';
 

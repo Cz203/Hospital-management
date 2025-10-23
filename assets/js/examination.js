@@ -15,6 +15,7 @@ var savedXrayFormId = null;
     bindSidebar();
     bindFilterCards();
     bindFilterButtons();
+    loadReferenceRanges(); // Load reference ranges for lab result validation
     var btnSave = document.getElementById("btnSaveExam");
     if (btnSave) btnSave.style.display = "none";
   }
@@ -431,6 +432,191 @@ function loadExaminationFormIfAny() {
 
   // Load X-Ray form data when modal opens
   loadXrayFormOnModalOpen();
+  
+  // Check if there's actual X-Ray result to show the result tab
+  console.log("About to call checkXrayResultExists()");
+  // Add delay to ensure examId is loaded
+  setTimeout(function() {
+    var examId = getCurrentExaminationId();
+    console.log("Delayed check - examId:", examId);
+    if (examId) {
+      checkXrayResultExists();
+    } else {
+      console.log("Still no examId, will retry...");
+      // Retry after longer delay
+      setTimeout(function() {
+        var retryExamId = getCurrentExaminationId();
+        console.log("Retry check - examId:", retryExamId);
+        if (retryExamId) {
+          checkXrayResultExists();
+        }
+      }, 500);
+    }
+  }, 200);
+}
+
+// Check if there's X-Ray request to show the result tab (giống logic siêu âm)
+function checkXrayResultExists() {
+  var examId = getCurrentExaminationId();
+  console.log("checkXrayResultExists called, examId:", examId);
+  if (!examId) {
+    console.log("No examId found, hiding X-Ray result tab");
+    hideXrayResultTab();
+    return;
+  }
+
+  // Check if there's any X-Ray request first
+  console.log("Fetching X-Ray form data for examId:", examId);
+  fetch("./get_xray_form_by_exam_id?exam_id=" + examId)
+    .then(response => {
+      console.log("X-Ray request response status:", response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log("X-Ray request check response:", data);
+      console.log("Data success:", data.success);
+      console.log("Data data:", data.data);
+      if (data.success && data.data) {
+        console.log("X-Ray request found, showing tab");
+        // Show tab if there's any X-Ray request (giống siêu âm)
+        showXrayResultTab();
+        
+        // Then check if there's actual result content
+        checkXrayResultContent();
+      } else {
+        console.log("No X-Ray request found, hiding tab");
+        console.log("Reason: success=" + data.success + ", data=" + (data.data ? "exists" : "null"));
+        hideXrayResultTab();
+      }
+    })
+    .catch(error => {
+      console.error("Error checking X-Ray request:", error);
+      hideXrayResultTab();
+    });
+}
+
+// Check if there's actual X-Ray result content
+function checkXrayResultContent() {
+  var examId = getCurrentExaminationId();
+  if (!examId) return;
+
+  fetch("./?action=get_xray_result_by_exam&exam_id=" + examId)
+    .then(response => response.json())
+    .then(data => {
+      console.log("X-Ray result content check response:", data);
+      if (data.success && data.data) {
+        // Check if result has actual content (not just request)
+        // API returns data from both phieu_chup_xquang and ket_qua_xquang tables
+        var result = data.data;
+        var hasActualResult = result.noi_dung && result.noi_dung.trim() !== '' && 
+                             result.ket_luan && result.ket_luan.trim() !== '';
+        
+        if (hasActualResult) {
+          // Show actual result content
+          showXrayResultContent();
+        } else {
+          // Show "Chưa có kết quả" message
+          showXrayNoResultMessage();
+        }
+      } else {
+        // Show "Chưa có kết quả" message
+        showXrayNoResultMessage();
+      }
+    })
+    .catch(error => {
+      console.error("Error checking X-Ray result content:", error);
+      showXrayNoResultMessage();
+    });
+}
+
+// Show X-Ray result tab
+function showXrayResultTab() {
+  var xrayResultTab = document.getElementById("xray-result-tab");
+  console.log("showXrayResultTab called, xrayResultTab element:", xrayResultTab);
+  console.log("Current display style:", xrayResultTab ? xrayResultTab.style.display : "element not found");
+  if (xrayResultTab) {
+    xrayResultTab.style.display = 'block';
+    console.log("X-Ray result tab shown, new display style:", xrayResultTab.style.display);
+  } else {
+    console.error("X-Ray result tab element not found!");
+  }
+}
+
+// Hide X-Ray result tab
+function hideXrayResultTab() {
+  var xrayResultTab = document.getElementById("xray-result-tab");
+  if (xrayResultTab) {
+    xrayResultTab.style.display = 'none';
+    console.log("X-Ray result tab hidden");
+  }
+}
+
+// Show X-Ray result content (when there's actual result)
+function showXrayResultContent() {
+  // Hide "Chưa có kết quả" message
+  var xrayResultSection = document.getElementById("sec-xray-result");
+  if (xrayResultSection) {
+    var cardBody = xrayResultSection.querySelector('.card-body');
+    if (cardBody) {
+      // Remove no-result message
+      var noResultMessage = cardBody.querySelector('.xray-no-result-message');
+      if (noResultMessage) {
+        noResultMessage.remove();
+        console.log("X-Ray no result message hidden");
+      }
+      
+      // Show tab content
+      var tabContent = cardBody.querySelector('.tab-content');
+      if (tabContent) {
+        tabContent.style.display = 'block';
+        console.log("X-Ray tab content shown");
+      }
+    }
+  }
+  
+  // Show actual result content
+  var xrayResultReadonly = document.getElementById("xrayResultReadonly");
+  if (xrayResultReadonly) {
+    xrayResultReadonly.style.display = 'block';
+    console.log("X-Ray result content shown");
+  }
+}
+
+// Show "Chưa có kết quả" message (ẩn toàn bộ giao diện kết quả)
+function showXrayNoResultMessage() {
+  // Hide actual result content
+  var xrayResultReadonly = document.getElementById("xrayResultReadonly");
+  if (xrayResultReadonly) {
+    xrayResultReadonly.style.display = 'none';
+    console.log("X-Ray result content hidden");
+  }
+  
+  // Hide all tab content in X-Ray result section
+  var xrayResultSection = document.getElementById("sec-xray-result");
+  if (xrayResultSection) {
+    var cardBody = xrayResultSection.querySelector('.card-body');
+    if (cardBody) {
+      // Hide all existing content
+      var tabContent = cardBody.querySelector('.tab-content');
+      if (tabContent) {
+        tabContent.style.display = 'none';
+        console.log("X-Ray tab content hidden");
+      }
+      
+      // Remove existing no-result message if any
+      var existingNoResult = cardBody.querySelector('.xray-no-result-message');
+      if (existingNoResult) {
+        existingNoResult.remove();
+      }
+      
+      // Create new no-result message
+      var noResultDiv = document.createElement('div');
+      noResultDiv.className = 'xray-no-result-message text-center p-4';
+      noResultDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Chưa có kết quả X-Quang. Vui lòng chờ bác sĩ chẩn đoán hình ảnh trả kết quả.</div>';
+      cardBody.appendChild(noResultDiv);
+      console.log("X-Ray no result message shown");
+    }
+  }
 }
 
 // Prefill X-Ray form with patient and defaults
@@ -731,6 +917,11 @@ function checkExistingXrayForm(examId) {
         savedXrayFormId = data.data.id;
         console.log("Set savedXrayFormId:", savedXrayFormId);
 
+        // Show X-Ray result tab since we have a request
+        console.log("X-Ray form found, showing result tab");
+        showXrayResultTab();
+        checkXrayResultContent();
+
         // Enable print button
         var printBtn = document.getElementById("printXrayForm");
         if (printBtn) {
@@ -908,6 +1099,33 @@ function saveXrayForm() {
   // Fallback if hidden input is empty
   if (!examId) examId = getCurrentExaminationId();
 
+  // kiểm tra khi lưu phiếu chụp X-Quang
+  var diagnosis = document.getElementById("xray_diagnosis");
+  if (!diagnosis || !diagnosis.value.trim()) {
+    alert("Vui lòng nhập Chẩn đoán trước khi lưu!");
+    if (diagnosis) diagnosis.focus();
+    return;
+  }
+
+  // Validation: Check if request is filled
+  var request = document.getElementById("xray_request");
+  if (!request || !request.value.trim()) {
+    alert("Vui lòng nhập Yêu cầu chụp X-Quang!");
+    if (request) request.focus();
+    return;
+  }
+
+  // Validation: Check for duplicate items within the same request
+  var requestValue = request.value.trim();
+  var items = requestValue.split(',').map(item => item.trim()).filter(item => item.length > 0);
+  var uniqueItems = [...new Set(items)];
+  
+  if (items.length !== uniqueItems.length) {
+    alert("Yêu cầu chụp X-Quang có các mục trùng lặp! Vui lòng kiểm tra lại.");
+    if (request) request.focus();
+    return;
+  }
+
   var formData = {
     id_phieu_kham_benh: examId,
     so_dien_thoai: document.getElementById("xray_phone")
@@ -973,6 +1191,11 @@ function saveXrayForm() {
 
         // Load saved data to display
         loadXrayFormData(data.id);
+        
+        // Show X-Ray result tab since we now have a request
+        console.log("X-Ray form saved, showing result tab");
+        showXrayResultTab();
+        checkXrayResultContent();
       } else {
         alert("Lỗi: " + (data.message || "Không thể lưu phiếu chụp X-Quang"));
       }
@@ -1670,6 +1893,33 @@ function saveUltrasoundForm() {
     return;
   }
 
+  // kiểm tra trước khi lưu phiếu siêu âm
+  var diagnosis = document.getElementById("ultrasound_diagnosis");
+  if (!diagnosis || !diagnosis.value.trim()) {
+    alert("Vui lòng nhập Chẩn đoán trước khi lưu!");
+    if (diagnosis) diagnosis.focus();
+    return;
+  }
+
+  // Validation: Check if request is filled
+  var request = document.getElementById("ultrasound_request");
+  if (!request || !request.value.trim()) {
+    alert("Vui lòng nhập Yêu cầu siêu âm!");
+    if (request) request.focus();
+    return;
+  }
+
+  // Validation: Check for duplicate items within the same request
+  var requestValue = request.value.trim();
+  var items = requestValue.split(',').map(item => item.trim()).filter(item => item.length > 0);
+  var uniqueItems = [...new Set(items)];
+  
+  if (items.length !== uniqueItems.length) {
+    alert("Yêu cầu siêu âm có các mục trùng lặp! Vui lòng kiểm tra lại.");
+    if (request) request.focus();
+    return;
+  }
+
   // Thu thập dữ liệu từ form
   console.log("Collecting form data...");
   var formData = {
@@ -2092,6 +2342,33 @@ function saveLabForm() {
     return;
   }
 
+  // Validation: Check if diagnosis is filled
+  var diagnosis = document.getElementById("lab_diagnosis");
+  if (!diagnosis || !diagnosis.value.trim()) {
+    alert("Vui lòng nhập Chẩn đoán trước khi lưu!");
+    if (diagnosis) diagnosis.focus();
+    return;
+  }
+
+  // Validation: Check if request is filled
+  var request = document.getElementById("lab_request");
+  if (!request || !request.value.trim()) {
+    alert("Vui lòng nhập Yêu cầu xét nghiệm!");
+    if (request) request.focus();
+    return;
+  }
+
+  // Validation: Check for duplicate items within the same request
+  var requestValue = request.value.trim();
+  var items = requestValue.split(',').map(item => item.trim()).filter(item => item.length > 0);
+  var uniqueItems = [...new Set(items)];
+  
+  if (items.length !== uniqueItems.length) {
+    alert("Yêu cầu xét nghiệm có các mục trùng lặp! Vui lòng kiểm tra lại.");
+    if (request) request.focus();
+    return;
+  }
+
   // Check if all required elements exist
   var examId = document.getElementById("lab_examination_id");
   var patientCode = document.getElementById("lab_patient_code");
@@ -2164,6 +2441,12 @@ function saveLabForm() {
     return;
   }
 
+  // Proceed with saving (duplicate check already done above)
+  saveLabFormData(formData);
+}
+
+// Separate function to handle the actual saving
+function saveLabFormData(formData) {
   fetch("./?action=save_lab_form", {
     method: "POST",
     headers: {
@@ -2180,7 +2463,10 @@ function saveLabForm() {
       if (data.success) {
         alert(data.message);
         // Load lại dữ liệu đã lưu
-        loadLabFormData(examIdValue);
+        var examId = getCurrentExaminationId();
+        if (examId) {
+          loadLabFormData(examId);
+        }
       } else {
         alert("Lỗi: " + (data.message || "Không thể lưu phiếu xét nghiệm"));
       }
@@ -2377,11 +2663,16 @@ function showLabResultData(result, testDetails) {
     tbody.innerHTML = "";
     testDetails.forEach(function (test, index) {
       var row = document.createElement("tr");
+      
+      // Check if result is out of range
+      var isOutOfRange = checkIfLabResultOutOfRange(test.ten_xet_nghiem, test.ket_qua);
+      var resultStyle = isOutOfRange ? "font-weight: bold; color: #dc3545;" : "font-weight: normal;";
+      
       row.innerHTML = `
         <td class="text-center">${test.stt || index + 1}</td>
         <td>${test.ten_xet_nghiem || ""}</td>
         <td class="text-center">${test.gia_tri_tham_chieu || ""}</td>
-        <td class="text-center" style="font-weight: bold;">${
+        <td class="text-center" style="${resultStyle}">${
           test.ket_qua || ""
         }</td>
         <td class="text-center">${test.don_vi || ""}</td>
@@ -2422,4 +2713,49 @@ function showLabResultEmpty() {
   // Show empty message
   var emptyDiv = document.getElementById("labResultEmpty");
   if (emptyDiv) emptyDiv.style.display = "block";
+}
+
+/**
+ * Kiểm tra kết quả xét nghiệm có vượt ngưỡng không
+ */
+function checkIfLabResultOutOfRange(testName, resultValue) {
+  if (!testName || !resultValue) return false;
+  
+  // Try to parse as number
+  var resultNum = parseFloat(resultValue);
+  if (isNaN(resultNum)) return false;
+  
+  // Only use reference ranges from database
+  if (window.referenceRanges && window.referenceRanges[testName]) {
+    var range = window.referenceRanges[testName];
+    return resultNum < range.min || resultNum > range.max;
+  }
+  
+  // No fallback - return false if no database data
+  return false;
+}
+
+/**
+ * Load reference ranges from database
+ */
+function loadReferenceRanges() {
+  fetch("./?action=get_chi_so_xet_nghiem")
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.chi_so) {
+        window.referenceRanges = {};
+        data.chi_so.forEach(function(item) {
+          if (item.chi_so_tu !== null && item.chi_so_den !== null) {
+            window.referenceRanges[item.ten_chi_so] = {
+              min: parseFloat(item.chi_so_tu),
+              max: parseFloat(item.chi_so_den)
+            };
+          }
+        });
+        console.log("Reference ranges loaded:", window.referenceRanges);
+      }
+    })
+    .catch(function(error) {
+      console.error("Error loading reference ranges:", error);
+    });
 }

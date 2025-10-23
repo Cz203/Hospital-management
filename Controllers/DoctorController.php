@@ -4231,4 +4231,103 @@ class DoctorController
         }
         exit();
     }
+
+    public function checkLabDuplicate()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $examId = $_POST['exam_id'] ?? '';
+            $yeuCau = $_POST['yeu_cau'] ?? '';
+            
+            // Fix encoding issues - try multiple approaches
+            $yeuCau = iconv('UTF-8', 'UTF-8//IGNORE', $yeuCau);
+
+            // Debug log
+            error_log("checkLabDuplicate - exam_id: '$examId', yeu_cau: '$yeuCau', length: " . strlen($yeuCau));
+
+            if (empty($examId) || empty($yeuCau)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Thiếu thông tin exam_id hoặc yeu_cau'
+                ]);
+                exit();
+            }
+
+            // Kiểm tra trùng lặp trong bảng phieu_yeu_cau_xet_nghiem
+            $sql = "SELECT yeu_cau FROM phieu_yeu_cau_xet_nghiem WHERE id_phieu_kham_benh = :exam_id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':exam_id' => $examId]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $isDuplicate = false;
+            foreach ($results as $row) {
+                $dbValue = trim($row['yeu_cau']);
+                $inputValue = trim($yeuCau);
+                
+                // Use similar_text for fuzzy comparison
+                $similarity = 0;
+                similar_text($dbValue, $inputValue, $similarity);
+                
+                if ($similarity > 80) { // 80% similar
+                    $isDuplicate = true;
+                    break;
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'is_duplicate' => $isDuplicate,
+                'count' => count($results)
+            ]);
+
+        } catch (Exception $e) {
+            error_log("Check lab duplicate error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    /**
+     * Lấy dữ liệu chỉ số xét nghiệm
+     */
+    public function getChiSoXetNghiem()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $sql = "SELECT 
+                        id,
+                        xet_nghiem as ten_chi_so,
+                        don_vi,
+                        chi_so_tu,
+                        chi_so_den,
+                        gia_tri_tham_chieu as mo_ta
+                    FROM chi_so_xet_nghiem 
+                    WHERE chi_so_tu IS NOT NULL 
+                    AND chi_so_den IS NOT NULL
+                    ORDER BY xet_nghiem";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute();
+            $chiSo = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'chi_so' => $chiSo
+            ]);
+
+        } catch (Exception $e) {
+            error_log('Error getting chi so xet nghiem: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi hệ thống'
+            ]);
+        }
+        exit();
+    }
 }
