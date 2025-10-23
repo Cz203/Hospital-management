@@ -44,7 +44,7 @@
                                 <i class="fas fa-pills me-2"></i>Kê đơn thuốc
                             </a>
                             <a href="#sec-result" class="list-group-item list-group-item-action exam-nav">
-                                <i class="fas fa-clipboard-check me-2"></i>Trả kết quả
+                                <i class="fas fa-receipt me-2"></i>Kê biên lai
                             </a>
                         </div>
                     </div>
@@ -53,6 +53,7 @@
                         <form id="examinationForm">
                             <input type="hidden" id="examinationAppointmentId" name="appointment_id">
                             <input type="hidden" id="prescription_examination_id" name="prescription_examination_id">
+                            <input type="hidden" id="id_phieu_kham_benh" name="id_phieu_kham_benh">
                             <?php if (isset($_SESSION['user_id'])): ?>
                             <input type="hidden" id="current_doctor_id"
                                 value="<?php echo htmlspecialchars($_SESSION['user_id']); ?>">
@@ -1389,9 +1390,9 @@
                                     <div class="row mb-4">
                                         <div class="col-12">
                                             <div class="text-center mb-3 prescription-header">
-                                                <h4>PHÓNG KHÁM ĐA KHOA THINHVIET</h4>
-                                                <p>Địa chỉ: Gò vấp</p>
-                                                <h5 class="mt-2 fw-bold text-primary">ĐƠN THUỐC</h5>
+                                                <h4 class="prescription-clinic-name">PHÓNG KHÁM ĐA KHOA THINHVIET</h4>
+                                                <p class="prescription-address">Địa chỉ: Gò vấp</p>
+                                                <h5 class="prescription-title">ĐƠN THUỐC</h5>
                                             </div>
                                         </div>
                                     </div>
@@ -1621,6 +1622,136 @@
                                 </tr>
                             </template>
                         </form>
+
+                        <!-- Kê biên lai Section -->
+                        <div class="card mb-3 exam-section" id="sec-result">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Kê biên lai</h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Biên lai viện phí -->
+                                <div class="receipt-container">
+                                    <!-- Header -->
+                                    <div class="receipt-header">
+                                        <div class="receipt-title">
+                                            <h1 class="receipt-clinic-name">PHÒNG KHÁM ĐA KHOA THINHVIET</h1>
+                                            <h2 class="receipt-main-title">BIÊN LAI VIỆN PHÍ</h2>
+                                            <p class="receipt-subtitle">Viện phí</p>
+                                        </div>
+                        <div class="receipt-stt">
+                            <span class="stt-label">Mã BN:</span>
+                            <span class="stt-number" id="receipt_patient_code"></span>
+                        </div>
+                                    </div>
+
+                                    <!-- Thông tin bệnh nhân -->
+                                    <div class="patient-info">
+                                        <div class="info-row">
+                                            <div class="info-item">
+                                                <span class="label">Họ và Tên:</span>
+                                                <span class="value" id="receipt_patient_name">Nguyễn Văn A</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="label">Tuổi:</span>
+                                                <span class="value" id="receipt_patient_age">36</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="label">Giới tính:</span>
+                                                <span class="value" id="receipt_patient_gender">Nam</span>
+                                            </div>
+                                        </div>
+                                        <div class="info-row">
+                                            <div class="info-item">
+                                                <span class="label">Địa chỉ:</span>
+                                                <span class="value" id="receipt_patient_address">phong thạnh a, Thị xã Giá Rai, Bạc Liêu</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="label">Mã số BHYT (nếu có):</span>
+                                                <span class="value" id="receipt_patient_bhyt">-</span>
+                                            </div>
+                                        </div>
+                                        <div class="info-row">
+                                            <div class="info-item full-width">
+                                                <span class="label">Nội Dung Thu:</span>
+                                                <span class="value fw-bold">Đề nghị thanh toán</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Bảng chi tiết dịch vụ -->
+                                    <div class="services-table">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                <tr>
+                                    <th width="5%">STT</th>
+                                    <th width="30%">Nội dung</th>
+                                    <th width="12%">Số lượng</th>
+                                    <th width="12%">Đơn giá (đồng)</th>
+                                    <th width="12%">Thành tiền (đồng)</th>
+                                    <th width="14%">Quỹ BHYT (đồng)</th>
+                                    <th width="15%">Người Bệnh (đồng)</th>
+                                </tr>
+                                            </thead>
+                                            <tbody id="receipt_services">
+                                                <tr>
+                                                    <td colspan="7" class="text-start">
+                                                        <div class="fw-bold">Khám bệnh lâm sàng</div>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                        <td>1</td>
+                                        <td>
+                                            <div>Khám bệnh</div>
+                                        </td>
+                                                    <td>1</td>
+                                                    <td class="text-end" id="receipt_basic_price">100,000</td>
+                                                    <td class="text-end" id="receipt_basic_total">100,000</td>
+                                                    <td class="text-end" id="receipt_bhyt_amount">0</td>
+                                                    <td class="text-end" id="receipt_patient_amount">100,000</td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="7" class="text-start">
+                                                        <div class="fw-bold">Thuốc điều trị</div>
+                                                    </td>
+                                                </tr>
+                                                <!-- Dynamic rows for lab, ultrasound, xray requests will be inserted here -->
+                                            </tbody>
+                                            <tfoot>
+                                                <tr class="total-row">
+                                                    <td colspan="4" class="text-end fw-bold">Tổng Cộng:</td>
+                                                    <td class="text-end fw-bold" id="receipt_total_base">100,000</td>
+                                                    <td class="text-end fw-bold" id="receipt_total_bhyt">0</td>
+                                                    <td class="text-end fw-bold" id="receipt_total_patient">100,000</td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+
+                                    <!-- Thông tin thanh toán -->
+                                    <div class="payment-info">
+                                        <div class="payment-row">
+                                            <span class="payment-label">Người bệnh trả:</span>
+                                            <span class="payment-amount" id="receipt_total_amount">20,000 đồng</span>
+                                        </div>
+                                        <div class="payment-row">
+                                            <span class="payment-label">Bằng chữ:</span>
+                                            <span class="payment-words" id="receipt_total_words">Hai mươi ngàn đồng</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <div class="receipt-footer">
+                                        <div class="signature-section" style="text-align: right; margin-left: auto; width: fit-content;">
+                                            <div id="receipt_signature_date" style="margin-bottom: 10px;">Ngày 23 tháng 10 năm 2025</div>
+                                            <div class="signature-label">Người Lập Bảng Kê</div>
+                                            <div class="signature-line">(Ký, ghi rõ họ tên)</div>
+                                            <div class="signature-name" id="receipt_doctor_name">Lê Kim Hảo</div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1720,19 +1851,48 @@
 #sec-prescription.active {
     display: block;
 }
+
+/* Prescription Header Styles */
+.prescription-clinic-name {
+    font-size: 28px !important;
+    font-weight: bold !important;
+    margin: 0 0 5px 0 !important;
+    color: #333 !important;
+    text-transform: uppercase !important;
+}
+
+.prescription-address {
+    font-size: 14px !important;
+    margin: 0 0 10px 0 !important;
+    color: #666 !important;
+}
+
+.prescription-title {
+    font-size: 24px !important;
+    font-weight: bold !important;
+    margin: 0 !important;
+    color: #333 !important;
+    text-transform: uppercase !important;
+}
 </style>
+
+<!-- Link to Receipt CSS -->
+<link rel="stylesheet" href="assets/css/receipt.css">
+<!-- Link to Receipt JS -->
+<script src="assets/js/receipt.js"></script>
 
 <!-- JavaScript for Prescription Form -->
 <script>
 // Prescription Form JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize prescription form when tab is clicked
+
     document.querySelector('a[href="#sec-prescription"]').addEventListener('click', function() {
         initializePrescriptionForm();
 
         // Hide all other buttons
         document.querySelectorAll(
-            '#btnSaveExamForm, #btnPrintExamForm, #btnSaveExam, #saveXrayForm, #printXrayForm, #saveUltrasoundForm, #printUltrasoundForm, #saveLabForm, #printLabForm'
+            '#btnSaveExamForm, #btnPrintExamForm, #btnSaveExam, #saveXrayForm, #printXrayForm, #saveUltrasoundForm, #printUltrasoundForm, #saveLabForm, #printLabForm, #printReceiptForm'
         ).forEach(btn => {
             btn.style.display = 'none';
         });
@@ -1757,7 +1917,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('save-prescription-btn').addEventListener('click', savePrescription);
 
     // Print prescription button
-    document.getElementById('print-prescription-btn').addEventListener('click', printPrescription);
+    document.getElementById('print-prescription-btn').addEventListener('click', function() {
+        // Print functionality - can be implemented later if needed
+        console.log('Print prescription clicked');
+        alert('Chức năng in đơn thuốc sẽ được phát triển sau');
+    });
 
     // Clear prescription button
 });
@@ -2035,8 +2199,5 @@ function savePrescription() {
         });
 }
 
-function printPrescription() {
-    // Implementation for printing prescription
-    window.print();
-}
+
 </script>

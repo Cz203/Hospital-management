@@ -407,6 +407,22 @@ switch ($action) {
         $doctorController->getUltrasoundStats(); // Lấy thống kê siêu âm
         break;
 
+    case 'getReceiptData':
+        $doctorController->getReceiptData(); // Lấy dữ liệu yêu cầu cho biên lai
+        break;
+
+    case 'get_medications':
+        $doctorController->getMedications(); // Lấy danh sách thuốc
+        break;
+
+    case 'get_current_doctor':
+        $doctorController->getCurrentDoctor(); // Lấy thông tin bác sĩ hiện tại
+        break;
+
+    case 'get_dich_vu_kham':
+        $doctorController->getDichVuKham(); // Lấy đơn giá dịch vụ khám bệnh
+        break;
+
     case 'get_ultrasound_requests':
         $doctorController->getUltrasoundRequests(); // Lấy danh sách yêu cầu siêu âm
         break;

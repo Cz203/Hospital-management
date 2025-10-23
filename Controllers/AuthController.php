@@ -39,6 +39,7 @@ class AuthController
     {
         session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'] ?? null;
+        $_SESSION['user_name'] = $user['ten'] ?? $user['name'] ?? 'Bác sĩ';
         $_SESSION['last_activity'] = time();
         // Store minimal state: id + role for routing/authorization; avoid PII (name/email)
         $_SESSION['user_role'] = is_string($role) ? $role : '';

@@ -1,0 +1,240 @@
+/* Receipt Form Styles */
+.receipt-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border: 1px solid #ddd;
+    position: relative;
+    font-family: 'Times New Roman', serif;
+}
+
+.receipt-header {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    border-bottom: 2px solid #333;
+    position: relative;
+}
+
+.receipt-title {
+    text-align: center;
+    flex: 1;
+}
+
+.receipt-stt {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    text-align: right;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.receipt-clinic-name {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0 0 10px 0;
+    color: #333;
+    text-transform: uppercase;
+}
+
+.receipt-main-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.receipt-subtitle {
+    font-size: 16px;
+    margin: 5px 0 0 0;
+    color: #666;
+}
+
+
+.stt-label {
+    color: #333;
+}
+
+.stt-number {
+    color: #007bff;
+    font-size: 18px;
+}
+
+.patient-info {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.info-item {
+    flex: 1;
+    min-width: 200px;
+    margin-right: 20px;
+    margin-bottom: 5px;
+}
+
+.info-item.full-width {
+    flex: 100%;
+    margin-right: 0;
+}
+
+.label {
+    font-weight: bold;
+    color: #333;
+    margin-right: 10px;
+}
+
+.value {
+    color: #555;
+}
+
+.services-table {
+    padding: 20px;
+}
+
+.services-table table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.services-table th,
+.services-table td {
+    border: 1px solid #333;
+    padding: 8px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.services-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    text-align: center;
+}
+
+.sub-header th {
+    background-color: #e9ecef;
+    font-size: 12px;
+    padding: 4px 8px;
+}
+
+
+.service-detail {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.total-row {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.payment-info {
+    padding: 20px;
+    border-top: 2px solid #333;
+    background-color: #f8f9fa;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.payment-label {
+    font-weight: bold;
+    color: #333;
+}
+
+.payment-amount {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.payment-words {
+    color: #555;
+    font-style: italic;
+}
+
+.receipt-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px;
+    border-top: 1px solid #ddd;
+    position: relative;
+}
+
+.date-section {
+    flex: 1;
+}
+
+.receipt-date {
+    font-size: 14px;
+    color: #666;
+}
+
+.signature-section {
+    text-align: center;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.signature-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.signature-line {
+    border-bottom: 1px solid #333;
+    height: 20px;
+    margin-bottom: 5px;
+}
+
+.signature-name {
+    font-weight: bold;
+    color: #333;
+}
+
+.signature-date-container {
+    width: 100%;
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.signature-date {
+    font-size: 14px;
+    color: #333;
+}
+
+
+/* Print Styles */
+@media print {
+    .receipt-container {
+        max-width: none;
+        margin: 0;
+        border: none;
+        box-shadow: none;
+    }
+    
+    
+    .receipt-header,
+    .patient-info,
+    .services-table,
+    .payment-info,
+    .receipt-footer {
+        break-inside: avoid;
+    }
+}

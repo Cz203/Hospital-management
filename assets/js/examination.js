@@ -297,6 +297,11 @@ function saveExaminationForm() {
       if (d && d.success) {
         alert("Lưu phiếu khám thành công! Mã số: " + d.id);
         window._lastExamFormId = d.id;
+      // Set the hidden input value
+      var examIdInput = document.getElementById('id_phieu_kham_benh');
+      if (examIdInput) {
+        examIdInput.value = d.id;
+      }
       } else {
         var errorMsg = d && d.message ? d.message : "Không rõ lý do";
         console.error("Save failed:", errorMsg);
@@ -403,6 +408,11 @@ function loadExaminationFormIfAny() {
       set("nam_ky", x.nam_ky);
       set("ten_bac_si", x.ten_bac_si);
       window._lastExamFormId = x.id;
+      // Set the hidden input value
+      var examIdInput = document.getElementById('id_phieu_kham_benh');
+      if (examIdInput) {
+        examIdInput.value = x.id;
+      }
 
       // Set examination ID for both X-Ray and Ultrasound
       var examId = getCurrentExaminationId();
@@ -544,7 +554,21 @@ function prefillUltrasoundSection() {
   var uName = document.getElementById("ultrasound_patient_name");
   if (uName) uName.value = pName;
   var uAge = document.getElementById("ultrasound_patient_age");
-  if (uAge) uAge.value = pDob;
+  if (uAge) {
+    // Tính tuổi từ ngày sinh
+    if (pDob) {
+      const today = new Date();
+      const birthDate = new Date(pDob);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      uAge.value = age;
+    } else {
+      uAge.value = '';
+    }
+  }
   var uGen = document.getElementById("ultrasound_patient_gender");
   if (uGen) uGen.value = pGender;
   var uAddr = document.getElementById("ultrasound_patient_address");
@@ -1048,19 +1072,23 @@ function initUltrasoundSuggestions() {
 
     var lastCommaIndex = beforeCursor.lastIndexOf(",");
     var startOfCurrentPart = lastCommaIndex >= 0 ? lastCommaIndex + 1 : 0;
+    
+    // Skip space after comma if exists
+    if (startOfCurrentPart > 0 && currentText.charAt(startOfCurrentPart) === ' ') {
+      startOfCurrentPart++;
+    }
 
     // Replace current part with suggestion
     var newText =
       currentText.substring(0, startOfCurrentPart) +
       suggestion.trim() +
-      (afterCursor.startsWith(",") ? "" : ", ") +
       currentText.substring(cursorPos);
 
     textarea.value = newText;
     textarea.focus();
 
     // Position cursor after the suggestion
-    var newCursorPos = startOfCurrentPart + suggestion.trim().length + 2;
+    var newCursorPos = startOfCurrentPart + suggestion.trim().length;
     textarea.setSelectionRange(newCursorPos, newCursorPos);
   }
 
@@ -1309,16 +1337,28 @@ function getCurrentDoctorId() {
 function getCurrentExaminationId() {
   console.log("Searching for examination ID...");
 
-  // Try to get from various sources
-  var examId = document.getElementById("examinationId")
-    ? document.getElementById("examinationId").value
+  // Try to get from id_phieu_kham_benh first (most reliable)
+  var examId = document.getElementById("id_phieu_kham_benh")
+    ? document.getElementById("id_phieu_kham_benh").value
     : "";
   console.log(
-    "examinationId element:",
-    !!document.getElementById("examinationId"),
+    "id_phieu_kham_benh element:",
+    !!document.getElementById("id_phieu_kham_benh"),
     "value:",
     examId
   );
+
+  if (!examId) {
+    examId = document.getElementById("examinationId")
+      ? document.getElementById("examinationId").value
+      : "";
+    console.log(
+      "examinationId element:",
+      !!document.getElementById("examinationId"),
+      "value:",
+      examId
+    );
+  }
 
   if (!examId) {
     examId = document.querySelector('[name="phieu_kham_id"]')
@@ -1327,17 +1367,6 @@ function getCurrentExaminationId() {
     console.log(
       "phieu_kham_id element:",
       !!document.querySelector('[name="phieu_kham_id"]'),
-      "value:",
-      examId
-    );
-  }
-  if (!examId) {
-    examId = document.querySelector('input[name="id_phieu_kham_benh"]')
-      ? document.querySelector('input[name="id_phieu_kham_benh"]').value
-      : "";
-    console.log(
-      "id_phieu_kham_benh element:",
-      !!document.querySelector('input[name="id_phieu_kham_benh"]'),
       "value:",
       examId
     );
@@ -1648,7 +1677,6 @@ function saveUltrasoundForm() {
     ma_benh_nhan:
       document.getElementById("ultrasound_patient_code")?.value || "",
     ho_ten: document.getElementById("ultrasound_patient_name")?.value || "",
-    tuoi: document.getElementById("ultrasound_patient_age")?.value || "",
     gioi_tinh:
       document.getElementById("ultrasound_patient_gender")?.value || "",
     dia_chi: document.getElementById("ultrasound_patient_address")?.value || "",

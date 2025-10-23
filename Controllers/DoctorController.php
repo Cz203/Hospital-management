@@ -2557,7 +2557,6 @@ class DoctorController
             $examId = $_POST['exam_id'];
             $maBenhNhan = $_POST['ma_benh_nhan'] ?? '';
             $hoTen = $_POST['ho_ten'] ?? '';
-            $tuoi = $_POST['tuoi'] ?? '';
             $gioiTinh = $_POST['gioi_tinh'] ?? '';
             $diaChi = $_POST['dia_chi'] ?? '';
             $doiTuong = $_POST['doi_tuong'] ?? '';
@@ -2587,7 +2586,6 @@ class DoctorController
                 'id_phieu_kham_benh' => $examId,
                 'so_ho_so' => $maBenhNhan,  // Map ma_benh_nhan to so_ho_so
                 'ho_ten' => $hoTen,
-                'tuoi' => $tuoi,
                 'gioi_tinh' => $gioiTinh,
                 'doi_tuong' => $doiTuong,
                 'so_the_bhyt' => $soTheBhyt,
@@ -2666,6 +2664,21 @@ class DoctorController
             include 'Views/doctor/print_ultrasound_form.php';
         } catch (Exception $e) {
             error_log('Error printing ultrasound form: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy dữ liệu yêu cầu cho biên lai
+     */
+    public function getReceiptData()
+    {
+        try {
+            require_once 'Controllers/ReceiptController.php';
+            $receiptController = new ReceiptController($this->db);
+            $receiptController->getReceiptData();
+        } catch (Exception $e) {
+            error_log('DoctorController getReceiptData error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }
@@ -4119,6 +4132,98 @@ class DoctorController
             ]);
         } catch (Exception $e) {
             error_log("Search medications public error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    public function getMedications()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $medication = new Medication($this->db);
+            $medications = $medication->getAll();
+            
+            echo json_encode([
+                'success' => true,
+                'medications' => $medications
+            ]);
+        } catch (Exception $e) {
+            error_log("Get medications error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    public function getCurrentDoctor()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+                echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập']);
+                exit();
+            }
+
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'];
+
+            // Lấy thông tin bác sĩ từ bảng bac_si
+            $sql = "SELECT ten FROM bac_si WHERE id = :user_id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':user_id' => $userId]);
+            $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($doctor) {
+                echo json_encode([
+                    'success' => true,
+                    'doctor_name' => $doctor['ten']
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không tìm thấy thông tin bác sĩ'
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log("Get current doctor error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    public function getDichVuKham()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            // Lấy đơn giá dịch vụ "Khám bệnh" từ bảng dich_vu_kham
+            $sql = "SELECT don_gia FROM dich_vu_kham WHERE ten_dich_vu LIKE '%Khám bệnh%' LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            $dichVu = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($dichVu && isset($dichVu['don_gia'])) {
+                echo json_encode([
+                    'success' => true,
+                    'don_gia' => floatval($dichVu['don_gia'])
+                ]);
+            } else {
+                // Không tìm thấy dữ liệu - trả về lỗi
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không tìm thấy đơn giá dịch vụ "Khám bệnh" trong database. Vui lòng kiểm tra bảng dich_vu_kham.'
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log("Get dich vu kham error: " . $e->getMessage());
             echo json_encode([
                 'success' => false,
                 'message' => 'Lỗi server: ' . $e->getMessage()

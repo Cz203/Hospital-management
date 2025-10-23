@@ -10,6 +10,20 @@ class Medication {
     
     
     /**
+     * Lấy tất cả thuốc
+     */
+    public function getAll() {
+        $sql = "SELECT * FROM thuoc 
+                WHERE TrangThai = 1 
+                ORDER BY TenThuoc";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
      * Tìm kiếm thuốc theo tên hoặc mã
      */
     public function searchMedications($keyword) {
