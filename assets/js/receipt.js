@@ -553,6 +553,25 @@ document.addEventListener('DOMContentLoaded', function() {
             ).forEach(btn => {
                 btn.style.display = 'none';
             });
+            
+            // Show receipt buttons
+            document.getElementById('save-receipt-btn').style.display = 'inline-block';
+            document.getElementById('print-receipt-btn').style.display = 'inline-block';
+        });
+    }
+
+    // Handle complete examination tab click
+    const completeTab = document.querySelector('a[href="#sec-complete"]');
+    if (completeTab) {
+        completeTab.addEventListener('click', function() {
+            // Hide all other buttons
+            document.querySelectorAll(
+                '#btnSaveExamForm, #btnPrintExamForm, #btnSaveExam, #saveXrayForm, #printXrayForm, #saveUltrasoundForm, #printUltrasoundForm, #saveLabForm, #printLabForm, #save-prescription-btn, #print-prescription-btn, #save-receipt-btn, #print-receipt-btn'
+            ).forEach(btn => {
+                btn.style.display = 'none';
+            });
+            
+            // No footer button needed - only the content button is used
         });
     }
 });
@@ -716,4 +735,46 @@ function reloadReceiptTab() {
     }
     
     console.log("Receipt tab reloaded successfully!");
+}
+
+// In biên lai viện phí
+function printReceiptForm() {
+    console.log("printReceiptForm called");
+    
+    const examId = getCurrentExamId();
+    console.log("Current exam ID:", examId);
+    console.log("Exam ID type:", typeof examId);
+    console.log("Exam ID length:", examId ? examId.length : 'null');
+    
+    if (!examId) {
+        console.log("No exam ID found, showing alert");
+        alert("Vui lòng lưu phiếu khám bệnh trước khi in biên lai!");
+        return;
+    }
+    
+    console.log("Fetching receipt data for exam ID:", examId);
+    
+    // Lấy ID biên lai từ exam ID
+    fetch(`./?action=get_receipt_code&exam_id=${encodeURIComponent(examId)}`)
+        .then(response => {
+            console.log("Response status:", response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Receipt code response:", data);
+            if (data.success && data.ma_bien_lai) {
+                console.log("Opening print window with receipt ID:", data.ma_bien_lai);
+                // Mở cửa sổ in với ID biên lai
+                const printUrl = `./?action=print_receipt_form&id=${data.ma_bien_lai}`;
+                console.log("Print URL:", printUrl);
+                window.open(printUrl, "_blank");
+            } else {
+                console.log("No receipt found:", data.message);
+                alert("Chưa có biên lai để in. Vui lòng lưu biên lai trước.");
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching receipt code:", error);
+            alert("Lỗi kết nối khi lấy thông tin biên lai");
+        });
 }

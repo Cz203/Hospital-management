@@ -312,6 +312,12 @@ switch ($action) {
     case 'print_examination_form':
         $doctorController->printExaminationForm();
         break;
+    case 'complete_examination':
+        $doctorController->completeExamination(); // Hoàn thành khám bệnh
+        break;
+    case 'check_examination_completion':
+        $doctorController->checkExaminationCompletion(); // Kiểm tra điều kiện hoàn thành
+        break;
 
     case 'get_xray_suggestions':
         $doctorController->getXraySuggestions(); // Lấy gợi ý X-Quang từ database
@@ -420,6 +426,10 @@ switch ($action) {
 
     case 'save_receipt':
         $receiptController->saveReceipt(); // Lưu biên lai viện phí
+        break;
+
+    case 'print_receipt_form':
+        $receiptController->printReceiptForm(); // In biên lai viện phí
         break;
 
     case 'get_ultrasound_stats':

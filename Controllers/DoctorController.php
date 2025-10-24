@@ -4387,4 +4387,125 @@ class DoctorController
         }
         exit();
     }
+
+    /**
+     * Hoàn thành khám bệnh - cập nhật trạng thái lịch hẹn thành "Hoàn thành"
+     */
+    public function completeExamination()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $appointmentId = $input['appointment_id'] ?? null;
+
+            if (!$appointmentId) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'ID lịch hẹn không hợp lệ'
+                ]);
+                return;
+            }
+
+            // Cập nhật trạng thái lịch hẹn thành "Hoàn thành"
+            $sql = "UPDATE lich_hen SET trang_thai = 'Hoàn thành', ngay_cap_nhat = NOW() WHERE id = ?";
+            $stmt = $this->db->prepare($sql);
+            $result = $stmt->execute([$appointmentId]);
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Đã hoàn thành khám bệnh thành công'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không thể cập nhật trạng thái lịch hẹn'
+                ]);
+            }
+
+        } catch (Exception $e) {
+            error_log('Complete examination error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi hệ thống: ' . $e->getMessage() . ' (Dòng: ' . $e->getLine() . ')'
+            ]);
+        }
+        exit();
+    }
+
+    /**
+     * Kiểm tra xem phiếu khám bệnh và biên lai đã được lưu chưa
+     */
+    public function checkExaminationCompletion()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $appointmentId = $input['appointment_id'] ?? null;
+
+            error_log('checkExaminationCompletion - Input: ' . json_encode($input));
+            error_log('checkExaminationCompletion - Appointment ID: ' . $appointmentId);
+
+            if (!$appointmentId) {
+                error_log('checkExaminationCompletion - Missing appointment ID');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'ID lịch hẹn không hợp lệ'
+                ]);
+                return;
+            }
+
+            // Kiểm tra phiếu khám bệnh đã được lưu chưa
+            $examSql = "SELECT id FROM phieu_kham_benh WHERE id_lich_hen = ?";
+            error_log('checkExaminationCompletion - Exam SQL: ' . $examSql);
+            $examStmt = $this->db->prepare($examSql);
+            $examStmt->execute([$appointmentId]);
+            $examExists = $examStmt->fetch(PDO::FETCH_ASSOC);
+            error_log('checkExaminationCompletion - Exam exists: ' . json_encode($examExists));
+
+            // Kiểm tra biên lai đã được lưu chưa
+            $receiptSql = "SELECT bl.id FROM bien_lai_vien_phi bl 
+                          JOIN phieu_kham_benh pk ON bl.id_phieu_kham_benh = pk.id 
+                          WHERE pk.id_lich_hen = ?";
+            error_log('checkExaminationCompletion - Receipt SQL: ' . $receiptSql);
+            $receiptStmt = $this->db->prepare($receiptSql);
+            $receiptStmt->execute([$appointmentId]);
+            $receiptExists = $receiptStmt->fetch(PDO::FETCH_ASSOC);
+            error_log('checkExaminationCompletion - Receipt exists: ' . json_encode($receiptExists));
+
+            $canComplete = $examExists && $receiptExists;
+            $missingItems = [];
+
+            if (!$examExists) {
+                $missingItems[] = 'PHIẾU KHÁM BỆNH VÀO VIỆN';
+            }
+            if (!$receiptExists) {
+                $missingItems[] = 'BIÊN LAI VIỆN PHÍ';
+            }
+
+            $result = [
+                'success' => true,
+                'can_complete' => $canComplete,
+                'exam_saved' => (bool)$examExists,
+                'receipt_saved' => (bool)$receiptExists,
+                'missing_items' => $missingItems,
+                'message' => $canComplete ? 
+                    'Có thể hoàn thành khám bệnh' : 
+                    'Cần lưu: ' . implode(', ', $missingItems)
+            ];
+
+            error_log('checkExaminationCompletion - Final result: ' . json_encode($result));
+            echo json_encode($result);
+
+        } catch (Exception $e) {
+            error_log('Check examination completion error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi hệ thống: ' . $e->getMessage() . ' (Dòng: ' . $e->getLine() . ')'
+            ]);
+        }
+        exit();
+    }
 }

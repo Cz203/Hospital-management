@@ -18,6 +18,12 @@ var savedXrayFormId = null;
     loadReferenceRanges(); // Load reference ranges for lab result validation
     var btnSave = document.getElementById("btnSaveExam");
     if (btnSave) btnSave.style.display = "none";
+    
+    // Bind complete examination button
+    var completeBtn = document.getElementById("complete-examination-btn");
+    if (completeBtn) {
+      completeBtn.addEventListener("click", completeExamination);
+    }
   }
 
   function bindDatePicker() {
@@ -2763,6 +2769,100 @@ function loadReferenceRanges() {
     })
     .catch(function(error) {
       console.error("Error loading reference ranges:", error);
+    });
+}
+
+/**
+ * Hoàn thành khám bệnh
+ */
+function completeExamination() {
+    const appointmentId = document.getElementById('examinationAppointmentId').value;
+    
+    if (!appointmentId) {
+        alert('Không tìm thấy ID lịch hẹn!');
+        return;
+    }
+
+    // Kiểm tra điều kiện trước khi hoàn thành
+    checkExaminationCompletion(appointmentId);
+}
+
+/**
+ * Kiểm tra điều kiện hoàn thành khám bệnh
+ */
+function checkExaminationCompletion(appointmentId) {
+    console.log('checkExaminationCompletion called with appointmentId:', appointmentId);
+    
+    fetch('./?action=check_examination_completion', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            appointment_id: appointmentId
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            if (data.can_complete) {
+                // Xác nhận trước khi hoàn thành
+                if (confirm('Bạn có chắc chắn muốn hoàn thành khám bệnh cho bệnh nhân này?')) {
+                    proceedWithCompletion(appointmentId);
+                }
+            } else {
+                // Hiển thị thông báo về các mục cần lưu
+                alert('Không thể hoàn thành khám bệnh!\n\n' + 
+                      'Cần lưu các mục sau:\n' + 
+                      data.missing_items.join('\n') + 
+                      '\n\nVui lòng lưu tất cả các mục trên trước khi hoàn thành khám bệnh.');
+            }
+        } else {
+            console.error('API Error:', data);
+            alert('Lỗi kiểm tra điều kiện:\n' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Network Error:', error);
+        alert('Lỗi kết nối khi kiểm tra điều kiện hoàn thành:\n' + error.message);
+    });
+}
+
+/**
+ * Tiến hành hoàn thành khám bệnh
+ */
+function proceedWithCompletion(appointmentId) {
+    fetch('./?action=complete_examination', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            appointment_id: appointmentId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Đã hoàn thành khám bệnh thành công!');
+            // Đóng modal sau khi hoàn thành
+            const modal = bootstrap.Modal.getInstance(document.getElementById('examinationModal'));
+            if (modal) {
+                modal.hide();
+            }
+            // Reload trang để cập nhật danh sách lịch hẹn
+            location.reload();
+        } else {
+            alert('Lỗi: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Lỗi kết nối khi hoàn thành khám bệnh');
     });
 }
 

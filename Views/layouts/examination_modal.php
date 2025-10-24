@@ -46,6 +46,9 @@
                             <a href="#sec-result" class="list-group-item list-group-item-action exam-nav">
                                 <i class="fas fa-receipt me-2"></i>Kê biên lai
                             </a>
+                            <a href="#sec-complete" class="list-group-item list-group-item-action exam-nav">
+                                <i class="fas fa-check-circle me-2"></i>Hoàn Thành Khám Bệnh
+                            </a>
                         </div>
                     </div>
 
@@ -1757,13 +1760,32 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Hoàn Thành Khám Bệnh Section -->
+                        <div class="card mb-3 exam-section" id="sec-complete">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0"><i class="fas fa-check-circle me-2"></i>Hoàn Thành Khám Bệnh</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="text-center">
+                                    <div class="mb-4">
+                                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                                    </div>
+                                    <h5 class="mb-3">Xác nhận hoàn thành khám bệnh</h5>
+                                    <p class="text-muted mb-4">
+                                        Nhấn nút bên dưới để kiểm tra và hoàn thành quá trình khám bệnh cho bệnh nhân này.
+                                        Trạng thái lịch hẹn sẽ được cập nhật thành "Hoàn thành".
+                                    </p>       
+                                    <button type="button" class="btn btn-success btn-lg" id="complete-examination-btn">
+                                        <i class="fas fa-check-circle me-2"></i>Hoàn Thành Khám Bệnh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times me-1"></i>Đóng
-                </button>
                 <button type="button" class="btn btn-outline-primary" id="btnSaveExamForm" style="display:none"
                     onclick="saveExaminationForm()">
                     <i class="fas fa-save me-1"></i>Lưu phiếu khám
@@ -1806,6 +1828,12 @@
                 </button>
                 <button type="button" class="btn btn-warning" id="save-receipt-btn" style="display:none">
                     <i class="fas fa-save me-1"></i>Lưu Biên Lai
+                </button>
+                <button type="button" class="btn btn-info" id="print-receipt-btn" style="display:none">
+                    <i class="fas fa-print me-1"></i>In Biên Lai
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Đóng
                 </button>
 
             </div>
@@ -1945,6 +1973,18 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             console.error('saveReceipt function not found!');
             alert('Function saveReceipt not found!');
+        }
+    });
+
+    // Print receipt button
+    document.getElementById('print-receipt-btn').addEventListener('click', function() {
+        console.log('Print receipt clicked - calling printReceiptForm()');
+        if (typeof printReceiptForm === 'function') {
+            console.log('printReceiptForm function exists, calling it...');
+            printReceiptForm();
+        } else {
+            console.error('printReceiptForm function not found!');
+            alert('Function printReceiptForm not found!');
         }
     });
 

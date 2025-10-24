@@ -170,6 +170,27 @@ class ReceiptController
     }
 
     /**
+     * In biên lai viện phí
+     */
+    public function printReceiptForm()
+    {
+        try {
+            $receiptId = $_GET['id'] ?? '';
+            if (empty($receiptId)) {
+                echo "ID biên lai không hợp lệ";
+                return;
+            }
+
+            // Include the print template - let template handle the logic
+            include 'Views/doctor/print_receipt_form.php';
+            
+        } catch (Exception $e) {
+            error_log('ReceiptController printReceiptForm error: ' . $e->getMessage());
+            echo "Lỗi hệ thống khi in biên lai";
+        }
+    }
+
+    /**
      * Lưu biên lai viện phí
      */
     public function saveReceipt()

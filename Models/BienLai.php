@@ -98,6 +98,23 @@ class BienLai {
     }
     
     /**
+     * Lấy biên lai theo mã biên lai
+     */
+    public function getByMaBienLai($maBienLai) {
+        $sql = "SELECT bl.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.so_the_bhyt, 
+                       pk.doi_tuong_bhyt, bn.ma_benh_nhan, bs.ten as ten_bac_si
+                FROM bien_lai_vien_phi bl
+                JOIN phieu_kham_benh pk ON bl.id_phieu_kham_benh = pk.id  
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                LEFT JOIN bac_si bs ON pk.bac_si_id = bs.id
+                WHERE bl.ma_bien_lai = ?";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$maBienLai]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+    /**
      * Lấy chi tiết biên lai
      */
     public function getDetails($bienLaiId) {
