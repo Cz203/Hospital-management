@@ -39,6 +39,7 @@ class AuthController
     {
         session_regenerate_id(true);
         $_SESSION['user_id'] = $user['id'] ?? null;
+        $_SESSION['user_name'] = $user['ten'] ?? $user['name'] ?? 'Bác sĩ';
         $_SESSION['last_activity'] = time();
         // Store minimal state: id + role for routing/authorization; avoid PII (name/email)
         $_SESSION['user_role'] = is_string($role) ? $role : '';
@@ -136,7 +137,7 @@ class AuthController
                 if ($r) {
                     return ['role' => 'letan', 'name' => $r['ten'] ?? '', 'email' => $r['email'] ?? ''];
                 }
-            } elseif (in_array($sessionRole, ['doctor', 'xray_doctor', 'sieuam_doctor'], true)) {
+            } elseif (in_array($sessionRole, ['doctor', 'xray_doctor', 'sieuam_doctor', 'xetnghiem_doctor'], true)) {
                 $doc = new Doctor();
                 $d = $doc->getById($uid);
                 if ($d) {
@@ -260,14 +261,14 @@ class AuthController
         $sessionRole = $_SESSION['user_role'] ?? '';
         if ($sessionRole !== '') {
             if ($expected === 'doctor') {
-                return in_array($sessionRole, ['doctor', 'xray_doctor', 'sieuam_doctor'], true);
+                return in_array($sessionRole, ['doctor', 'xray_doctor', 'sieuam_doctor', 'xetnghiem_doctor'], true);
             }
             return $sessionRole === $expected;
         }
         // Fallback: resolve from DB when session role is missing
         $ctx = $this->resolveCurrentUserContext();
         if ($expected === 'doctor') {
-            return in_array($ctx['role'], ['doctor', 'xray_doctor', 'sieuam_doctor'], true);
+            return in_array($ctx['role'], ['doctor', 'xray_doctor', 'sieuam_doctor', 'xetnghiem_doctor'], true);
         }
         return $ctx['role'] === $expected;
     }
@@ -293,6 +294,9 @@ class AuthController
                 break;
             case 'sieuam_doctor':
                 header("Location: ./sieuam_dashboard");
+                break;
+            case 'xetnghiem_doctor':
+                header("Location: ./xetnghiem_dashboard");
                 break;
             case 'patient':
                 header("Location: ./patient_dashboard");

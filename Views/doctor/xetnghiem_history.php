@@ -209,16 +209,21 @@ function viewHistoryDetail(id) {
                         </tr>
                       </thead>
                       <tbody>
-                        ${testDetails.length > 0 ? testDetails.map((test, index) => `
+                        ${testDetails.length > 0 ? testDetails.map((test, index) => {
+                          // Check if result is out of range
+                          const isOutOfRange = checkIfOutOfRange(test.ten_xet_nghiem, test.ket_qua);
+                          const resultStyle = isOutOfRange ? "font-weight: bold; color: #dc3545;" : "font-weight: normal;";
+                          return `
                           <tr>
                             <td class="text-center">${test.stt || index + 1}</td>
                             <td>${test.ten_xet_nghiem || ""}</td>
                             <td class="text-center">${test.gia_tri_tham_chieu || ""}</td>
-                            <td class="text-center" style="font-weight: bold;">${test.ket_qua || ""}</td>
+                            <td class="text-center" style="${resultStyle}">${test.ket_qua || ""}</td>
                             <td class="text-center">${test.don_vi || ""}</td>
                             <td>${test.may_qtkt || ""}</td>
                           </tr>
-                        `).join("") : `
+                        `;
+                        }).join("") : `
                           <tr>
                             <td colspan="6" class="text-center text-muted">Chưa có kết quả xét nghiệm</td>
                           </tr>
@@ -295,9 +300,53 @@ function formatTime(dateString) {
   return date.toLocaleTimeString("vi-VN", {hour: "2-digit", minute: "2-digit"});
 }
 
+// Function to check if result is out of range
+function checkIfOutOfRange(testName, resultValue) {
+  if (!testName || !resultValue) return false;
+  
+  // Try to parse as number
+  const resultNum = parseFloat(resultValue);
+  if (isNaN(resultNum)) return false;
+  
+  // Only use reference ranges from database
+  if (window.referenceRanges && window.referenceRanges[testName]) {
+    const range = window.referenceRanges[testName];
+    return resultNum < range.min || resultNum > range.max;
+  }
+  
+  // No fallback - return false if no database data
+  return false;
+}
+
+
+// Load reference ranges from database
+function loadReferenceRanges() {
+  fetch("./?action=get_chi_so_xet_nghiem")
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.chi_so) {
+        window.referenceRanges = {};
+        data.chi_so.forEach(item => {
+          if (item.chi_so_tu !== null && item.chi_so_den !== null) {
+            window.referenceRanges[item.ten_chi_so] = {
+              min: parseFloat(item.chi_so_tu),
+              max: parseFloat(item.chi_so_den)
+            };
+          }
+        });
+        console.log("Reference ranges loaded:", window.referenceRanges);
+      }
+    })
+    .catch(error => {
+      console.error("Error loading reference ranges:", error);
+    });
+}
 
 // Event listeners
 document.addEventListener("DOMContentLoaded", function() {
+  // Load reference ranges first
+  loadReferenceRanges();
+  
   // Set default date to today
   document.getElementById("hs_date").value = new Date().toISOString().split("T")[0];
   

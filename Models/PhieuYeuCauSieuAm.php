@@ -13,11 +13,17 @@ class PhieuYeuCauSieuAm {
      * Lưu phiếu yêu cầu siêu âm mới
      */
     public function save($data) {
+        // Validate required fields
+        if (empty($data['id_phieu_kham_benh']) || empty($data['ho_ten'])) {
+            error_log("PhieuYeuCauSieuAm save: Missing required fields");
+            return false;
+        }
+        
         try {
             $sql = "INSERT INTO {$this->table} 
-                    (id_phieu_kham_benh, so_ho_so, ho_ten, tuoi, gioi_tinh, doi_tuong, 
+                    (id_phieu_kham_benh, so_ho_so, ho_ten, gioi_tinh, doi_tuong, 
                      so_the_bhyt, phong_kham, chan_doan, yeu_cau, bac_si_kham, thoi_gian_yeu_cau, trang_thai) 
-                    VALUES (:id_phieu_kham_benh, :so_ho_so, :ho_ten, :tuoi, :gioi_tinh, :doi_tuong, 
+                    VALUES (:id_phieu_kham_benh, :so_ho_so, :ho_ten, :gioi_tinh, :doi_tuong, 
                             :so_the_bhyt, :phong_kham, :chan_doan, :yeu_cau, :bac_si_kham, :thoi_gian_yeu_cau, :trang_thai)";
             
             $stmt = $this->db->prepare($sql);
@@ -25,7 +31,6 @@ class PhieuYeuCauSieuAm {
                 ':id_phieu_kham_benh' => $data['id_phieu_kham_benh'],
                 ':so_ho_so' => $data['so_ho_so'],
                 ':ho_ten' => $data['ho_ten'],
-                ':tuoi' => $data['tuoi'],
                 ':gioi_tinh' => $data['gioi_tinh'],
                 ':doi_tuong' => $data['doi_tuong'],
                 ':so_the_bhyt' => $data['so_the_bhyt'],
@@ -39,6 +44,9 @@ class PhieuYeuCauSieuAm {
         } catch (PDOException $e) {
             error_log("PhieuYeuCauSieuAm save error: " . $e->getMessage());
             return false;
+        } catch (Exception $e) {
+            error_log("PhieuYeuCauSieuAm save general error: " . $e->getMessage());
+            return false;
         }
     }
 
@@ -46,9 +54,15 @@ class PhieuYeuCauSieuAm {
      * Cập nhật phiếu yêu cầu siêu âm
      */
     public function update($id, $data) {
+        // Validate required fields
+        if (empty($id) || empty($data['ho_ten'])) {
+            error_log("PhieuYeuCauSieuAm update: Missing required fields");
+            return false;
+        }
+        
         try {
             $sql = "UPDATE {$this->table} SET 
-                    so_ho_so = :so_ho_so, ho_ten = :ho_ten, tuoi = :tuoi, gioi_tinh = :gioi_tinh, 
+                    so_ho_so = :so_ho_so, ho_ten = :ho_ten, gioi_tinh = :gioi_tinh, 
                     doi_tuong = :doi_tuong, so_the_bhyt = :so_the_bhyt, phong_kham = :phong_kham, 
                     chan_doan = :chan_doan, yeu_cau = :yeu_cau, bac_si_kham = :bac_si_kham, 
                     thoi_gian_yeu_cau = :thoi_gian_yeu_cau, trang_thai = :trang_thai
@@ -59,7 +73,6 @@ class PhieuYeuCauSieuAm {
                 ':id' => $id,
                 ':so_ho_so' => $data['so_ho_so'],
                 ':ho_ten' => $data['ho_ten'],
-                ':tuoi' => $data['tuoi'],
                 ':gioi_tinh' => $data['gioi_tinh'],
                 ':doi_tuong' => $data['doi_tuong'],
                 ':so_the_bhyt' => $data['so_the_bhyt'],
@@ -73,6 +86,9 @@ class PhieuYeuCauSieuAm {
         } catch (PDOException $e) {
             error_log("PhieuYeuCauSieuAm update error: " . $e->getMessage());
             return false;
+        } catch (Exception $e) {
+            error_log("PhieuYeuCauSieuAm update general error: " . $e->getMessage());
+            return false;
         }
     }
 
@@ -81,7 +97,7 @@ class PhieuYeuCauSieuAm {
      */
     public function getByExamId($examId) {
         try {
-            $sql = "SELECT pysa.*, pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, pk.dia_chi, pk.chan_doan_vao_vien, pk.ten_bac_si,
+            $sql = "SELECT pysa.*, pk.ho_ten, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, pk.dia_chi, pk.chan_doan_vao_vien, pk.ten_bac_si,
                            CASE 
                                WHEN pk.doi_tuong_bhyt = 1 THEN 'BHYT'
                                WHEN pk.doi_tuong_thu_phi = 1 THEN 'Thu phí'
@@ -107,14 +123,24 @@ class PhieuYeuCauSieuAm {
      */
     public function getById($id) {
         try {
-            $sql = "SELECT pysa.*, pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, pk.dia_chi, pk.chan_doan_vao_vien, pk.ten_bac_si, bn.ma_benh_nhan
+            $sql = "SELECT pysa.*, pk.ho_ten, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, pk.dia_chi, pk.chan_doan_vao_vien, pk.ten_bac_si, bn.ma_benh_nhan, bn.ngay_sinh
                     FROM {$this->table} pysa
                     JOIN phieu_kham_benh pk ON pysa.id_phieu_kham_benh = pk.id
                     JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                     WHERE pysa.id = :id";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([':id' => $id]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Tính tuổi từ ngày sinh
+            if ($result && $result['ngay_sinh']) {
+                $birthDate = new DateTime($result['ngay_sinh']);
+                $today = new DateTime();
+                $age = $today->diff($birthDate)->y;
+                $result['tuoi'] = $age;
+            }
+            
+            return $result;
         } catch (PDOException $e) {
             error_log("PhieuYeuCauSieuAm getById error: " . $e->getMessage());
             return false;

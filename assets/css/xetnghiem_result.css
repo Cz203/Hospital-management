@@ -1,0 +1,96 @@
+/* Xét nghiệm Result Validation CSS */
+
+/* Style cho kết quả vượt ngưỡng */
+.result-input.fw-bold.text-danger {
+    background-color: #fff5f5 !important;
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Style cho kết quả trong ngưỡng */
+.result-input:not(.fw-bold) {
+    background-color: #f8fff8 !important;
+    border-color: #28a745 !important;
+}
+
+/* Tooltip cho kết quả */
+.result-input[title] {
+    cursor: help;
+}
+
+/* Animation khi thay đổi trạng thái */
+.result-input {
+    transition: all 0.3s ease;
+}
+
+/* Style cho bảng kết quả */
+#testResultsTable .result-input {
+    font-weight: normal;
+}
+
+#testResultsTable .result-input.fw-bold {
+    font-weight: bold !important;
+    color: #dc3545 !important;
+}
+
+/* Style cho header bảng */
+#testResultsTable th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Style cho các cột */
+#testResultsTable td {
+    vertical-align: middle;
+}
+
+/* Style cho input kết quả */
+#testResultsTable .result-input {
+    text-align: center;
+    font-weight: normal;
+}
+
+/* Style cho input tên xét nghiệm */
+#testResultsTable .test-name-input {
+    font-weight: normal;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    #testResultsTable {
+        font-size: 12px;
+    }
+    
+    #testResultsTable .form-control {
+        padding: 0.25rem 0.5rem;
+        font-size: 12px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .result-input.fw-bold.text-danger {
+        background-color: transparent !important;
+        color: #000 !important;
+        font-weight: bold !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .result-input:not(.fw-bold) {
+        background-color: transparent !important;
+        border: none !important;
+    }
+    
+    #testResultsTable {
+        border-collapse: collapse;
+    }
+    
+    #testResultsTable th,
+    #testResultsTable td {
+        border: 1px solid #000;
+        padding: 4px;
+    }
+}

@@ -6,6 +6,34 @@ if (!$mainResult) {
     echo "Không tìm thấy dữ liệu kết quả xét nghiệm";
     exit;
 }
+
+// Function to check if result is out of range
+function isOutOfRange($testName, $resultValue, $pdo) {
+    try {
+        $sql = "SELECT chi_so_tu, chi_so_den FROM chi_so_xet_nghiem 
+                WHERE xet_nghiem = ? AND chi_so_tu IS NOT NULL AND chi_so_den IS NOT NULL";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$testName]);
+        $chiSo = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($chiSo && is_numeric($resultValue)) {
+            $resultNum = floatval($resultValue);
+            $isOut = $resultNum < $chiSo['chi_so_tu'] || $resultNum > $chiSo['chi_so_den'];
+            // Debug log
+            error_log("Print validation: $testName = $resultValue, range: {$chiSo['chi_so_tu']}-{$chiSo['chi_so_den']}, out of range: " . ($isOut ? 'YES' : 'NO'));
+            return $isOut;
+        }
+        return false;
+    } catch (Exception $e) {
+        error_log("Print validation error: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Get database connection
+require_once 'config/database.php';
+$database = new Database();
+$pdo = $database->getConnection();
 ?>
 
 <!DOCTYPE html>
@@ -112,6 +140,10 @@ if (!$mainResult) {
             text-align: center;
         }
         
+        th.result {
+            font-weight: bold;
+        }
+        
         .stt {
             width: 50px;
             text-align: center;
@@ -127,7 +159,28 @@ if (!$mainResult) {
         
         .result {
             width: 120px;
+            font-weight: normal;
+            text-align: center;
+        }
+        
+        .result.out-of-range {
             font-weight: bold;
+            color: #dc3545;
+        }
+        
+        @media print {
+            th.result {
+                font-weight: bold !important;
+            }
+            .result {
+                font-weight: normal !important;
+                text-align: center !important;
+            }
+            .result.out-of-range {
+                font-weight: bold !important;
+                color: #000 !important;
+                text-align: center !important;
+            }
         }
         
         .unit {
@@ -259,11 +312,17 @@ if (!$mainResult) {
         <tbody>
             <?php if (!empty($testDetails)): ?>
                 <?php foreach ($testDetails as $test): ?>
+                <?php 
+                $isOutOfRange = isOutOfRange($test['ten_xet_nghiem'], $test['ket_qua'], $pdo);
+                $resultClass = $isOutOfRange ? 'result out-of-range' : 'result';
+                // Debug log
+                error_log("Print row: {$test['ten_xet_nghiem']} = {$test['ket_qua']}, class: $resultClass, isOutOfRange: " . ($isOutOfRange ? 'YES' : 'NO'));
+                ?>
                 <tr>
                     <td class="stt"><?php echo $test['stt']; ?></td>
                     <td class="test-name"><?php echo htmlspecialchars($test['ten_xet_nghiem']); ?></td>
                     <td class="reference"><?php echo htmlspecialchars($test['gia_tri_tham_chieu']); ?></td>
-                    <td class="result"><?php echo htmlspecialchars($test['ket_qua']); ?></td>
+                    <td class="<?php echo $resultClass; ?>"><?php echo htmlspecialchars($test['ket_qua']); ?></td>
                     <td class="unit"><?php echo htmlspecialchars($test['don_vi']); ?></td>
                     <td class="machine"><?php echo htmlspecialchars($test['may_qtkt']); ?></td>
                 </tr>

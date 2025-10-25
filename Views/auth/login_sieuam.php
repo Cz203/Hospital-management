@@ -34,10 +34,7 @@
                     <label for="phone" class="form-label">
                         <i class="fas fa-phone"></i> Số điện thoại
                     </label>
-
-                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Nhập số điện thoại"
-                        required>
-
+                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="Nhập số điện thoại" required>
                 </div>
 
                 <div class="mb-3">

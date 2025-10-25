@@ -101,16 +101,32 @@ class Prescription {
      * Lấy thông tin đơn thuốc theo ID
      */
     public function getPrescriptionById($prescriptionId) {
-        $sql = "SELECT dt.*, bn.ten as ten_benh_nhan, bs.ten as ten_bac_si 
+        $sql = "SELECT dt.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.chan_doan_vao_vien, pk.ten_bac_si, bn.ma_benh_nhan, bn.ngay_sinh, bn.so_dien_thoai,
+                       CASE 
+                           WHEN pk.doi_tuong_bhyt = 1 THEN 'BHYT'
+                           WHEN pk.doi_tuong_thu_phi = 1 THEN 'Thu phí'
+                           WHEN pk.doi_tuong_mien = 1 THEN 'Miễn'
+                           ELSE 'Khác'
+                       END as doi_tuong,
+                       pk.so_the_bhyt
                 FROM don_thuoc dt
-                LEFT JOIN benh_nhan bn ON dt.MaBenhNhan = bn.id
-                LEFT JOIN bac_si bs ON dt.MaBacSi = bs.id
+                JOIN phieu_kham_benh pk ON dt.id_phieu_kham_benh = pk.id
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                 WHERE dt.MaDonThuoc = ?";
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$prescriptionId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        // Tính tuổi từ ngày sinh
+        if ($result && $result['ngay_sinh']) {
+            $birthDate = new DateTime($result['ngay_sinh']);
+            $today = new DateTime();
+            $age = $today->diff($birthDate)->y;
+            $result['tuoi'] = $age;
+        }
+        
+        return $result;
     }
     
     /**
@@ -142,6 +158,40 @@ class Prescription {
         $stmt->execute([$patientId]);
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
+     * Lấy đơn thuốc theo ID phiếu khám bệnh
+     */
+    public function getPrescriptionByExamId($examId) {
+        $sql = "SELECT dt.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.chan_doan_vao_vien, pk.ten_bac_si, bn.ma_benh_nhan, bn.ngay_sinh,
+                       CASE 
+                           WHEN pk.doi_tuong_bhyt = 1 THEN 'BHYT'
+                           WHEN pk.doi_tuong_thu_phi = 1 THEN 'Thu phí'
+                           WHEN pk.doi_tuong_mien = 1 THEN 'Miễn'
+                           ELSE 'Khác'
+                       END as doi_tuong,
+                       pk.so_the_bhyt
+                FROM don_thuoc dt
+                JOIN phieu_kham_benh pk ON dt.id_phieu_kham_benh = pk.id
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                WHERE dt.id_phieu_kham_benh = ?
+                ORDER BY dt.NgayKe DESC, dt.NgayTao DESC
+                LIMIT 1";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$examId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Tính tuổi từ ngày sinh
+        if ($result && $result['ngay_sinh']) {
+            $birthDate = new DateTime($result['ngay_sinh']);
+            $today = new DateTime();
+            $age = $today->diff($birthDate)->y;
+            $result['tuoi'] = $age;
+        }
+        
+        return $result;
     }
     
     /**

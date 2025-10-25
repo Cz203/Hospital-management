@@ -11,6 +11,7 @@ require_once 'Controllers/AppointmentController.php';
 require_once 'Controllers/PrescriptionController.php';
 require_once 'Controllers/PatientController.php';
 require_once 'Controllers/ReceptionController.php';
+require_once 'Controllers/ReceiptController.php';
 // Khởi tạo Controllers
 $auth = new AuthController();
 $doctorController = new DoctorController();
@@ -19,6 +20,12 @@ $appointmentController = new AppointmentController();
 $prescriptionController = new PrescriptionController();
 $patientController = new PatientController();
 $receptionController = new ReceptionController();
+
+// Khởi tạo ReceiptController
+require_once 'config/database.php';
+$database = new Database();
+$db = $database->getConnection();
+$receiptController = new ReceiptController($db);
 
 // Lấy action từ URL - hỗ trợ cả URL đẹp và URL cũ
 $action = $_GET['action'] ?? 'home';
@@ -305,6 +312,12 @@ switch ($action) {
     case 'print_examination_form':
         $doctorController->printExaminationForm();
         break;
+    case 'complete_examination':
+        $doctorController->completeExamination(); // Hoàn thành khám bệnh
+        break;
+    case 'check_examination_completion':
+        $doctorController->checkExaminationCompletion(); // Kiểm tra điều kiện hoàn thành
+        break;
 
     case 'get_xray_suggestions':
         $doctorController->getXraySuggestions(); // Lấy gợi ý X-Quang từ database
@@ -403,8 +416,48 @@ switch ($action) {
         $doctorController->printUltrasoundForm(); // In phiếu yêu cầu siêu âm
         break;
 
+    case 'get_prescription_form_data':
+        $doctorController->getPrescriptionFormData(); // Lấy dữ liệu đơn thuốc theo exam ID
+        break;
+
+    case 'print_prescription_form':
+        $doctorController->printPrescriptionForm(); // In đơn thuốc
+        break;
+
+    case 'save_receipt':
+        $receiptController->saveReceipt(); // Lưu biên lai viện phí
+        break;
+
+    case 'print_receipt_form':
+        $receiptController->printReceiptForm(); // In biên lai viện phí
+        break;
+
     case 'get_ultrasound_stats':
         $doctorController->getUltrasoundStats(); // Lấy thống kê siêu âm
+        break;
+
+    case 'getReceiptData':
+        $doctorController->getReceiptData(); // Lấy dữ liệu yêu cầu cho biên lai
+        break;
+
+    case 'get_receipt_code':
+        $receiptController->getReceiptCode(); // Lấy mã biên lai
+        break;
+
+    case 'get_medications':
+        $doctorController->getMedications(); // Lấy danh sách thuốc
+        break;
+
+    case 'get_current_doctor':
+        $doctorController->getCurrentDoctor(); // Lấy thông tin bác sĩ hiện tại
+        break;
+
+    case 'get_dich_vu_kham':
+        $doctorController->getDichVuKham(); // Lấy đơn giá dịch vụ khám bệnh
+        break;
+
+    case 'check_lab_duplicate':
+        $doctorController->checkLabDuplicate(); // Kiểm tra trùng lặp yêu cầu xét nghiệm
         break;
 
     case 'get_ultrasound_requests':
@@ -480,9 +533,13 @@ switch ($action) {
                 case 'print_xetnghiem_result':
                     $doctorController->printXetnghiemResult(); // In kết quả xét nghiệm
                     break;
-                case 'complete_xetnghiem_request':
-                    $doctorController->completeXetnghiemRequest(); // Hoàn thành yêu cầu xét nghiệm
-                    break;
+    case 'complete_xetnghiem_request':
+        $doctorController->completeXetnghiemRequest(); // Hoàn thành yêu cầu xét nghiệm
+        break;
+
+    case 'get_chi_so_xet_nghiem':
+        $doctorController->getChiSoXetNghiem(); // Lấy dữ liệu chỉ số xét nghiệm
+        break;
 
     case 'sieuam_history':
         include 'Views/doctor/sieuam_history.php'; // Lịch sử siêu âm
@@ -615,6 +672,32 @@ switch ($action) {
         break;
     case 'reception_queue_reassign':
         $receptionController->queueReassign();
+        break;
+
+    // ===== RECEPTION PAYMENT =====
+    case 'reception_payment':
+        $receptionController->payment(); // Trang thanh toán biên lai
+        break;
+    case 'reception_get_unpaid_receipts':
+        $receptionController->getUnpaidReceipts(); // API lấy danh sách biên lai chưa thanh toán
+        break;
+    case 'reception_get_all_receipts':
+        $receptionController->getAllReceipts(); // API lấy tất cả biên lai (cho thống kê)
+        break;
+    case 'reception_search_receipts':
+        $receptionController->searchReceipts(); // API tìm kiếm biên lai
+        break;
+    case 'reception_get_receipt_details':
+        $receptionController->getReceiptDetails(); // API lấy chi tiết biên lai
+        break;
+    case 'reception_process_payment':
+        $receptionController->processPayment(); // API xử lý thanh toán
+        break;
+    case 'reception_create_vnpay_url':
+        $receptionController->createVNPayUrl(); // API tạo URL VNPAY
+        break;
+    case 'reception_vnpay_return':
+        $receptionController->vnpayReturn(); // Xử lý kết quả VNPAY
         break;
 
     case 'patient_appointments':

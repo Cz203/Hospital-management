@@ -18,6 +18,7 @@ class DoctorController
     private $ketQuaSieuAmModel;
     private $sieuAmHinhAnhModel;
     private $labTestModel;
+    private $prescriptionModel;
     private $auth;
     private $db;
 
@@ -28,6 +29,7 @@ class DoctorController
         $this->phieuChupXquangModel = new PhieuChupXquang();
         $this->phieuYeuCauSieuAmModel = new PhieuYeuCauSieuAm();
         $this->labTestModel = new LabTest();
+        $this->prescriptionModel = new Prescription();
         // DB connection for simple queries
         require_once 'config/database.php';
         $database = new Database();
@@ -2557,7 +2559,6 @@ class DoctorController
             $examId = $_POST['exam_id'];
             $maBenhNhan = $_POST['ma_benh_nhan'] ?? '';
             $hoTen = $_POST['ho_ten'] ?? '';
-            $tuoi = $_POST['tuoi'] ?? '';
             $gioiTinh = $_POST['gioi_tinh'] ?? '';
             $diaChi = $_POST['dia_chi'] ?? '';
             $doiTuong = $_POST['doi_tuong'] ?? '';
@@ -2587,7 +2588,6 @@ class DoctorController
                 'id_phieu_kham_benh' => $examId,
                 'so_ho_so' => $maBenhNhan,  // Map ma_benh_nhan to so_ho_so
                 'ho_ten' => $hoTen,
-                'tuoi' => $tuoi,
                 'gioi_tinh' => $gioiTinh,
                 'doi_tuong' => $doiTuong,
                 'so_the_bhyt' => $soTheBhyt,
@@ -2666,6 +2666,76 @@ class DoctorController
             include 'Views/doctor/print_ultrasound_form.php';
         } catch (Exception $e) {
             error_log('Error printing ultrasound form: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy dữ liệu đơn thuốc theo exam ID
+     */
+    public function getPrescriptionFormData()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $examId = $_GET['exam_id'] ?? '';
+            if (empty($examId)) {
+                echo json_encode(['success' => false, 'message' => 'Exam ID không hợp lệ']);
+                return;
+            }
+
+            $prescriptionData = $this->prescriptionModel->getPrescriptionByExamId($examId);
+
+            if ($prescriptionData) {
+                echo json_encode(['success' => true, 'data' => $prescriptionData]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Không tìm thấy đơn thuốc']);
+            }
+        } catch (Exception $e) {
+            error_log('Error getting prescription form data: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * In đơn thuốc
+     */
+    public function printPrescriptionForm()
+    {
+        try {
+            $id = $_GET['id'] ?? '';
+            if (empty($id)) {
+                echo "ID không hợp lệ";
+                return;
+            }
+
+            $prescriptionData = $this->prescriptionModel->getPrescriptionById($id);
+            if (!$prescriptionData) {
+                echo "Không tìm thấy đơn thuốc";
+                return;
+            }
+
+            // Lấy chi tiết thuốc
+            $medicationDetails = $this->prescriptionModel->getMedicationDetails($id);
+            $prescriptionData['medications'] = $medicationDetails;
+
+            include 'Views/doctor/print_prescription_form.php';
+        } catch (Exception $e) {
+            error_log('Error printing prescription form: ' . $e->getMessage());
+            echo "Lỗi hệ thống: " . $e->getMessage();
+        }
+    }
+
+    /**
+     * Lấy dữ liệu yêu cầu cho biên lai
+     */
+    public function getReceiptData()
+    {
+        try {
+            require_once 'Controllers/ReceiptController.php';
+            $receiptController = new ReceiptController($this->db);
+            $receiptController->getReceiptData();
+        } catch (Exception $e) {
+            error_log('DoctorController getReceiptData error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }
@@ -4122,6 +4192,318 @@ class DoctorController
             echo json_encode([
                 'success' => false,
                 'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    public function getMedications()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $medication = new Medication($this->db);
+            $medications = $medication->getAll();
+            
+            echo json_encode([
+                'success' => true,
+                'medications' => $medications
+            ]);
+        } catch (Exception $e) {
+            error_log("Get medications error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    public function getCurrentDoctor()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+                echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập']);
+                exit();
+            }
+
+            $userId = $_SESSION['user_id'];
+            $userRole = $_SESSION['user_role'];
+
+            // Lấy thông tin bác sĩ từ bảng bac_si
+            $sql = "SELECT ten FROM bac_si WHERE id = :user_id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':user_id' => $userId]);
+            $doctor = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($doctor) {
+                echo json_encode([
+                    'success' => true,
+                    'doctor_name' => $doctor['ten']
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không tìm thấy thông tin bác sĩ'
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log("Get current doctor error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    public function getDichVuKham()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            // Lấy đơn giá dịch vụ "Khám bệnh" từ bảng dich_vu_kham
+            $sql = "SELECT don_gia FROM dich_vu_kham WHERE ten_dich_vu LIKE '%Khám bệnh%' LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            $dichVu = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($dichVu && isset($dichVu['don_gia'])) {
+                echo json_encode([
+                    'success' => true,
+                    'don_gia' => floatval($dichVu['don_gia'])
+                ]);
+            } else {
+                // Không tìm thấy dữ liệu - trả về lỗi
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không tìm thấy đơn giá dịch vụ "Khám bệnh" trong database. Vui lòng kiểm tra bảng dich_vu_kham.'
+                ]);
+            }
+        } catch (Exception $e) {
+            error_log("Get dich vu kham error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    public function checkLabDuplicate()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $examId = $_POST['exam_id'] ?? '';
+            $yeuCau = $_POST['yeu_cau'] ?? '';
+            
+            // Fix encoding issues - try multiple approaches
+            $yeuCau = iconv('UTF-8', 'UTF-8//IGNORE', $yeuCau);
+
+            // Debug log
+            error_log("checkLabDuplicate - exam_id: '$examId', yeu_cau: '$yeuCau', length: " . strlen($yeuCau));
+
+            if (empty($examId) || empty($yeuCau)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Thiếu thông tin exam_id hoặc yeu_cau'
+                ]);
+                exit();
+            }
+
+            // Kiểm tra trùng lặp trong bảng phieu_yeu_cau_xet_nghiem
+            $sql = "SELECT yeu_cau FROM phieu_yeu_cau_xet_nghiem WHERE id_phieu_kham_benh = :exam_id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':exam_id' => $examId]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $isDuplicate = false;
+            foreach ($results as $row) {
+                $dbValue = trim($row['yeu_cau']);
+                $inputValue = trim($yeuCau);
+                
+                // Use similar_text for fuzzy comparison
+                $similarity = 0;
+                similar_text($dbValue, $inputValue, $similarity);
+                
+                if ($similarity > 80) { // 80% similar
+                    $isDuplicate = true;
+                    break;
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'is_duplicate' => $isDuplicate,
+                'count' => count($results)
+            ]);
+
+        } catch (Exception $e) {
+            error_log("Check lab duplicate error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi server: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    /**
+     * Lấy dữ liệu chỉ số xét nghiệm
+     */
+    public function getChiSoXetNghiem()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $sql = "SELECT 
+                        id,
+                        xet_nghiem as ten_chi_so,
+                        don_vi,
+                        chi_so_tu,
+                        chi_so_den,
+                        gia_tri_tham_chieu as mo_ta
+                    FROM chi_so_xet_nghiem 
+                    WHERE chi_so_tu IS NOT NULL 
+                    AND chi_so_den IS NOT NULL
+                    ORDER BY xet_nghiem";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute();
+            $chiSo = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'chi_so' => $chiSo
+            ]);
+
+        } catch (Exception $e) {
+            error_log('Error getting chi so xet nghiem: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi hệ thống'
+            ]);
+        }
+        exit();
+    }
+
+    /**
+     * Hoàn thành khám bệnh - cập nhật trạng thái lịch hẹn thành "Hoàn thành"
+     */
+    public function completeExamination()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $appointmentId = $input['appointment_id'] ?? null;
+
+            if (!$appointmentId) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'ID lịch hẹn không hợp lệ'
+                ]);
+                return;
+            }
+
+            // Cập nhật trạng thái lịch hẹn thành "Hoàn thành"
+            $sql = "UPDATE lich_hen SET trang_thai = 'Hoàn thành', ngay_cap_nhat = NOW() WHERE id = ?";
+            $stmt = $this->db->prepare($sql);
+            $result = $stmt->execute([$appointmentId]);
+
+            if ($result) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Đã hoàn thành khám bệnh thành công'
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không thể cập nhật trạng thái lịch hẹn'
+                ]);
+            }
+
+        } catch (Exception $e) {
+            error_log('Complete examination error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi hệ thống: ' . $e->getMessage() . ' (Dòng: ' . $e->getLine() . ')'
+            ]);
+        }
+        exit();
+    }
+
+    /**
+     * Kiểm tra xem phiếu khám bệnh và biên lai đã được lưu chưa
+     */
+    public function checkExaminationCompletion()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $appointmentId = $input['appointment_id'] ?? null;
+
+            error_log('checkExaminationCompletion - Input: ' . json_encode($input));
+            error_log('checkExaminationCompletion - Appointment ID: ' . $appointmentId);
+
+            if (!$appointmentId) {
+                error_log('checkExaminationCompletion - Missing appointment ID');
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'ID lịch hẹn không hợp lệ'
+                ]);
+                return;
+            }
+
+            // Kiểm tra phiếu khám bệnh đã được lưu chưa
+            $examSql = "SELECT id FROM phieu_kham_benh WHERE id_lich_hen = ?";
+            error_log('checkExaminationCompletion - Exam SQL: ' . $examSql);
+            $examStmt = $this->db->prepare($examSql);
+            $examStmt->execute([$appointmentId]);
+            $examExists = $examStmt->fetch(PDO::FETCH_ASSOC);
+            error_log('checkExaminationCompletion - Exam exists: ' . json_encode($examExists));
+
+            // Kiểm tra biên lai đã được lưu chưa
+            $receiptSql = "SELECT bl.id FROM bien_lai_vien_phi bl 
+                          JOIN phieu_kham_benh pk ON bl.id_phieu_kham_benh = pk.id 
+                          WHERE pk.id_lich_hen = ?";
+            error_log('checkExaminationCompletion - Receipt SQL: ' . $receiptSql);
+            $receiptStmt = $this->db->prepare($receiptSql);
+            $receiptStmt->execute([$appointmentId]);
+            $receiptExists = $receiptStmt->fetch(PDO::FETCH_ASSOC);
+            error_log('checkExaminationCompletion - Receipt exists: ' . json_encode($receiptExists));
+
+            $canComplete = $examExists && $receiptExists;
+            $missingItems = [];
+
+            if (!$examExists) {
+                $missingItems[] = 'PHIẾU KHÁM BỆNH VÀO VIỆN';
+            }
+            if (!$receiptExists) {
+                $missingItems[] = 'BIÊN LAI VIỆN PHÍ';
+            }
+
+            $result = [
+                'success' => true,
+                'can_complete' => $canComplete,
+                'exam_saved' => (bool)$examExists,
+                'receipt_saved' => (bool)$receiptExists,
+                'missing_items' => $missingItems,
+                'message' => $canComplete ? 
+                    'Có thể hoàn thành khám bệnh' : 
+                    'Cần lưu: ' . implode(', ', $missingItems)
+            ];
+
+            error_log('checkExaminationCompletion - Final result: ' . json_encode($result));
+            echo json_encode($result);
+
+        } catch (Exception $e) {
+            error_log('Check examination completion error: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi hệ thống: ' . $e->getMessage() . ' (Dòng: ' . $e->getLine() . ')'
             ]);
         }
         exit();

@@ -258,6 +258,7 @@ class PrescriptionManager {
     }
   }
 
+
   autoFillPatientInfo() {
     // Get patient info from examination form
     const patientName = document.getElementById("patientName")?.value || "";
@@ -599,79 +600,96 @@ class PrescriptionManager {
   }
 
   collectPrescriptionData() {
-    const maBenhNhan =
-      document.getElementById("prescription_ma_benh_nhan")?.value || "";
-    // Resolve doctor id if available in a hidden input populated server-side
-    const maBacSi = document.getElementById("current_doctor_id")?.value || "";
-    const appointmentId =
-      document.getElementById("examinationAppointmentId")?.value || "";
-    const phieuKhamId =
-      document.getElementById("prescription_examination_id")?.value || "";
-    return {
-      ma_don_thuoc: document.getElementById("ma_don_thuoc")?.value || "",
-      ho_ten_benh_nhan:
-        document.getElementById("prescription_patient_name")?.value || "",
-      ma_benh_nhan: maBenhNhan,
-      ma_bac_si: maBacSi,
-      ma_bhyt: document.getElementById("prescription_bhyt")?.value || "",
-      ma_dinh_danh:
-        document.getElementById("prescription_citizen_id")?.value || "",
-      ngay_sinh: document.getElementById("prescription_dob")?.value || "",
-      cmt_cccd: document.getElementById("prescription_id_card")?.value || "",
-      can_nang: document.getElementById("prescription_weight")?.value || "",
-      gioi_tinh: document.getElementById("prescription_gender")?.value || "",
-      ma_dinh_danh_y_te:
-        document.getElementById("prescription_medical_id")?.value || "",
-      so_dien_thoai: document.getElementById("prescription_phone")?.value || "",
-      dia_chi_lien_he:
-        document.getElementById("prescription_address")?.value || "",
-      ma_chan_doan: document.getElementById("diagnosis_code")?.value || "",
-      chan_doan: document.getElementById("diagnosis_description")?.value || "",
-      luu_y: document.getElementById("prescription_notes")?.value || "",
-      hinh_thuc_dieu_tri:
-        document.querySelector('input[name="hinh_thuc_dieu_tri"]:checked')
-          ?.value || "",
-      ket_luan: document.getElementById("prescription_conclusion")?.value || "",
-      loi_dan:
-        document.getElementById("prescription_instructions")?.value || "",
-      lich_tai_kham:
-        document.getElementById("prescription_followup_days")?.value || "",
-      ten_nguoi_dua:
-        document.getElementById("prescription_guardian")?.value || "",
-      ngay_ky: document.getElementById("prescription_date")?.value || "",
-      ten_bac_si: document.getElementById("prescription_doctor")?.value || "",
-      id_phieu_kham_benh: phieuKhamId || appointmentId,
-      medications: this.collectMedicationData(),
-    };
+    try {
+      const maBenhNhan =
+        document.getElementById("prescription_ma_benh_nhan")?.value || "";
+      // Resolve doctor id if available in a hidden input populated server-side
+      const maBacSi = document.getElementById("current_doctor_id")?.value || "";
+      const appointmentId =
+        document.getElementById("examinationAppointmentId")?.value || "";
+      const phieuKhamId =
+        document.getElementById("prescription_examination_id")?.value || "";
+      
+      return {
+        ma_don_thuoc: document.getElementById("ma_don_thuoc")?.value || "",
+        ho_ten_benh_nhan:
+          document.getElementById("prescription_patient_name")?.value || "",
+        ma_benh_nhan: maBenhNhan,
+        ma_bac_si: maBacSi,
+        ma_bhyt: document.getElementById("prescription_bhyt")?.value || "",
+        ma_dinh_danh:
+          document.getElementById("prescription_citizen_id")?.value || "",
+        ngay_sinh: document.getElementById("prescription_dob")?.value || "",
+        cmt_cccd: document.getElementById("prescription_id_card")?.value || "",
+        can_nang: document.getElementById("prescription_weight")?.value || "",
+        gioi_tinh: document.getElementById("prescription_gender")?.value || "",
+        ma_dinh_danh_y_te:
+          document.getElementById("prescription_medical_id")?.value || "",
+        so_dien_thoai: document.getElementById("prescription_phone")?.value || "",
+        dia_chi_lien_he:
+          document.getElementById("prescription_address")?.value || "",
+        ma_chan_doan: document.getElementById("diagnosis_code")?.value || "",
+        chan_doan: document.getElementById("diagnosis_description")?.value || "",
+        luu_y: document.getElementById("prescription_notes")?.value || "",
+        hinh_thuc_dieu_tri:
+          document.querySelector('input[name="hinh_thuc_dieu_tri"]:checked')
+            ?.value || "",
+        ket_luan: document.getElementById("prescription_conclusion")?.value || "",
+        loi_dan:
+          document.getElementById("prescription_instructions")?.value || "",
+        lich_tai_kham:
+          document.getElementById("prescription_followup_days")?.value || "",
+        ten_nguoi_dua:
+          document.getElementById("prescription_guardian")?.value || "",
+        ngay_ky: document.getElementById("prescription_date")?.value || "",
+        ten_bac_si: document.getElementById("prescription_doctor")?.value || "",
+        id_phieu_kham_benh: phieuKhamId || appointmentId,
+        medications: this.collectMedicationData(),
+      };
+    } catch (error) {
+      console.error("Error collecting prescription data:", error);
+      alert("Lỗi khi thu thập dữ liệu đơn thuốc. Vui lòng thử lại.");
+      return null;
+    }
   }
 
   collectMedicationData() {
-    const medications = [];
-    const medicationRows = document.querySelectorAll(".medication-row");
+    try {
+      const medications = [];
+      const medicationRows = document.querySelectorAll(".medication-row");
 
-    medicationRows.forEach((row) => {
-      const medication = {
-        ma_thuoc: row.getAttribute("data-ma-thuoc") || "",
-        stt: row.querySelector("td:first-child span")?.textContent || "",
-        ten_thuoc: row.querySelector(".medication-name-input")?.value || "",
-        hoạt_chất: row.querySelector(".medication-ingredient")?.value || "",
-        hoat_chat: row.querySelector(".medication-ingredient")?.value || "",
-        don_vi_tinh: row.querySelector(".medication-unit")?.value || "",
-        so_luong: row.querySelector(".medication-quantity")?.value || "1",
-        cach_dung: row.querySelector(".medication-usage")?.value || "",
-      };
+      medicationRows.forEach((row) => {
+        const medication = {
+          ma_thuoc: row.getAttribute("data-ma-thuoc") || "",
+          stt: row.querySelector("td:first-child span")?.textContent || "",
+          ten_thuoc: row.querySelector(".medication-name-input")?.value || "",
+          hoạt_chất: row.querySelector(".medication-ingredient")?.value || "",
+          hoat_chat: row.querySelector(".medication-ingredient")?.value || "",
+          don_vi_tinh: row.querySelector(".medication-unit")?.value || "",
+          so_luong: row.querySelector(".medication-quantity")?.value || "1",
+          cach_dung: row.querySelector(".medication-usage")?.value || "",
+        };
 
-      if (medication.ten_thuoc) {
-        medications.push(medication);
-      }
-    });
+        if (medication.ten_thuoc) {
+          medications.push(medication);
+        }
+      });
 
-    return medications;
+      return medications;
+    } catch (error) {
+      console.error("Error collecting medication data:", error);
+      return [];
+    }
   }
 
   async savePrescription() {
     try {
       const prescriptionData = this.collectPrescriptionData();
+
+      // Check if data collection failed
+      if (!prescriptionData) {
+        return;
+      }
 
       // Validate required fields
       if (!prescriptionData.ho_ten_benh_nhan) {
@@ -679,8 +697,37 @@ class PrescriptionManager {
         return;
       }
 
+      // Validation: Check if diagnosis is filled
+      const diagnosis = document.getElementById("diagnosis_description");
+      console.log("Diagnosis element:", diagnosis);
+      console.log("Diagnosis value:", diagnosis ? diagnosis.value : "element not found");
+      if (!diagnosis || !diagnosis.value.trim()) {
+        alert("Vui lòng nhập Chẩn đoán trước khi lưu!");
+        if (diagnosis) diagnosis.focus();
+        return;
+      }
+
       if (prescriptionData.medications.length === 0) {
         alert("Vui lòng thêm ít nhất một loại thuốc");
+        return;
+      }
+
+      // Validation: Check for duplicate medication names
+      const medicationNames = prescriptionData.medications.map(med => med.ten_thuoc?.trim()).filter(name => name);
+      const uniqueNames = [...new Set(medicationNames)];
+      
+      if (medicationNames.length !== uniqueNames.length) {
+        alert("Bảng Thuốc điều trị có các tên thuốc trùng lặp! Vui lòng kiểm tra lại.");
+        return;
+      }
+
+      // Validation: Check for zero quantity
+      const zeroQuantityMedications = prescriptionData.medications.filter(med => 
+        med.so_luong <= 0 || !med.so_luong || med.so_luong === ''
+      );
+      
+      if (zeroQuantityMedications.length > 0) {
+        alert("Số lượng thuốc phải lớn hơn 0! Vui lòng kiểm tra lại cột SL trong bảng Thuốc điều trị.");
         return;
       }
 
@@ -1262,6 +1309,85 @@ function validateQuantity(input) {
   }
 
   return true;
+}
+
+/**
+ * Lấy ID phiếu khám bệnh hiện tại
+ */
+function getCurrentExaminationId() {
+    // Try multiple sources for examination ID
+    var examId = document.getElementById("id_phieu_kham_benh")?.value || "";
+    
+    if (!examId) {
+        examId = document.getElementById("examinationId")?.value || "";
+    }
+    
+    if (!examId) {
+        examId = document.getElementById("phieu_kham_id")?.value || "";
+    }
+    
+    if (!examId) {
+        examId = document.getElementById("#examinationId")?.value || "";
+    }
+    
+    if (!examId) {
+        examId = window._lastExamFormId || "";
+    }
+    
+    if (!examId) {
+        var appointmentId = document.getElementById("examinationAppointmentId")?.value || "";
+        if (appointmentId) {
+            // NOTE: Appointment ID is NOT the same as Examination ID
+            console.log("WARNING: Using appointment ID as examination ID may cause foreign key errors");
+            console.log("Appointment ID:", appointmentId, "should not be used as examination ID");
+        }
+    }
+    
+    if (!examId) {
+        examId = window._currentExaminationId || "";
+    }
+    
+    return examId;
+}
+
+/**
+ * In đơn thuốc
+ */
+function printPrescriptionForm() {
+    console.log("printPrescriptionForm called");
+    var examId = getCurrentExaminationId();
+    console.log("Exam ID:", examId);
+    
+    if (!examId) {
+        alert("Vui lòng lưu phiếu khám bệnh trước khi in đơn thuốc!");
+        return;
+    }
+
+    console.log("Fetching prescription data for exam ID:", examId);
+    // Lấy ID đơn thuốc
+    fetch("./?action=get_prescription_form_data&exam_id=" + examId)
+        .then((response) => {
+            console.log("Response status:", response.status);
+            return response.json();
+        })
+        .then((data) => {
+            console.log("Prescription data response:", data);
+            if (data.success && data.data) {
+                console.log("Opening print window with prescription ID:", data.data.MaDonThuoc);
+                // Mở cửa sổ in với ID đơn thuốc
+                window.open(
+                    "./?action=print_prescription_form&id=" + data.data.MaDonThuoc,
+                    "_blank"
+                );
+            } else {
+                console.log("No prescription data found:", data.message);
+                alert("Chưa có đơn thuốc để in. Vui lòng lưu đơn thuốc trước.");
+            }
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            alert("Lỗi kết nối: " + error.message);
+        });
 }
 
 // Initialize when DOM is loaded
