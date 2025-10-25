@@ -162,11 +162,9 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
             transform: translateX(-100%);
             transition: transform 0.3s ease;
         }
-
-<<<<<<< HEAD
         .sidebar.show {
             transform: translateX(0);
-=======
+
         .navbar-nav .nav-link {
             font-weight: 500;
             transition: all 0.3s ease;
@@ -293,7 +291,6 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
             .sidebar.show {
                 transform: translateX(0);
             }
->>>>>>> b62e60f (hmm)
         }
     }
     </style>
@@ -377,23 +374,7 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
                         </a>
                     </li>
                     <?php elseif ($user_role == 'xray_doctor'): ?>
-<<<<<<< HEAD
-                    <li class="nav-item">
-                        <a class="nav-link" href="./xray_dashboard">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-x-ray me-1"></i>Chụp X-Quang
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-file-medical me-1"></i>Kết quả
-                        </a>
-                    </li>
-=======
+
                         <li class="nav-item">
                             <a class="nav-link" href="./xray_dashboard">
                                 <i class="fas fa-tachometer-alt me-1"></i>Dashboard
@@ -441,7 +422,6 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
                                 <i class="fas fa-file-medical me-1"></i>Kết quả
                             </a>
                         </li>
->>>>>>> b62e60f (hmm)
                     <?php elseif ($user_role == 'patient'): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="./patient_dashboard">
