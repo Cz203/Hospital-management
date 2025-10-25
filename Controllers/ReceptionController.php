@@ -4,6 +4,8 @@ require_once 'Controllers/AuthController.php';
 require_once 'Models/Reception.php';
 require_once 'Models/Patient.php';
 require_once 'Models/Doctor.php';
+require_once 'Models/BienLai.php';
+require_once 'Services/VNPayService.php';
 require_once 'config/security.php';
 
 class ReceptionController
@@ -12,6 +14,8 @@ class ReceptionController
     private $receptionModel;
     private $patientModel;
     private $doctorModel;
+    private $bienLaiModel;
+    private $vnpayService;
 
     public function __construct()
     {
@@ -19,6 +23,8 @@ class ReceptionController
         $this->receptionModel = new Reception();
         $this->patientModel = new Patient();
         $this->doctorModel = new Doctor();
+        $this->bienLaiModel = new BienLai();
+        $this->vnpayService = new VNPayService();
     }
 
     /**
@@ -598,5 +604,374 @@ class ReceptionController
             }
         }
         return $best;
+    }
+
+    /**
+     * Trang thanh toán biên lai
+     */
+    public function payment()
+    {
+        $this->auth->requireAuth('letan');
+
+        if (class_exists('SecurityConfig')) {
+            SecurityConfig::generateCSRFToken();
+        }
+
+        $page_title = 'Thanh toán biên lai';
+
+        ob_start();
+        include 'Views/reception/payment.php';
+        $content = ob_get_clean();
+
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * API: Lấy danh sách biên lai chưa thanh toán
+     */
+    public function getUnpaidReceipts()
+    {
+        $this->auth->requireAuth('letan');
+
+        try {
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+            $date = isset($_GET['date']) ? $_GET['date'] : null;
+            $offset = ($page - 1) * $limit;
+
+            $receipts = $this->bienLaiModel->getUnpaidReceipts($limit, $offset, $date);
+            $total = $this->bienLaiModel->countUnpaidReceipts();
+
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'data' => $receipts,
+                'pagination' => [
+                    'current_page' => $page,
+                    'per_page' => $limit,
+                    'total' => $total,
+                    'total_pages' => ceil($total / $limit)
+                ]
+            ]);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi khi lấy danh sách biên lai: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * API: Tìm kiếm biên lai
+     */
+    public function searchReceipts()
+    {
+        $this->auth->requireAuth('letan');
+
+        try {
+            $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
+            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+            $date = isset($_GET['date']) ? $_GET['date'] : null;
+
+            if (empty($keyword)) {
+                $receipts = $this->bienLaiModel->getUnpaidReceipts($limit, 0, $date);
+            } else {
+                $receipts = $this->bienLaiModel->searchReceipts($keyword, 'Chưa thanh toán', $limit, $date);
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'data' => $receipts
+            ]);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi khi tìm kiếm biên lai: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * API: Lấy chi tiết biên lai
+     */
+    public function getReceiptDetails()
+    {
+        $this->auth->requireAuth('letan');
+
+        try {
+            $receiptId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+            
+            if ($receiptId <= 0) {
+                throw new Exception('ID biên lai không hợp lệ');
+            }
+
+            $receipt = $this->bienLaiModel->getById($receiptId);
+            if (!$receipt) {
+                throw new Exception('Không tìm thấy biên lai');
+            }
+
+            $details = $this->bienLaiModel->getDetails($receiptId);
+
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'receipt' => $receipt,
+                    'details' => $details
+                ]
+            ]);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * API: Xử lý thanh toán
+     */
+    public function processPayment()
+    {
+        error_log('processPayment - Starting authentication check');
+        try {
+            $this->auth->requireAuth('letan');
+            error_log('processPayment - Authentication successful');
+        } catch (Exception $e) {
+            error_log('processPayment - Authentication failed: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Authentication failed: ' . $e->getMessage()
+            ]);
+            return;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Phương thức không được hỗ trợ']);
+            return;
+        }
+
+        try {
+            // Debug: Log all available data
+            error_log('Payment processing started');
+            error_log('$_POST data: ' . json_encode($_POST));
+            error_log('$_GET data: ' . json_encode($_GET));
+            error_log('Content-Type: ' . ($_SERVER['CONTENT_TYPE'] ?? 'Not set'));
+            error_log('Request method: ' . $_SERVER['REQUEST_METHOD']);
+            
+            // Handle both JSON and FormData
+            $input = null;
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            
+            if (strpos($contentType, 'application/json') !== false) {
+                $input = json_decode(file_get_contents('php://input'), true);
+                error_log('Using JSON input');
+            } else {
+                // Handle FormData (multipart/form-data or application/x-www-form-urlencoded)
+                $input = $_POST;
+                error_log('Using POST input');
+            }
+            
+            if (!$input) {
+                error_log('No input data found');
+                throw new Exception('Dữ liệu không hợp lệ');
+            }
+
+            $receiptId = isset($input['receipt_id']) ? (int)$input['receipt_id'] : 0;
+            $paymentMethod = isset($input['payment_method']) ? trim($input['payment_method']) : '';
+            $paymentNote = isset($input['payment_note']) ? trim($input['payment_note']) : '';
+
+            // Debug logging
+            error_log('Payment processing - Input data: ' . json_encode($input));
+            error_log('Payment processing - Receipt ID: ' . $receiptId);
+            error_log('Payment processing - Payment Method: ' . $paymentMethod);
+            error_log('Payment processing - Payment Note: ' . $paymentNote);
+
+            if ($receiptId <= 0) {
+                throw new Exception('ID biên lai không hợp lệ');
+            }
+
+            if (empty($paymentMethod)) {
+                throw new Exception('Vui lòng chọn phương thức thanh toán');
+            }
+
+            // Xác định trạng thái thanh toán dựa trên phương thức
+            $paymentStatus = 'Đã thanh toán';
+            if ($paymentMethod === 'Tiền mặt') {
+                $paymentStatus = 'Đã thanh toán tiền mặt';
+            }
+            
+            // Cập nhật trạng thái thanh toán
+            $result = $this->bienLaiModel->updatePaymentStatus(
+                $receiptId, 
+                $paymentStatus, 
+                $paymentMethod, 
+                $paymentNote
+            );
+
+            if (!$result) {
+                throw new Exception('Lỗi khi cập nhật trạng thái thanh toán');
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'message' => 'Thanh toán thành công'
+            ]);
+
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
+     * API: Tạo URL thanh toán VNPAY
+     */
+    public function createVNPayUrl()
+    {
+        $this->auth->requireAuth('letan');
+        
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Phương thức không được hỗ trợ']);
+            return;
+        }
+        
+        try {
+            // Handle both JSON and FormData
+            $input = null;
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+            
+            if (strpos($contentType, 'application/json') !== false) {
+                $input = json_decode(file_get_contents('php://input'), true);
+            } else {
+                $input = $_POST;
+            }
+            
+            if (!$input) {
+                throw new Exception('Dữ liệu không hợp lệ');
+            }
+            
+            $receiptId = isset($input['receipt_id']) ? (int)$input['receipt_id'] : 0;
+            $amount = isset($input['amount']) ? (float)$input['amount'] : 0;
+            
+            if ($receiptId <= 0) {
+                throw new Exception('ID biên lai không hợp lệ');
+            }
+            
+            if ($amount <= 0) {
+                throw new Exception('Số tiền không hợp lệ');
+            }
+            
+            // Get receipt details for order info
+            $receipt = $this->bienLaiModel->getById($receiptId);
+            if (!$receipt) {
+                throw new Exception('Không tìm thấy biên lai');
+            }
+            
+            $orderInfo = "Thanh toán biên lai " . $receipt['ma_bien_lai'] . " - " . $receipt['ho_ten'];
+            $vnpayUrl = $this->vnpayService->createPaymentUrl($amount, $orderInfo, $receiptId);
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'vnpay_url' => $vnpayUrl,
+                'message' => 'Tạo URL thanh toán thành công'
+            ]);
+            
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+    
+    /**
+     * Xử lý kết quả thanh toán từ VNPAY
+     */
+    public function vnpayReturn()
+    {
+        try {
+            $result = $this->vnpayService->processPaymentReturn($_GET);
+            
+            if ($result['success'] && $result['code'] === '00') {
+                // Payment successful
+                $txnRef = $result['txn_ref'];
+                $receiptId = explode('_', $txnRef)[1] ?? null;
+                
+                if ($receiptId) {
+                    // Update receipt status
+                    $this->bienLaiModel->updatePaymentStatus(
+                        $receiptId, 
+                        'Đã thanh toán chuyển khoản', 
+                        'Thanh toán VNPAY', 
+                        'VNPAY Transaction: ' . $result['transaction_id']
+                    );
+                }
+                
+                // Redirect to success page
+                header('Location: ./?action=reception_payment&vnpay_success=1');
+                exit;
+            } else {
+                // Payment failed
+                header('Location: ./?action=reception_payment&vnpay_error=1');
+                exit;
+            }
+            
+        } catch (Exception $e) {
+            error_log('VNPAY Return Error: ' . $e->getMessage());
+            header('Location: ./?action=reception_payment&vnpay_error=1');
+            exit;
+        }
+    }
+
+    /**
+     * API lấy tất cả biên lai (cho thống kê)
+     */
+    public function getAllReceipts() {
+        try {
+            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
+            $date = isset($_GET['date']) ? $_GET['date'] : null;
+            $offset = ($page - 1) * $limit;
+            
+            $receipts = $this->bienLaiModel->getAllReceipts($limit, $offset, $date);
+            $total = $this->bienLaiModel->countAllReceipts();
+            
+            $pagination = [
+                'current_page' => $page,
+                'per_page' => $limit,
+                'total' => $total,
+                'total_pages' => ceil($total / $limit)
+            ];
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'data' => $receipts,
+                'pagination' => $pagination
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Get all receipts error: ' . $e->getMessage());
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi khi lấy danh sách biên lai'
+            ]);
+        }
     }
 }

@@ -674,6 +674,32 @@ switch ($action) {
         $receptionController->queueReassign();
         break;
 
+    // ===== RECEPTION PAYMENT =====
+    case 'reception_payment':
+        $receptionController->payment(); // Trang thanh toán biên lai
+        break;
+    case 'reception_get_unpaid_receipts':
+        $receptionController->getUnpaidReceipts(); // API lấy danh sách biên lai chưa thanh toán
+        break;
+    case 'reception_get_all_receipts':
+        $receptionController->getAllReceipts(); // API lấy tất cả biên lai (cho thống kê)
+        break;
+    case 'reception_search_receipts':
+        $receptionController->searchReceipts(); // API tìm kiếm biên lai
+        break;
+    case 'reception_get_receipt_details':
+        $receptionController->getReceiptDetails(); // API lấy chi tiết biên lai
+        break;
+    case 'reception_process_payment':
+        $receptionController->processPayment(); // API xử lý thanh toán
+        break;
+    case 'reception_create_vnpay_url':
+        $receptionController->createVNPayUrl(); // API tạo URL VNPAY
+        break;
+    case 'reception_vnpay_return':
+        $receptionController->vnpayReturn(); // Xử lý kết quả VNPAY
+        break;
+
     case 'patient_appointments':
         $appointmentController->patientAppointments(); // Lịch hẹn của bệnh nhân
         break;

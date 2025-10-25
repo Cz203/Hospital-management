@@ -67,6 +67,14 @@
                     <span>Bác sĩ theo chuyên khoa</span>
                 </a>
             </li>
+
+            <li class="nav-item">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('reception_payment'); ?>"
+                    href="./reception_payment">
+                    <i class="fas fa-credit-card me-3"></i>
+                    <span>Thanh toán</span>
+                </a>
+            </li>
         </ul>
     </div>
 </div>
