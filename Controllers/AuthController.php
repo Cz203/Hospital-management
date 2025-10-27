@@ -299,7 +299,7 @@ class AuthController
                 header("Location: ./xetnghiem_dashboard");
                 break;
             case 'patient':
-                header("Location: ./patient_dashboard");
+                header("Location: ./home");
                 break;
             case 'letan':
                 header("Location: ./reception_dashboard");
@@ -534,7 +534,7 @@ class AuthController
                     header("Location: ./doctor_dashboard");
                     exit();
                 case 'patient':
-                    header("Location: ./patient_dashboard");
+                    header("Location: ./home");
                     exit();
             }
         }
@@ -692,7 +692,7 @@ class AuthController
         // Hiển thị form register
         include 'Views/auth/register.php';
     }
-
+    
     public function logout()
     {
         // Clear only our keys to avoid nuking unrelated PHP session data

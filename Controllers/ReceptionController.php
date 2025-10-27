@@ -704,7 +704,7 @@ class ReceptionController
 
         try {
             $receiptId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-            
+
             if ($receiptId <= 0) {
                 throw new Exception('ID biên lai không hợp lệ');
             }
@@ -765,11 +765,11 @@ class ReceptionController
             error_log('$_GET data: ' . json_encode($_GET));
             error_log('Content-Type: ' . ($_SERVER['CONTENT_TYPE'] ?? 'Not set'));
             error_log('Request method: ' . $_SERVER['REQUEST_METHOD']);
-            
+
             // Handle both JSON and FormData
             $input = null;
             $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-            
+
             if (strpos($contentType, 'application/json') !== false) {
                 $input = json_decode(file_get_contents('php://input'), true);
                 error_log('Using JSON input');
@@ -778,7 +778,7 @@ class ReceptionController
                 $input = $_POST;
                 error_log('Using POST input');
             }
-            
+
             if (!$input) {
                 error_log('No input data found');
                 throw new Exception('Dữ liệu không hợp lệ');
@@ -807,12 +807,12 @@ class ReceptionController
             if ($paymentMethod === 'Tiền mặt') {
                 $paymentStatus = 'Đã thanh toán tiền mặt';
             }
-            
+
             // Cập nhật trạng thái thanh toán
             $result = $this->bienLaiModel->updatePaymentStatus(
-                $receiptId, 
-                $paymentStatus, 
-                $paymentMethod, 
+                $receiptId,
+                $paymentStatus,
+                $paymentMethod,
                 $paymentNote
             );
 
@@ -825,7 +825,6 @@ class ReceptionController
                 'success' => true,
                 'message' => 'Thanh toán thành công'
             ]);
-
         } catch (Exception $e) {
             header('Content-Type: application/json');
             echo json_encode([
@@ -834,62 +833,61 @@ class ReceptionController
             ]);
         }
     }
-    
+
     /**
      * API: Tạo URL thanh toán VNPAY
      */
     public function createVNPayUrl()
     {
         $this->auth->requireAuth('letan');
-        
+
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Phương thức không được hỗ trợ']);
             return;
         }
-        
+
         try {
             // Handle both JSON and FormData
             $input = null;
             $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
-            
+
             if (strpos($contentType, 'application/json') !== false) {
                 $input = json_decode(file_get_contents('php://input'), true);
             } else {
                 $input = $_POST;
             }
-            
+
             if (!$input) {
                 throw new Exception('Dữ liệu không hợp lệ');
             }
-            
+
             $receiptId = isset($input['receipt_id']) ? (int)$input['receipt_id'] : 0;
             $amount = isset($input['amount']) ? (float)$input['amount'] : 0;
-            
+
             if ($receiptId <= 0) {
                 throw new Exception('ID biên lai không hợp lệ');
             }
-            
+
             if ($amount <= 0) {
                 throw new Exception('Số tiền không hợp lệ');
             }
-            
+
             // Get receipt details for order info
             $receipt = $this->bienLaiModel->getById($receiptId);
             if (!$receipt) {
                 throw new Exception('Không tìm thấy biên lai');
             }
-            
+
             $orderInfo = "Thanh toán biên lai " . $receipt['ma_bien_lai'] . " - " . $receipt['ho_ten'];
             $vnpayUrl = $this->vnpayService->createPaymentUrl($amount, $orderInfo, $receiptId);
-            
+
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
                 'vnpay_url' => $vnpayUrl,
                 'message' => 'Tạo URL thanh toán thành công'
             ]);
-            
         } catch (Exception $e) {
             header('Content-Type: application/json');
             echo json_encode([
@@ -898,7 +896,7 @@ class ReceptionController
             ]);
         }
     }
-    
+
     /**
      * Xử lý kết quả thanh toán từ VNPAY
      */
@@ -906,22 +904,22 @@ class ReceptionController
     {
         try {
             $result = $this->vnpayService->processPaymentReturn($_GET);
-            
+
             if ($result['success'] && $result['code'] === '00') {
                 // Payment successful
                 $txnRef = $result['txn_ref'];
                 $receiptId = explode('_', $txnRef)[1] ?? null;
-                
+
                 if ($receiptId) {
                     // Update receipt status
                     $this->bienLaiModel->updatePaymentStatus(
-                        $receiptId, 
-                        'Đã thanh toán chuyển khoản', 
-                        'Thanh toán VNPAY', 
+                        $receiptId,
+                        'Đã thanh toán chuyển khoản',
+                        'Thanh toán VNPAY',
                         'VNPAY Transaction: ' . $result['transaction_id']
                     );
                 }
-                
+
                 // Redirect to success page
                 header('Location: ./?action=reception_payment&vnpay_success=1');
                 exit;
@@ -930,7 +928,6 @@ class ReceptionController
                 header('Location: ./?action=reception_payment&vnpay_error=1');
                 exit;
             }
-            
         } catch (Exception $e) {
             error_log('VNPAY Return Error: ' . $e->getMessage());
             header('Location: ./?action=reception_payment&vnpay_error=1');
@@ -941,30 +938,30 @@ class ReceptionController
     /**
      * API lấy tất cả biên lai (cho thống kê)
      */
-    public function getAllReceipts() {
+    public function getAllReceipts()
+    {
         try {
             $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
             $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
             $date = isset($_GET['date']) ? $_GET['date'] : null;
             $offset = ($page - 1) * $limit;
-            
+
             $receipts = $this->bienLaiModel->getAllReceipts($limit, $offset, $date);
             $total = $this->bienLaiModel->countAllReceipts();
-            
+
             $pagination = [
                 'current_page' => $page,
                 'per_page' => $limit,
                 'total' => $total,
                 'total_pages' => ceil($total / $limit)
             ];
-            
+
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
                 'data' => $receipts,
                 'pagination' => $pagination
             ]);
-            
         } catch (Exception $e) {
             error_log('Get all receipts error: ' . $e->getMessage());
             header('Content-Type: application/json');
