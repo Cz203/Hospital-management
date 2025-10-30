@@ -4201,9 +4201,9 @@ class DoctorController
     {
         header('Content-Type: application/json; charset=utf-8');
         try {
-            $medication = new Medication($this->db);
+            $medication = new Medication();
             $medications = $medication->getAll();
-            
+
             echo json_encode([
                 'success' => true,
                 'medications' => $medications
@@ -4295,7 +4295,7 @@ class DoctorController
         try {
             $examId = $_POST['exam_id'] ?? '';
             $yeuCau = $_POST['yeu_cau'] ?? '';
-            
+
             // Fix encoding issues - try multiple approaches
             $yeuCau = iconv('UTF-8', 'UTF-8//IGNORE', $yeuCau);
 
@@ -4320,11 +4320,11 @@ class DoctorController
             foreach ($results as $row) {
                 $dbValue = trim($row['yeu_cau']);
                 $inputValue = trim($yeuCau);
-                
+
                 // Use similar_text for fuzzy comparison
                 $similarity = 0;
                 similar_text($dbValue, $inputValue, $similarity);
-                
+
                 if ($similarity > 80) { // 80% similar
                     $isDuplicate = true;
                     break;
@@ -4336,7 +4336,6 @@ class DoctorController
                 'is_duplicate' => $isDuplicate,
                 'count' => count($results)
             ]);
-
         } catch (Exception $e) {
             error_log("Check lab duplicate error: " . $e->getMessage());
             echo json_encode([
@@ -4377,7 +4376,6 @@ class DoctorController
                 'success' => true,
                 'chi_so' => $chiSo
             ]);
-
         } catch (Exception $e) {
             error_log('Error getting chi so xet nghiem: ' . $e->getMessage());
             echo json_encode([
@@ -4422,7 +4420,6 @@ class DoctorController
                     'message' => 'Không thể cập nhật trạng thái lịch hẹn'
                 ]);
             }
-
         } catch (Exception $e) {
             error_log('Complete examination error: ' . $e->getMessage());
             error_log('Stack trace: ' . $e->getTraceAsString());
@@ -4490,14 +4487,13 @@ class DoctorController
                 'exam_saved' => (bool)$examExists,
                 'receipt_saved' => (bool)$receiptExists,
                 'missing_items' => $missingItems,
-                'message' => $canComplete ? 
-                    'Có thể hoàn thành khám bệnh' : 
+                'message' => $canComplete ?
+                    'Có thể hoàn thành khám bệnh' :
                     'Cần lưu: ' . implode(', ', $missingItems)
             ];
 
             error_log('checkExaminationCompletion - Final result: ' . json_encode($result));
             echo json_encode($result);
-
         } catch (Exception $e) {
             error_log('Check examination completion error: ' . $e->getMessage());
             error_log('Stack trace: ' . $e->getTraceAsString());

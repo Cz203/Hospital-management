@@ -1261,7 +1261,7 @@ ALTER TABLE `chi_so_xet_nghiem`
 --
 ALTER TABLE `chi_tiet_bien_lai`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `id_bien_lai` (`id_bien_lai`),
+  ADD KEY `id_bien_lai` (`id_bien_lai`),  
   ADD KEY `loai_dich_vu` (`loai_dich_vu`);
 
 --
