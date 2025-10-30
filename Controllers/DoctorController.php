@@ -3375,14 +3375,12 @@ class DoctorController
                 return;
             }
 
-            $stmt = $this->db->prepare("
-                SELECT pxn.*, pkb.ngay_kham, pkb.gio_kham
-                FROM phieu_yeu_cau_xet_nghiem pxn
-                JOIN phieu_kham_benh pkb ON pxn.id_phieu_kham_benh = pkb.id
-                WHERE pxn.id = ?
-            ");
-            $stmt->execute([$formId]);
-            $formData = $stmt->fetch(PDO::FETCH_ASSOC);
+            // Lấy dữ liệu qua Model để bao gồm đầy đủ thông tin (địa chỉ, mã BN,...)
+            if (!isset($this->labTestModel) || !$this->labTestModel) {
+                require_once 'Models/LabTest.php';
+                $this->labTestModel = new LabTest();
+            }
+            $formData = $this->labTestModel->getById($formId);
 
             if (!$formData) {
                 echo json_encode(['success' => false, 'message' => 'Không tìm thấy phiếu xét nghiệm']);

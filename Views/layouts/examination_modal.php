@@ -1497,6 +1497,14 @@
                                                 </button>
                                             </div>
 
+                                            <!-- Số ngày dùng thuốc (UI only) -->
+                                            <div class="d-flex justify-content-end mb-2">
+                                                <div class="input-group input-group-sm" style="max-width: 240px;">
+                                                    <span class="input-group-text fw-semibold">Số ngày dùng thuốc</span>
+                                                    <input type="number" class="form-control" id="prescription_total_days" min="1" value="1" />
+                                                </div>
+                                            </div>
+
                                             <div class="table-responsive">
                                                 <table class="table table-bordered table-striped" id="medication-table">
                                                     <thead class="table-success">
@@ -1539,9 +1547,49 @@
                                                                     placeholder="SL" value="1" min="1" />
                                                             </td>
                                                             <td class="text-center">
-                                                                <input type="text"
-                                                                    class="form-control form-control-sm medication-usage"
-                                                                    placeholder="Cách dùng" readonly />
+                                                                <!-- Cách dùng theo từng buổi (UI only) -->
+                                                                <div class="d-flex flex-column gap-2 align-items-center" style="min-width:260px;">
+                                                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                                                        <span class="fw-semibold small me-2" style="width:48px;">Sáng</span>
+                                                                        <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                                        <div class="btn-group btn-group-sm" role="group" aria-label="sang_meal">
+                                                                            <input type="radio" class="btn-check" name="sang_meal_default" id="sang_before_default" autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary" for="sang_before_default">Trước ăn</label>
+                                                                            <input type="radio" class="btn-check" name="sang_meal_default" id="sang_after_default" autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary" for="sang_after_default">Sau ăn</label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                                                        <span class="fw-semibold small me-2" style="width:48px;">Trưa</span>
+                                                                        <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                                        <div class="btn-group btn-group-sm" role="group" aria-label="trua_meal">
+                                                                            <input type="radio" class="btn-check" name="trua_meal_default" id="trua_before_default" autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary" for="trua_before_default">Trước ăn</label>
+                                                                            <input type="radio" class="btn-check" name="trua_meal_default" id="trua_after_default" autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary" for="trua_after_default">Sau ăn</label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                                                        <span class="fw-semibold small me-2" style="width:48px;">Chiều</span>
+                                                                        <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                                        <div class="btn-group btn-group-sm" role="group" aria-label="chieu_meal">
+                                                                            <input type="radio" class="btn-check" name="chieu_meal_default" id="chieu_before_default" autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary" for="chieu_before_default">Trước ăn</label>
+                                                                            <input type="radio" class="btn-check" name="chieu_meal_default" id="chieu_after_default" autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary" for="chieu_after_default">Sau ăn</label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                                                        <span class="fw-semibold small me-2" style="width:48px;">Tối</span>
+                                                                        <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                                        <div class="btn-group btn-group-sm" role="group" aria-label="toi_meal">
+                                                                            <input type="radio" class="btn-check" name="toi_meal_default" id="toi_before_default" autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary" for="toi_before_default">Trước ăn</label>
+                                                                            <input type="radio" class="btn-check" name="toi_meal_default" id="toi_after_default" autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary" for="toi_after_default">Sau ăn</label>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             </td>
                                                             <td class="text-center">
                                                                 <button type="button"
@@ -1614,8 +1662,49 @@
                                             placeholder="SL" min="1" value="1">
                                     </td>
                                     <td class="text-center">
-                                        <input type="text" class="form-control form-control-sm medication-usage"
-                                            placeholder="Cách dùng">
+                                        <!-- Cách dùng theo từng buổi (UI only) -->
+                                        <div class="d-flex flex-column gap-2 align-items-center" style="min-width:260px;">
+                                            <div class="d-flex align-items-center justify-content-between w-100">
+                                                <span class="fw-semibold small me-2" style="width:48px;">Sáng</span>
+                                                <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                <div class="btn-group btn-group-sm" role="group" aria-label="sang_meal">
+                                                    <input type="radio" class="btn-check" name="sang_meal_tpl" id="sang_before_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="sang_before_tpl">Trước ăn</label>
+                                                    <input type="radio" class="btn-check" name="sang_meal_tpl" id="sang_after_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="sang_after_tpl">Sau ăn</label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between w-100">
+                                                <span class="fw-semibold small me-2" style="width:48px;">Trưa</span>
+                                                <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                <div class="btn-group btn-group-sm" role="group" aria-label="trua_meal">
+                                                    <input type="radio" class="btn-check" name="trua_meal_tpl" id="trua_before_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="trua_before_tpl">Trước ăn</label>
+                                                    <input type="radio" class="btn-check" name="trua_meal_tpl" id="trua_after_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="trua_after_tpl">Sau ăn</label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between w-100">
+                                                <span class="fw-semibold small me-2" style="width:48px;">Chiều</span>
+                                                <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                <div class="btn-group btn-group-sm" role="group" aria-label="chieu_meal">
+                                                    <input type="radio" class="btn-check" name="chieu_meal_tpl" id="chieu_before_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="chieu_before_tpl">Trước ăn</label>
+                                                    <input type="radio" class="btn-check" name="chieu_meal_tpl" id="chieu_after_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="chieu_after_tpl">Sau ăn</label>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between w-100">
+                                                <span class="fw-semibold small me-2" style="width:48px;">Tối</span>
+                                                <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                <div class="btn-group btn-group-sm" role="group" aria-label="toi_meal">
+                                                    <input type="radio" class="btn-check" name="toi_meal_tpl" id="toi_before_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="toi_before_tpl">Trước ăn</label>
+                                                    <input type="radio" class="btn-check" name="toi_meal_tpl" id="toi_after_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="toi_after_tpl">Sau ăn</label>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="text-center">
                                         <button type="button" class="btn btn-outline-danger btn-sm"
@@ -2266,5 +2355,4 @@ function savePrescription() {
 
 </script>
 
-<!-- Load prescription.js for print functionality -->
-<script src="assets/js/prescription.js"></script>
+<!-- prescription.js is already loaded at the page level; avoid duplicate includes to prevent redeclaration errors -->

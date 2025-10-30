@@ -1,5 +1,11 @@
 // Receipt Form Functions
 async function initializeReceiptForm() {
+    // Debounce/lock to avoid duplicate renders when called multiple times quickly
+    if (window._receiptInitInProgress) {
+        console.log('Receipt init skipped: already in progress');
+        return;
+    }
+    window._receiptInitInProgress = true;
     // Get current patient info from the examination form
     const patientCode = document.getElementById('exam_ma_benh_nhan')?.value || '';
     const patientName = document.getElementById('patientName')?.value || '';
@@ -51,12 +57,23 @@ async function initializeReceiptForm() {
         loadReceiptCode(examId);
     }
     
+    // Retry a few times if exam ID isn't ready yet (modal may still be initializing)
     if (!examId) {
-        console.error('Không tìm thấy ID phiếu khám');
+        window._receiptInitRetries = (window._receiptInitRetries || 0) + 1;
+        if (window._receiptInitRetries <= 5) {
+            console.log('Receipt init waiting for exam ID... retry #' + window._receiptInitRetries);
+            setTimeout(initializeReceiptForm, 200);
+            window._receiptInitInProgress = false;
+            return;
+        }
+        console.warn('Không tìm thấy ID phiếu khám sau khi retry');
         // Show default receipt with only basic exam
         updateReceiptWithData([], patientBHYT, []);
+        window._receiptInitInProgress = false;
         return;
     }
+    // Reset retry counter on success
+    window._receiptInitRetries = 0;
     
     try {
         // Fetch receipt data from API
@@ -377,6 +394,9 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
             // Always add other services after basic exam is processed (success or error)
             console.log('Basic exam processed, adding other services...');
             addOtherServices();
+            // Release init lock after render completes (will also be released below after final totals)
+            // Note: kept here to avoid long lock if later code errors
+            window._receiptInitInProgress = false;
         });
     
     tbody.appendChild(basicExamRow);
@@ -536,6 +556,8 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
     };
     
     document.getElementById('receipt_total_words').textContent = numberToWords(totalPatientAmount) + ' đồng';
+    // Ensure lock released after full render as well
+    window._receiptInitInProgress = false;
     } // End of addOtherServices function
 }
 

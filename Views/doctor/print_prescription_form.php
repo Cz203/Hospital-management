@@ -281,6 +281,24 @@
     <!-- Thuốc điều trị -->
     <div class="medication-section">
         <div class="medication-title">Thuốc điều trị</div>
+        <?php 
+            // Lấy số ngày dùng thuốc hiển thị riêng (ưu tiên từ chi tiết, fallback 1)
+            $soNgayIn = 1;
+            if (!empty($prescriptionData['medications'])) {
+                foreach ($prescriptionData['medications'] as $m) {
+                    if (isset($m['so_ngay']) && (int)$m['so_ngay'] > 0) { $soNgayIn = (int)$m['so_ngay']; break; }
+                }
+            }
+        ?>
+        <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
+            <div style="display:inline-flex; align-items:center; gap:8px; font-weight:bold;">
+                <span>Số ngày dùng thuốc:</span>
+                <span style="min-width:40px; border-bottom:1px solid #000; text-align:center; display:inline-block; padding:2px 6px;">
+                    <?php echo htmlspecialchars($soNgayIn); ?>
+                </span>
+                <span>ngày</span>
+            </div>
+        </div>
         
         <?php if (!empty($prescriptionData['medications'])): ?>
         <table class="medication-table">
@@ -302,7 +320,32 @@
                     <td class="active-ingredient"><?php echo htmlspecialchars($medication['HoatChat'] ?? ''); ?></td>
                     <td class="unit"><?php echo htmlspecialchars($medication['DonViTinh'] ?? ''); ?></td>
                     <td class="quantity"><?php echo htmlspecialchars($medication['SoLuong'] ?? ''); ?></td>
-                    <td class="usage"><?php echo htmlspecialchars($medication['LieuDung'] ?? ''); ?></td>
+                    <td class="usage">
+                        <?php
+                            $unit = strtolower($medication['DonViTinh'] ?? '');
+                            $hasPerSession = isset($medication['vien_sang']) || isset($medication['vien_trua']) || isset($medication['vien_chieu']) || isset($medication['vien_toi']);
+                            if ($hasPerSession && (strpos($unit, 'viên') !== false || strpos($unit, 'vien') !== false)) {
+                                $sessions = [
+                                    ['label' => 'Sáng',  'dose' => $medication['vien_sang']  ?? 0, 'meal' => $medication['sang_bua']  ?? 'none'],
+                                    ['label' => 'Trưa',  'dose' => $medication['vien_trua']  ?? 0, 'meal' => $medication['trua_bua']  ?? 'none'],
+                                    ['label' => 'Chiều', 'dose' => $medication['vien_chieu'] ?? 0, 'meal' => $medication['chieu_bua'] ?? 'none'],
+                                    ['label' => 'Tối',   'dose' => $medication['vien_toi']   ?? 0, 'meal' => $medication['toi_bua']   ?? 'none'],
+                                ];
+                                foreach ($sessions as $s) {
+                                    $dose = (float)$s['dose'];
+                                    if ($dose > 0) {
+                                        $meal = $s['meal'] === 'before' ? 'trước ăn' : ($s['meal'] === 'after' ? 'sau ăn' : '');
+                                        echo '<div>' . $s['label'] . ': ' . rtrim(rtrim(number_format($dose, 2, ',', '.'), '0'), ',') . ' viên' . ($meal ? ' (' . $meal . ')' : '') . '</div>';
+                                    }
+                                }
+                                if (!empty($medication['ghi_chu_cach_dung'])) {
+                                    echo '<div><em>' . htmlspecialchars($medication['ghi_chu_cach_dung']) . '</em></div>';
+                                }
+                            } else {
+                                echo htmlspecialchars($medication['LieuDung'] ?? '');
+                            }
+                        ?>
+                    </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>

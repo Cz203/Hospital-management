@@ -108,6 +108,22 @@ var savedXrayFormId = null;
           printLabBtn.style.display =
             id === "#sec-lab" ? "inline-block" : "none";
 
+            // Hiện/ẩn nút Đơn thuốc chỉ ở tab "Kê đơn thuốc"
+            var savePrescriptionBtn = document.getElementById("save-prescription-btn");
+            var printPrescriptionBtn = document.getElementById("print-prescription-btn");
+            if (savePrescriptionBtn)
+              savePrescriptionBtn.style.display =
+                id === "#sec-prescription" ? "inline-block" : "none";
+            if (printPrescriptionBtn)
+              printPrescriptionBtn.style.display =
+                id === "#sec-prescription" ? "inline-block" : "none";
+
+            // Ẩn nút Kê biên lai khi không ở tab Kê biên lai
+            var saveReceiptBtn = document.getElementById("save-receipt-btn");
+            var printReceiptBtn = document.getElementById("print-receipt-btn");
+            if (saveReceiptBtn && id !== "#sec-result") saveReceiptBtn.style.display = "none";
+            if (printReceiptBtn && id !== "#sec-result") printReceiptBtn.style.display = "none";
+
         // Khi chuyển sang tab X-Quang, tự đổ dữ liệu bệnh nhân và mặc định
         if (id === "#sec-xray") {
           prefillXRaySection();
@@ -446,6 +462,48 @@ function loadExaminationFormIfAny() {
 
       // Load dữ liệu Siêu âm đã lưu (nếu có)
       loadUltrasoundFormData(x.id);
+
+      // Load dữ liệu Xét nghiệm đã lưu (nếu có) ngay khi mở modal
+      // (trước đây chỉ load khi click vào tab Xét nghiệm)
+      if (x.id) {
+        loadLabFormData(x.id);
+      }
+
+      // Khởi tạo tab Kê biên lai ngay khi mở modal (nếu có hàm)
+      if (typeof initializeReceiptForm === 'function') {
+        try { initializeReceiptForm(); } catch (e) { console.error('Init receipt error:', e); }
+      }
+
+      // Khởi tạo tab Kê đơn thuốc ngay khi mở modal (nếu có manager)
+      try {
+        if (window.prescriptionManager && typeof window.prescriptionManager.initializeForm === 'function') {
+          window.prescriptionManager.initializeForm();
+          // Thử load đơn đã lưu khi examId sẵn sàng, tránh phải bấm thêm lần nữa
+          if (typeof window.prescriptionManager.tryLoadSavedPrescription === 'function') {
+            let tries = 0;
+            const maxTries = 15; // ~3s tổng cộng
+            const tryLoad = function() {
+              const examIdEl = document.getElementById('id_phieu_kham_benh');
+              const examIdVal = examIdEl && examIdEl.value ? examIdEl.value : (window._lastExamFormId || window._currentExaminationId || '');
+              if (examIdVal) {
+                // Reset theo examId: nếu là examId khác thì cho phép load lại
+                const lastLoadedExamId = window._prescriptionLoadedExamId;
+                if (lastLoadedExamId !== examIdVal) {
+                  window._prescriptionLoadedExamId = examIdVal;
+                  try { window.prescriptionManager.tryLoadSavedPrescription(); } catch(_) {}
+                }
+                return;
+              }
+              tries++;
+              if (tries < maxTries) {
+                setTimeout(tryLoad, 200);
+              }
+            };
+            // chạy lần đầu
+            setTimeout(tryLoad, 100);
+          }
+        }
+      } catch (e) { console.error('Init prescription error:', e); }
     })
     .catch(function () {});
 
