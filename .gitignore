@@ -1,8 +1,9 @@
 # .gitignore
 .env
 
-/vendor/
+# Dependencies (auto-generated folders)
+node_modules/
+vendor/
 
+# Sensitive credentials
 google_credentials.json
-composer.json
-composer.lock

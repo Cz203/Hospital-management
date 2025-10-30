@@ -1,20 +1,20 @@
 {
-    "name": "viet/hospital_management",
-    "autoload": {
-        "psr-4": {
-            "Viet\\HospitalManagement\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Cao Viet",
-            "email": "caoduongvietquoc@gmail.com"
-        }
-    ],
-    "require": {
-        "vonage/client": "^4.2",
-        "firebase/php-jwt": "^6.11",
-        "guzzlehttp/guzzle": "^7.9",
-        "phpmailer/phpmailer": "^6.10"
+  "name": "viet/clinic_management",
+  "autoload": {
+    "psr-4": {
+      "Viet\\clinic_management\\": "src/"
     }
+  },
+  "authors": [
+    {
+      "name": "Thịnh Việt",
+      "email": "thinhvietclinic@gmail.com"
+    }
+  ],
+  "require": {
+    "vonage/client": "^4.2",
+    "firebase/php-jwt": "^6.11",
+    "guzzlehttp/guzzle": "^7.9",
+    "phpmailer/phpmailer": "^6.10"
+  }
 }
