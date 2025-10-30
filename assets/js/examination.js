@@ -294,6 +294,13 @@ function saveExaminationForm() {
     alert("Thiếu mã bệnh nhân");
     return;
   }
+  // Require diagnosis before saving (Chẩn đoán vào viện)
+  var diagnosisField = document.querySelector('[name="chan_doan_vao_vien"]');
+  if (!diagnosisField || !diagnosisField.value || diagnosisField.value.trim() === "") {
+    alert("Vui lòng nhập 'Chẩn đoán vào viện' trước khi lưu phiếu khám!");
+    if (diagnosisField) diagnosisField.focus();
+    return;
+  }
   var fd = new FormData(form);
   fd.append("patient_id", patientId);
   fd.append("appointment_id", appointmentId);
@@ -727,6 +734,19 @@ function prefillXRaySection() {
     xrayDoctor.value = doctorName;
     if (xrayDoctorDisplay) xrayDoctorDisplay.textContent = doctorName;
   }
+
+  // Prefill X-Ray diagnosis from Examination diagnosis (chan_doan_vao_vien)
+  // Only set if xray diagnosis is currently empty
+  var examDiagnosisEl = document.querySelector('[name="chan_doan_vao_vien"]');
+  var xrayDiagnosisEl = document.getElementById("xray_diagnosis");
+  if (
+    xrayDiagnosisEl &&
+    (!xrayDiagnosisEl.value || xrayDiagnosisEl.value.trim() === "") &&
+    examDiagnosisEl &&
+    examDiagnosisEl.value
+  ) {
+    xrayDiagnosisEl.value = examDiagnosisEl.value;
+  }
 }
 
 function prefillUltrasoundSection() {
@@ -844,6 +864,19 @@ function prefillUltrasoundSection() {
     ultrasoundDoctor.value = doctorName;
     if (ultrasoundDoctorDisplay)
       ultrasoundDoctorDisplay.textContent = doctorName;
+  }
+
+  // Prefill Ultrasound diagnosis from Examination diagnosis (chan_doan_vao_vien)
+  // Only set if ultrasound diagnosis is currently empty
+  var examDiagnosisEl = document.querySelector('[name="chan_doan_vao_vien"]');
+  var ultrasoundDiagnosisEl = document.getElementById("ultrasound_diagnosis");
+  if (
+    ultrasoundDiagnosisEl &&
+    (!ultrasoundDiagnosisEl.value || ultrasoundDiagnosisEl.value.trim() === "") &&
+    examDiagnosisEl &&
+    examDiagnosisEl.value
+  ) {
+    ultrasoundDiagnosisEl.value = examDiagnosisEl.value;
   }
 
   // Get patient type from database (check BHYT status from benh_nhan table)
@@ -2181,6 +2214,19 @@ function prefillLabSection() {
   if (labDoctor && doctorName) {
     labDoctor.value = doctorName;
     if (labDoctorDisplay) labDoctorDisplay.textContent = doctorName;
+  }
+
+  // Prefill Lab diagnosis from Examination diagnosis (chan_doan_vao_vien)
+  // Only set if lab diagnosis is currently empty
+  var examDiagnosisEl = document.querySelector('[name="chan_doan_vao_vien"]');
+  var labDiagnosisEl = document.getElementById("lab_diagnosis");
+  if (
+    labDiagnosisEl &&
+    (!labDiagnosisEl.value || labDiagnosisEl.value.trim() === "") &&
+    examDiagnosisEl &&
+    examDiagnosisEl.value
+  ) {
+    labDiagnosisEl.value = examDiagnosisEl.value;
   }
 
   // Get patient BHYT status from database
