@@ -700,7 +700,7 @@
                                         <div class="row mb-4">
                                             <div class="col-md-6">
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">ID:</strong>
+                                                    <div class="col-4"><strong style="font-size: 14px;">Mã bệnh nhân:</strong>
                                                     </div>
                                                     <div class="col-8"><span
                                                             style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
@@ -727,6 +727,13 @@
                                                             style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
                                                             id="lab_ro_chan_doan">-</span></div>
                                                 </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">Vị trí lấy
+                                                            mẫu:</strong></div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_vi_tri_lay_mau">-</span></div>
+                                                </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="row mb-3">
@@ -751,7 +758,7 @@
                                                             id="lab_ro_bac_si">-</span></div>
                                                 </div>
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">Tình trạng
+                                                    <div class="col-4"><strong style="font-size: 14px;">Chất lượng
                                                             mẫu:</strong></div>
                                                     <div class="col-8"><span
                                                             style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"

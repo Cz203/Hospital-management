@@ -3439,7 +3439,7 @@ class DoctorController
             }
 
             $stmt = $this->db->prepare("
-                SELECT pxn.*, pt.ngay_tra_ket_qua, pt.trang_thai, pt.bac_si_xet_nghiem, pt.tinh_trang_mau, pt.bac_si_yeu_cau, pt.ma_benh_nhan, pt.dia_chi
+                SELECT pxn.*, pt.ngay_tra_ket_qua, pt.trang_thai, pt.bac_si_xet_nghiem, pt.tinh_trang_mau, pt.vi_tri_lay_mau, pt.bac_si_yeu_cau, pt.ma_benh_nhan, pt.dia_chi
                 FROM phieu_yeu_cau_xet_nghiem pxn
                 LEFT JOIN phieu_tra_ket_qua_xet_nghiem pt ON pxn.id = pt.id_phieu_yeu_cau
                 WHERE pxn.id_phieu_kham_benh = ?
@@ -3519,6 +3519,64 @@ class DoctorController
     /**
      * Lấy kết quả xét nghiệm
      */
+    /**
+     * Phân loại form dựa trên yêu cầu xét nghiệm
+     */
+    private function determineFormType($yeuCau)
+    {
+        if (empty($yeuCau)) {
+            return 'other';
+        }
+
+        $yeuCauLower = mb_strtolower($yeuCau, 'UTF-8');
+
+        // Kiểm tra "máu toàn phần"
+        if (strpos($yeuCauLower, 'máu toàn phần') !== false || 
+            strpos($yeuCauLower, 'cong thuc mau') !== false ||
+            strpos($yeuCauLower, 'công thức máu') !== false) {
+            return 'mau_toan_phan';
+        }
+
+        // Kiểm tra "máu" hoặc "nước tiểu" (không phải "máu toàn phần")
+        if (strpos($yeuCauLower, 'máu') !== false || 
+            strpos($yeuCauLower, 'nước tiểu') !== false ||
+            strpos($yeuCauLower, 'nuoc tieu') !== false) {
+            return 'mau_nuoc_tieu';
+        }
+
+        return 'other';
+    }
+
+    /**
+     * Lấy danh sách chỉ số xét nghiệm theo loại form
+     */
+    private function getChiSoByFormType($formType)
+    {
+        try {
+            $database = new Database();
+            $pdo = $database->getConnection();
+
+            $sql = "SELECT 
+                        id,
+                        xet_nghiem,
+                        gia_tri_tham_chieu,
+                        don_vi,
+                        chi_so_tu,
+                        chi_so_den,
+                        may_qtkt
+                    FROM chi_so_xet_nghiem 
+                    WHERE loai_form = ?
+                    ORDER BY thu_tu ASC, xet_nghiem ASC";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$formType]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log('Error getting chi so by form type: ' . $e->getMessage());
+            return [];
+        }
+    }
+
     public function getXetnghiemResult()
     {
         header('Content-Type: application/json; charset=utf-8');
@@ -3545,6 +3603,11 @@ class DoctorController
             $stmt->execute([$id]);
             $savedResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+            // Get original request data để xác định form type
+            $requestData = $this->labTestModel->getById($id);
+            $formType = $this->determineFormType($requestData['yeu_cau'] ?? '');
+            $chiSoList = $this->getChiSoByFormType($formType);
+
             if (!empty($savedResults)) {
                 // Return saved result
                 $mainResult = $savedResults[0];
@@ -3560,17 +3623,21 @@ class DoctorController
                     'success' => true,
                     'result' => $mainResult,
                     'test_details' => array_values($testDetails),
-                    'is_saved' => true
+                    'is_saved' => true,
+                    'form_type' => $formType,
+                    'chi_so_list' => $chiSoList
                 ]);
             } else {
                 // Fallback to original request data
-                $result = $this->labTestModel->getById($id);
+                $result = $requestData;
 
                 if ($result) {
                     echo json_encode([
                         'success' => true,
                         'result' => $result,
-                        'is_saved' => false
+                        'is_saved' => false,
+                        'form_type' => $formType,
+                        'chi_so_list' => $chiSoList
                     ]);
                 } else {
                     echo json_encode(['success' => false, 'message' => 'Không tìm thấy kết quả xét nghiệm']);
@@ -3654,6 +3721,7 @@ class DoctorController
             $testResults = $_POST['test_results'] ?? '';
             $examiningDoctor = $_POST['examining_doctor'] ?? '';
             $sampleStatus = $_POST['sample_status'] ?? '';
+            $sampleLocation = $_POST['sample_location'] ?? '';
             $resultDate = $_POST['result_date'] ?? '';
 
             // Debug log
@@ -3700,8 +3768,8 @@ class DoctorController
                 $stmt = $pdo->prepare("
                     UPDATE phieu_tra_ket_qua_xet_nghiem 
                     SET id_benh_nhan = ?, ma_benh_nhan = ?, ho_ten = ?, tuoi = ?, gioi_tinh = ?, 
-                        dia_chi = ?, chan_doan_so_bo = ?, tinh_trang_mau = ?, bac_si_yeu_cau = ?, 
-                        bac_si_xet_nghiem = ?, ngay_tra_ket_qua = ?, trang_thai = ?
+                        dia_chi = ?, chan_doan_so_bo = ?, tinh_trang_mau = ?, vi_tri_lay_mau = ?, 
+                        bac_si_yeu_cau = ?, bac_si_xet_nghiem = ?, ngay_tra_ket_qua = ?, trang_thai = ?
                     WHERE id = ?
                 ");
 
@@ -3714,6 +3782,7 @@ class DoctorController
                     $requestDetails['dia_chi'] ?? '',
                     $requestDetails['chan_doan'] ?? '',
                     $sampleStatus,
+                    $sampleLocation,
                     $requestDetails['bac_si_kham'] ?? '',
                     $examiningDoctor,
                     $resultDate,
@@ -3725,9 +3794,9 @@ class DoctorController
                 $stmt = $pdo->prepare("
                     INSERT INTO phieu_tra_ket_qua_xet_nghiem 
                     (id_phieu_yeu_cau, id_benh_nhan, ma_benh_nhan, ho_ten, tuoi, gioi_tinh, 
-                     dia_chi, chan_doan_so_bo, tinh_trang_mau, bac_si_yeu_cau, bac_si_xet_nghiem,
-                     ngay_dang_ky, ngay_tra_ket_qua, trang_thai)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     dia_chi, chan_doan_so_bo, tinh_trang_mau, vi_tri_lay_mau, bac_si_yeu_cau, 
+                     bac_si_xet_nghiem, ngay_dang_ky, ngay_tra_ket_qua, trang_thai)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
 
                 $stmt->execute([
@@ -3740,6 +3809,7 @@ class DoctorController
                     $requestDetails['dia_chi'] ?? '',
                     $requestDetails['chan_doan'] ?? '',
                     $sampleStatus,
+                    $sampleLocation,
                     $requestDetails['bac_si_kham'] ?? '',
                     $examiningDoctor,
                     $requestDetails['ngay_tao'] ?? date('Y-m-d H:i:s'),
@@ -4031,7 +4101,7 @@ class DoctorController
             $stmt = $pdo->prepare("
                 SELECT pxn.id, pxn.so_ho_so as ma_benh_nhan, pxn.ho_ten, pxn.gioi_tinh, pxn.chan_doan, pxn.yeu_cau, pxn.ngay_tao,
                        pt.tuoi, pt.dia_chi, pt.ngay_tra_ket_qua, pt.trang_thai as ket_qua_trang_thai, pt.bac_si_xet_nghiem,
-                       pt.tinh_trang_mau, pt.bac_si_yeu_cau
+                       pt.tinh_trang_mau, pt.vi_tri_lay_mau, pt.bac_si_yeu_cau
                 FROM phieu_yeu_cau_xet_nghiem pxn
                 LEFT JOIN phieu_tra_ket_qua_xet_nghiem pt ON pxn.id = pt.id_phieu_yeu_cau
                 WHERE pxn.id = ?
@@ -4041,17 +4111,25 @@ class DoctorController
 
             if ($detail) {
                 // Get test results details
+                $testDetails = [];
+                // Get id_phieu_tra_ket_qua if exists
                 $stmt2 = $pdo->prepare("
-                    SELECT stt, ten_xet_nghiem, gia_tri_tham_chieu, ket_qua, don_vi, may_qtkt
-                    FROM chi_tiet_ket_qua_xet_nghiem 
-                    WHERE id_phieu_tra_ket_qua = (
-                        SELECT id FROM phieu_tra_ket_qua_xet_nghiem 
-                        WHERE id_phieu_yeu_cau = ?
-                    )
-                    ORDER BY stt
+                    SELECT id FROM phieu_tra_ket_qua_xet_nghiem 
+                    WHERE id_phieu_yeu_cau = ?
                 ");
                 $stmt2->execute([$id]);
-                $testDetails = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+                $resultPhieu = $stmt2->fetch(PDO::FETCH_ASSOC);
+                
+                if ($resultPhieu && !empty($resultPhieu['id'])) {
+                    $stmt3 = $pdo->prepare("
+                        SELECT stt, ten_xet_nghiem, gia_tri_tham_chieu, ket_qua, don_vi, may_qtkt
+                        FROM chi_tiet_ket_qua_xet_nghiem 
+                        WHERE id_phieu_tra_ket_qua = ?
+                        ORDER BY stt
+                    ");
+                    $stmt3->execute([$resultPhieu['id']]);
+                    $testDetails = $stmt3->fetchAll(PDO::FETCH_ASSOC);
+                }
 
                 echo json_encode([
                     'success' => true,

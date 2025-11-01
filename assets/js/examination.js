@@ -2753,6 +2753,9 @@ function showLabResultData(result, testDetails) {
   var tinhTrangMauEl = document.getElementById("lab_ro_tinh_trang_mau");
   if (tinhTrangMauEl) tinhTrangMauEl.textContent = result.tinh_trang_mau || "-";
 
+  var viTriLayMauEl = document.getElementById("lab_ro_vi_tri_lay_mau");
+  if (viTriLayMauEl) viTriLayMauEl.textContent = result.vi_tri_lay_mau || "-";
+
   var yeuCauEl = document.getElementById("lab_ro_yeu_cau");
   if (yeuCauEl)
     yeuCauEl.textContent = result.yeu_cau || "CHƯA CÓ YÊU CẦU XÉT NGHIỆM";
@@ -2777,24 +2780,121 @@ function showLabResultData(result, testDetails) {
   var tbody = document.getElementById("lab_ro_results_table");
   if (tbody && testDetails && testDetails.length > 0) {
     tbody.innerHTML = "";
+    
+    // Determine form type from yeu_cau
+    var yeuCauLower = (result.yeu_cau || "").toLowerCase();
+    var isMauToanPhan = yeuCauLower.indexOf("máu toàn phần") !== -1 || 
+                        yeuCauLower.indexOf("cong thuc mau") !== -1 || 
+                        yeuCauLower.indexOf("công thức máu") !== -1;
+    var isMauNuocTieu = !isMauToanPhan && (
+                        yeuCauLower.indexOf("máu") !== -1 || 
+                        yeuCauLower.indexOf("nước tiểu") !== -1 || 
+                        yeuCauLower.indexOf("nuoc tieu") !== -1);
+    
+    // Add header rows for "mau_toan_phan" form
+    if (isMauToanPhan) {
+      var headerRow1 = document.createElement("tr");
+      headerRow1.className = "fw-bold";
+      headerRow1.style.backgroundColor = "#f8f9fa";
+      headerRow1.innerHTML = 
+        "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+          "<span>XN Huyết học</span>" +
+        "</td>";
+      tbody.appendChild(headerRow1);
+      
+      var headerRow2 = document.createElement("tr");
+      headerRow2.className = "fw-bold";
+      headerRow2.style.backgroundColor = "#f8f9fa";
+      headerRow2.innerHTML = 
+        "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+          "<span>TPT tế bào máu(máy đếm larser)</span>" +
+        "</td>";
+      tbody.appendChild(headerRow2);
+    }
+    
+    // Add header row for "mau_nuoc_tieu" form
+    if (isMauNuocTieu) {
+      var headerRow = document.createElement("tr");
+      headerRow.className = "fw-bold";
+      headerRow.style.backgroundColor = "#f8f9fa";
+      headerRow.innerHTML = 
+        "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+          "<span>Sinh Hóa</span>" +
+        "</td>";
+      tbody.appendChild(headerRow);
+    }
+    
     testDetails.forEach(function (test, index) {
       var row = document.createElement("tr");
       
       // Check if result is out of range
       var isOutOfRange = checkIfLabResultOutOfRange(test.ten_xet_nghiem, test.ket_qua);
-      var resultStyle = isOutOfRange ? "font-weight: bold; color: #dc3545;" : "font-weight: normal;";
+      // Check if result is "Dương tính" - make it bold and right-aligned
+      var ketQua = (test.ket_qua || "").trim().toLowerCase();
+      var isDuongTinh = ketQua.indexOf("dương tính") !== -1 || ketQua.indexOf("duong tinh") !== -1;
+      var resultStyle = "";
+      var resultClass = "";
+      if (isDuongTinh) {
+        resultStyle = "font-weight: bold; color: #dc3545; text-align: right;";
+        resultClass = "fw-bold text-end";
+      } else if (isOutOfRange) {
+        resultStyle = "font-weight: bold; color: #dc3545; text-align: right;";
+        resultClass = "text-end";
+      } else {
+        resultStyle = "font-weight: normal;";
+        resultClass = "text-center";
+      }
+      
+      // STT: Use test.stt from database if available, otherwise use index + 1
+      // (STT already starts from 1 in database, header rows are separate)
+      var stt = test.stt || (index + 1);
       
       row.innerHTML = `
-        <td class="text-center">${test.stt || index + 1}</td>
+        <td class="text-center">${stt}</td>
         <td>${test.ten_xet_nghiem || ""}</td>
         <td class="text-center">${test.gia_tri_tham_chieu || ""}</td>
-        <td class="text-center" style="${resultStyle}">${
+        <td class="${resultClass}" style="${resultStyle}">${
           test.ket_qua || ""
         }</td>
         <td class="text-center">${test.don_vi || ""}</td>
         <td>${test.may_qtkt || ""}</td>
       `;
       tbody.appendChild(row);
+      
+      // Add header row "Miễn dịch" after STT 12 for "mau_nuoc_tieu" form
+      if (isMauNuocTieu && stt == 12) {
+        var mienDichHeaderRow = document.createElement("tr");
+        mienDichHeaderRow.className = "fw-bold";
+        mienDichHeaderRow.style.backgroundColor = "#f8f9fa";
+        mienDichHeaderRow.innerHTML = 
+          "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+            "<span>Miễn dịch</span>" +
+          "</td>";
+        tbody.appendChild(mienDichHeaderRow);
+      }
+      
+      // Add header rows "Nước tiểu" and "Nước tiểu 10 thông số" after STT 14 for "mau_nuoc_tieu" form
+      if (isMauNuocTieu && stt == 14) {
+        // Row 1: Nước tiểu
+        var nuocTieuHeaderRow1 = document.createElement("tr");
+        nuocTieuHeaderRow1.className = "fw-bold";
+        nuocTieuHeaderRow1.style.backgroundColor = "#f8f9fa";
+        nuocTieuHeaderRow1.innerHTML = 
+          "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+            "<span>Nước tiểu</span>" +
+          "</td>";
+        tbody.appendChild(nuocTieuHeaderRow1);
+        
+        // Row 2: Nước tiểu 10 thông số
+        var nuocTieuHeaderRow2 = document.createElement("tr");
+        nuocTieuHeaderRow2.className = "fw-bold";
+        nuocTieuHeaderRow2.style.backgroundColor = "#f8f9fa";
+        nuocTieuHeaderRow2.innerHTML = 
+          "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+            "<span>Nước tiểu 10 thông số</span>" +
+          "</td>";
+        tbody.appendChild(nuocTieuHeaderRow2);
+      }
     });
   } else {
     tbody.innerHTML =
