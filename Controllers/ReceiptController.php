@@ -30,15 +30,62 @@ class ReceiptController
             $requests = $this->receiptDataModel->getAllRequests($examId);
             $medications = $this->receiptDataModel->getMedications($examId);
             
+            // Lấy huong_muc từ bao_hiem_y_te của bệnh nhân
+            $huongMuc = $this->getBhytHuongMuc($examId);
+            
             echo json_encode([
                 'success' => true,
                 'data' => $requests,
-                'medications' => $medications
+                'medications' => $medications,
+                'huong_muc' => $huongMuc
             ]);
             
         } catch (Exception $e) {
             error_log('ReceiptController getReceiptData error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy hướng mức BHYT từ bao_hiem_y_te của bệnh nhân
+     * Trả về null nếu không tìm thấy hoặc không có giá trị trong database
+     */
+    private function getBhytHuongMuc($examId)
+    {
+        try {
+            require_once 'config/database.php';
+            $database = new Database();
+            $pdo = $database->getConnection();
+            
+            // Lấy bao_hiem_y_te_id từ bệnh nhân thông qua exam_id
+            $sql = "SELECT bn.bao_hiem_y_te_id 
+                    FROM phieu_kham_benh pk
+                    JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                    WHERE pk.id = ?";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$examId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result && !empty($result['bao_hiem_y_te_id'])) {
+                // Lấy huong_muc từ bao_hiem_y_te (chỉ lấy giá trị thực tế từ database)
+                $sql2 = "SELECT huong_muc FROM bao_hiem_y_te WHERE id = ? AND huong_muc IS NOT NULL AND huong_muc > 0";
+                $stmt2 = $pdo->prepare($sql2);
+                $stmt2->execute([$result['bao_hiem_y_te_id']]);
+                $bhyt = $stmt2->fetch(PDO::FETCH_ASSOC);
+                
+                if ($bhyt && isset($bhyt['huong_muc']) && $bhyt['huong_muc'] > 0) {
+                    return (float)$bhyt['huong_muc'];
+                }
+            }
+            
+            // Trả về null nếu không tìm thấy trong database
+            return null;
+            
+        } catch (Exception $e) {
+            error_log('ReceiptController getBhytHuongMuc error: ' . $e->getMessage());
+            // Trả về null nếu có lỗi
+            return null;
         }
     }
 
@@ -78,7 +125,7 @@ class ReceiptController
     /**
      * Tính toán thanh toán dựa trên BHYT
      */
-    public function calculatePayment($requests, $hasBHYT)
+    public function calculatePayment($requests, $hasBHYT, $huongMuc = null)
     {
         $totalBasePrice = 0;
         $totalBhytAmount = 0;
@@ -93,9 +140,10 @@ class ReceiptController
             $bhytAmount = 0;
             $patientAmount = $basePrice;
             
-            if ($hasBHYT) {
-                // Có BHYT: giảm 80%
-                $bhytAmount = round($basePrice * 0.8);
+            // Chỉ tính giảm giá BHYT nếu có huong_muc từ database
+            if ($hasBHYT && $huongMuc !== null && $huongMuc > 0) {
+                // Có BHYT và có huong_muc từ database: sử dụng huong_muc
+                $bhytAmount = round($basePrice * $huongMuc);
                 $patientAmount = $basePrice - $bhytAmount;
             }
             

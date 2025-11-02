@@ -68,7 +68,7 @@ async function initializeReceiptForm() {
         }
         console.warn('Không tìm thấy ID phiếu khám sau khi retry');
         // Show default receipt with only basic exam
-        updateReceiptWithData([], patientBHYT, []);
+        updateReceiptWithData([], patientBHYT, [], null);
         window._receiptInitInProgress = false;
         return;
     }
@@ -82,16 +82,16 @@ async function initializeReceiptForm() {
         
         
         if (result.success) {
-            updateReceiptWithData(result.data, patientBHYT, result.medications);
+            updateReceiptWithData(result.data, patientBHYT, result.medications, result.huong_muc);
         } else {
             console.error('Lỗi lấy dữ liệu biên lai:', result.message);
-            // Show default receipt with only basic exam
-            updateReceiptWithData([], patientBHYT, []);
+            // Show default receipt with only basic exam (không có huong_muc)
+            updateReceiptWithData([], patientBHYT, [], null);
         }
     } catch (error) {
         console.error('Lỗi kết nối API:', error);
-        // Show default receipt with only basic exam
-        updateReceiptWithData([], patientBHYT, []);
+        // Show default receipt with only basic exam (không có huong_muc)
+        updateReceiptWithData([], patientBHYT, [], null);
     }
     
     // Set doctor name from API
@@ -187,9 +187,12 @@ function getCurrentExamId() {
     return null;
 }
 
-function updateReceiptWithData(requests, patientBHYT, medications) {
+function updateReceiptWithData(requests, patientBHYT, medications, huongMuc) {
     // Store medications globally for use in updateReceiptTable
     window.receiptMedications = medications || [];
+    
+    // Store huong_muc globally for use in calculations (chỉ lấy từ database, không dùng giá trị mặc định)
+    window.receiptHuongMuc = (huongMuc !== null && huongMuc !== undefined && huongMuc > 0) ? huongMuc : null;
     
     const hasBHYT = patientBHYT && patientBHYT !== '-' && patientBHYT !== 'Thu phí';
     
@@ -220,8 +223,9 @@ function updateReceiptWithData(requests, patientBHYT, medications) {
         let bhytAmount = 0;
         let patientAmount = totalPrice;
         
-        if (hasBHYT) {
-            bhytAmount = Math.round(totalPrice * 0.8);
+        // Chỉ tính giảm giá BHYT nếu có huong_muc từ database
+        if (hasBHYT && window.receiptHuongMuc !== null && window.receiptHuongMuc > 0) {
+            bhytAmount = Math.round(totalPrice * window.receiptHuongMuc);
             patientAmount = totalPrice - bhytAmount;
         }
         
@@ -248,8 +252,9 @@ function updateReceiptWithData(requests, patientBHYT, medications) {
         let bhytAmount = 0;
         let patientAmount = totalPrice;
         
-        if (hasBHYT) {
-            bhytAmount = Math.round(totalPrice * 0.8);
+        // Chỉ tính giảm giá BHYT nếu có huong_muc từ database
+        if (hasBHYT && window.receiptHuongMuc !== null && window.receiptHuongMuc > 0) {
+            bhytAmount = Math.round(totalPrice * window.receiptHuongMuc);
             patientAmount = totalPrice - bhytAmount;
         }
         
@@ -276,8 +281,9 @@ function updateReceiptWithData(requests, patientBHYT, medications) {
         let bhytAmount = 0;
         let patientAmount = totalPrice;
         
-        if (hasBHYT) {
-            bhytAmount = Math.round(totalPrice * 0.8);
+        // Chỉ tính giảm giá BHYT nếu có huong_muc từ database
+        if (hasBHYT && window.receiptHuongMuc !== null && window.receiptHuongMuc > 0) {
+            bhytAmount = Math.round(totalPrice * window.receiptHuongMuc);
             patientAmount = totalPrice - bhytAmount;
         }
         
@@ -335,7 +341,9 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
                 console.log("Basic exam price from database:", basicExamPrice);
                 const hasBHYT = document.getElementById('receipt_patient_bhyt')?.textContent !== '-' && 
                                document.getElementById('receipt_patient_bhyt')?.textContent !== 'Thu phí';
-                const basicBhytAmount = hasBHYT ? Math.round(basicExamPrice * 0.8) : 0;
+                // Chỉ tính giảm giá BHYT nếu có huong_muc từ database
+                const huongMuc = window.receiptHuongMuc;
+                const basicBhytAmount = (hasBHYT && huongMuc !== null && huongMuc > 0) ? Math.round(basicExamPrice * huongMuc) : 0;
                 const basicPatientAmount = basicExamPrice - basicBhytAmount;
                 
                 basicExamRow.innerHTML = `
@@ -469,7 +477,9 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
             
             const soLuong = parseInt(medication.so_luong || 1);
             const thanhTien = medicationPrice * soLuong;
-            const thanhTienBhytAmount = canGetDiscount ? Math.round(thanhTien * 0.8) : 0;
+            // Chỉ tính giảm giá BHYT nếu có huong_muc từ database
+            const huongMuc = window.receiptHuongMuc;
+            const thanhTienBhytAmount = (canGetDiscount && huongMuc !== null && huongMuc > 0) ? Math.round(thanhTien * huongMuc) : 0;
             const thanhTienPatientAmount = thanhTien - thanhTienBhytAmount;
             
             medicationRow.innerHTML = `
