@@ -2,11 +2,6 @@
 
 class SocketService
 {
-    /**
-     * Emit a realtime event to the Node socket server via HTTP /emit
-     * - Auto selects prod/dev URL like AppointmentController
-     * - Accepts JSON-serializable array in $data
-     */
     public static function emit(string $event, array $data): void
     {
         try {
