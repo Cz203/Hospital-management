@@ -140,6 +140,50 @@ class DoctorController
     }
 
     /**
+     * Lịch hẹn hôm nay của bác sĩ
+     */
+    public function todayAppointments()
+    {
+        // Kiểm tra authentication
+        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'doctor') {
+            header("Location: ./login_doctor");
+            exit();
+        }
+
+        $doctorId = $_SESSION['user_id'];
+
+        // Lấy ngày được chọn (mặc định là hôm nay)
+        $selectedDate = $_GET['date'] ?? date('Y-m-d');
+
+        // Lấy lịch hẹn theo ngày
+        require_once 'Models/Appointment.php';
+        $appointmentModel = new Appointment();
+
+        if ($selectedDate === date('Y-m-d')) {
+            $appointments = $appointmentModel->getTodayAppointmentsByDoctor($doctorId);
+        } else {
+            $appointments = $appointmentModel->getAppointmentsByDoctorAndDate($doctorId, $selectedDate);
+        }
+
+        // Lấy thống kê
+        $stats = $appointmentModel->getTodayStatsByDoctor($doctorId);
+
+        // Lấy thông tin bác sĩ
+        $doctor = $this->doctorModel->getById($doctorId);
+
+        $page_title = 'Lịch hẹn hôm nay';
+
+        // Start output buffering
+        ob_start();
+        include 'Views/doctor/today_appointments.php';
+        $content = ob_get_clean();
+
+        // Render layout
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
      * Hiển thị trang quản lý lịch hẹn
      */
     public function appointmentManagement()

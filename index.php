@@ -1,6 +1,9 @@
 <?php
 session_start();
 
+// Set timezone Việt Nam
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
 // Load Composer autoloader để sử dụng Vonage SDK
 require_once 'vendor/autoload.php';
 
@@ -68,7 +71,38 @@ switch ($action) {
         $auth->register(); // Đăng ký tài khoản mới
         break;
 
-    // ===== SMS/OTP ROUTES =====
+    case 'verify_cccd':
+        // API xác thực CCCD giả lập
+        header('Content-Type: application/json');
+        require_once 'Services/CCCDService.php';
+        require_once 'config/database.php';
+
+        $cccd = trim($_POST['cccd'] ?? '');
+        $ten = trim($_POST['ten'] ?? '');
+        $ngaySinh = trim($_POST['ngay_sinh'] ?? '');
+
+        if (empty($cccd)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Vui lòng nhập số CCCD'
+            ]);
+            exit();
+        }
+
+        $database = new Database();
+        $db = $database->getConnection();
+        $cccdService = new CCCDService($db);
+
+        $result = $cccdService->verifyCCCD(
+            $cccd,
+            !empty($ten) ? $ten : null,
+            !empty($ngaySinh) ? $ngaySinh : null
+        );
+
+        echo json_encode($result);
+        exit();
+
+        // ===== SMS/OTP ROUTES =====
     case 'send_otp':
         require_once 'Controllers/SMSController.php';
         $smsController = new SMSController();
@@ -274,6 +308,10 @@ switch ($action) {
     // ===== DOCTOR SCHEDULE MANAGEMENT ROUTES =====
     case 'doctor_schedule_management':
         $doctorController->manageSchedule(); // Quản lý lịch làm việc
+        break;
+
+    case 'doctor_today_appointments':
+        $doctorController->todayAppointments(); // Lịch hẹn hôm nay
         break;
 
     case 'doctor_appointment_management':

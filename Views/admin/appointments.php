@@ -158,10 +158,10 @@
                     <select class="form-select" name="bac_si_id">
                         <option value="">Tất cả</option>
                         <?php foreach ($doctors as $doctor): ?>
-                            <option value="<?php echo $doctor['id']; ?>"
-                                <?php echo ($_GET['bac_si_id'] ?? '') == $doctor['id'] ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($doctor['ten']); ?>
-                            </option>
+                        <option value="<?php echo $doctor['id']; ?>"
+                            <?php echo ($_GET['bac_si_id'] ?? '') == $doctor['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($doctor['ten']); ?>
+                        </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -194,36 +194,36 @@
                 </thead>
                 <tbody>
                     <?php if (empty($appointments)): ?>
-                        <tr>
-                            <td colspan="9" class="text-center py-4">
-                                <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
-                                <p class="text-muted">Không có lịch hẹn nào</p>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3 d-block"></i>
+                            <p class="text-muted">Không có lịch hẹn nào</p>
+                        </td>
+                    </tr>
                     <?php else: ?>
-                        <?php foreach ($appointments as $appointment): ?>
-                            <tr>
-                                <td><span class="badge bg-secondary">#<?php echo $appointment['id']; ?></span></td>
-                                <td>
-                                    <div class="patient-info">
-                                        <strong><?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?></strong>
-                                        <small
-                                            class="d-block text-muted"><?php echo htmlspecialchars($appointment['so_dien_thoai']); ?></small>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="doctor-info">
-                                        <strong><?php echo htmlspecialchars($appointment['ten_bac_si']); ?></strong>
-                                        <small
-                                            class="d-block text-muted"><?php echo htmlspecialchars($appointment['chuyen_khoa']); ?></small>
-                                    </div>
-                                </td>
-                                <td><?php echo date('d/m/Y', strtotime($appointment['ngay_hen'])); ?></td>
-                                <td><span
-                                        class="time-badge"><?php echo date('H:i', strtotime($appointment['gio_hen'])); ?></span>
-                                </td>
-                                <td>
-                                    <?php
+                    <?php foreach ($appointments as $appointment): ?>
+                    <tr>
+                        <td><span class="badge bg-secondary">#<?php echo $appointment['id']; ?></span></td>
+                        <td>
+                            <div class="patient-info">
+                                <strong><?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?></strong>
+                                <small
+                                    class="d-block text-muted"><?php echo htmlspecialchars($appointment['so_dien_thoai']); ?></small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="doctor-info">
+                                <strong><?php echo htmlspecialchars($appointment['ten_bac_si']); ?></strong>
+                                <small
+                                    class="d-block text-muted"><?php echo htmlspecialchars($appointment['chuyen_khoa']); ?></small>
+                            </div>
+                        </td>
+                        <td><?php echo date('d/m/Y', strtotime($appointment['ngay_hen'])); ?></td>
+                        <td><span
+                                class="time-badge"><?php echo date('H:i', strtotime($appointment['gio_hen'])); ?></span>
+                        </td>
+                        <td>
+                            <?php
                                     $typeClass = match ($appointment['loai_lich']) {
                                         'Trực tiếp' => 'primary',
                                         'Tư vấn' => 'info',
@@ -231,12 +231,12 @@
                                         default => 'secondary'
                                     };
                                     ?>
-                                    <span class="badge bg-<?php echo $typeClass; ?>">
-                                        <?php echo htmlspecialchars($appointment['loai_lich']); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php
+                            <span class="badge bg-<?php echo $typeClass; ?>">
+                                <?php echo htmlspecialchars($appointment['loai_lich']); ?>
+                            </span>
+                        </td>
+                        <td>
+                            <?php
                                     $statusClass = match ($appointment['trang_thai']) {
                                         'Chờ xác nhận' => 'warning',
                                         'Đã xác nhận' => 'success',
@@ -246,25 +246,25 @@
                                         default => 'secondary'
                                     };
                                     ?>
-                                    <span class="badge bg-<?php echo $statusClass; ?>">
-                                        <?php echo htmlspecialchars($appointment['trang_thai']); ?>
-                                    </span>
-                                </td>
-                                <td><?php echo date('d/m/Y H:i', strtotime($appointment['ngay_tao'])); ?></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-info"
-                                        onclick="viewAppointment(<?php echo $appointment['id']; ?>)" title="Xem chi tiết">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <?php if (in_array($appointment['trang_thai'], ['Chờ xác nhận', 'Đã xác nhận'])): ?>
-                                        <button class="btn btn-sm btn-danger"
-                                            onclick="cancelAppointment(<?php echo $appointment['id']; ?>)" title="Hủy lịch">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
+                            <span class="badge bg-<?php echo $statusClass; ?>">
+                                <?php echo htmlspecialchars($appointment['trang_thai']); ?>
+                            </span>
+                        </td>
+                        <td><?php echo date('d/m/Y H:i', strtotime($appointment['ngay_tao'])); ?></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-info"
+                                onclick="viewAppointment(<?php echo $appointment['id']; ?>)" title="Xem chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <?php if (in_array($appointment['trang_thai'], ['Chờ xác nhận', 'Đã xác nhận'])): ?>
+                            <button class="btn btn-sm btn-danger"
+                                onclick="cancelAppointment(<?php echo $appointment['id']; ?>)" title="Hủy lịch">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
@@ -272,40 +272,40 @@
 
         <!-- Pagination -->
         <?php if ($totalPages > 1): ?>
-            <div class="pagination-wrapper">
-                <nav>
-                    <ul class="pagination justify-content-center mb-0">
-                        <?php
+        <div class="pagination-wrapper">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    <?php
                         $currentFilters = $_GET;
                         unset($currentFilters['page']);
                         $queryString = http_build_query($currentFilters);
                         ?>
 
-                        <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-                            <a class="page-link" href="?<?php echo $queryString; ?>&page=<?php echo $page - 1; ?>">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        </li>
+                    <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?<?php echo $queryString; ?>&page=<?php echo $page - 1; ?>">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
 
-                        <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
-                            <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
-                                <a class="page-link"
-                                    href="?<?php echo $queryString; ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                            </li>
-                        <?php endfor; ?>
+                    <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
+                    <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
+                        <a class="page-link"
+                            href="?<?php echo $queryString; ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                    </li>
+                    <?php endfor; ?>
 
-                        <li class="page-item <?php echo $page >= $totalPages ? 'disabled' : ''; ?>">
-                            <a class="page-link" href="?<?php echo $queryString; ?>&page=<?php echo $page + 1; ?>">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-                <div class="pagination-info text-center mt-2">
-                    Trang <?php echo $page; ?> / <?php echo $totalPages; ?> (Tổng: <?php echo number_format($total); ?> lịch
-                    hẹn)
-                </div>
+                    <li class="page-item <?php echo $page >= $totalPages ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?<?php echo $queryString; ?>&page=<?php echo $page + 1; ?>">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="pagination-info text-center mt-2">
+                Trang <?php echo $page; ?> / <?php echo $totalPages; ?> (Tổng: <?php echo number_format($total); ?> lịch
+                hẹn)
             </div>
+        </div>
         <?php endif; ?>
     </div>
 </div>

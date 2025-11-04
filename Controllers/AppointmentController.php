@@ -158,7 +158,6 @@ class AppointmentController
         }
 
         // Kiểm tra ngày không được là ngày quá khứ
-        date_default_timezone_set('Asia/Ho_Chi_Minh');
         $today = date('Y-m-d');
         $now = date('H:i');
         $selectedDate = date('Y-m-d', strtotime($date));
@@ -280,8 +279,6 @@ class AppointmentController
         }
 
         // Kiểm tra ngày không được là ngày quá khứ
-        // Set timezone to Vietnam
-        date_default_timezone_set('Asia/Ho_Chi_Minh');
         $today = date('Y-m-d');
         $now = date('H:i');
         $selectedDate = date('Y-m-d', strtotime($date));

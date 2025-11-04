@@ -508,7 +508,7 @@ class Appointment extends User
     {
         try {
             $today = date('Y-m-d');
-            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau
+            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.cccd
                     FROM {$this->table} lh
                     JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
                     WHERE lh.bac_si_id = :doctor_id 
@@ -535,7 +535,7 @@ class Appointment extends User
     public function getAppointmentsByDoctorAndDate($doctorId, $date)
     {
         try {
-            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau, bn.bao_hiem_y_te, bn.ma_benh_nhan, bhy.ngay_het_han
+            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.cccd, bn.bao_hiem_y_te, bn.ma_benh_nhan, bhy.ngay_het_han
                     FROM {$this->table} lh
                     JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
                     LEFT JOIN bao_hiem_y_te bhy ON bn.bao_hiem_y_te_id = bhy.id
@@ -568,7 +568,8 @@ class Appointment extends User
                         COUNT(*) as total,
                         SUM(CASE WHEN trang_thai = 'Chờ xác nhận' THEN 1 ELSE 0 END) as pending,
                         SUM(CASE WHEN trang_thai = 'Đã xác nhận' THEN 1 ELSE 0 END) as confirmed,
-                        SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed
+                        SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed,
+                        SUM(CASE WHEN trang_thai = 'hủy' THEN 1 ELSE 0 END) as cancelled
                     FROM {$this->table}
                     WHERE bac_si_id = :doctor_id AND ngay_hen = :today AND loai_lich != 'Tư vấn'";
 
@@ -584,7 +585,8 @@ class Appointment extends User
                 'total' => 0,
                 'pending' => 0,
                 'confirmed' => 0,
-                'completed' => 0
+                'completed' => 0,
+                'cancelled' => 0
             ];
         }
     }
