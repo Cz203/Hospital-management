@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 02, 2025 at 02:06 PM
+-- Generation Time: Nov 04, 2025 at 12:51 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -99,7 +99,7 @@ CREATE TABLE `benh_nhan` (
   `ngay_sinh` date DEFAULT NULL,
   `gioi_tinh` enum('Nam','Nu','Khac') DEFAULT NULL,
   `dia_chi` text DEFAULT NULL,
-  `nhom_mau` enum('A+','A-','B+','B-','AB+','AB-','O+','O-') DEFAULT NULL,
+  `cccd` varchar(12) DEFAULT NULL COMMENT 'Căn cước công dân (12 số)',
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `ma_benh_nhan` varchar(20) DEFAULT NULL
@@ -109,13 +109,13 @@ CREATE TABLE `benh_nhan` (
 -- Dumping data for table `benh_nhan`
 --
 
-INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `bao_hiem_y_te`, `bao_hiem_y_te_id`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `nhom_mau`, `ngay_tao`, `ngay_cap_nhat`, `ma_benh_nhan`) VALUES
-(13, 'Hoàng Nguyễn Phương Trang', '2001trangmoon@gmail.com', '$2y$10$jCb.1eysx1RkUxaY2.cEgud7457aH5aZSqJqsRbg2GKBUttVWuk0a', '84918672152', 1, NULL, NULL, '2003-01-10', 'Nu', 'Trần Bá GIao', 'AB+', '2025-08-22 15:17:21', '2025-09-07 21:16:13', NULL),
-(21, 'Việt', 'nasumi121@gmail.com', '$2y$10$E5dJk94KPjGRb.FYwIJ86uiga63FukshJZaR.Qph8CRLkGjNIY2xm', '84385485869', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-08-23 21:09:27', '2025-09-10 18:12:18', NULL),
-(23, 'cvb', 'tranthi22b@example.com', '$2y$10$WWKqyUOGawB9jPJKvzdXi.ixgAx/DIYPgp1bS/OL9QxHgfnblHYSq', '8413251345134', 1, NULL, NULL, '0000-00-00', 'Nam', 'vczbvcb', '', '2025-08-23 21:19:49', '2025-10-09 12:16:02', 'BN005'),
-(24, 'Việt', '2001tra2ngmoon@gmail.com', '$2y$10$7uqm.qatZX26SQefunbrFu/r.hAqc3Fjsox3lS4A/d4AftmwEUwGi', '8412312312312', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', '', '2025-08-23 21:56:05', '2025-10-09 12:15:58', 'BN004'),
-(27, 'Việt', 'vczxv@gmail.com', '$2y$10$uXQU6yqxAIeBUuNn/oWQR.NnwczHfqb5sNP9P2aVGLxqzethN89fO', '84354143619', 1, '0791034567', 16, '2003-01-10', 'Nu', 'vbxcvb', 'A+', '2025-09-15 11:15:08', '2025-11-02 07:35:33', 'BN003'),
-(28, 'Việt', 'caoduongvietquoc@gmail.com', '$2y$10$ujZnPMbxVgX1tgQaPWMnr.yU07aISutD3ehgWy5OiMhaIQWh5imWe', '84913998110', 1, '0791034568', 17, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', 'A+', '2025-09-15 11:19:11', '2025-10-09 12:07:04', 'BN002'),
+INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `bao_hiem_y_te`, `bao_hiem_y_te_id`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `cccd`, `ngay_tao`, `ngay_cap_nhat`, `ma_benh_nhan`) VALUES
+(13, 'Hoàng Nguyễn Phương Trang', '2001trangmoon@gmail.com', '$2y$10$jCb.1eysx1RkUxaY2.cEgud7457aH5aZSqJqsRbg2GKBUttVWuk0a', '84918672152', 1, NULL, NULL, '2003-01-10', 'Nu', 'Trần Bá GIao', NULL, '2025-08-22 15:17:21', '2025-09-07 21:16:13', NULL),
+(21, 'Việt', 'nasumi121@gmail.com', '$2y$10$E5dJk94KPjGRb.FYwIJ86uiga63FukshJZaR.Qph8CRLkGjNIY2xm', '84385485869', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', NULL, '2025-08-23 21:09:27', '2025-09-10 18:12:18', NULL),
+(23, 'cvb', 'tranthi22b@example.com', '$2y$10$WWKqyUOGawB9jPJKvzdXi.ixgAx/DIYPgp1bS/OL9QxHgfnblHYSq', '8413251345134', 1, NULL, NULL, '0000-00-00', 'Nam', 'vczbvcb', NULL, '2025-08-23 21:19:49', '2025-10-09 12:16:02', 'BN005'),
+(24, 'Việt', '2001tra2ngmoon@gmail.com', '$2y$10$7uqm.qatZX26SQefunbrFu/r.hAqc3Fjsox3lS4A/d4AftmwEUwGi', '8412312312312', 1, NULL, NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', NULL, '2025-08-23 21:56:05', '2025-10-09 12:15:58', 'BN004'),
+(27, 'Việt', 'vczxv@gmail.com', '$2y$10$uXQU6yqxAIeBUuNn/oWQR.NnwczHfqb5sNP9P2aVGLxqzethN89fO', '84354143619', 1, '0791034567', 16, '2003-01-10', 'Nu', 'vbxcvb', NULL, '2025-09-15 11:15:08', '2025-11-02 07:35:33', 'BN003'),
+(28, 'Việt', 'caoduongvietquoc@gmail.com', '$2y$10$ujZnPMbxVgX1tgQaPWMnr.yU07aISutD3ehgWy5OiMhaIQWh5imWe', '84913998110', 1, '0791034568', 17, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', NULL, '2025-09-15 11:19:11', '2025-10-09 12:07:04', 'BN002'),
 (29, 'thinh', 'thinh@gmail.com', '$2y$10$ujZnPMbxVgX1tgQaPWMnr.yU07aISutD3ehgWy5OiMhaIQWh5imWe', '84913998199', 1, '', NULL, '2003-03-22', 'Nam', '51/16A Phạm Văn Chiêu', NULL, '2025-09-25 14:41:57', '2025-10-11 08:49:44', 'BN001');
 
 -- --------------------------------------------------------
@@ -1363,7 +1363,8 @@ ALTER TABLE `benh_nhan`
   ADD UNIQUE KEY `email` (`email`),
   ADD UNIQUE KEY `ma_benh_nhan` (`ma_benh_nhan`),
   ADD KEY `idx_bn_email` (`email`),
-  ADD KEY `idx_bao_hiem_y_te_id` (`bao_hiem_y_te_id`);
+  ADD KEY `idx_bao_hiem_y_te_id` (`bao_hiem_y_te_id`),
+  ADD KEY `idx_cccd` (`cccd`);
 
 --
 -- Indexes for table `bien_lai_vien_phi`
