@@ -2,9 +2,6 @@
 require_once 'config/database.php';
 require_once 'Models/BienLai.php';
 
-// Set timezone
-date_default_timezone_set('Asia/Ho_Chi_Minh');
-
 // Get receipt ID from URL
 $receiptId = $_GET['id'] ?? '';
 
@@ -37,217 +34,224 @@ $receiptDetails = $bienLaiModel->getDetails($receiptData['id']);
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>In Biên Lai Viện Phí</title>
     <style>
-        @media print {
-            body { margin: 0; }
-            .no-print { display: none !important; }
-        }
-        
+    @media print {
         body {
-            font-family: 'Times New Roman', serif;
-            font-size: 14px;
-            line-height: 1.4;
             margin: 0;
-            padding: 20px;
-            background: white;
         }
-        
-        .receipt-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border: 1px solid #ddd;
+
+        .no-print {
+            display: none !important;
         }
-        
-        .receipt-header {
-            text-align: center;
-            margin-bottom: 30px;
-            position: relative;
-        }
-        
-        .receipt-clinic-name {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 0 0 10px 0;
-            color: #333;
-            text-transform: uppercase;
-        }
-        
-        .receipt-main-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0 0 5px 0;
-            color: #333;
-        }
-        
-        .receipt-subtitle {
-            font-size: 14px;
-            margin: 0 0 20px 0;
-            color: #666;
-        }
-        
-        .receipt-stt {
-            position: absolute;
-            top: 0;
-            right: 0;
-            text-align: right;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        
-        .receipt-stt:first-of-type {
-            top: 0;
-        }
-        
-        .receipt-stt:last-of-type {
-            top: 30px;
-        }
-        
-        .patient-info {
-            margin-bottom: 20px;
-        }
-        
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        
-        .info-item {
-            flex: 1;
-            margin-right: 20px;
-            display: flex;
-            align-items: baseline;
-        }
-        
-        .info-item:last-child {
-            margin-right: 0;
-        }
-        
-        .label {
-            font-weight: bold;
-            display: inline;
-            white-space: nowrap;
-        }
-        
-        .value {
-            min-width: 150px;
-            display: inline;
-            margin-left: 5px;
-            white-space: nowrap;
-        }
-        
-        .full-width {
-            flex: 100%;
-        }
-        
-        .receipt-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        
-        .receipt-table th,
-        .receipt-table td {
-            border: 1px solid #000;
-            padding: 8px;
-            text-align: center;
-            font-size: 12px;
-        }
-        
-        .receipt-table th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-        }
-        
-        .receipt-table .text-start {
-            text-align: left;
-        }
-        
-        .receipt-table .text-end {
-            text-align: right;
-        }
-        
-        .receipt-table .fw-bold {
-            font-weight: bold;
-        }
-        
-        .receipt-footer {
-            margin-top: 30px;
-        }
-        
-        .payment-info {
-            margin-bottom: 5px;
-            text-align: right;
-        }
-        
-        .payment-row {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 5px;
-            gap: 10px;
-        }
-        
-        .signature-section {
-            text-align: center;
-            margin-top: -10px !important;
-            background-color: #f5f5f5;
-            border-radius: 8px;
-            padding: 20px;
-            max-width: 300px;
-            margin-left: auto;
-            margin-right: 0;
-        }
-        
-        .signature-date {
-            margin-bottom: 5px;
-            font-weight: normal;
-        }
-        
-        .signature-title {
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        .signature-instruction {
-            margin-bottom: 5px;
-            font-style: italic;
-            text-decoration: underline;
-        }
-        
-        .signature-name {
-            margin-top: 5px;
-            font-weight: normal;
-        }
-        
-        .print-button {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .print-button:hover {
-            background: #0056b3;
-        }
+    }
+
+    body {
+        font-family: 'Times New Roman', serif;
+        font-size: 14px;
+        line-height: 1.4;
+        margin: 0;
+        padding: 20px;
+        background: white;
+    }
+
+    .receipt-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border: 1px solid #ddd;
+    }
+
+    .receipt-header {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .receipt-clinic-name {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        color: #333;
+        text-transform: uppercase;
+    }
+
+    .receipt-main-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0 0 5px 0;
+        color: #333;
+    }
+
+    .receipt-subtitle {
+        font-size: 14px;
+        margin: 0 0 20px 0;
+        color: #666;
+    }
+
+    .receipt-stt {
+        position: absolute;
+        top: 0;
+        right: 0;
+        text-align: right;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .receipt-stt:first-of-type {
+        top: 0;
+    }
+
+    .receipt-stt:last-of-type {
+        top: 30px;
+    }
+
+    .patient-info {
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .info-item {
+        flex: 1;
+        margin-right: 20px;
+        display: flex;
+        align-items: baseline;
+    }
+
+    .info-item:last-child {
+        margin-right: 0;
+    }
+
+    .label {
+        font-weight: bold;
+        display: inline;
+        white-space: nowrap;
+    }
+
+    .value {
+        min-width: 150px;
+        display: inline;
+        margin-left: 5px;
+        white-space: nowrap;
+    }
+
+    .full-width {
+        flex: 100%;
+    }
+
+    .receipt-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .receipt-table th,
+    .receipt-table td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .receipt-table th {
+        background-color: #f5f5f5;
+        font-weight: bold;
+    }
+
+    .receipt-table .text-start {
+        text-align: left;
+    }
+
+    .receipt-table .text-end {
+        text-align: right;
+    }
+
+    .receipt-table .fw-bold {
+        font-weight: bold;
+    }
+
+    .receipt-footer {
+        margin-top: 30px;
+    }
+
+    .payment-info {
+        margin-bottom: 5px;
+        text-align: right;
+    }
+
+    .payment-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 5px;
+        gap: 10px;
+    }
+
+    .signature-section {
+        text-align: center;
+        margin-top: -10px !important;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: 0;
+    }
+
+    .signature-date {
+        margin-bottom: 5px;
+        font-weight: normal;
+    }
+
+    .signature-title {
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .signature-instruction {
+        margin-bottom: 5px;
+        font-style: italic;
+        text-decoration: underline;
+    }
+
+    .signature-name {
+        margin-top: 5px;
+        font-weight: normal;
+    }
+
+    .print-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .print-button:hover {
+        background: #0056b3;
+    }
     </style>
 </head>
+
 <body>
     <button class="print-button no-print" onclick="window.print()">
         <i class="fas fa-print"></i> In Biên Lai
     </button>
-    
+
     <div class="receipt-container">
         <!-- Header -->
         <div class="receipt-header">
@@ -320,13 +324,13 @@ $receiptDetails = $bienLaiModel->getDetails($receiptData['id']);
                 $totalAmount = 0;
                 $totalBhyt = 0;
                 $totalPatient = 0;
-                
+
                 foreach ($receiptDetails as $detail) {
                     // Add section header if needed
                     if ($detail['loai_dich_vu'] !== $currentSection) {
                         $currentSection = $detail['loai_dich_vu'];
                         $sectionName = '';
-                        
+
                         switch ($currentSection) {
                             case 'Kham benh':
                                 $sectionName = 'Khám bệnh lâm sàng';
@@ -340,7 +344,7 @@ $receiptDetails = $bienLaiModel->getDetails($receiptData['id']);
                                 $sectionName = 'Thuốc điều trị';
                                 break;
                         }
-                        
+
                         if ($sectionName) {
                             echo '<tr>';
                             echo '<td colspan="7" class="text-start">';
@@ -349,7 +353,7 @@ $receiptDetails = $bienLaiModel->getDetails($receiptData['id']);
                             echo '</tr>';
                         }
                     }
-                    
+
                     // Add detail row
                     echo '<tr>';
                     echo '<td>' . $stt . '</td>';
@@ -360,13 +364,13 @@ $receiptDetails = $bienLaiModel->getDetails($receiptData['id']);
                     echo '<td class="text-end">' . number_format($detail['quy_bhyt']) . '</td>';
                     echo '<td class="text-end">' . number_format($detail['nguoi_benh']) . '</td>';
                     echo '</tr>';
-                    
+
                     $stt++;
                     $totalAmount += $detail['thanh_tien'];
                     $totalBhyt += $detail['quy_bhyt'];
                     $totalPatient += $detail['nguoi_benh'];
                 }
-                
+
                 // Add total row
                 echo '<tr class="fw-bold">';
                 echo '<td colspan="4" class="text-start">Tổng Cộng:</td>';
@@ -390,35 +394,39 @@ $receiptDetails = $bienLaiModel->getDetails($receiptData['id']);
                     <span class="value"><?php echo numberToWords($totalPatient); ?> đồng</span>
                 </div>
             </div>
-            
+
             <div class="signature-section">
-                <div class="signature-date">Ngày <?php echo date('d'); ?> tháng <?php echo date('m'); ?> năm <?php echo date('Y'); ?></div>
+                <div class="signature-date">Ngày <?php echo date('d'); ?> tháng <?php echo date('m'); ?> năm
+                    <?php echo date('Y'); ?></div>
                 <div class="signature-title">Người Lập Bảng Kê</div>
                 <div class="signature-instruction">(Ký, ghi rõ họ tên)</div>
-                <div class="signature-name"><?php echo htmlspecialchars($receiptData['ten_bac_si'] ?? 'Bác sĩ khám bệnh'); ?></div>
+                <div class="signature-name">
+                    <?php echo htmlspecialchars($receiptData['ten_bac_si'] ?? 'Bác sĩ khám bệnh'); ?></div>
             </div>
         </div>
     </div>
 
     <script>
-        // Auto print when page loads
-        window.onload = function() {
-            setTimeout(function() {
-                window.print();
-            }, 500);
-        };
+    // Auto print when page loads
+    window.onload = function() {
+        setTimeout(function() {
+            window.print();
+        }, 500);
+    };
     </script>
 </body>
+
 </html>
 
 <?php
 /**
  * Convert number to Vietnamese words
  */
-function numberToWords($num) {
+function numberToWords($num)
+{
     $ones = ['', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
     $tens = ['', '', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi', 'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi'];
-    
+
     if ($num === 0) return 'không';
     if ($num < 10) return $ones[$num];
     if ($num < 20) {

@@ -73,22 +73,23 @@
                         </div>
                     </div>
                     <div class="row g-2 mt-1">
-                        <div class="col-md-6">
-                            <label class="form-label">Nhóm máu</label>
-                            <select class="form-select" name="nhom_mau" id="m-blood">
-                                <option value="">--</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                            </select>
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="fas fa-id-card me-1"></i>CCCD
+                            </label>
+                            <input type="text" class="form-control" name="cccd" id="m-cccd" maxlength="12"
+                                pattern="\d{12}" placeholder="Nhập 12 số CCCD để tự động điền thông tin">
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> Nhập CCCD để tự động điền thông tin
+                            </div>
+                            <div id="m-cccd-verification-result" class="mt-2"></div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Địa chỉ</label>
+                    </div>
+                    <div class="row g-2 mt-1">
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="fas fa-map-marker-alt me-1"></i>Địa chỉ
+                            </label>
                             <input type="text" class="form-control" name="dia_chi" id="m-address"
                                 placeholder="Địa chỉ... (để trống để xóa)">
                         </div>
@@ -105,94 +106,236 @@
 </div>
 
 <script>
-function receptionReset() {
-    document.getElementById('reception-phone').value = '';
-    document.getElementById('reception-result').innerHTML = 'Chưa có dữ liệu';
-}
-
-function receptionSearchPatient() {
-    var phone = (document.getElementById('reception-phone').value || '').trim();
-    if (!phone) {
-        document.getElementById('reception-result').innerHTML =
-            '<span class="text-danger">Vui lòng nhập số điện thoại</span>';
-        return;
+    function receptionReset() {
+        document.getElementById('reception-phone').value = '';
+        document.getElementById('reception-result').innerHTML = 'Chưa có dữ liệu';
     }
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', './reception_find_patient', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            try {
-                var resp = JSON.parse(xhr.responseText);
-                if (resp && resp.success && resp.data) {
-                    var p = resp.data;
-                    var html = '' +
-                        '<div class="table-responsive">' +
-                        '<table class="table table-sm">' +
-                        '<tr><th>Mã Bảo hiểm y tế</th><td>' + (p.bao_hiem_y_te || '') + '</td></tr>' +
-                        '<tr><th>Tên</th><td>' + (p.ten || '') + '</td></tr>' +
-                        '<tr><th>Email</th><td>' + (p.email || '') + '</td></tr>' +
-                        '<tr><th>SĐT</th><td>' + (p.so_dien_thoai || '') + '</td></tr>' +
-                        '<tr><th>Ngày sinh</th><td>' + (p.ngay_sinh || '') + '</td></tr>' +
-                        '<tr><th>Giới tính</th><td>' + (p.gioi_tinh || '') + '</td></tr>' +
-                        '<tr><th>Địa chỉ</th><td>' + (p.dia_chi || '') + '</td></tr>' +
-                        '<tr><th>Nhóm máu</th><td>' + (p.nhom_mau || '') + '</td></tr>' +
-                        '</table>' +
-                        '</div>';
-                    document.getElementById('reception-result').innerHTML = html;
-                    document.getElementById('reception-actions').style.display = 'block';
-                    window.__currentPatient = p;
-                } else {
-                    document.getElementById('reception-result').innerHTML = '<span class="text-warning">' + (resp
-                        .message || 'Không tìm thấy bệnh nhân') + '</span>';
+
+    function receptionSearchPatient() {
+        var phone = (document.getElementById('reception-phone').value || '').trim();
+        if (!phone) {
+            document.getElementById('reception-result').innerHTML =
+                '<span class="text-danger">Vui lòng nhập số điện thoại</span>';
+            return;
+        }
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', './reception_find_patient', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp && resp.success && resp.data) {
+                        var p = resp.data;
+                        var html = '' +
+                            '<div class="table-responsive">' +
+                            '<table class="table table-sm">' +
+                            '<tr><th>Mã Bảo hiểm y tế</th><td>' + (p.bao_hiem_y_te || '') + '</td></tr>' +
+                            '<tr><th>Tên</th><td>' + (p.ten || '') + '</td></tr>' +
+                            '<tr><th>Email</th><td>' + (p.email || '') + '</td></tr>' +
+                            '<tr><th>SĐT</th><td>' + (p.so_dien_thoai || '') + '</td></tr>' +
+                            '<tr><th>Ngày sinh</th><td>' + (p.ngay_sinh || '') + '</td></tr>' +
+                            '<tr><th>Giới tính</th><td>' + (p.gioi_tinh || '') + '</td></tr>' +
+                            '<tr><th>Địa chỉ</th><td>' + (p.dia_chi || '') + '</td></tr>' +
+                            '<tr><th>CCCD</th><td>' + (p.cccd || '') + '</td></tr>' +
+                            '</table>' +
+                            '</div>';
+                        document.getElementById('reception-result').innerHTML = html;
+                        document.getElementById('reception-actions').style.display = 'block';
+                        window.__currentPatient = p;
+                    } else {
+                        document.getElementById('reception-result').innerHTML = '<span class="text-warning">' + (resp
+                            .message || 'Không tìm thấy bệnh nhân') + '</span>';
+                        document.getElementById('reception-actions').style.display = 'none';
+                    }
+                } catch (e) {
+                    document.getElementById('reception-result').innerHTML =
+                        '<span class="text-danger">Lỗi xử lý kết quả</span>';
                     document.getElementById('reception-actions').style.display = 'none';
                 }
-            } catch (e) {
-                document.getElementById('reception-result').innerHTML =
-                    '<span class="text-danger">Lỗi xử lý kết quả</span>';
-                document.getElementById('reception-actions').style.display = 'none';
             }
-        }
-    };
-    xhr.send('phone=' + encodeURIComponent(phone));
-}
+        };
+        xhr.send('phone=' + encodeURIComponent(phone));
+    }
 
-function openEditModal() {
-    var p = window.__currentPatient || {};
-    document.getElementById('m-patient-id').value = p.id || '';
-    document.getElementById('m-bhyt').value = p.bao_hiem_y_te || '';
-    document.getElementById('m-email').value = p.email || '';
-    document.getElementById('m-dob').value = (p.ngay_sinh || '').substring(0, 10);
-    document.getElementById('m-gender').value = p.gioi_tinh || '';
-    document.getElementById('m-blood').value = p.nhom_mau || '';
-    document.getElementById('m-address').value = p.dia_chi || '';
-    var modal = new bootstrap.Modal(document.getElementById('editModal'));
-    modal.show();
-}
+    function openEditModal() {
+        var p = window.__currentPatient || {};
+        document.getElementById('m-patient-id').value = p.id || '';
+        document.getElementById('m-bhyt').value = p.bao_hiem_y_te || '';
+        document.getElementById('m-email').value = p.email || '';
+        document.getElementById('m-dob').value = (p.ngay_sinh || '').substring(0, 10);
+        document.getElementById('m-gender').value = p.gioi_tinh || '';
+        document.getElementById('m-cccd').value = p.cccd || '';
+        document.getElementById('m-address').value = p.dia_chi || '';
+        var modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
+    }
 
-function submitEditModal() {
-    var form = document.getElementById('edit-form');
-    var data = new FormData(form);
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', './reception_complete_patient', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-            try {
-                var resp = JSON.parse(xhr.responseText);
-                if (resp && resp.success) {
-                    var modalEl = document.getElementById('editModal');
-                    var modal = bootstrap.Modal.getInstance(modalEl);
-                    if (modal) modal.hide();
-                    receptionSearchPatient();
-                } else {
-                    alert(resp.message || 'Không thể cập nhật');
+    function submitEditModal() {
+        var form = document.getElementById('edit-form');
+        var data = new FormData(form);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', './reception_complete_patient', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp && resp.success) {
+                        var modalEl = document.getElementById('editModal');
+                        var modal = bootstrap.Modal.getInstance(modalEl);
+                        if (modal) modal.hide();
+                        receptionSearchPatient();
+                    } else {
+                        alert(resp.message || 'Không thể cập nhật');
+                    }
+                } catch (e) {
+                    alert('Lỗi máy chủ');
                 }
-            } catch (e) {
-                alert('Lỗi máy chủ');
             }
+        };
+        xhr.send(new URLSearchParams(data).toString());
+    }
+
+    // CCCD verification for edit modal
+    document.addEventListener('DOMContentLoaded', function() {
+        const cccdInput = document.getElementById('m-cccd');
+
+        if (cccdInput) {
+            // Format CCCD - only numbers
+            cccdInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/\D/g, '');
+
+                // Unlock all auto-filled fields when CCCD changes
+                unlockModalCCCDFields();
+            });
+
+            // Verify CCCD on blur
+            cccdInput.addEventListener('blur', async function() {
+                const cccdValue = this.value.trim();
+
+                if (!cccdValue || cccdValue.length !== 12) {
+                    if (cccdValue && cccdValue.length !== 12) {
+                        showModalCCCDResult('warning',
+                            '<i class="fas fa-exclamation-triangle"></i> CCCD phải có đúng 12 số');
+                    }
+                    return;
+                }
+
+                showModalCCCDResult('info',
+                    '<i class="fas fa-spinner fa-spin"></i> Đang xác thực CCCD...');
+
+                const ten = document.getElementById('m-name')?.value.trim() || '';
+                const ngaySinh = document.getElementById('m-dob')?.value || '';
+
+                try {
+                    const response = await fetch('./verify_cccd', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            cccd: cccdValue,
+                            ten: ten,
+                            ngay_sinh: ngaySinh,
+                        }),
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success && result.verified) {
+                        showModalCCCDResult('success',
+                            '<i class="fas fa-check-circle"></i> ' + result.message);
+
+                        // Auto fill if available
+                        if (result.cccd_data) {
+                            if (result.cccd_data.ngay_sinh) {
+                                const dobInput = document.getElementById('m-dob');
+                                if (dobInput && !dobInput.value) {
+                                    dobInput.value = result.cccd_data.ngay_sinh;
+                                }
+                                // Lock field
+                                if (dobInput) {
+                                    dobInput.readOnly = true;
+                                    dobInput.classList.add('cccd-locked');
+                                }
+                            }
+
+                            if (result.cccd_data.gioi_tinh) {
+                                const genderSelect = document.getElementById('m-gender');
+                                if (genderSelect && !genderSelect.value) {
+                                    genderSelect.value = result.cccd_data.gioi_tinh;
+                                }
+                                // Lock field (disabled for select)
+                                if (genderSelect) {
+                                    genderSelect.disabled = true;
+                                    genderSelect.classList.add('cccd-locked');
+                                }
+                            }
+
+                            if (result.cccd_data.dia_chi) {
+                                const addressInput = document.getElementById('m-address');
+                                if (addressInput && !addressInput.value) {
+                                    addressInput.value = result.cccd_data.dia_chi;
+                                }
+                                // Lock field
+                                if (addressInput) {
+                                    addressInput.readOnly = true;
+                                    addressInput.classList.add('cccd-locked');
+                                }
+                            }
+
+                            showModalCCCDResult('success',
+                                '<i class="fas fa-check-circle"></i> Xác thực thành công! <i class="fas fa-lock ms-1"></i> Các thông tin từ CCCD đã được khóa'
+                            );
+                        }
+                    } else {
+                        let errorMsg = result.message || 'CCCD không hợp lệ';
+                        if (result.suggestion) {
+                            errorMsg += '<br><small>' + result.suggestion + '</small>';
+                        }
+                        showModalCCCDResult('danger',
+                            '<i class="fas fa-times-circle"></i> ' + errorMsg);
+                    }
+                } catch (error) {
+                    console.error('Error verifying CCCD:', error);
+                    showModalCCCDResult('danger',
+                        '<i class="fas fa-times-circle"></i> Lỗi khi xác thực CCCD. Vui lòng thử lại.'
+                    );
+                }
+            });
         }
-    };
-    xhr.send(new URLSearchParams(data).toString());
-}
+    });
+
+    function showModalCCCDResult(type, message) {
+        const resultDiv = document.getElementById('m-cccd-verification-result');
+        if (!resultDiv) return;
+
+        const alertClass = 'alert alert-' + type + ' alert-dismissible fade show';
+        resultDiv.innerHTML =
+            '<div class="' + alertClass + '" role="alert">' +
+            message +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+            '</div>';
+    }
+
+    // Function to unlock CCCD-filled fields in modal
+    function unlockModalCCCDFields() {
+        const dobInput = document.getElementById('m-dob');
+        const genderSelect = document.getElementById('m-gender');
+        const addressInput = document.getElementById('m-address');
+
+        if (dobInput) {
+            dobInput.readOnly = false;
+            dobInput.classList.remove('cccd-locked');
+        }
+        if (genderSelect) {
+            genderSelect.disabled = false;
+            genderSelect.classList.remove('cccd-locked');
+        }
+        if (addressInput) {
+            addressInput.readOnly = false;
+            addressInput.classList.remove('cccd-locked');
+        }
+    }
 </script>

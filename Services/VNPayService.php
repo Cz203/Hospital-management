@@ -54,8 +54,6 @@ class VNPayService
      */
     public function createPaymentUrl($amount, $orderInfo = '', $receiptId = null)
     {
-        date_default_timezone_set('Asia/Ho_Chi_Minh');
-
         // Expire time (from config)
         $expireMinutes = $this->config['expire_minutes'] ?? 15;
         $startTime = date("YmdHis");

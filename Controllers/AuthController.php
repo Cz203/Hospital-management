@@ -654,6 +654,26 @@ class AuthController
                         break;
 
                     case 'patient':
+                        $cccd = trim($_POST['cccd'] ?? '');
+                        
+                        // Validate CCCD nếu được nhập
+                        if (!empty($cccd)) {
+                            require_once 'Services/CCCDService.php';
+                            require_once 'config/database.php';
+                            $database = new Database();
+                            $db = $database->getConnection();
+                            $cccdService = new CCCDService($db);
+                            
+                            $verifyResult = $cccdService->verifyCCCD($cccd, $name, $_POST['ngay_sinh'] ?? null);
+                            
+                            if (!$verifyResult['success']) {
+                                $_SESSION['error'] = $verifyResult['message'];
+                                $_SESSION['form_data'] = $_POST;
+                                header("Location: ./register");
+                                exit();
+                            }
+                        }
+                        
                         $data = [
                             'ten' => $name,
                             'email' => $email,
@@ -663,7 +683,7 @@ class AuthController
                             'ngay_sinh' => $_POST['ngay_sinh'] ?? '',
                             'gioi_tinh' => $_POST['gioi_tinh'] ?? '',
                             'dia_chi' => $_POST['dia_chi'] ?? '',
-                            'nhom_mau' => $_POST['nhom_mau'] ?? ''
+                            'cccd' => $cccd
                         ];
                         $success = $patient->create($data);
                         break;

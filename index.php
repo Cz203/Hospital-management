@@ -1,6 +1,9 @@
 <?php
 session_start();
 
+// Set timezone Việt Nam
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
 // Load Composer autoloader để sử dụng Vonage SDK
 require_once 'vendor/autoload.php';
 
@@ -68,7 +71,38 @@ switch ($action) {
         $auth->register(); // Đăng ký tài khoản mới
         break;
 
-    // ===== SMS/OTP ROUTES =====
+    case 'verify_cccd':
+        // API xác thực CCCD giả lập
+        header('Content-Type: application/json');
+        require_once 'Services/CCCDService.php';
+        require_once 'config/database.php';
+
+        $cccd = trim($_POST['cccd'] ?? '');
+        $ten = trim($_POST['ten'] ?? '');
+        $ngaySinh = trim($_POST['ngay_sinh'] ?? '');
+
+        if (empty($cccd)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Vui lòng nhập số CCCD'
+            ]);
+            exit();
+        }
+
+        $database = new Database();
+        $db = $database->getConnection();
+        $cccdService = new CCCDService($db);
+
+        $result = $cccdService->verifyCCCD(
+            $cccd,
+            !empty($ten) ? $ten : null,
+            !empty($ngaySinh) ? $ngaySinh : null
+        );
+
+        echo json_encode($result);
+        exit();
+
+        // ===== SMS/OTP ROUTES =====
     case 'send_otp':
         require_once 'Controllers/SMSController.php';
         $smsController = new SMSController();
@@ -157,6 +191,28 @@ switch ($action) {
         break;
     case 'specialty_delete':
         $adminController->specialtyDelete();
+        break;
+
+    // ===== ADMIN SCHEDULE MANAGEMENT =====
+    case 'admin_add_schedule':
+        $adminController->adminAddSchedule();
+        break;
+    case 'admin_update_schedule':
+        $adminController->adminUpdateSchedule();
+        break;
+    case 'admin_delete_schedule':
+        $adminController->adminDeleteSchedule();
+        break;
+    case 'admin_get_schedule_info':
+        $adminController->adminGetScheduleInfo();
+        break;
+
+    // ===== ADMIN APPOINTMENT MANAGEMENT =====
+    case 'admin_appointments':
+        $adminController->appointments();
+        break;
+    case 'admin_cancel_appointment':
+        $adminController->cancelAppointment();
         break;
 
     // ===== DASHBOARD ROUTES =====
@@ -252,6 +308,10 @@ switch ($action) {
     // ===== DOCTOR SCHEDULE MANAGEMENT ROUTES =====
     case 'doctor_schedule_management':
         $doctorController->manageSchedule(); // Quản lý lịch làm việc
+        break;
+
+    case 'doctor_today_appointments':
+        $doctorController->todayAppointments(); // Lịch hẹn hôm nay
         break;
 
     case 'doctor_appointment_management':
@@ -518,21 +578,21 @@ switch ($action) {
     case 'get_lab_dashboard_stats':
         $doctorController->getLabDashboardStats(); // Lấy thống kê dashboard xét nghiệm
         break;
-                case 'get_xetnghiem_result':
-                    $doctorController->getXetnghiemResult(); // Lấy kết quả xét nghiệm
-                    break;
-                case 'get_xetnghiem_detail':
-                    $doctorController->getXetnghiemDetail(); // Lấy chi tiết yêu cầu xét nghiệm
-                    break;
-                case 'get_test_suggestions':
-                    $doctorController->getTestSuggestions(); // Lấy gợi ý xét nghiệm
-                    break;
-                case 'save_xetnghiem_result':
-                    $doctorController->saveXetnghiemResult(); // Lưu kết quả xét nghiệm
-                    break;
-                case 'print_xetnghiem_result':
-                    $doctorController->printXetnghiemResult(); // In kết quả xét nghiệm
-                    break;
+    case 'get_xetnghiem_result':
+        $doctorController->getXetnghiemResult(); // Lấy kết quả xét nghiệm
+        break;
+    case 'get_xetnghiem_detail':
+        $doctorController->getXetnghiemDetail(); // Lấy chi tiết yêu cầu xét nghiệm
+        break;
+    case 'get_test_suggestions':
+        $doctorController->getTestSuggestions(); // Lấy gợi ý xét nghiệm
+        break;
+    case 'save_xetnghiem_result':
+        $doctorController->saveXetnghiemResult(); // Lưu kết quả xét nghiệm
+        break;
+    case 'print_xetnghiem_result':
+        $doctorController->printXetnghiemResult(); // In kết quả xét nghiệm
+        break;
     case 'complete_xetnghiem_request':
         $doctorController->completeXetnghiemRequest(); // Hoàn thành yêu cầu xét nghiệm
         break;
@@ -619,26 +679,26 @@ switch ($action) {
         $receptionController->getDoctorSchedules(); // API lấy lịch làm việc (lễ tân)
         break;
 
-        case 'get_doctor_info':
-            $doctorController->getDoctorInfo(); // Lấy thông tin bác sĩ hiện tại
-            break;
-        case 'search_medications':
-            $doctorController->searchMedications(); // Tìm kiếm thuốc
-            break;
-            
-        case 'search_medications_public':
-            // API công khai không cần authentication
-            require_once 'Controllers/DoctorController.php';
-            $controller = new DoctorController();
-            $controller->searchMedicationsPublic();
-            break;
+    case 'get_doctor_info':
+        $doctorController->getDoctorInfo(); // Lấy thông tin bác sĩ hiện tại
+        break;
+    case 'search_medications':
+        $doctorController->searchMedications(); // Tìm kiếm thuốc
+        break;
 
-        case 'get_prescription_by_exam':
-            header('Content-Type: application/json');
-            $prescriptionController->getPrescriptionByExamId();
-            exit();
+    case 'search_medications_public':
+        // API công khai không cần authentication
+        require_once 'Controllers/DoctorController.php';
+        $controller = new DoctorController();
+        $controller->searchMedicationsPublic();
+        break;
 
-        
+    case 'get_prescription_by_exam':
+        header('Content-Type: application/json');
+        $prescriptionController->getPrescriptionByExamId();
+        exit();
+
+
 
     case 'save_prescription':
         header('Content-Type: application/json');

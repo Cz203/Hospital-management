@@ -1,9 +1,4 @@
-# .gitignore
 .env
-
-# Dependencies (auto-generated folders)
 node_modules/
 vendor/
 
-# Sensitive credentials
-google_credentials.json

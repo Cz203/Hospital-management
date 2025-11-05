@@ -32,7 +32,7 @@ class PatientController
         $dateOfBirth = trim($_POST['date_of_birth'] ?? '');
         $gender = trim($_POST['gioi_tinh'] ?? '');
         $address = trim($_POST['address'] ?? '');
-        $bloodGroup = trim($_POST['nhom_mau'] ?? '');
+        $cccd = trim($_POST['cccd'] ?? '');
 
         // Lưu lại form data để hiển thị lại khi có lỗi
         $_SESSION['form_data'] = [
@@ -41,7 +41,7 @@ class PatientController
             'date_of_birth' => $dateOfBirth,
             'gioi_tinh' => $gender,
             'address' => $address,
-            'nhom_mau' => $bloodGroup,
+            'cccd' => $cccd,
         ];
 
         // Validate cơ bản
@@ -104,7 +104,7 @@ class PatientController
                 'ngay_sinh' => $dateOfBirth,
                 'gioi_tinh' => $gender,
                 'dia_chi' => $address,
-                'nhom_mau' => $bloodGroup,
+                'cccd' => $cccd,
             ];
 
             $ok = $this->patientModel->updateProfileWithEmail($patientId, $updateData);
@@ -199,5 +199,3 @@ class PatientController
         exit();
     }
 }
-
-
