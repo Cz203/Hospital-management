@@ -26,9 +26,19 @@ function togglePasswordVisibility(inputId, iconId) {
 
 // Multi-step form functionality
 let currentStep = 1;
-const totalSteps = 2;
+const totalSteps = 3;
+
+// Load saved step from sessionStorage on page load
+function loadSavedStep() {
+  // Removed: Always start from step 1 on page load
+  currentStep = 1;
+  showStep(currentStep);
+}
 
 function showStep(step) {
+  // Removed: Don't save step to sessionStorage anymore
+  currentStep = step;
+
   // Hide all steps
   document
     .querySelectorAll(".form-step")
@@ -51,29 +61,50 @@ function showStep(step) {
   });
 }
 
-// Next step button
-document.getElementById("nextStepBtn").addEventListener("click", function () {
-  if (currentStep < totalSteps) {
-    currentStep++;
+// Step 1 Next button
+document.getElementById("step1NextBtn").addEventListener("click", function () {
+  if (currentStep === 1) {
+    currentStep = 2;
     showStep(currentStep);
   }
 });
 
-// Previous step button
-document.getElementById("prevStepBtn").addEventListener("click", function () {
-  if (currentStep > 1) {
-    currentStep--;
+// Step 2 Previous button
+document.getElementById("step2PrevBtn").addEventListener("click", function () {
+  currentStep = 1;
+  showStep(currentStep);
+});
+
+// Step 2 Next button
+document.getElementById("step2NextBtn").addEventListener("click", function () {
+  if (currentStep === 2) {
+    currentStep = 3;
     showStep(currentStep);
   }
 });
 
-// Enable next step button when OTP is verified and password is confirmed
+// Step 3 Previous button
+document.getElementById("step3PrevBtn").addEventListener("click", function () {
+  currentStep = 2;
+  showStep(currentStep);
+});
+
+// Enable step 1 next button when OTP is verified
 function checkStep1Completion() {
-  // Check if OTP is verified
-  const otpVerified =
-    document.getElementById("verifyOtpBtn").disabled &&
-    document.getElementById("verifyOtpBtn").innerHTML.includes("Đã xác thực");
+  // Check if OTP is verified (use global otpVerified variable)
+  const step1NextBtn = document.getElementById("step1NextBtn");
+  if (!step1NextBtn) return;
 
+  step1NextBtn.disabled = !otpVerified;
+  if (otpVerified) {
+    step1NextBtn.className = "btn btn-primary";
+  } else {
+    step1NextBtn.className = "btn btn-secondary";
+  }
+}
+
+// Enable step 2 next button when password is valid and confirmed
+function checkStep2Completion() {
   // Check if password meets all requirements
   const password = document.getElementById("mat_khau").value;
   const hasMinLength = password.length >= 6;
@@ -86,31 +117,28 @@ function checkStep1Completion() {
   const passwordMatch =
     password && confirmPassword && password === confirmPassword;
 
-  // Enable/disable next step button
-  const nextStepBtn = document.getElementById("nextStepBtn");
-  const isComplete = otpVerified && passwordValid && passwordMatch;
+  // Enable/disable step 2 next button
+  const step2NextBtn = document.getElementById("step2NextBtn");
+  const isComplete = passwordValid && passwordMatch;
 
-  nextStepBtn.disabled = !isComplete;
+  step2NextBtn.disabled = !isComplete;
   if (isComplete) {
-    nextStepBtn.className = "btn btn-primary";
+    step2NextBtn.className = "btn btn-primary";
   } else {
-    nextStepBtn.className = "btn btn-secondary";
+    step2NextBtn.className = "btn btn-secondary";
   }
 }
 
-// Submit button for step 2
+// Submit button for step 3
 document.addEventListener("DOMContentLoaded", function () {
   const submitBtn = document.getElementById("submitBtn");
   if (submitBtn) {
     submitBtn.addEventListener("click", function () {
-      // Simple validation for step 2
+      // Simple validation for step 3
       const requiredFields = [
         "ten", // Changed from "ho_ten" to "ten" to match the actual field ID
-        "ngay_sinh",
-        "gioi_tinh",
-        "so_dien_thoai",
         "email",
-        "dia_chi",
+        "cccd",
       ];
       let isValid = true;
       const errors = [];
@@ -129,11 +157,10 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       // Additional validations
-      const isDateValid = validateDateOfBirth();
       const isNameValid = validateName();
       const isEmailValid = validateEmail();
 
-      if (!isDateValid || !isNameValid || !isEmailValid) {
+      if (!isNameValid || !isEmailValid) {
         isValid = false;
       }
 
@@ -150,10 +177,10 @@ document.addEventListener("DOMContentLoaded", function () {
           errors.map((error) => `<li>${error}</li>`).join("") +
           "</ul>";
 
-        // Insert error message at the top of step 2
-        const step2 = document.getElementById("step2");
-        const firstChild = step2.firstChild;
-        step2.insertBefore(errorDiv, firstChild);
+        // Insert error message at the top of step 3
+        const step3 = document.getElementById("step3");
+        const firstChild = step3.firstChild;
+        step3.insertBefore(errorDiv, firstChild);
 
         // Prevent form submission
         return false;
@@ -412,6 +439,13 @@ let otpVerified = false;
 let otpTimer = null;
 let otpExpiryTime = null;
 
+// Restore OTP verification status from sessionStorage on page load
+function restoreOtpStatus() {
+  // Removed: Don't restore OTP status anymore, always start fresh
+  otpVerified = false;
+  phoneNumber = "";
+}
+
 // Gửi OTP
 document.addEventListener("DOMContentLoaded", function () {
   const sendOtpBtn = document.getElementById("sendOtpBtn");
@@ -590,6 +624,9 @@ document.addEventListener("DOMContentLoaded", function () {
             statusDiv.innerHTML =
               '<i class="fas fa-check-circle me-2"></i>' + data.message;
             otpVerified = true;
+
+            // Removed: Don't save to sessionStorage anymore
+
             this.innerHTML = '<i class="fas fa-check me-1"></i>Đã xác thực';
             this.disabled = true;
 
@@ -603,6 +640,11 @@ document.addEventListener("DOMContentLoaded", function () {
             // Update OTP status for password validation
             if (typeof updateOtpStatus === "function") {
               updateOtpStatus(true);
+            }
+
+            // Enable step 1 next button
+            if (typeof checkStep1Completion === "function") {
+              checkStep1Completion();
             }
 
             // Enable submit button
@@ -743,9 +785,9 @@ function validatePassword() {
     validateConfirmPassword();
   }
 
-  // Check step completion for next button
-  if (typeof checkStep1Completion === "function") {
-    checkStep1Completion();
+  // Check step 2 completion for next button
+  if (typeof checkStep2Completion === "function") {
+    checkStep2Completion();
   }
 
   return isValid;
@@ -794,9 +836,9 @@ function validateConfirmPassword() {
     confirmPasswordInput.classList.remove("is-invalid");
   }
 
-  // Check step completion for next button
-  if (typeof checkStep1Completion === "function") {
-    checkStep1Completion();
+  // Check step 2 completion for next button
+  if (typeof checkStep2Completion === "function") {
+    checkStep2Completion();
   }
 
   return isValid;
@@ -953,6 +995,10 @@ function validateEmail() {
 
 // Initialize additional validations when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
+  // Load saved step and OTP status from sessionStorage
+  loadSavedStep();
+  restoreOtpStatus();
+
   // Auto-capitalize name
   autoCapitalizeName();
 
@@ -991,6 +1037,214 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       // Continue with existing validation logic...
+    });
+  }
+
+  // ========================================
+  // CCCD VALIDATION & VERIFICATION
+  // ========================================
+
+  const cccdInput = document.getElementById("cccd");
+  const cccdResultDiv = document.getElementById("cccd-verification-result");
+  let cccdVerified = false;
+
+  if (cccdInput) {
+    // Format CCCD input (chỉ cho phép số)
+    cccdInput.addEventListener("input", function (e) {
+      this.value = this.value.replace(/\D/g, ""); // Chỉ giữ lại số
+
+      // Clear verification result khi user thay đổi
+      cccdVerified = false;
+      if (cccdResultDiv) {
+        cccdResultDiv.innerHTML = "";
+      }
+
+      // Unlock all auto-filled fields when CCCD changes
+      unlockCCCDFields();
+    });
+
+    // Verify CCCD khi blur (rời khỏi input)
+    cccdInput.addEventListener("blur", async function () {
+      const cccdValue = this.value.trim();
+
+      if (cccdValue.length === 0) {
+        cccdResultDiv.innerHTML = "";
+        return;
+      }
+
+      if (cccdValue.length !== 12) {
+        showCCCDResult("error", "CCCD phải có đúng 12 số");
+        return;
+      }
+
+      // Show loading
+      showCCCDResult(
+        "info",
+        '<i class="fas fa-spinner fa-spin"></i> Đang xác thực CCCD...'
+      );
+
+      // Get other form data for verification
+      const ten = document.getElementById("name")?.value.trim() || "";
+      const ngaySinh = document.getElementById("ngay_sinh")?.value || "";
+
+      try {
+        const response = await fetch("./verify_cccd", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({
+            cccd: cccdValue,
+            ten: ten,
+            ngay_sinh: ngaySinh,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.verified) {
+          cccdVerified = true;
+          showCCCDResult(
+            "success",
+            '<i class="fas fa-check-circle"></i> ' + result.message
+          );
+
+          // Auto fill data if available
+          if (result.cccd_data) {
+            // Fill Họ tên
+            if (result.cccd_data.ten) {
+              const nameInput = document.getElementById("name");
+              if (nameInput && !nameInput.value) {
+                nameInput.value = result.cccd_data.ten;
+              }
+              // Lock field
+              if (nameInput) {
+                nameInput.readOnly = true;
+                nameInput.classList.add("cccd-locked");
+              }
+            }
+
+            // Fill Ngày sinh
+            if (result.cccd_data.ngay_sinh) {
+              const dobInput = document.getElementById("ngay_sinh");
+              if (dobInput && !dobInput.value) {
+                dobInput.value = result.cccd_data.ngay_sinh;
+              }
+              // Lock field
+              if (dobInput) {
+                dobInput.readOnly = true;
+                dobInput.classList.add("cccd-locked");
+              }
+            }
+
+            // Fill Giới tính
+            if (result.cccd_data.gioi_tinh) {
+              const genderInput = document.getElementById("gioi_tinh");
+              if (genderInput && !genderInput.value) {
+                genderInput.value = result.cccd_data.gioi_tinh;
+              }
+              // Lock field (disabled for select)
+              if (genderInput) {
+                genderInput.disabled = true;
+                genderInput.classList.add("cccd-locked");
+              }
+            }
+
+            // Fill Địa chỉ
+            if (result.cccd_data.dia_chi) {
+              const addressInput = document.getElementById("dia_chi");
+              if (addressInput && !addressInput.value) {
+                addressInput.value = result.cccd_data.dia_chi;
+              }
+              // Lock field
+              if (addressInput) {
+                addressInput.readOnly = true;
+                addressInput.classList.add("cccd-locked");
+              }
+            }
+
+            // Show success message with filled info
+            showCCCDResult(
+              "success",
+              '<i class="fas fa-check-circle"></i> Xác thực thành công!'
+            );
+          }
+        } else {
+          cccdVerified = false;
+          let errorMsg = result.message || "CCCD không hợp lệ";
+          if (result.suggestion) {
+            errorMsg += "<br><small>" + result.suggestion + "</small>";
+          }
+          showCCCDResult(
+            "error",
+            '<i class="fas fa-times-circle"></i> ' + errorMsg
+          );
+        }
+      } catch (error) {
+        cccdVerified = false;
+        showCCCDResult(
+          "error",
+          '<i class="fas fa-exclamation-triangle"></i> Lỗi kết nối. Vui lòng thử lại!'
+        );
+      }
+    });
+  }
+
+  function showCCCDResult(type, message) {
+    if (!cccdResultDiv) return;
+
+    let className = "";
+    switch (type) {
+      case "success":
+        className = "alert alert-success";
+        break;
+      case "error":
+        className = "alert alert-danger";
+        break;
+      case "info":
+        className = "alert alert-info";
+        break;
+    }
+
+    cccdResultDiv.innerHTML = `<div class="${className} py-2 px-3 mb-0">${message}</div>`;
+  }
+
+  // Function to unlock CCCD-filled fields
+  function unlockCCCDFields() {
+    const nameInput = document.getElementById("name");
+    const dobInput = document.getElementById("ngay_sinh");
+    const genderInput = document.getElementById("gioi_tinh");
+    const addressInput = document.getElementById("dia_chi");
+
+    if (nameInput) {
+      nameInput.readOnly = false;
+      nameInput.classList.remove("cccd-locked");
+    }
+    if (dobInput) {
+      dobInput.readOnly = false;
+      dobInput.classList.remove("cccd-locked");
+    }
+    if (genderInput) {
+      genderInput.disabled = false;
+      genderInput.classList.remove("cccd-locked");
+    }
+    if (addressInput) {
+      addressInput.readOnly = false;
+      addressInput.classList.remove("cccd-locked");
+    }
+  }
+
+  // Validate CCCD before form submit
+  const registerForm = document.getElementById("registerForm");
+  if (registerForm) {
+    registerForm.addEventListener("submit", function (e) {
+      const cccdValue = cccdInput?.value.trim();
+
+      if (cccdValue && !cccdVerified) {
+        e.preventDefault();
+        alert("Vui lòng chờ xác thực CCCD hoàn tất!");
+        return false;
+      }
     });
   }
 });

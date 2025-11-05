@@ -59,13 +59,15 @@ class Patient extends User
         // Sinh mã bệnh nhân tự động
         $ma_benh_nhan = 'BN' . date('ymd') . rand(10, 99);
         $query = "INSERT INTO " . $this->table_name . " 
-                  (ma_benh_nhan, ten, email, mat_khau, so_dien_thoai, phone_verified, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, ngay_tao) 
-                  VALUES (:ma_benh_nhan, :ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, :ngay_sinh, :gioi_tinh, :dia_chi, :nhom_mau, NOW())";
+                  (ma_benh_nhan, ten, email, mat_khau, so_dien_thoai, phone_verified, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao) 
+                  VALUES (:ma_benh_nhan, :ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, :ngay_sinh, :gioi_tinh, :dia_chi, :cccd, NOW())";
 
         $stmt = $this->conn->prepare($query);
 
         $hashedPassword = $this->hashPassword($data['mat_khau']);
         $phone_verified = $data['phone_verified'] ?? 0;
+        $cccd = $data['cccd'] ?? null;
+
         $stmt->bindParam(":ma_benh_nhan", $ma_benh_nhan);
         $stmt->bindParam(":ten", $data['ten']);
         $stmt->bindParam(":email", $data['email']);
@@ -75,14 +77,14 @@ class Patient extends User
         $stmt->bindParam(":ngay_sinh", $data['ngay_sinh']);
         $stmt->bindParam(":gioi_tinh", $data['gioi_tinh']);
         $stmt->bindParam(":dia_chi", $data['dia_chi']);
-        $stmt->bindParam(":nhom_mau", $data['nhom_mau']);
+        $stmt->bindParam(":cccd", $cccd);
 
         return $stmt->execute();
     }
 
     public function getAll()
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, ngay_tao FROM " . $this->table_name;
+        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -90,7 +92,7 @@ class Patient extends User
 
     public function getById($id)
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, mat_khau, ngay_tao, ngay_cap_nhat, bao_hiem_y_te, bao_hiem_y_te_id FROM " . $this->table_name . " WHERE id = :id";
+        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao, ngay_cap_nhat, bao_hiem_y_te, bao_hiem_y_te_id FROM " . $this->table_name . " WHERE id = :id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":id", $id);
         $stmt->execute();
@@ -122,7 +124,7 @@ class Patient extends User
         $stmt->bindParam(":ngay_sinh", $data['ngay_sinh']);
         $stmt->bindParam(":gioi_tinh", $data['gioi_tinh']);
         $stmt->bindParam(":dia_chi", $data['dia_chi']);
-        $stmt->bindParam(":nhom_mau", $data['nhom_mau']);
+        $stmt->bindParam(":cccd", $data['cccd']);
 
         return $stmt->execute();
     }
@@ -143,7 +145,7 @@ class Patient extends User
         $stmt->bindParam(":ngay_sinh", $data['ngay_sinh']);
         $stmt->bindParam(":gioi_tinh", $data['gioi_tinh']);
         $stmt->bindParam(":dia_chi", $data['dia_chi']);
-        $stmt->bindParam(":nhom_mau", $data['nhom_mau']);
+        $stmt->bindParam(":cccd", $data['cccd']);
 
         return $stmt->execute();
     }
@@ -159,7 +161,7 @@ class Patient extends User
 
     public function getByPhone($phone)
     {
-        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, nhom_mau, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE so_dien_thoai = :phone LIMIT 1";
+        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE so_dien_thoai = :phone LIMIT 1";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":phone", $phone);
         $stmt->execute();
@@ -188,7 +190,7 @@ class Patient extends User
         $current = $this->getById($patientId);
         if (!$current) return false;
 
-        $allowed = ['email', 'ngay_sinh', 'gioi_tinh', 'dia_chi', 'nhom_mau', 'bao_hiem_y_te', 'bao_hiem_y_te_id'];
+        $allowed = ['email', 'ngay_sinh', 'gioi_tinh', 'dia_chi', 'cccd', 'bao_hiem_y_te', 'bao_hiem_y_te_id'];
         $updates = [];
         $params = [':id' => $patientId];
 
@@ -222,7 +224,7 @@ class Patient extends User
     {
         if ($patientId <= 0) return false;
 
-        $allowed = ['email', 'ngay_sinh', 'gioi_tinh', 'dia_chi', 'nhom_mau', 'bao_hiem_y_te'];
+        $allowed = ['email', 'ngay_sinh', 'gioi_tinh', 'dia_chi', 'cccd', 'bao_hiem_y_te'];
         $updates = [];
         $params = [':id' => $patientId];
 

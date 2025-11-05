@@ -241,8 +241,8 @@ if (empty($appointments)) {
                                                 ' . ($appointment['gioi_tinh'] ?? 'N/A') . '
                                             </div>
                                             <div class="col-6">
-                                                <i class="fas fa-tint me-1"></i>
-                                                ' . ($appointment['nhom_mau'] ?? 'N/A') . '
+                                                <i class="fas fa-id-card me-1"></i>
+                                                CCCD: ' . ($appointment['cccd'] ?? 'N/A') . '
                                             </div>
                                         </div>
                                     </div>';

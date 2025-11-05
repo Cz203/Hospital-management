@@ -553,4 +553,314 @@ class AdminController
             'total_revenue' => 50000000
         ];
     }
+
+    // ========== QUẢN LÝ LỊCH LÀM VIỆC BÁC SĨ (ADMIN) ==========
+
+    /**
+     * Admin thêm lịch làm việc cho bác sĩ
+     */
+    public function adminAddSchedule()
+    {
+        $this->auth->requireAuth('admin');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        // Nhận JSON data
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $doctorId = (int)($input['doctor_id'] ?? 0);
+        $thuTrongTuan = trim($input['thu_trong_tuan'] ?? '');
+        $gioBatDau = trim($input['gio_bat_dau'] ?? '');
+        $gioKetThuc = trim($input['gio_ket_thuc'] ?? '');
+        $loaiCa = trim($input['loai_ca'] ?? '');
+        $ghiChu = trim($input['ghi_chu'] ?? '');
+
+        // Validation
+        if ($doctorId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng chọn bác sĩ!']);
+            exit();
+        }
+
+        if (empty($thuTrongTuan) || empty($gioBatDau) || empty($gioKetThuc) || empty($loaiCa)) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc!']);
+            exit();
+        }
+
+        // Kiểm tra thời gian hợp lệ
+        if (strtotime($gioBatDau) >= strtotime($gioKetThuc)) {
+            echo json_encode(['success' => false, 'message' => 'Giờ kết thúc phải sau giờ bắt đầu!']);
+            exit();
+        }
+
+        // Kiểm tra bác sĩ có tồn tại không
+        $doctor = $this->doctorModel->getById($doctorId);
+        if (!$doctor) {
+            echo json_encode(['success' => false, 'message' => 'Bác sĩ không tồn tại!']);
+            exit();
+        }
+
+        // Kiểm tra xung đột lịch
+        if ($this->doctorModel->checkScheduleConflict($doctorId, $thuTrongTuan, $gioBatDau, $gioKetThuc)) {
+            echo json_encode(['success' => false, 'message' => 'Lịch làm việc này bị xung đột với lịch hiện có!']);
+            exit();
+        }
+
+        // Thêm lịch làm việc
+        $data = [
+            'thu_trong_tuan' => $thuTrongTuan,
+            'gio_bat_dau' => $gioBatDau,
+            'gio_ket_thuc' => $gioKetThuc,
+            'loai_ca' => $loaiCa,
+            'ghi_chu' => $ghiChu,
+            'trang_thai' => 'active'
+        ];
+
+        $newId = $this->doctorModel->addSchedule($doctorId, $data);
+        if ($newId) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Thêm lịch làm việc thành công!',
+                'schedule_id' => $newId
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra khi thêm lịch làm việc!']);
+        }
+        exit();
+    }
+
+    /**
+     * Admin cập nhật lịch làm việc của bác sĩ
+     */
+    public function adminUpdateSchedule()
+    {
+        $this->auth->requireAuth('admin');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        // Nhận JSON data
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $scheduleId = (int)($input['schedule_id'] ?? 0);
+        $doctorId = (int)($input['doctor_id'] ?? 0);
+        $thuTrongTuan = trim($input['thu_trong_tuan'] ?? '');
+        $gioBatDau = trim($input['gio_bat_dau'] ?? '');
+        $gioKetThuc = trim($input['gio_ket_thuc'] ?? '');
+        $loaiCa = trim($input['loai_ca'] ?? '');
+        $ghiChu = trim($input['ghi_chu'] ?? '');
+        $trangThai = trim($input['trang_thai'] ?? 'active');
+
+        // Validation
+        if ($scheduleId <= 0 || $doctorId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thông tin lịch không hợp lệ!']);
+            exit();
+        }
+
+        if (empty($thuTrongTuan) || empty($gioBatDau) || empty($gioKetThuc) || empty($loaiCa)) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc!']);
+            exit();
+        }
+
+        // Kiểm tra thời gian hợp lệ
+        if (strtotime($gioBatDau) >= strtotime($gioKetThuc)) {
+            echo json_encode(['success' => false, 'message' => 'Giờ kết thúc phải sau giờ bắt đầu!']);
+            exit();
+        }
+
+        // Kiểm tra xung đột lịch (loại trừ lịch hiện tại)
+        if ($this->doctorModel->checkScheduleConflict($doctorId, $thuTrongTuan, $gioBatDau, $gioKetThuc, $scheduleId)) {
+            echo json_encode(['success' => false, 'message' => 'Lịch làm việc này bị xung đột với lịch khác!']);
+            exit();
+        }
+
+        // Cập nhật lịch làm việc
+        $data = [
+            'thu_trong_tuan' => $thuTrongTuan,
+            'gio_bat_dau' => $gioBatDau,
+            'gio_ket_thuc' => $gioKetThuc,
+            'loai_ca' => $loaiCa,
+            'ghi_chu' => $ghiChu,
+            'trang_thai' => $trangThai
+        ];
+
+        $success = $this->doctorModel->updateSchedule($scheduleId, $doctorId, $data);
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Cập nhật lịch làm việc thành công!']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra khi cập nhật lịch làm việc!']);
+        }
+        exit();
+    }
+
+    /**
+     * Admin xóa lịch làm việc của bác sĩ
+     */
+    public function adminDeleteSchedule()
+    {
+        $this->auth->requireAuth('admin');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        // Nhận JSON data
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $scheduleId = (int)($input['schedule_id'] ?? 0);
+        $doctorId = (int)($input['doctor_id'] ?? 0);
+
+        // Validation
+        if ($scheduleId <= 0 || $doctorId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thông tin lịch không hợp lệ!']);
+            exit();
+        }
+
+        // Xóa lịch làm việc
+        $success = $this->doctorModel->deleteSchedule($scheduleId, $doctorId);
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Xóa lịch làm việc thành công!']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra khi xóa lịch làm việc!']);
+        }
+        exit();
+    }
+
+    /**
+     * Admin lấy thông tin chi tiết lịch làm việc
+     */
+    public function adminGetScheduleInfo()
+    {
+        $this->auth->requireAuth('admin');
+
+        $scheduleId = (int)($_GET['schedule_id'] ?? 0);
+        $doctorId = (int)($_GET['doctor_id'] ?? 0);
+
+        if ($scheduleId <= 0 || $doctorId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thông tin không hợp lệ!']);
+            exit();
+        }
+
+        $schedule = $this->doctorModel->getScheduleById($scheduleId, $doctorId);
+        if ($schedule) {
+            echo json_encode(['success' => true, 'data' => $schedule]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy lịch làm việc!']);
+        }
+        exit();
+    }
+
+    // ========== QUẢN LÝ LỊCH HẸN (ADMIN) ==========
+
+    /**
+     * Hiển thị trang quản lý lịch hẹn
+     */
+    public function appointments()
+    {
+        $this->auth->requireAuth('admin');
+
+        // Lấy filters từ query string
+        $filters = [];
+        $filters['trang_thai'] = $_GET['trang_thai'] ?? '';
+        $filters['loai_lich'] = $_GET['loai_lich'] ?? '';
+        $filters['ngay_hen'] = $_GET['ngay_hen'] ?? '';
+        $filters['bac_si_id'] = $_GET['bac_si_id'] ?? '';
+        $filters['search'] = $_GET['search'] ?? '';
+
+        // Phân trang
+        $perPage = 20;
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $filters['limit'] = $perPage;
+        $filters['offset'] = ($page - 1) * $perPage;
+
+        // Lấy dữ liệu
+        require_once 'Models/Appointment.php';
+        $appointmentModel = new Appointment();
+        $appointments = $appointmentModel->getAll($filters);
+        $total = $appointmentModel->countAll($filters);
+        $totalPages = ceil($total / $perPage);
+
+        // Lấy danh sách bác sĩ cho filter
+        $doctors = $this->doctorModel->getAll();
+
+        // Thống kê
+        $stats = $this->getAppointmentStats();
+
+        $page_title = 'Quản lý lịch hẹn';
+
+        // Start output buffering
+        ob_start();
+        include 'Views/admin/appointments.php';
+        $content = ob_get_clean();
+
+        // Render layout
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * Hủy lịch hẹn (Admin)
+     */
+    public function cancelAppointment()
+    {
+        $this->auth->requireAuth('admin');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $appointmentId = (int)($input['appointment_id'] ?? 0);
+        $reason = trim($input['reason'] ?? 'Admin hủy lịch hẹn');
+
+        if ($appointmentId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'ID lịch hẹn không hợp lệ!']);
+            exit();
+        }
+
+        require_once 'Models/Appointment.php';
+        $appointmentModel = new Appointment();
+
+        $success = $appointmentModel->updateStatus($appointmentId, 'hủy', $reason);
+
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Đã hủy lịch hẹn thành công!']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra khi hủy lịch hẹn!']);
+        }
+        exit();
+    }
+
+    /**
+     * Lấy thống kê lịch hẹn
+     */
+    private function getAppointmentStats()
+    {
+        require_once 'Models/Appointment.php';
+        $appointmentModel = new Appointment();
+
+        $today = date('Y-m-d');
+        $thisMonth = date('Y-m');
+
+        $stats = [
+            'total' => $appointmentModel->countAll([]),
+            'today' => $appointmentModel->countAll(['ngay_hen' => $today]),
+            'pending' => $appointmentModel->countAll(['trang_thai' => 'Chờ xác nhận']),
+            'confirmed' => $appointmentModel->countAll(['trang_thai' => 'Đã xác nhận']),
+            'completed' => $appointmentModel->countAll(['trang_thai' => 'Hoàn thành']),
+            'cancelled' => $appointmentModel->countAll(['trang_thai' => 'hủy    '])
+        ];
+
+        return $stats;
+    }
 }
