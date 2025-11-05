@@ -15,14 +15,14 @@ class ReceiptData
     public function getLabRequests($examId)
     {
         try {
-            // Lấy tất cả yêu cầu xét nghiệm hoàn thành
+            // Lấy tất cả yêu cầu xét nghiệm đã yêu cầu hoặc hoàn thành (để kê vào biên lai)
             $sql = "SELECT 
                         pxl.id,
                         pxl.yeu_cau,
                         pxl.trang_thai
                     FROM phieu_yeu_cau_xet_nghiem pxl
                     WHERE pxl.id_phieu_kham_benh = :exam_id
-                    AND pxl.trang_thai = 'Hoàn thành'";
+                    AND pxl.trang_thai IN ('Đã yêu cầu', 'Hoàn thành')";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute([':exam_id' => $examId]);
@@ -69,14 +69,14 @@ class ReceiptData
     {
         try {
             
-            // Lấy tất cả yêu cầu siêu âm hoàn thành
+            // Lấy tất cả yêu cầu siêu âm đã yêu cầu hoặc hoàn thành (để kê vào biên lai)
             $sql = "SELECT 
                         pysa.id,
                         pysa.yeu_cau,
                         pysa.trang_thai
                     FROM phieu_yeu_cau_sieu_am pysa
                     WHERE pysa.id_phieu_kham_benh = :exam_id
-                    AND pysa.trang_thai = 'Hoàn thành'";
+                    AND pysa.trang_thai IN ('Đã yêu cầu', 'Hoàn thành')";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute([':exam_id' => $examId]);
@@ -122,14 +122,14 @@ class ReceiptData
     public function getXrayRequests($examId)
     {
         try {
-            // Lấy tất cả yêu cầu X-Quang hoàn thành
+            // Lấy tất cả yêu cầu X-Quang đã yêu cầu hoặc hoàn thành (để kê vào biên lai)
             $sql = "SELECT 
                         pcx.id,
                         pcx.yeu_cau_chup,
                         pcx.trang_thai
                     FROM phieu_chup_xquang pcx
                     WHERE pcx.id_phieu_kham_benh = :exam_id
-                    AND pcx.trang_thai = 'Hoàn thành'";
+                    AND pcx.trang_thai IN ('Đã yêu cầu', 'Hoàn thành')";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute([':exam_id' => $examId]);

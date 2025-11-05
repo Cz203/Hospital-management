@@ -81,8 +81,13 @@ class Prescription {
      * Lưu chi tiết thuốc trong đơn
      */
     public function saveMedicationDetail($data) {
-        $sql = "INSERT INTO chi_tiet_don_thuoc (MaDonThuoc, MaThuoc, TenThuoc, HoatChat, SoLuong, DonViTinh, LieuDung, GhiChu) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        // Insert supports both legacy and new per-session columns. Missing keys will fallback to defaults in DB.
+        $sql = "INSERT INTO chi_tiet_don_thuoc (
+                    MaDonThuoc, MaThuoc, TenThuoc, HoatChat,
+                    SoLuong, DonViTinh, LieuDung, GhiChu,
+                    so_ngay, vien_sang, vien_trua, vien_chieu, vien_toi,
+                    sang_bua, trua_bua, chieu_bua, toi_bua, ghi_chu_cach_dung
+                ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -90,10 +95,20 @@ class Prescription {
             $data['MaThuoc'],
             $data['TenThuoc'] ?? null,
             $data['HoatChat'] ?? null,
-            $data['SoLuong'],
-            $data['DonViTinh'],
-            $data['LieuDung'],
-            $data['GhiChu']
+            $data['SoLuong'] ?? 1,
+            $data['DonViTinh'] ?? '',
+            $data['LieuDung'] ?? '',
+            $data['GhiChu'] ?? '',
+            $data['so_ngay'] ?? 1,
+            $data['vien_sang'] ?? 0,
+            $data['vien_trua'] ?? 0,
+            $data['vien_chieu'] ?? 0,
+            $data['vien_toi'] ?? 0,
+            $data['sang_bua'] ?? 'none',
+            $data['trua_bua'] ?? 'none',
+            $data['chieu_bua'] ?? 'none',
+            $data['toi_bua'] ?? 'none',
+            $data['ghi_chu_cach_dung'] ?? null
         ]);
     }
     
