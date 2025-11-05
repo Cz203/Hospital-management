@@ -28,7 +28,7 @@ class PhieuChupXquang
         }
 
         $trangThai = 'Đã yêu cầu';
-        
+
         $result = $stmt->execute([
             $data['id_phieu_kham_benh'],
             $data['so_dien_thoai'],
@@ -91,7 +91,7 @@ class PhieuChupXquang
     public function updateStatus($id, $trangThai)
     {
         $sql = "UPDATE phieu_chup_xquang SET trang_thai = ? WHERE id = ?";
-        
+
         $stmt = $this->db->prepare($sql);
         if (!$stmt) {
             error_log('PhieuChupXquang updateStatus - SQL prepare failed');
@@ -108,7 +108,7 @@ class PhieuChupXquang
     {
         $sql = "SELECT 
             px.*,
-            bn.ho_ten, bn.tuoi, bn.gioi_tinh,
+            bn.ten, bn.tuoi, bn.gioi_tinh,
             bs.ho_ten as ten_bac_si
             FROM phieu_chup_xquang px
             JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
@@ -154,7 +154,7 @@ class PhieuChupXquang
             LEFT JOIN bac_si bs ON pk.bac_si_id = bs.id
             LEFT JOIN chuyen_khoa ck ON bs.chuyen_khoa_id = ck.id
             WHERE px.id_phieu_kham_benh = ? ORDER BY px.id DESC LIMIT 1";
-        
+
         $stmt = $this->db->prepare($sql);
         if (!$stmt) {
             error_log('PhieuChupXquang getByExamId - SQL prepare failed');
@@ -240,21 +240,22 @@ class PhieuChupXquang
     /**
      * Kiểm tra yêu cầu chụp X-Quang có hợp lệ không
      */
-    public function validateXrayRequests($yeuCauChup) {
+    public function validateXrayRequests($yeuCauChup)
+    {
         if (empty($yeuCauChup)) {
             return ['valid' => false, 'message' => 'Vui lòng nhập yêu cầu chụp X-Quang'];
         }
 
         // Tách các yêu cầu theo dấu phẩy và loại bỏ khoảng trắng
-        $requests = array_filter(array_map('trim', explode(',', $yeuCauChup)), function($item) {
+        $requests = array_filter(array_map('trim', explode(',', $yeuCauChup)), function ($item) {
             return !empty($item);
         });
-        
+
         // Nếu không có yêu cầu hợp lệ sau khi filter
         if (empty($requests)) {
             return ['valid' => false, 'message' => 'Vui lòng nhập yêu cầu chụp X-Quang'];
         }
-        
+
         $validRequests = [];
         $invalidRequests = [];
 
@@ -276,16 +277,15 @@ class PhieuChupXquang
 
             if (!empty($invalidRequests)) {
                 return [
-                    'valid' => false, 
+                    'valid' => false,
                     'message' => 'Dịch vụ không tồn tại: ' . implode(', ', $invalidRequests) . '. Vui lòng chọn từ danh sách gợi ý.'
                 ];
             }
 
             return [
-                'valid' => true, 
+                'valid' => true,
                 'validRequests' => $validRequests
             ];
-
         } catch (PDOException $e) {
             error_log("PhieuChupXquang validateXrayRequests error: " . $e->getMessage());
             return ['valid' => false, 'message' => 'Lỗi kiểm tra dịch vụ'];

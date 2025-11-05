@@ -43,6 +43,128 @@ class Appointment extends User
     }
 
     /**
+     * Lấy tất cả lịch hẹn (cho Admin)
+     */
+    public function getAll($filters = [])
+    {
+        try {
+            $sql = "SELECT lh.*, 
+                           bs.ten AS ten_bac_si, bs.chuyen_khoa,
+                           bn.ten AS ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh
+                    FROM {$this->table} lh
+                    JOIN bac_si bs ON lh.bac_si_id = bs.id
+                    JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
+                    WHERE 1=1";
+
+            $params = [];
+
+            // Filter by status
+            if (!empty($filters['trang_thai'])) {
+                $sql .= " AND lh.trang_thai = :trang_thai";
+                $params[':trang_thai'] = $filters['trang_thai'];
+            }
+
+            // Filter by appointment type
+            if (!empty($filters['loai_lich'])) {
+                $sql .= " AND lh.loai_lich = :loai_lich";
+                $params[':loai_lich'] = $filters['loai_lich'];
+            }
+
+            // Filter by date
+            if (!empty($filters['ngay_hen'])) {
+                $sql .= " AND lh.ngay_hen = :ngay_hen";
+                $params[':ngay_hen'] = $filters['ngay_hen'];
+            }
+
+            // Filter by doctor
+            if (!empty($filters['bac_si_id'])) {
+                $sql .= " AND lh.bac_si_id = :bac_si_id";
+                $params[':bac_si_id'] = $filters['bac_si_id'];
+            }
+
+            // Search by patient name or phone
+            if (!empty($filters['search'])) {
+                $sql .= " AND (bn.ten LIKE :search OR bn.so_dien_thoai LIKE :search)";
+                $params[':search'] = '%' . $filters['search'] . '%';
+            }
+
+            $sql .= " ORDER BY lh.ngay_hen DESC, lh.gio_hen DESC";
+
+            // Limit results
+            if (!empty($filters['limit'])) {
+                $sql .= " LIMIT :limit OFFSET :offset";
+            }
+
+            $stmt = $this->getConnection()->prepare($sql);
+
+            // Bind params
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value);
+            }
+
+            if (!empty($filters['limit'])) {
+                $stmt->bindValue(':limit', (int)$filters['limit'], PDO::PARAM_INT);
+                $stmt->bindValue(':offset', (int)($filters['offset'] ?? 0), PDO::PARAM_INT);
+            }
+
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Appointment getAll error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Đếm tổng số lịch hẹn (cho phân trang)
+     */
+    public function countAll($filters = [])
+    {
+        try {
+            $sql = "SELECT COUNT(*) as total
+                    FROM {$this->table} lh
+                    JOIN bac_si bs ON lh.bac_si_id = bs.id
+                    JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
+                    WHERE 1=1";
+
+            $params = [];
+
+            if (!empty($filters['trang_thai'])) {
+                $sql .= " AND lh.trang_thai = :trang_thai";
+                $params[':trang_thai'] = $filters['trang_thai'];
+            }
+
+            if (!empty($filters['loai_lich'])) {
+                $sql .= " AND lh.loai_lich = :loai_lich";
+                $params[':loai_lich'] = $filters['loai_lich'];
+            }
+
+            if (!empty($filters['ngay_hen'])) {
+                $sql .= " AND lh.ngay_hen = :ngay_hen";
+                $params[':ngay_hen'] = $filters['ngay_hen'];
+            }
+
+            if (!empty($filters['bac_si_id'])) {
+                $sql .= " AND lh.bac_si_id = :bac_si_id";
+                $params[':bac_si_id'] = $filters['bac_si_id'];
+            }
+
+            if (!empty($filters['search'])) {
+                $sql .= " AND (bn.ten LIKE :search OR bn.so_dien_thoai LIKE :search)";
+                $params[':search'] = '%' . $filters['search'] . '%';
+            }
+
+            $stmt = $this->getConnection()->prepare($sql);
+            $stmt->execute($params);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (int)$result['total'];
+        } catch (PDOException $e) {
+            error_log("Appointment countAll error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
      * Lấy tất cả lịch hẹn của bệnh nhân
      */
     public function getByPatientId($patientId)
@@ -386,7 +508,7 @@ class Appointment extends User
     {
         try {
             $today = date('Y-m-d');
-            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau
+            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.cccd
                     FROM {$this->table} lh
                     JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
                     WHERE lh.bac_si_id = :doctor_id 
@@ -413,7 +535,7 @@ class Appointment extends User
     public function getAppointmentsByDoctorAndDate($doctorId, $date)
     {
         try {
-            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.nhom_mau, bn.bao_hiem_y_te, bn.ma_benh_nhan, bhy.ngay_het_han
+            $sql = "SELECT lh.*, bn.ten as ten_benh_nhan, bn.so_dien_thoai, bn.gioi_tinh, bn.ngay_sinh, bn.dia_chi, bn.cccd, bn.bao_hiem_y_te, bn.ma_benh_nhan, bhy.ngay_het_han
                     FROM {$this->table} lh
                     JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
                     LEFT JOIN bao_hiem_y_te bhy ON bn.bao_hiem_y_te_id = bhy.id
@@ -446,7 +568,8 @@ class Appointment extends User
                         COUNT(*) as total,
                         SUM(CASE WHEN trang_thai = 'Chờ xác nhận' THEN 1 ELSE 0 END) as pending,
                         SUM(CASE WHEN trang_thai = 'Đã xác nhận' THEN 1 ELSE 0 END) as confirmed,
-                        SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed
+                        SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed,
+                        SUM(CASE WHEN trang_thai = 'hủy' THEN 1 ELSE 0 END) as cancelled
                     FROM {$this->table}
                     WHERE bac_si_id = :doctor_id AND ngay_hen = :today AND loai_lich != 'Tư vấn'";
 
@@ -462,7 +585,8 @@ class Appointment extends User
                 'total' => 0,
                 'pending' => 0,
                 'confirmed' => 0,
-                'completed' => 0
+                'completed' => 0,
+                'cancelled' => 0
             ];
         }
     }

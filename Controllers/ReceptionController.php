@@ -137,7 +137,7 @@ class ReceptionController
         }
 
         // Các trường cho phép sửa/xóa (để trống để xóa)
-        $allowed = ['email', 'ngay_sinh', 'gioi_tinh', 'dia_chi', 'nhom_mau', 'bao_hiem_y_te'];
+        $allowed = ['email', 'ngay_sinh', 'gioi_tinh', 'dia_chi', 'cccd', 'bao_hiem_y_te'];
         $payload = [];
         foreach ($allowed as $k) {
             if (isset($_POST[$k])) {
@@ -218,7 +218,7 @@ class ReceptionController
         $dob = trim($_POST['ngay_sinh'] ?? '');
         $gender = trim($_POST['gioi_tinh'] ?? '');
         $address = trim($_POST['dia_chi'] ?? '');
-        $blood = trim($_POST['nhom_mau'] ?? '');
+        $cccd = trim($_POST['cccd'] ?? '');
 
         // Basic validation
         if ($name === '' || $email === '' || $password === '' || $phone === '') {
@@ -266,7 +266,7 @@ class ReceptionController
                 'ngay_sinh' => $dob,
                 'gioi_tinh' => $gender,
                 'dia_chi' => $address,
-                'nhom_mau' => $blood,
+                'cccd' => $cccd,
             ]);
             if ($ok) {
                 $_SESSION['success'] = 'Thêm bệnh nhân thành công!';
@@ -341,7 +341,6 @@ class ReceptionController
         }
 
         // Chọn bác sĩ đang on-duty ít bận nhất hôm nay
-        date_default_timezone_set('Asia/Ho_Chi_Minh');
         $today = date('Y-m-d');
         $availableDoctors = $this->getOnDutyDoctorsBySpecialty($specialtyId, $today);
         if (empty($availableDoctors)) {

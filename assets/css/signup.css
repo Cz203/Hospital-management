@@ -9,9 +9,6 @@ body {
 .register-container {
   padding: 80px 20px 40px 20px;
   box-sizing: border-box;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
 }
 
 .card {
@@ -19,8 +16,6 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   background: #ffffff;
-  width: 100%;
-  max-width: 400px;
   margin: 0 auto;
   overflow: hidden;
 }
@@ -28,7 +23,7 @@ body {
 .card-header {
   background: #ffffff;
   border-radius: 16px 16px 0 0 !important;
-  padding: 30px 30px 20px 30px;
+  padding: 25px 30px 20px 30px;
   text-align: center;
   border-bottom: 1px solid #e9ecef;
 }
@@ -49,26 +44,26 @@ body {
 .card-header h3 {
   margin: 0;
   font-weight: 600;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   color: #333;
 }
 
 .card-body {
-  padding: 30px;
+  padding: 30px 35px;
 }
 
 .form-label {
   font-weight: 500;
   color: #555;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
 }
 
 .form-control {
   border-radius: 8px;
   border: 1px solid #ddd;
-  padding: 12px 16px;
-  font-size: 14px;
+  padding: 14px 18px;
+  font-size: 15px;
   transition: all 0.2s ease;
   background: #ffffff;
 }
@@ -77,6 +72,27 @@ body {
   border-color: #667eea;
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
   background: #ffffff;
+}
+
+/* CCCD Locked Fields */
+.form-control.cccd-locked,
+.form-select.cccd-locked {
+  background-color: #f0f0f0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  padding-right: 35px;
+  border-color: #ccc;
+  color: #555;
+  cursor: not-allowed;
+}
+
+.form-control.cccd-locked:focus,
+.form-select.cccd-locked:focus {
+  background-color: #f0f0f0;
+  border-color: #ccc;
+  box-shadow: none;
 }
 
 .input-group-text {
@@ -92,8 +108,8 @@ body {
 
 .btn {
   border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 14px;
+  padding: 13px 20px;
+  font-size: 15px;
   font-weight: 500;
   transition: all 0.2s ease;
   border: 1px solid #ddd;
@@ -177,12 +193,12 @@ body {
   display: flex;
   justify-content: center;
   margin-bottom: 25px;
-  gap: 8px;
+  gap: 6px;
 }
 
 .step-number {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #e9ecef;
   color: #666;
@@ -198,7 +214,7 @@ body {
   font-size: 12px;
   color: #666;
   font-weight: 500;
-  margin-top: 5px;
+  margin-top: 4px;
 }
 
 .step-indicator.active .step-number {
@@ -375,18 +391,88 @@ body {
   color: #dc3545 !important;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* ============================================ */
+/* RESPONSIVE BREAKPOINTS */
+/* ============================================ */
+
+/* Tablet & Mobile */
+@media (max-width: 767px) {
   .register-container {
     padding: 60px 15px 30px 15px;
   }
 
-  .card {
-    max-width: 100%;
+  .card-body {
+    padding: 25px 28px;
   }
 
-  .card-header,
+  .card-header {
+    padding: 20px 25px 18px 25px;
+  }
+
+  .card-header h3 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Mobile nhỏ */
+@media (max-width: 575px) {
+  .register-container {
+    padding: 50px 10px 20px 10px;
+  }
+
+  .card {
+    border-radius: 12px;
+  }
+
   .card-body {
     padding: 20px;
+  }
+
+  .card-header {
+    padding: 18px 20px 15px 20px;
+  }
+
+  .card-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .form-label {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  .form-control,
+  .form-select {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .btn {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .step-text {
+    font-size: 11px;
+  }
+
+  .progress {
+    height: 5px;
+    margin-bottom: 18px;
+  }
+
+  .section-title {
+    font-size: 1rem;
+    margin-bottom: 15px;
+  }
+
+  .otp-section {
+    padding: 15px;
   }
 }
