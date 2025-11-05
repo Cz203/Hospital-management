@@ -124,6 +124,35 @@ class PrescriptionController
                 }
             }
 
+            // Ensure id_phieu_kham_benh is valid (FK)
+            try {
+                $pdoEnsure = (new Database())->getConnection();
+                $candidateExamId = isset($data['id_phieu_kham_benh']) ? (int)$data['id_phieu_kham_benh'] : 0;
+                if ($candidateExamId > 0) {
+                    $stmtExam = $pdoEnsure->prepare("SELECT id FROM phieu_kham_benh WHERE id = ? LIMIT 1");
+                    $stmtExam->execute([$candidateExamId]);
+                    if (!$stmtExam->fetch(PDO::FETCH_ASSOC)) {
+                        $candidateExamId = 0; // invalid
+                    }
+                }
+                if ($candidateExamId === 0) {
+                    // Try resolve latest exam by patient id
+                    $stmtLatest = $pdoEnsure->prepare("SELECT id FROM phieu_kham_benh WHERE benh_nhan_id = ? ORDER BY id DESC LIMIT 1");
+                    $stmtLatest->execute([(int)$data['ma_benh_nhan']]);
+                    $rowLatest = $stmtLatest->fetch(PDO::FETCH_ASSOC);
+                    if ($rowLatest && isset($rowLatest['id'])) {
+                        $data['id_phieu_kham_benh'] = (int)$rowLatest['id'];
+                    } else {
+                        return [
+                            'success' => false,
+                            'message' => 'Không tìm thấy phiếu khám bệnh hợp lệ để liên kết đơn thuốc'
+                        ];
+                    }
+                }
+            } catch (Exception $e) {
+                return [ 'success' => false, 'message' => 'Lỗi kiểm tra phiếu khám bệnh: ' . $e->getMessage() ];
+            }
+
             // Start transaction
             $this->prescriptionModel->beginTransaction();
 
@@ -217,7 +246,18 @@ class PrescriptionController
                             'SoLuong' => $medication['so_luong'] ?? 1,
                             'DonViTinh' => $medication['don_vi_tinh'] ?? '',
                             'LieuDung' => $medication['cach_dung'] ?? '',
-                            'GhiChu' => $medication['ghi_chu'] ?? ''
+                            'GhiChu' => $medication['ghi_chu'] ?? '',
+                            // New per-session dosing fields
+                            'so_ngay' => $medication['so_ngay'] ?? ($data['so_ngay'] ?? 1),
+                            'vien_sang' => $medication['vien_sang'] ?? 0,
+                            'vien_trua' => $medication['vien_trua'] ?? 0,
+                            'vien_chieu' => $medication['vien_chieu'] ?? 0,
+                            'vien_toi' => $medication['vien_toi'] ?? 0,
+                            'sang_bua' => $medication['sang_bua'] ?? 'none',
+                            'trua_bua' => $medication['trua_bua'] ?? 'none',
+                            'chieu_bua' => $medication['chieu_bua'] ?? 'none',
+                            'toi_bua' => $medication['toi_bua'] ?? 'none',
+                            'ghi_chu_cach_dung' => $medication['ghi_chu_cach_dung'] ?? null
                         ]);
                         // Reduce stock
                         $this->prescriptionModel->reduceStock($medication['ma_thuoc'], (int)($medication['so_luong'] ?? 1));

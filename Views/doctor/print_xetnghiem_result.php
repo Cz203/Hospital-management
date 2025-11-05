@@ -19,8 +19,6 @@ function isOutOfRange($testName, $resultValue, $pdo) {
         if ($chiSo && is_numeric($resultValue)) {
             $resultNum = floatval($resultValue);
             $isOut = $resultNum < $chiSo['chi_so_tu'] || $resultNum > $chiSo['chi_so_den'];
-            // Debug log
-            error_log("Print validation: $testName = $resultValue, range: {$chiSo['chi_so_tu']}-{$chiSo['chi_so_den']}, out of range: " . ($isOut ? 'YES' : 'NO'));
             return $isOut;
         }
         return false;
@@ -34,6 +32,30 @@ function isOutOfRange($testName, $resultValue, $pdo) {
 require_once 'config/database.php';
 $database = new Database();
 $pdo = $database->getConnection();
+
+// Function to determine form type from yeu_cau
+function determineFormType($yeuCau) {
+    if (empty($yeuCau)) {
+        return 'other';
+    }
+    $yeuCauLower = mb_strtolower($yeuCau, 'UTF-8');
+    // Check for "máu toàn phần"
+    if (strpos($yeuCauLower, 'máu toàn phần') !== false || 
+        strpos($yeuCauLower, 'cong thuc mau') !== false ||
+        strpos($yeuCauLower, 'công thức máu') !== false) {
+        return 'mau_toan_phan';
+    }
+    // Check for "máu" or "nước tiểu" (but not "máu toàn phần")
+    if (strpos($yeuCauLower, 'máu') !== false || 
+        strpos($yeuCauLower, 'nước tiểu') !== false ||
+        strpos($yeuCauLower, 'nuoc tieu') !== false) {
+        return 'mau_nuoc_tieu';
+    }
+    return 'other';
+}
+
+// Determine form type
+$formType = determineFormType($mainResult['yeu_cau'] ?? '');
 ?>
 
 <!DOCTYPE html>
@@ -166,6 +188,7 @@ $pdo = $database->getConnection();
         .result.out-of-range {
             font-weight: bold;
             color: #dc3545;
+            text-align: right;
         }
         
         @media print {
@@ -179,7 +202,7 @@ $pdo = $database->getConnection();
             .result.out-of-range {
                 font-weight: bold !important;
                 color: #000 !important;
-                text-align: center !important;
+                text-align: right !important;
             }
         }
         
@@ -266,7 +289,7 @@ $pdo = $database->getConnection();
     <!-- Patient Information -->
     <div class="patient-info">
         <div class="info-row">
-            <div class="info-label">ID:</div>
+            <div class="info-label">Mã bệnh nhân:</div>
             <div class="info-value"><?php echo htmlspecialchars($mainResult['ma_benh_nhan'] ?? ''); ?></div>
             <div class="info-label" style="margin-left: 50px;">Tuổi:</div>
             <div class="info-value"><?php echo htmlspecialchars($mainResult['tuoi'] ?? ''); ?></div>
@@ -289,8 +312,13 @@ $pdo = $database->getConnection();
         <div class="info-row">
             <div class="info-label">Chẩn đoán sơ bộ:</div>
             <div class="info-value"><?php echo htmlspecialchars($mainResult['chan_doan_so_bo'] ?? $mainResult['chan_doan'] ?? ''); ?></div>
-            <div class="info-label" style="margin-left: 50px;">Tình trạng mẫu:</div>
+            <div class="info-label" style="margin-left: 50px;">Chất lượng mẫu:</div>
             <div class="info-value"><?php echo htmlspecialchars($mainResult['tinh_trang_mau'] ?? ''); ?></div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">Vị trí lấy mẫu:</div>
+            <div class="info-value"><?php echo htmlspecialchars($mainResult['vi_tri_lay_mau'] ?? ''); ?></div>
         </div>
     </div>
 
@@ -311,21 +339,68 @@ $pdo = $database->getConnection();
         </thead>
         <tbody>
             <?php if (!empty($testDetails)): ?>
+                <?php if ($formType === 'mau_toan_phan'): ?>
+                    <!-- Header rows for "mau_toan_phan" form -->
+                    <tr class="fw-bold" style="background-color: #f8f9fa;">
+                        <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                            <span>XN Huyết học</span>
+                        </td>
+                    </tr>
+                    <tr class="fw-bold" style="background-color: #f8f9fa;">
+                        <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                            <span>TPT tế bào máu(máy đếm larser)</span>
+                        </td>
+                    </tr>
+                <?php elseif ($formType === 'mau_nuoc_tieu'): ?>
+                    <!-- Header row for "mau_nuoc_tieu" form -->
+                    <tr class="fw-bold" style="background-color: #f8f9fa;">
+                        <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                            <span>Sinh Hóa</span>
+                        </td>
+                    </tr>
+                <?php endif; ?>
                 <?php foreach ($testDetails as $test): ?>
                 <?php 
                 $isOutOfRange = isOutOfRange($test['ten_xet_nghiem'], $test['ket_qua'], $pdo);
                 $resultClass = $isOutOfRange ? 'result out-of-range' : 'result';
-                // Debug log
-                error_log("Print row: {$test['ten_xet_nghiem']} = {$test['ket_qua']}, class: $resultClass, isOutOfRange: " . ($isOutOfRange ? 'YES' : 'NO'));
+                // Check if result is "Dương tính" - make it bold and right-aligned
+                $ketQua = trim($test['ket_qua']);
+                $isDuongTinh = stripos($ketQua, 'dương tính') !== false || stripos($ketQua, 'duong tinh') !== false;
+                if ($isDuongTinh) {
+                    $resultClass = 'result fw-bold';
+                }
                 ?>
                 <tr>
                     <td class="stt"><?php echo $test['stt']; ?></td>
                     <td class="test-name"><?php echo htmlspecialchars($test['ten_xet_nghiem']); ?></td>
                     <td class="reference"><?php echo htmlspecialchars($test['gia_tri_tham_chieu']); ?></td>
-                    <td class="<?php echo $resultClass; ?>"><?php echo htmlspecialchars($test['ket_qua']); ?></td>
+                    <td class="<?php echo $resultClass; ?>" style="<?php echo $isDuongTinh ? 'font-weight: bold; color: #dc3545; text-align: right;' : ''; ?>"><?php echo htmlspecialchars($test['ket_qua']); ?></td>
                     <td class="unit"><?php echo htmlspecialchars($test['don_vi']); ?></td>
                     <td class="machine"><?php echo htmlspecialchars($test['may_qtkt']); ?></td>
                 </tr>
+                <?php 
+                // Add header row "Miễn dịch" after STT 12 for "mau_nuoc_tieu" form
+                if ($formType === 'mau_nuoc_tieu' && $test['stt'] == 12): ?>
+                <tr class="fw-bold" style="background-color: #f8f9fa;">
+                    <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                        <span>Miễn dịch</span>
+                    </td>
+                </tr>
+                <?php endif; ?>
+                <?php 
+                // Add header rows "Nước tiểu" and "Nước tiểu 10 thông số" after STT 14 for "mau_nuoc_tieu" form
+                if ($formType === 'mau_nuoc_tieu' && $test['stt'] == 14): ?>
+                <tr class="fw-bold" style="background-color: #f8f9fa;">
+                    <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                        <span>Nước tiểu</span>
+                    </td>
+                </tr>
+                <tr class="fw-bold" style="background-color: #f8f9fa;">
+                    <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                        <span>Nước tiểu 10 thông số</span>
+                    </td>
+                </tr>
+                <?php endif; ?>
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>

@@ -121,11 +121,26 @@ function formatDateTime(dateTime) {
 // View history detail
 function viewHistoryDetail(id) {
   fetch("./?action=get_xetnghiem_history_detail&id=" + id)
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("HTTP error! status: " + response.status);
+      }
+      return response.json();
+    })
     .then(data => {
       if (data.success && data.detail) {
         const detail = data.detail;
         const testDetails = data.testDetails || [];
+        
+        // Determine form type from yeu_cau (needed for both header rows and test details)
+        const yeuCauLower = (detail.yeu_cau || "").toLowerCase();
+        const isMauToanPhan = yeuCauLower.includes("máu toàn phần") || 
+                             yeuCauLower.includes("cong thuc mau") || 
+                             yeuCauLower.includes("công thức máu");
+        const isMauNuocTieu = !isMauToanPhan && (
+                             yeuCauLower.includes("máu") || 
+                             yeuCauLower.includes("nước tiểu") || 
+                             yeuCauLower.includes("nuoc tieu"));
         
         // Create modal content similar to print form
         const modalContent = `
@@ -154,7 +169,7 @@ function viewHistoryDetail(id) {
                   <div class="row mb-4">
                     <div class="col-md-6">
                       <div class="row mb-3">
-                        <div class="col-4"><strong style="font-size: 14px;">ID:</strong></div>
+                        <div class="col-4"><strong style="font-size: 14px;">Mã bệnh nhân:</strong></div>
                         <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;">${detail.ma_benh_nhan || ""}</span></div>
                       </div>
                       <div class="row mb-3">
@@ -168,6 +183,10 @@ function viewHistoryDetail(id) {
                       <div class="row mb-3">
                         <div class="col-4"><strong style="font-size: 14px;">Chẩn đoán sơ bộ:</strong></div>
                         <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;">${detail.chan_doan || ""}</span></div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-4"><strong style="font-size: 14px;">Vị trí lấy mẫu:</strong></div>
+                        <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;">${detail.vi_tri_lay_mau || ""}</span></div>
                       </div>
                     </div>
                     <div class="col-md-6">
@@ -184,7 +203,7 @@ function viewHistoryDetail(id) {
                         <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;">${detail.bac_si_yeu_cau || ""}</span></div>
                       </div>
                       <div class="row mb-3">
-                        <div class="col-4"><strong style="font-size: 14px;">Tình trạng mẫu:</strong></div>
+                        <div class="col-4"><strong style="font-size: 14px;">Chất lượng mẫu:</strong></div>
                         <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;">${detail.tinh_trang_mau || ""}</span></div>
                       </div>
                     </div>
@@ -209,20 +228,87 @@ function viewHistoryDetail(id) {
                         </tr>
                       </thead>
                       <tbody>
+                        ${(() => {
+                          let headerRows = "";
+                          if (isMauToanPhan) {
+                            headerRows = `
+                              <tr class="fw-bold" style="background-color: #f8f9fa;">
+                                <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                                  <span>XN Huyết học</span>
+                                </td>
+                              </tr>
+                              <tr class="fw-bold" style="background-color: #f8f9fa;">
+                                <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                                  <span>TPT tế bào máu(máy đếm larser)</span>
+                                </td>
+                              </tr>
+                            `;
+                          } else if (isMauNuocTieu) {
+                            headerRows = `
+                              <tr class="fw-bold" style="background-color: #f8f9fa;">
+                                <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                                  <span>Sinh Hóa</span>
+                                </td>
+                              </tr>
+                            `;
+                          }
+                          return headerRows;
+                        })()}
                         ${testDetails.length > 0 ? testDetails.map((test, index) => {
                           // Check if result is out of range
                           const isOutOfRange = checkIfOutOfRange(test.ten_xet_nghiem, test.ket_qua);
-                          const resultStyle = isOutOfRange ? "font-weight: bold; color: #dc3545;" : "font-weight: normal;";
-                          return `
+                          // Check if result is "Dương tính" - make it bold and right-aligned
+                          const ketQua = (test.ket_qua || "").trim().toLowerCase();
+                          const isDuongTinh = ketQua.indexOf("dương tính") !== -1 || ketQua.indexOf("duong tinh") !== -1;
+                          let resultStyle = "";
+                          let resultClass = "";
+                          if (isDuongTinh) {
+                            resultStyle = "font-weight: bold; color: #dc3545; text-align: right;";
+                            resultClass = "fw-bold text-end";
+                          } else if (isOutOfRange) {
+                            resultStyle = "font-weight: bold; color: #dc3545; text-align: right;";
+                            resultClass = "text-end";
+                          } else {
+                            resultStyle = "font-weight: normal;";
+                            resultClass = "text-center";
+                          }
+                          const stt = test.stt || (index + 1);
+                          let html = `
                           <tr>
-                            <td class="text-center">${test.stt || index + 1}</td>
+                            <td class="text-center">${stt}</td>
                             <td>${test.ten_xet_nghiem || ""}</td>
                             <td class="text-center">${test.gia_tri_tham_chieu || ""}</td>
-                            <td class="text-center" style="${resultStyle}">${test.ket_qua || ""}</td>
+                            <td class="${resultClass}" style="${resultStyle}">${test.ket_qua || ""}</td>
                             <td class="text-center">${test.don_vi || ""}</td>
                             <td>${test.may_qtkt || ""}</td>
                           </tr>
                         `;
+                          // Add header row "Miễn dịch" after STT 12 for "mau_nuoc_tieu" form
+                          if (isMauNuocTieu && stt == 12) {
+                            html += `
+                          <tr class="fw-bold" style="background-color: #f8f9fa;">
+                            <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                              <span>Miễn dịch</span>
+                            </td>
+                          </tr>
+                        `;
+                          }
+                          // Add header rows "Nước tiểu" and "Nước tiểu 10 thông số" after STT 14 for "mau_nuoc_tieu" form
+                          if (isMauNuocTieu && stt == 14) {
+                            html += `
+                          <tr class="fw-bold" style="background-color: #f8f9fa;">
+                            <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                              <span>Nước tiểu</span>
+                            </td>
+                          </tr>
+                          <tr class="fw-bold" style="background-color: #f8f9fa;">
+                            <td class="fw-bold text-start" colspan="6" style="text-align: left;">
+                              <span>Nước tiểu 10 thông số</span>
+                            </td>
+                          </tr>
+                        `;
+                          }
+                          return html;
                         }).join("") : `
                           <tr>
                             <td colspan="6" class="text-center text-muted">Chưa có kết quả xét nghiệm</td>
@@ -283,7 +369,8 @@ function viewHistoryDetail(id) {
     })
     .catch(error => {
       console.error("Error loading detail:", error);
-      alert("Lỗi tải chi tiết");
+      console.error("Error details:", error.message, error.stack);
+      alert("Lỗi tải chi tiết: " + (error.message || "Vui lòng kiểm tra console để biết thêm chi tiết"));
     });
 }
 

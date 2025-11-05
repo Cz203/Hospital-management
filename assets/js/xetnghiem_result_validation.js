@@ -28,18 +28,10 @@ class XetNghiemResultValidator {
                         chi_so_den: parseFloat(item.chi_so_den),
                         don_vi: item.don_vi
                     });
-                    console.log('Added chi so:', item.ten_chi_so.toLowerCase(), 'with range:', item.chi_so_tu, '-', item.chi_so_den);
                 });
-                console.log('Loaded chi so data:', this.chiSoData);
-            } else {
-                console.log('No chi so data loaded. Response:', data);
             }
         } catch (error) {
             console.error('Error loading chi so data:', error);
-            console.log('API response failed, chiSoData will be empty');
-            console.log('Error details:', error.message);
-            console.log('Stack trace:', error.stack);
-            console.log('Full error object:', error);
         }
     }
 
@@ -86,66 +78,71 @@ class XetNghiemResultValidator {
 
     // Validate kết quả và in đậm nếu vượt ngưỡng
     validateResult(input) {
-        const row = input.closest('tr');
-        const testNameInput = row.querySelector('.test-name-input');
         const resultInput = input;
-        
-        if (!testNameInput || !resultInput) return;
+        if (!resultInput) return;
 
-        const testName = testNameInput.value.trim().toLowerCase();
         const resultValue = parseFloat(resultInput.value);
-        
-        console.log('Validating:', testName, resultValue);
-        console.log('Available chi so data:', this.chiSoData);
+        if (isNaN(resultValue)) {
+            // Reset styling nếu không phải số
+            resultInput.classList.remove('fw-bold', 'text-danger');
+            resultInput.title = '';
+            return;
+        }
 
-        // Tìm chỉ số tương ứng
+        // Ưu tiên sử dụng data attributes (cho form cố định)
         let chiSoInfo = null;
-        for (const [key, value] of this.chiSoData) {
-            console.log('Checking key:', key, 'against testName:', testName);
-            if (testName.includes(key) || key.includes(testName)) {
-                chiSoInfo = value;
-                console.log('Found match with key:', key);
-                break;
-            }
-        }
+        const chiSoTu = resultInput.dataset.chiSoTu;
+        const chiSoDen = resultInput.dataset.chiSoDen;
+        const donVi = resultInput.dataset.donVi || '';
 
-        // Nếu không tìm thấy, thử tìm theo tên chính xác
-        if (!chiSoInfo) {
-            console.log('No match found, trying exact match for:', testName);
-            chiSoInfo = this.chiSoData.get(testName);
-            if (chiSoInfo) {
-                console.log('Found exact match:', chiSoInfo);
-            } else {
-                console.log('No exact match found either');
-            }
-        }
-
-        if (chiSoInfo && !isNaN(resultValue)) {
-            const { chi_so_tu, chi_so_den } = chiSoInfo;
+        if (chiSoTu !== undefined && chiSoDen !== undefined) {
+            // Sử dụng data attributes nếu có (form cố định)
+            chiSoInfo = {
+                chi_so_tu: parseFloat(chiSoTu),
+                chi_so_den: parseFloat(chiSoDen),
+                don_vi: donVi
+            };
+        } else {
+            // Fallback: Tìm theo tên xét nghiệm (cho form động)
+            const row = input.closest('tr');
+            const testNameInput = row?.querySelector('.test-name-input');
             
-            console.log('Found chi so info:', chiSoInfo);
-            console.log('Range:', chi_so_tu, '-', chi_so_den);
+            if (!testNameInput) return;
+
+            const testName = testNameInput.value.trim().toLowerCase();
+            
+            // Tìm chỉ số tương ứng
+            for (const [key, value] of this.chiSoData) {
+                if (testName.includes(key) || key.includes(testName)) {
+                    chiSoInfo = value;
+                    break;
+                }
+            }
+
+            // Nếu không tìm thấy, thử tìm theo tên chính xác
+            if (!chiSoInfo) {
+                chiSoInfo = this.chiSoData.get(testName);
+            }
+        }
+
+        if (chiSoInfo) {
+            const { chi_so_tu, chi_so_den, don_vi } = chiSoInfo;
             
             // Kiểm tra vượt ngưỡng
             const isOutOfRange = resultValue < chi_so_tu || resultValue > chi_so_den;
             
-            console.log('Is out of range:', isOutOfRange);
-            
             // Thêm/xóa class in đậm
             if (isOutOfRange) {
                 resultInput.classList.add('fw-bold', 'text-danger');
-                resultInput.title = `Vượt ngưỡng! Khoảng tham chiếu: ${chi_so_tu} - ${chi_so_den} ${chiSoInfo.don_vi}`;
+                resultInput.title = `Vượt ngưỡng! Khoảng tham chiếu: ${chi_so_tu} - ${chi_so_den} ${don_vi || ''}`;
             } else {
                 resultInput.classList.remove('fw-bold', 'text-danger');
-                resultInput.title = `Trong khoảng tham chiếu: ${chi_so_tu} - ${chi_so_den} ${chiSoInfo.don_vi}`;
+                resultInput.title = `Trong khoảng tham chiếu: ${chi_so_tu} - ${chi_so_den} ${don_vi || ''}`;
             }
         } else {
             // Reset styling nếu không có dữ liệu
             resultInput.classList.remove('fw-bold', 'text-danger');
             resultInput.title = '';
-            console.log('No chi so info found for:', testName);
-            console.log('Result value:', resultValue, 'isNaN:', isNaN(resultValue));
-            console.log('chiSoInfo:', chiSoInfo);
         }
     }
 
@@ -175,19 +172,3 @@ document.addEventListener('DOMContentLoaded', function() {
     window.xetNghiemValidator = new XetNghiemResultValidator();
 });
 
-// Function để validate kết quả khi thêm row mới
-function validateNewResultRow(row) {
-    if (window.xetNghiemValidator) {
-        const resultInput = row.querySelector('.result-input');
-        if (resultInput) {
-            window.xetNghiemValidator.validateResult(resultInput);
-        }
-    }
-}
-
-// Function để validate tất cả khi load dữ liệu
-function validateAllResults() {
-    if (window.xetNghiemValidator) {
-        window.xetNghiemValidator.validateAllResults();
-    }
-}

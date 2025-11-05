@@ -108,6 +108,22 @@ var savedXrayFormId = null;
           printLabBtn.style.display =
             id === "#sec-lab" ? "inline-block" : "none";
 
+            // Hiện/ẩn nút Đơn thuốc chỉ ở tab "Kê đơn thuốc"
+            var savePrescriptionBtn = document.getElementById("save-prescription-btn");
+            var printPrescriptionBtn = document.getElementById("print-prescription-btn");
+            if (savePrescriptionBtn)
+              savePrescriptionBtn.style.display =
+                id === "#sec-prescription" ? "inline-block" : "none";
+            if (printPrescriptionBtn)
+              printPrescriptionBtn.style.display =
+                id === "#sec-prescription" ? "inline-block" : "none";
+
+            // Ẩn nút Kê biên lai khi không ở tab Kê biên lai
+            var saveReceiptBtn = document.getElementById("save-receipt-btn");
+            var printReceiptBtn = document.getElementById("print-receipt-btn");
+            if (saveReceiptBtn && id !== "#sec-result") saveReceiptBtn.style.display = "none";
+            if (printReceiptBtn && id !== "#sec-result") printReceiptBtn.style.display = "none";
+
         // Khi chuyển sang tab X-Quang, tự đổ dữ liệu bệnh nhân và mặc định
         if (id === "#sec-xray") {
           prefillXRaySection();
@@ -294,6 +310,13 @@ function saveExaminationForm() {
     alert("Thiếu mã bệnh nhân");
     return;
   }
+  // Require diagnosis before saving (Chẩn đoán vào viện)
+  var diagnosisField = document.querySelector('[name="chan_doan_vao_vien"]');
+  if (!diagnosisField || !diagnosisField.value || diagnosisField.value.trim() === "") {
+    alert("Vui lòng nhập 'Chẩn đoán vào viện' trước khi lưu phiếu khám!");
+    if (diagnosisField) diagnosisField.focus();
+    return;
+  }
   var fd = new FormData(form);
   fd.append("patient_id", patientId);
   fd.append("appointment_id", appointmentId);
@@ -439,6 +462,48 @@ function loadExaminationFormIfAny() {
 
       // Load dữ liệu Siêu âm đã lưu (nếu có)
       loadUltrasoundFormData(x.id);
+
+      // Load dữ liệu Xét nghiệm đã lưu (nếu có) ngay khi mở modal
+      // (trước đây chỉ load khi click vào tab Xét nghiệm)
+      if (x.id) {
+        loadLabFormData(x.id);
+      }
+
+      // Khởi tạo tab Kê biên lai ngay khi mở modal (nếu có hàm)
+      if (typeof initializeReceiptForm === 'function') {
+        try { initializeReceiptForm(); } catch (e) { console.error('Init receipt error:', e); }
+      }
+
+      // Khởi tạo tab Kê đơn thuốc ngay khi mở modal (nếu có manager)
+      try {
+        if (window.prescriptionManager && typeof window.prescriptionManager.initializeForm === 'function') {
+          window.prescriptionManager.initializeForm();
+          // Thử load đơn đã lưu khi examId sẵn sàng, tránh phải bấm thêm lần nữa
+          if (typeof window.prescriptionManager.tryLoadSavedPrescription === 'function') {
+            let tries = 0;
+            const maxTries = 15; // ~3s tổng cộng
+            const tryLoad = function() {
+              const examIdEl = document.getElementById('id_phieu_kham_benh');
+              const examIdVal = examIdEl && examIdEl.value ? examIdEl.value : (window._lastExamFormId || window._currentExaminationId || '');
+              if (examIdVal) {
+                // Reset theo examId: nếu là examId khác thì cho phép load lại
+                const lastLoadedExamId = window._prescriptionLoadedExamId;
+                if (lastLoadedExamId !== examIdVal) {
+                  window._prescriptionLoadedExamId = examIdVal;
+                  try { window.prescriptionManager.tryLoadSavedPrescription(); } catch(_) {}
+                }
+                return;
+              }
+              tries++;
+              if (tries < maxTries) {
+                setTimeout(tryLoad, 200);
+              }
+            };
+            // chạy lần đầu
+            setTimeout(tryLoad, 100);
+          }
+        }
+      } catch (e) { console.error('Init prescription error:', e); }
     })
     .catch(function () {});
 
@@ -727,6 +792,19 @@ function prefillXRaySection() {
     xrayDoctor.value = doctorName;
     if (xrayDoctorDisplay) xrayDoctorDisplay.textContent = doctorName;
   }
+
+  // Prefill X-Ray diagnosis from Examination diagnosis (chan_doan_vao_vien)
+  // Only set if xray diagnosis is currently empty
+  var examDiagnosisEl = document.querySelector('[name="chan_doan_vao_vien"]');
+  var xrayDiagnosisEl = document.getElementById("xray_diagnosis");
+  if (
+    xrayDiagnosisEl &&
+    (!xrayDiagnosisEl.value || xrayDiagnosisEl.value.trim() === "") &&
+    examDiagnosisEl &&
+    examDiagnosisEl.value
+  ) {
+    xrayDiagnosisEl.value = examDiagnosisEl.value;
+  }
 }
 
 function prefillUltrasoundSection() {
@@ -844,6 +922,19 @@ function prefillUltrasoundSection() {
     ultrasoundDoctor.value = doctorName;
     if (ultrasoundDoctorDisplay)
       ultrasoundDoctorDisplay.textContent = doctorName;
+  }
+
+  // Prefill Ultrasound diagnosis from Examination diagnosis (chan_doan_vao_vien)
+  // Only set if ultrasound diagnosis is currently empty
+  var examDiagnosisEl = document.querySelector('[name="chan_doan_vao_vien"]');
+  var ultrasoundDiagnosisEl = document.getElementById("ultrasound_diagnosis");
+  if (
+    ultrasoundDiagnosisEl &&
+    (!ultrasoundDiagnosisEl.value || ultrasoundDiagnosisEl.value.trim() === "") &&
+    examDiagnosisEl &&
+    examDiagnosisEl.value
+  ) {
+    ultrasoundDiagnosisEl.value = examDiagnosisEl.value;
   }
 
   // Get patient type from database (check BHYT status from benh_nhan table)
@@ -2183,6 +2274,19 @@ function prefillLabSection() {
     if (labDoctorDisplay) labDoctorDisplay.textContent = doctorName;
   }
 
+  // Prefill Lab diagnosis from Examination diagnosis (chan_doan_vao_vien)
+  // Only set if lab diagnosis is currently empty
+  var examDiagnosisEl = document.querySelector('[name="chan_doan_vao_vien"]');
+  var labDiagnosisEl = document.getElementById("lab_diagnosis");
+  if (
+    labDiagnosisEl &&
+    (!labDiagnosisEl.value || labDiagnosisEl.value.trim() === "") &&
+    examDiagnosisEl &&
+    examDiagnosisEl.value
+  ) {
+    labDiagnosisEl.value = examDiagnosisEl.value;
+  }
+
   // Get patient BHYT status from database
   var examId = getCurrentExaminationId();
 
@@ -2649,6 +2753,9 @@ function showLabResultData(result, testDetails) {
   var tinhTrangMauEl = document.getElementById("lab_ro_tinh_trang_mau");
   if (tinhTrangMauEl) tinhTrangMauEl.textContent = result.tinh_trang_mau || "-";
 
+  var viTriLayMauEl = document.getElementById("lab_ro_vi_tri_lay_mau");
+  if (viTriLayMauEl) viTriLayMauEl.textContent = result.vi_tri_lay_mau || "-";
+
   var yeuCauEl = document.getElementById("lab_ro_yeu_cau");
   if (yeuCauEl)
     yeuCauEl.textContent = result.yeu_cau || "CHƯA CÓ YÊU CẦU XÉT NGHIỆM";
@@ -2673,24 +2780,121 @@ function showLabResultData(result, testDetails) {
   var tbody = document.getElementById("lab_ro_results_table");
   if (tbody && testDetails && testDetails.length > 0) {
     tbody.innerHTML = "";
+    
+    // Determine form type from yeu_cau
+    var yeuCauLower = (result.yeu_cau || "").toLowerCase();
+    var isMauToanPhan = yeuCauLower.indexOf("máu toàn phần") !== -1 || 
+                        yeuCauLower.indexOf("cong thuc mau") !== -1 || 
+                        yeuCauLower.indexOf("công thức máu") !== -1;
+    var isMauNuocTieu = !isMauToanPhan && (
+                        yeuCauLower.indexOf("máu") !== -1 || 
+                        yeuCauLower.indexOf("nước tiểu") !== -1 || 
+                        yeuCauLower.indexOf("nuoc tieu") !== -1);
+    
+    // Add header rows for "mau_toan_phan" form
+    if (isMauToanPhan) {
+      var headerRow1 = document.createElement("tr");
+      headerRow1.className = "fw-bold";
+      headerRow1.style.backgroundColor = "#f8f9fa";
+      headerRow1.innerHTML = 
+        "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+          "<span>XN Huyết học</span>" +
+        "</td>";
+      tbody.appendChild(headerRow1);
+      
+      var headerRow2 = document.createElement("tr");
+      headerRow2.className = "fw-bold";
+      headerRow2.style.backgroundColor = "#f8f9fa";
+      headerRow2.innerHTML = 
+        "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+          "<span>TPT tế bào máu(máy đếm larser)</span>" +
+        "</td>";
+      tbody.appendChild(headerRow2);
+    }
+    
+    // Add header row for "mau_nuoc_tieu" form
+    if (isMauNuocTieu) {
+      var headerRow = document.createElement("tr");
+      headerRow.className = "fw-bold";
+      headerRow.style.backgroundColor = "#f8f9fa";
+      headerRow.innerHTML = 
+        "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+          "<span>Sinh Hóa</span>" +
+        "</td>";
+      tbody.appendChild(headerRow);
+    }
+    
     testDetails.forEach(function (test, index) {
       var row = document.createElement("tr");
       
       // Check if result is out of range
       var isOutOfRange = checkIfLabResultOutOfRange(test.ten_xet_nghiem, test.ket_qua);
-      var resultStyle = isOutOfRange ? "font-weight: bold; color: #dc3545;" : "font-weight: normal;";
+      // Check if result is "Dương tính" - make it bold and right-aligned
+      var ketQua = (test.ket_qua || "").trim().toLowerCase();
+      var isDuongTinh = ketQua.indexOf("dương tính") !== -1 || ketQua.indexOf("duong tinh") !== -1;
+      var resultStyle = "";
+      var resultClass = "";
+      if (isDuongTinh) {
+        resultStyle = "font-weight: bold; color: #dc3545; text-align: right;";
+        resultClass = "fw-bold text-end";
+      } else if (isOutOfRange) {
+        resultStyle = "font-weight: bold; color: #dc3545; text-align: right;";
+        resultClass = "text-end";
+      } else {
+        resultStyle = "font-weight: normal;";
+        resultClass = "text-center";
+      }
+      
+      // STT: Use test.stt from database if available, otherwise use index + 1
+      // (STT already starts from 1 in database, header rows are separate)
+      var stt = test.stt || (index + 1);
       
       row.innerHTML = `
-        <td class="text-center">${test.stt || index + 1}</td>
+        <td class="text-center">${stt}</td>
         <td>${test.ten_xet_nghiem || ""}</td>
         <td class="text-center">${test.gia_tri_tham_chieu || ""}</td>
-        <td class="text-center" style="${resultStyle}">${
+        <td class="${resultClass}" style="${resultStyle}">${
           test.ket_qua || ""
         }</td>
         <td class="text-center">${test.don_vi || ""}</td>
         <td>${test.may_qtkt || ""}</td>
       `;
       tbody.appendChild(row);
+      
+      // Add header row "Miễn dịch" after STT 12 for "mau_nuoc_tieu" form
+      if (isMauNuocTieu && stt == 12) {
+        var mienDichHeaderRow = document.createElement("tr");
+        mienDichHeaderRow.className = "fw-bold";
+        mienDichHeaderRow.style.backgroundColor = "#f8f9fa";
+        mienDichHeaderRow.innerHTML = 
+          "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+            "<span>Miễn dịch</span>" +
+          "</td>";
+        tbody.appendChild(mienDichHeaderRow);
+      }
+      
+      // Add header rows "Nước tiểu" and "Nước tiểu 10 thông số" after STT 14 for "mau_nuoc_tieu" form
+      if (isMauNuocTieu && stt == 14) {
+        // Row 1: Nước tiểu
+        var nuocTieuHeaderRow1 = document.createElement("tr");
+        nuocTieuHeaderRow1.className = "fw-bold";
+        nuocTieuHeaderRow1.style.backgroundColor = "#f8f9fa";
+        nuocTieuHeaderRow1.innerHTML = 
+          "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+            "<span>Nước tiểu</span>" +
+          "</td>";
+        tbody.appendChild(nuocTieuHeaderRow1);
+        
+        // Row 2: Nước tiểu 10 thông số
+        var nuocTieuHeaderRow2 = document.createElement("tr");
+        nuocTieuHeaderRow2.className = "fw-bold";
+        nuocTieuHeaderRow2.style.backgroundColor = "#f8f9fa";
+        nuocTieuHeaderRow2.innerHTML = 
+          "<td class=\"fw-bold text-start\" colspan=\"6\" style=\"text-align: left;\">" +
+            "<span>Nước tiểu 10 thông số</span>" +
+          "</td>";
+        tbody.appendChild(nuocTieuHeaderRow2);
+      }
     });
   } else {
     tbody.innerHTML =

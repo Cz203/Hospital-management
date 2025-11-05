@@ -26,6 +26,35 @@ class PrescriptionManager {
         this.addMedicationRow();
       });
 
+    // Auto recalc all rows when total days changes
+    const totalDaysInput = document.getElementById("prescription_total_days");
+    if (totalDaysInput) {
+      // Prevent non-numeric and minus/dot
+      totalDaysInput.addEventListener('keydown', function(e) {
+        const allowed = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'];
+        if (allowed.includes(e.key)) return;
+        if (!/^[0-9]$/.test(e.key)) e.preventDefault();
+      });
+      totalDaysInput.addEventListener("input", () => {
+        // Sanitize to digits only while typing; allow empty so user can replace
+        let v = totalDaysInput.value.replace(/\D+/g, '');
+        if (v === '') {
+          totalDaysInput.value = '';
+          return; // wait until user finishes typing
+        }
+        if (v === '0') v = '1';
+        totalDaysInput.value = String(parseInt(v, 10));
+        this.recalculateAllQuantities();
+      });
+      totalDaysInput.addEventListener("change", () => {
+        // Final clamp on blur/change
+        let v = parseInt(totalDaysInput.value || '1', 10);
+        if (!v || v < 1) v = 1;
+        totalDaysInput.value = String(v);
+        this.recalculateAllQuantities();
+      });
+    }
+
     // Save prescription button
     document
       .getElementById("save-prescription-btn")
@@ -41,6 +70,12 @@ class PrescriptionManager {
       ?.addEventListener("click", () => {
         this.clearPrescription();
       });
+  }
+
+  getNextUid() {
+    if (typeof this._rowUidCounter !== 'number') this._rowUidCounter = 0;
+    this._rowUidCounter += 1;
+    return 'rx_' + this._rowUidCounter.toString(36) + '_' + Date.now().toString(36);
   }
 
   initializeForm() {
@@ -87,6 +122,9 @@ class PrescriptionManager {
           validateQuantity(this);
         });
       }
+
+      // Bind auto-calc listeners for per-session doses
+      this.bindDoseInputs(defaultRow);
 
       if (nameInput && suggestionDropdown) {
         // Handle input events
@@ -179,7 +217,9 @@ class PrescriptionManager {
 
   async tryLoadSavedPrescription() {
     try {
+      // Thử lấy từ nhiều nguồn: id_phieu_kham_benh, prescription_examination_id, examinationAppointmentId
       const examId =
+        document.getElementById("id_phieu_kham_benh")?.value ||
         document.getElementById("prescription_examination_id")?.value ||
         document.getElementById("examinationAppointmentId")?.value ||
         "";
@@ -243,6 +283,7 @@ class PrescriptionManager {
                             }" min="1">
                         </td>
                         <td class="text-center">
+                            <!-- usage cell will be replaced based on unit -->
                             <input type="text" class="form-control form-control-sm medication-usage" value="${
                               m.LieuDung || m.LieuDungThuoc || ""
                             }">
@@ -251,6 +292,51 @@ class PrescriptionManager {
                             <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMedicationRow(this)"><i class="fas fa-minus"></i></button>
                         </td>`;
           tbody.appendChild(row);
+
+          // Switch usage layout according to unit and populate values
+          try {
+            const unit = (m.DonViTinh || m.DonViTinhThuoc || '').toString();
+            setUsageLayout(row, unit);
+            const isVien = unit.toLowerCase().includes('viên') || unit.toLowerCase().includes('vien');
+            if (isVien) {
+              // Fill per-session doses
+              const usageCell = row.querySelector('td:nth-child(6)');
+              const nums = usageCell ? usageCell.querySelectorAll('input[type="number"]') : [];
+              const vSang  = typeof m.vien_sang  !== 'undefined' ? m.vien_sang  : (m.vienSang  || 0);
+              const vTrua  = typeof m.vien_trua  !== 'undefined' ? m.vien_trua  : (m.vienTrua  || 0);
+              const vChieu = typeof m.vien_chieu !== 'undefined' ? m.vien_chieu : (m.vienChieu || 0);
+              const vToi   = typeof m.vien_toi   !== 'undefined' ? m.vien_toi   : (m.vienToi   || 0);
+              const fmt = (x) => x > 0 ? String(Math.round(x * 2) / 2) : '';
+              if (nums[0]) nums[0].value = fmt(vSang);
+              if (nums[1]) nums[1].value = fmt(vTrua);
+              if (nums[2]) nums[2].value = fmt(vChieu);
+              if (nums[3]) nums[3].value = fmt(vToi);
+              // Set meal selection by group order to avoid id collisions across rows
+              const groups = usageCell.querySelectorAll('.btn-group');
+              const setMealByIndex = (idx, val) => {
+                const grp = groups[idx];
+                if (!grp) return;
+                const radios = grp.querySelectorAll('input[type="radio"]');
+                const v = (val || 'none').toLowerCase();
+                if (v === 'before' && radios[0]) radios[0].checked = true;
+                if (v === 'after'  && radios[1]) radios[1].checked = true;
+              };
+              setMealByIndex(0, m.sang_bua || m.sangBua);
+              setMealByIndex(1, m.trua_bua || m.truaBua);
+              setMealByIndex(2, m.chieu_bua || m.chieuBua);
+              setMealByIndex(3, m.toi_bua  || m.toiBua);
+              // Bind auto-calc for the loaded row
+              this.bindDoseInputs(row);
+              // Bind SL integer-only behavior for the loaded row
+              this.bindQuantityInput(row);
+            } else {
+              // Keep simple usage text from DB
+              const usageInput = row.querySelector('.medication-usage');
+              if (usageInput) usageInput.value = m.LieuDung || m.LieuDungThuoc || '';
+              // Bind SL integer-only behavior for non-"viên" rows
+              this.bindQuantityInput(row);
+            }
+          } catch (e) { console.error('populate usage error:', e); }
         });
       }
     } catch (e) {
@@ -268,6 +354,8 @@ class PrescriptionManager {
       document.querySelector('input[name="gioi_tinh"]:checked')?.value || "";
     const patientAddress =
       document.querySelector('[name="dia_chi"]')?.value || "";
+    const examDiagnosis =
+      document.querySelector('[name="chan_doan_vao_vien"]')?.value || "";
 
     // Fill prescription form
     this.setValue("prescription_patient_name", patientName);
@@ -275,6 +363,11 @@ class PrescriptionManager {
     this.setValue("prescription_dob", patientDob);
     this.setValue("prescription_gender", patientGender);
     this.setValue("prescription_address", patientAddress);
+    // Prefill diagnosis from examination "Chẩn đoán vào viện" if empty
+    const diagnosisEl = document.getElementById('diagnosis_description');
+    if (diagnosisEl && (!diagnosisEl.value || !diagnosisEl.value.trim())) {
+      diagnosisEl.value = examDiagnosis;
+    }
   }
 
   setValue(id, value) {
@@ -354,6 +447,8 @@ class PrescriptionManager {
     // Tạo row bằng createElement giống như xetnghiem_dashboard
     const row = document.createElement("tr");
     row.className = "medication-row";
+    // giữ cho các nhóm radio nhất quán
+    const uid = this.getNextUid();
     row.innerHTML = `
             <td class="text-center">
                 <span>1</span>
@@ -372,7 +467,49 @@ class PrescriptionManager {
                 <input type="number" class="form-control form-control-sm medication-quantity" placeholder="SL" min="1" value="1">
             </td>
             <td class="text-center">
-                <input type="text" class="form-control form-control-sm medication-usage" placeholder="Cách dùng">
+                <!-- Cách dùng theo từng buổi (UI only) -->
+                <div class="d-flex flex-column gap-2 align-items-center" style="min-width:260px;">
+                  <div class="d-flex align-items-center justify-content-between w-100">
+                    <span class="fw-semibold small me-2" style="width:48px;">Sáng</span>
+                    <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0.5" step="0.5" style="width:80px;">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <input type="radio" class="btn-check" name="sang_meal_${uid}" id="sang_before_${uid}" autocomplete="off">
+                      <label class="btn btn-outline-secondary" for="sang_before_${uid}">Trước ăn</label>
+                      <input type="radio" class="btn-check" name="sang_meal_${uid}" id="sang_after_${uid}" autocomplete="off">
+                      <label class="btn btn-outline-secondary" for="sang_after_${uid}">Sau ăn</label>
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between w-100">
+                    <span class="fw-semibold small me-2" style="width:48px;">Trưa</span>
+                    <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0.5" step="0.5" style="width:80px;">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <input type="radio" class="btn-check" name="trua_meal_${uid}" id="trua_before_${uid}" autocomplete="off">
+                      <label class="btn btn-outline-secondary" for="trua_before_${uid}">Trước ăn</label>
+                      <input type="radio" class="btn-check" name="trua_meal_${uid}" id="trua_after_${uid}" autocomplete="off">
+                      <label class="btn btn-outline-secondary" for="trua_after_${uid}">Sau ăn</label>
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between w-100">
+                    <span class="fw-semibold small me-2" style="width:48px;">Chiều</span>
+                    <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0.5" step="0.5" style="width:80px;">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <input type="radio" class="btn-check" name="chieu_meal_${uid}" id="chieu_before_${uid}" autocomplete="off">
+                      <label class="btn btn-outline-secondary" for="chieu_before_${uid}">Trước ăn</label>
+                      <input type="radio" class="btn-check" name="chieu_meal_${uid}" id="chieu_after_${uid}" autocomplete="off">
+                      <label class="btn btn-outline-secondary" for="chieu_after_${uid}">Sau ăn</label>
+                    </div>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between w-100">
+                    <span class="fw-semibold small me-2" style="width:48px;">Tối</span>
+                    <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0.5" step="0.5" style="width:80px;">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <input type="radio" class="btn-check" name="toi_meal_${uid}" id="toi_before_${uid}" autocomplete="off">
+                      <label class="btn btn-outline-secondary" for="toi_before_${uid}">Trước ăn</label>
+                      <input type="radio" class="btn-check" name="toi_meal_${uid}" id="toi_after_${uid}" autocomplete="off">
+                      <label class="btn btn-outline-secondary" for="toi_after_${uid}">Sau ăn</label>
+                    </div>
+                  </div>
+                </div>
             </td>
             <td class="text-center">
                 <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeMedicationRow(this)">
@@ -382,6 +519,11 @@ class PrescriptionManager {
         `;
 
     tbody.appendChild(row);
+
+    // Bind auto-calc listeners for this new row
+    this.bindDoseInputs(row);
+    // Bind SL integer-only behavior
+    this.bindQuantityInput(row);
 
     // Add event listeners giống như xetnghiem_dashboard
     const nameInput = row.querySelector(".medication-name-input");
@@ -564,6 +706,197 @@ class PrescriptionManager {
     this.updateMedicationSTT();
   }
 
+  // ===== Quantity auto-calculation =====
+  bindDoseInputs(row) {
+    try {
+      const usageCell = row.querySelector('td:nth-child(6)');
+      if (!usageCell) return;
+      const doseInputs = usageCell.querySelectorAll('input[type="number"]');
+      const quantityInput = row.querySelector('.medication-quantity');
+      if (doseInputs.length === 0 || !quantityInput) return;
+
+      const recalc = () => this.calculateQuantityForRow(row);
+      const updateMealGroupState = (inp) => {
+        try {
+          const container = inp.closest('.d-flex');
+          const mealGroup = container ? container.querySelector('.btn-group') : null;
+          if (!mealGroup) return;
+          let val = parseFloat(inp.value || '');
+          const enabled = !isNaN(val) && val > 0;
+          const radios = mealGroup.querySelectorAll('input[type="radio"]');
+          radios.forEach(r => {
+            r.disabled = !enabled;
+            if (!enabled) r.checked = false;
+          });
+        } catch (_) {}
+      };
+
+      doseInputs.forEach(inp => {
+        // Allow digits and one '.'
+        inp.addEventListener('keydown', (e) => {
+          const allowedKeys = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'];
+          if (allowedKeys.includes(e.key)) return;
+          if (e.key >= '0' && e.key <= '9') return;
+          if (e.key === '.' && !e.target.value.includes('.')) return;
+          // Block everything else
+          e.preventDefault();
+        });
+
+        // Sanitize while typing: allow empty; else keep only digits and one '.'; disallow leading '.'
+        inp.addEventListener('input', (e) => {
+          let v = e.target.value.replace(/[^0-9.]/g, '');
+          const parts = v.split('.');
+          if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+          if (v.startsWith('.')) v = '0' + v; // avoid lone leading dot
+          // do not allow 0 (exactly) -> make empty; allow >0
+          if (v === '0' || v === '0.' || v === '0.0') v = '';
+          e.target.value = v;
+          recalc();
+          updateMealGroupState(e.target);
+        });
+
+        // Clamp on change/blur: if not empty, must be > 0 and step 0.5
+        const clamp = (e) => {
+          const raw = (e.target.value || '').trim();
+          if (raw === '') { recalc(); return; }
+          let n = parseFloat(raw);
+          if (isNaN(n) || n <= 0) n = 0.5;
+          // round to nearest 0.5
+          n = Math.round(n * 2) / 2;
+          if (n <= 0) n = 0.5;
+          e.target.value = String(n);
+          recalc();
+          updateMealGroupState(e.target);
+        };
+        inp.addEventListener('change', clamp);
+        inp.addEventListener('blur', clamp);
+        // Initial enable/disable of meal group
+        updateMealGroupState(inp);
+      });
+      // Initial calc
+      recalc();
+    } catch (e) {
+      console.error('bindDoseInputs error:', e);
+    }
+  }
+
+  // ===== Quantity (SL) input restrictions =====
+  bindQuantityInput(row) {
+    try {
+      const quantityInput = row.querySelector('.medication-quantity');
+      if (!quantityInput) return;
+
+      // Block invalid characters: minus, dot, exponent, etc.
+      quantityInput.addEventListener('keydown', (e) => {
+        const allowedKeys = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'];
+        if (allowedKeys.includes(e.key)) return;
+        if (e.key >= '0' && e.key <= '9') return;
+        // Block everything else (e.g., '-', '.', 'e')
+        e.preventDefault();
+      });
+
+      // Sanitize while typing: keep digits only; convert '0' to empty to allow retype
+      quantityInput.addEventListener('input', (e) => {
+        let v = (e.target.value || '').replace(/[^0-9]/g, '');
+        if (v === '0') v = '';
+        e.target.value = v;
+      });
+
+      // Clamp on blur/change: integer >= 1 when not empty
+      const clamp = (e) => {
+        const raw = (e.target.value || '').trim();
+        if (raw === '') return; // allow empty while editing; other logic will compute/validate
+        let n = parseInt(raw, 10);
+        if (isNaN(n) || n < 1) n = 1;
+        e.target.value = String(n);
+        try { validateQuantity(e.target); } catch (_) {}
+      };
+      quantityInput.addEventListener('change', clamp);
+      quantityInput.addEventListener('blur', clamp);
+    } catch (err) {
+      console.error('bindQuantityInput error:', err);
+    }
+  }
+
+  calculateQuantityForRow(row) {
+    const quantityInput = row.querySelector('.medication-quantity');
+    if (!quantityInput) return;
+
+    const totalDays = parseFloat(document.getElementById('prescription_total_days')?.value || '1') || 1;
+    const usageCell = row.querySelector('td:nth-child(6)');
+    if (!usageCell) return;
+
+    // In usage cell we have 4 number inputs corresponding to Sáng, Trưa, Chiều, Tối
+    const doseInputs = usageCell.querySelectorAll('input[type="number"]');
+    if (doseInputs.length === 0) return; // non-"viên" layout -> skip auto-calc
+    let dosesPerDay = 0;
+    doseInputs.forEach((inp) => {
+      const v = parseFloat(inp.value || '0');
+      if (!isNaN(v) && v > 0) dosesPerDay += v;
+    });
+
+    let computed = Math.round(totalDays * dosesPerDay);
+    if (!computed || computed < 1) computed = 1;
+    quantityInput.value = computed;
+    // Live validate against stock as user types/auto-calcs
+    try { validateQuantity(quantityInput); } catch (e) {}
+  }
+
+  recalculateAllQuantities() {
+    const rows = document.querySelectorAll('#medication-tbody tr.medication-row');
+    rows.forEach((row) => this.calculateQuantityForRow(row));
+  }
+
+  // Helper to get detailed usage HTML block
+  getDetailedUsageHtml() {
+    const uid = this.getNextUid();
+    return `
+      <div class="d-flex flex-column gap-2 align-items-center" style="min-width:260px;">
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <span class="fw-semibold small me-2" style="width:48px;">Sáng</span>
+          <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="1" step="1" style="width:80px;">
+          <div class="btn-group btn-group-sm" role="group">
+            <input type="radio" class="btn-check" name="sang_meal_${uid}" id="sang_before_${uid}" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="sang_before_${uid}">Trước ăn</label>
+            <input type="radio" class="btn-check" name="sang_meal_${uid}" id="sang_after_${uid}" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="sang_after_${uid}">Sau ăn</label>
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <span class="fw-semibold small me-2" style="width:48px;">Trưa</span>
+          <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="1" step="1" style="width:80px;">
+          <div class="btn-group btn-group-sm" role="group">
+            <input type="radio" class="btn-check" name="trua_meal_${uid}" id="trua_before_${uid}" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="trua_before_${uid}">Trước ăn</label>
+            <input type="radio" class="btn-check" name="trua_meal_${uid}" id="trua_after_${uid}" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="trua_after_${uid}">Sau ăn</label>
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <span class="fw-semibold small me-2" style="width:48px;">Chiều</span>
+          <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="1" step="1" style="width:80px;">
+          <div class="btn-group btn-group-sm" role="group">
+            <input type="radio" class="btn-check" name="chieu_meal_${uid}" id="chieu_before_${uid}" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="chieu_before_${uid}">Trước ăn</label>
+            <input type="radio" class="btn-check" name="chieu_meal_${uid}" id="chieu_after_${uid}" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="chieu_after_${uid}">Sau ăn</label>
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-between w-100">
+          <span class="fw-semibold small me-2" style="width:48px;">Tối</span>
+          <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="1" step="1" style="width:80px;">
+          <div class="btn-group btn-group-sm" role="group">
+            <input type="radio" class="btn-check" name="toi_meal_${uid}" id="toi_before_${uid}" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="toi_before_${uid}">Trước ăn</label>
+            <input type="radio" class="btn-check" name="toi_meal_${uid}" id="toi_after_${uid}" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="toi_after_${uid}">Sau ăn</label>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  
+
   updateMedicationSTT() {
     // Tìm tất cả hàng trong tbody của bảng thuốc
     const tbody = document.getElementById("medication-tbody");
@@ -607,8 +940,11 @@ class PrescriptionManager {
       const maBacSi = document.getElementById("current_doctor_id")?.value || "";
       const appointmentId =
         document.getElementById("examinationAppointmentId")?.value || "";
+      // Try multiple sources for examination id
       const phieuKhamId =
-        document.getElementById("prescription_examination_id")?.value || "";
+        document.getElementById("prescription_examination_id")?.value ||
+        document.getElementById("id_phieu_kham_benh")?.value ||
+        "";
       
       return {
         ma_don_thuoc: document.getElementById("ma_don_thuoc")?.value || "",
@@ -659,16 +995,61 @@ class PrescriptionManager {
       const medicationRows = document.querySelectorAll(".medication-row");
 
       medicationRows.forEach((row) => {
+        const unit = row.querySelector(".medication-unit")?.value || "";
+        const usageCell = row.querySelector('td:nth-child(6)');
+        const isVien = unit.toLowerCase().includes('viên') || unit.toLowerCase().includes('vien');
+
         const medication = {
           ma_thuoc: row.getAttribute("data-ma-thuoc") || "",
           stt: row.querySelector("td:first-child span")?.textContent || "",
           ten_thuoc: row.querySelector(".medication-name-input")?.value || "",
           hoạt_chất: row.querySelector(".medication-ingredient")?.value || "",
           hoat_chat: row.querySelector(".medication-ingredient")?.value || "",
-          don_vi_tinh: row.querySelector(".medication-unit")?.value || "",
+          don_vi_tinh: unit,
           so_luong: row.querySelector(".medication-quantity")?.value || "1",
           cach_dung: row.querySelector(".medication-usage")?.value || "",
         };
+
+        // Map per-session dosing if unit is tablet/capsule
+        if (isVien && usageCell) {
+          const nums = usageCell.querySelectorAll('input[type="number"]');
+          const [sangDose, truaDose, chieuDose, toiDose] = [
+            parseFloat(nums[0]?.value || '0') || 0,
+            parseFloat(nums[1]?.value || '0') || 0,
+            parseFloat(nums[2]?.value || '0') || 0,
+            parseFloat(nums[3]?.value || '0') || 0,
+          ];
+          // Read radio selection per session
+          const getMeal = (prefix) => {
+            const before = usageCell.querySelector(`input[id^="${prefix}_before_"]:checked`);
+            const after  = usageCell.querySelector(`input[id^="${prefix}_after_"]:checked`);
+            if (before) return 'before';
+            if (after)  return 'after';
+            return 'none';
+          };
+          medication.so_ngay = Math.max(1, parseInt(document.getElementById('prescription_total_days')?.value || '1', 10) || 1);
+          medication.vien_sang = sangDose;
+          medication.vien_trua = truaDose;
+          medication.vien_chieu = chieuDose;
+          medication.vien_toi = toiDose;
+          medication.sang_bua = getMeal('sang');
+          medication.trua_bua = getMeal('trua');
+          medication.chieu_bua = getMeal('chieu');
+          medication.toi_bua = getMeal('toi');
+          medication.ghi_chu_cach_dung = '';
+        } else {
+          // Non-tablet: zero per-session, keep free-text usage
+          medication.so_ngay = Math.max(1, parseInt(document.getElementById('prescription_total_days')?.value || '1', 10) || 1);
+          medication.vien_sang = 0;
+          medication.vien_trua = 0;
+          medication.vien_chieu = 0;
+          medication.vien_toi = 0;
+          medication.sang_bua = 'none';
+          medication.trua_bua = 'none';
+          medication.chieu_bua = 'none';
+          medication.toi_bua = 'none';
+          medication.ghi_chu_cach_dung = row.querySelector('.medication-usage')?.value || '';
+        }
 
         if (medication.ten_thuoc) {
           medications.push(medication);
@@ -721,15 +1102,7 @@ class PrescriptionManager {
         return;
       }
 
-      // Validation: Check for zero quantity
-      const zeroQuantityMedications = prescriptionData.medications.filter(med => 
-        med.so_luong <= 0 || !med.so_luong || med.so_luong === ''
-      );
-      
-      if (zeroQuantityMedications.length > 0) {
-        alert("Số lượng thuốc phải lớn hơn 0! Vui lòng kiểm tra lại cột SL trong bảng Thuốc điều trị.");
-        return;
-      }
+      // Bỏ kiểm tra ép buộc SL > 0 ở cấp submit; đã ràng buộc ở input và tự tính SL
 
       // Client-side stock validation before submit
       const tbody = document.getElementById("medication-tbody");
@@ -1043,7 +1416,13 @@ function loadMedicationSuggestions(keyword, dropdown, row) {
             }
             if (ingredientInput) ingredientInput.value = hoatChat;
             if (unitInput) unitInput.value = donVi;
-            if (usageInput) usageInput.value = lieuDung;
+            // Switch usage layout based on unit (Viên => detailed; others => simple)
+            try { setUsageLayout(row, donVi); } catch (e) { console.error('setUsageLayout error:', e); }
+            // If non-viên, show LieuDung from DB in simple usage input (editable)
+            if (donVi && !donVi.toLowerCase().includes('viên')) {
+              const simpleUsage = row.querySelector('.medication-usage');
+              if (simpleUsage) { simpleUsage.value = lieuDung || ''; }
+            }
 
             // Store stock quantity for validation
             const quantityInput = row.querySelector(".medication-quantity");
@@ -1255,14 +1634,12 @@ function validateQuantity(input) {
     input.classList.add("is-invalid");
     input.classList.add("border-danger");
 
-    // Add error message
+    // Add error message (non-blocking)
     const errorDiv = document.createElement("div");
     errorDiv.className = "invalid-feedback";
+    errorDiv.style.pointerEvents = "none"; // avoid blocking clicks around
     errorDiv.textContent = `Số lượng tồn kho không đủ! Chỉ còn ${stockQuantity} trong kho.`;
     input.parentNode.appendChild(errorDiv);
-
-    // Focus on input
-    input.focus();
 
     // Disable save while invalid
     if (
@@ -1394,3 +1771,25 @@ function printPrescriptionForm() {
 document.addEventListener("DOMContentLoaded", function () {
   window.prescriptionManager = new PrescriptionManager();
 });
+
+// Toggle usage layout per unit
+function setUsageLayout(row, unit) {
+  try {
+    const usageCell = row.querySelector('td:nth-child(6)');
+    if (!usageCell) return;
+    const unitStr = (unit || '').toString().toLowerCase();
+    if (unitStr.includes('viên')) {
+      // Detailed layout
+      const manager = window.prescriptionManager;
+      if (manager && typeof manager.getDetailedUsageHtml === 'function') {
+        usageCell.innerHTML = manager.getDetailedUsageHtml();
+        manager.bindDoseInputs(row);
+      }
+    } else {
+      // Simple layout (text usage input)
+      usageCell.innerHTML = '<input type="text" class="form-control form-control-sm medication-usage" placeholder="Cách dùng">';
+    }
+  } catch (e) {
+    console.error('setUsageLayout fatal:', e);
+  }
+}
