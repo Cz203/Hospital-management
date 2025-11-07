@@ -60,7 +60,8 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('doctor_medical_records'); ?>"
+                    href="./doctor_medical_records">
                     <i class="fas fa-file-medical me-3"></i>
                     <span>Hồ sơ bệnh án</span>
                 </a>

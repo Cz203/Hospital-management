@@ -15,6 +15,7 @@ require_once 'Controllers/PrescriptionController.php';
 require_once 'Controllers/PatientController.php';
 require_once 'Controllers/ReceptionController.php';
 require_once 'Controllers/ReceiptController.php';
+require_once 'Controllers/MedicalRecordController.php';
 // Khởi tạo Controllers
 $auth = new AuthController();
 $doctorController = new DoctorController();
@@ -23,6 +24,7 @@ $appointmentController = new AppointmentController();
 $prescriptionController = new PrescriptionController();
 $patientController = new PatientController();
 $receptionController = new ReceptionController();
+$medicalRecordController = new MedicalRecordController();
 
 // Khởi tạo ReceiptController
 require_once 'config/database.php';
@@ -377,6 +379,20 @@ switch ($action) {
         break;
     case 'check_examination_completion':
         $doctorController->checkExaminationCompletion(); // Kiểm tra điều kiện hoàn thành
+        break;
+
+    case 'doctor_medical_records':
+        $medicalRecordController->index(); // Hồ sơ bệnh án - tra cứu danh sách bệnh án
+        break;
+    case 'get_doctor_medical_records':
+        $medicalRecordController->getRecords(); // API lấy danh sách hồ sơ bệnh án
+        break;
+    case 'get_doctor_medical_record_detail':
+        $medicalRecordController->getDetail(); // API lấy chi tiết hồ sơ bệnh án (JSON)
+        break;
+    
+    case 'render_doctor_medical_record_detail':
+        $medicalRecordController->renderDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
         break;
 
     case 'get_xray_suggestions':
