@@ -196,10 +196,6 @@
                         }
                     }
 
-                    $totalAmount = 0;
-                    $totalBhyt = 0;
-                    $totalPatient = 0;
-                    $currentSection = '';
                 ?>
                 <div class="receipt-container">
                     <!-- Header -->
@@ -265,30 +261,69 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <?php 
+                                // Khởi tạo biến tổng (cần khởi tạo trước để dùng trong phần footer)
+                                $totalAmount = 0;
+                                $totalBhyt = 0;
+                                $totalPatient = 0;
+                            ?>
                             <?php if (!empty($receiptDetails)): ?>
-                                <?php $stt = 1; ?>
+                                <?php 
+                                    // Map loai_dich_vu to section groups và thứ tự sắp xếp
+                                    // Các loại dịch vụ cận lâm sàng (Xet nghiem, Sieu am, X-Quang/Xray) đều thuộc cùng một group
+                                    $sectionGroups = [
+                                        'Kham benh' => ['group' => 'kham_benh', 'order' => 1],
+                                        'Xet nghiem' => ['group' => 'can_lam_sang', 'order' => 2],
+                                        'Sieu am' => ['group' => 'can_lam_sang', 'order' => 2],
+                                        'X-Quang' => ['group' => 'can_lam_sang', 'order' => 2], // Database enum value
+                                        'Xray' => ['group' => 'can_lam_sang', 'order' => 2], // Alternative value
+                                        'Thuoc' => ['group' => 'thuoc', 'order' => 3]
+                                    ];
+                                    
+                                    $sectionNames = [
+                                        'kham_benh' => 'Khám bệnh lâm sàng',
+                                        'can_lam_sang' => 'Khám bệnh cận lâm sàng',
+                                        'thuoc' => 'Thuốc điều trị'
+                                    ];
+                                    
+                                    // Sắp xếp lại các dịch vụ theo section group và thứ tự
+                                    usort($receiptDetails, function($a, $b) use ($sectionGroups) {
+                                        $loaiA = $a['loai_dich_vu'] ?? '';
+                                        $loaiB = $b['loai_dich_vu'] ?? '';
+                                        
+                                        $groupA = $sectionGroups[$loaiA] ?? ['group' => 'other', 'order' => 999];
+                                        $groupB = $sectionGroups[$loaiB] ?? ['group' => 'other', 'order' => 999];
+                                        
+                                        // Sắp xếp theo order trước
+                                        if ($groupA['order'] !== $groupB['order']) {
+                                            return $groupA['order'] - $groupB['order'];
+                                        }
+                                        
+                                        // Nếu cùng group, giữ nguyên thứ tự (theo id)
+                                        return ($a['id'] ?? 0) - ($b['id'] ?? 0);
+                                    });
+                                    
+                                    $stt = 1;
+                                    $currentSectionGroup = '';
+                                ?>
                                 <?php foreach ($receiptDetails as $detail): ?>
                                     <?php
-                                        if ($detail['loai_dich_vu'] !== $currentSection) {
-                                            $currentSection = $detail['loai_dich_vu'];
-                                            $sectionName = '';
-                                            switch ($currentSection) {
-                                                case 'Kham benh':
-                                                    $sectionName = 'Khám bệnh lâm sàng';
-                                                    break;
-                                                case 'Xet nghiem':
-                                                case 'Sieu am':
-                                                case 'Xray':
-                                                    $sectionName = 'Khám bệnh cận lâm sàng';
-                                                    break;
-                                                case 'Thuoc':
-                                                    $sectionName = 'Thuốc điều trị';
-                                                    break;
-                                            }
-                                            if ($sectionName) {
-                                                echo '<tr><td colspan="7" class="text-start"><strong>' . $sectionName . '</strong></td></tr>';
+                                        $loaiDichVu = trim($detail['loai_dich_vu'] ?? ''); // Trim để tránh lỗi do khoảng trắng
+                                        $sectionInfo = $sectionGroups[$loaiDichVu] ?? ['group' => 'other', 'order' => 999];
+                                        $sectionGroup = $sectionInfo['group'];
+                                        
+                                        // Chỉ hiển thị header khi section group thay đổi
+                                        if ($sectionGroup !== $currentSectionGroup) {
+                                            // Chỉ hiển thị header nếu là section hợp lệ (không phải 'other')
+                                            if (isset($sectionNames[$sectionGroup])) {
+                                                $currentSectionGroup = $sectionGroup;
+                                                echo '<tr><td colspan="7" class="text-start"><strong>' . $sectionNames[$sectionGroup] . '</strong></td></tr>';
+                                            } elseif ($sectionGroup === 'other') {
+                                                // Nếu là 'other', vẫn cập nhật currentSectionGroup để tránh hiển thị lại
+                                                $currentSectionGroup = $sectionGroup;
                                             }
                                         }
+                                        
                                         $totalAmount += (float)($detail['thanh_tien'] ?? 0);
                                         $totalBhyt += (float)($detail['quy_bhyt'] ?? 0);
                                         $totalPatient += (float)($detail['nguoi_benh'] ?? 0);
