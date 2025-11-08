@@ -148,8 +148,15 @@
                             <div class="fw-bold mb-2">Hình ảnh siêu âm:</div>
                             <div class="row">
                                 <?php foreach ($images as $img): ?>
+                                    <?php
+                                    $imgUrl = $img['duong_dan'] ?? '';
+                                    // Normalize URL: thêm ./ nếu chưa có prefix
+                                    if ($imgUrl && !preg_match('/^(https?:\/\/|\.\/|\/)/', $imgUrl)) {
+                                        $imgUrl = './' . $imgUrl;
+                                    }
+                                    ?>
                                     <div class="col-md-3 mb-2">
-                                        <img src="<?php echo escapeHtml($img['duong_dan'] ?? ''); ?>" class="img-fluid rounded" style="cursor: pointer;" onclick="zoomImage('<?php echo escapeHtml($img['duong_dan'] ?? ''); ?>')" onerror="this.src='assets/img/placeholder.jpg'">
+                                        <img src="<?php echo escapeHtml($imgUrl); ?>" class="img-fluid rounded" style="cursor: pointer;" onclick="zoomImage('<?php echo escapeHtml($imgUrl); ?>')" onerror="this.src='assets/img/placeholder.jpg'">
                                     </div>
                                 <?php endforeach; ?>
                             </div>

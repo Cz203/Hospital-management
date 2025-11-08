@@ -2,8 +2,6 @@
 let currentPage = 1;
 let currentLimit = 15;
 let currentFilters = {
-    search: '',
-    search_type: '',
     selected_date: ''
 };
 
@@ -11,8 +9,8 @@ let currentFilters = {
 document.addEventListener('DOMContentLoaded', function() {
     loadRecords();
     
-    // Bind enter key on search input
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    // Bind enter key on date input
+    document.getElementById('selectedDate').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             searchRecords();
         }
@@ -26,8 +24,6 @@ function loadRecords(page = 1) {
     currentPage = page;
     
     const filters = {
-        search: currentFilters.search,
-        search_type: currentFilters.search_type,
         selected_date: currentFilters.selected_date,
         page: currentPage,
         limit: currentLimit
@@ -38,7 +34,7 @@ function loadRecords(page = 1) {
     document.getElementById('recordsTable').style.display = 'none';
     document.getElementById('emptyState').style.display = 'none';
 
-    fetch('./?action=get_doctor_medical_records', {
+    fetch('./?action=get_patient_medical_records', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -53,7 +49,6 @@ function loadRecords(page = 1) {
     })
     .then(data => {
         document.getElementById('loadingIndicator').style.display = 'none';
-        console.log('Response data:', data);
         
         if (data.success) {
             if (data.data && data.data.length > 0) {
@@ -98,16 +93,11 @@ function renderRecords(records) {
             <td>${stt}</td>
             <td>${record.ngay_kham_formatted || '-'}</td>
             <td>${record.gio_kham_formatted || '-'}</td>
-            <td>${escapeHtml(record.ma_benh_nhan || '-')}</td>
-            <td>${escapeHtml(record.ten_benh_nhan || '-')}</td>
-            <td>${record.tuoi || '-'}</td>
-            <td>${record.gioi_tinh || '-'}</td>
-            <td>${escapeHtml(record.so_dien_thoai || '-')}</td>
-            <td>${escapeHtml(record.cccd || '-')}</td>
-            <td>${escapeHtml(record.chan_doan_vao_vien || record.ly_do || '-')}</td>
-            <td>
-                <button class="btn btn-sm btn-primary" onclick="viewDetail(${record.lich_hen_id})">
-                    <i class="fas fa-eye me-1"></i>Xem chi tiết
+            <td>${escapeHtml(record.ten_bac_si || '-')}</td>
+            <td><small>${escapeHtml(record.chan_doan_vao_vien || record.tom_tat_lam_sang || '-')}</small></td>
+            <td style="text-align: center;">
+                <button class="btn btn-sm btn-primary" onclick="viewDetail(${record.lich_hen_id || record.exam_id})" title="Xem chi tiết">
+                    <i class="fas fa-eye"></i> Xem chi tiết
                 </button>
             </td>
         `;
@@ -125,31 +115,55 @@ function renderPagination(totalPages, currentPage) {
     if (totalPages <= 1) return;
 
     // Previous button
-    pagination.innerHTML += `
-        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="loadRecords(${currentPage - 1}); return false;">Trước</a>
-        </li>
-    `;
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `<a class="page-link" href="#" onclick="loadRecords(${currentPage - 1}); return false;">Trước</a>`;
+    pagination.appendChild(prevLi);
 
     // Page numbers
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-            pagination.innerHTML += `
-                <li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" onclick="loadRecords(${i}); return false;">${i}</a>
-                </li>
-            `;
-        } else if (i === currentPage - 3 || i === currentPage + 3) {
-            pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        const firstLi = document.createElement('li');
+        firstLi.className = 'page-item';
+        firstLi.innerHTML = `<a class="page-link" href="#" onclick="loadRecords(1); return false;">1</a>`;
+        pagination.appendChild(firstLi);
+        
+        if (startPage > 2) {
+            const ellipsis = document.createElement('li');
+            ellipsis.className = 'page-item disabled';
+            ellipsis.innerHTML = '<span class="page-link">...</span>';
+            pagination.appendChild(ellipsis);
         }
     }
 
+    for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        li.innerHTML = `<a class="page-link" href="#" onclick="loadRecords(${i}); return false;">${i}</a>`;
+        pagination.appendChild(li);
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const ellipsis = document.createElement('li');
+            ellipsis.className = 'page-item disabled';
+            ellipsis.innerHTML = '<span class="page-link">...</span>';
+            pagination.appendChild(ellipsis);
+        }
+        
+        const lastLi = document.createElement('li');
+        lastLi.className = 'page-item';
+        lastLi.innerHTML = `<a class="page-link" href="#" onclick="loadRecords(${totalPages}); return false;">${totalPages}</a>`;
+        pagination.appendChild(lastLi);
+    }
+
     // Next button
-    pagination.innerHTML += `
-        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" onclick="loadRecords(${currentPage + 1}); return false;">Sau</a>
-        </li>
-    `;
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `<a class="page-link" href="#" onclick="loadRecords(${currentPage + 1}); return false;">Sau</a>`;
+    pagination.appendChild(nextLi);
 }
 
 /**
@@ -159,50 +173,28 @@ function updateStats(total, page, totalPages) {
     document.getElementById('statTotal').textContent = total;
     document.getElementById('statPage').textContent = page;
     document.getElementById('statTotalPages').textContent = totalPages;
+    document.getElementById('statLimit').textContent = currentLimit;
 }
 
 /**
  * Search records
  */
 function searchRecords() {
-    const searchType = document.getElementById('searchType').value;
-    const searchInput = document.getElementById('searchInput').value.trim();
     const selectedDate = document.getElementById('selectedDate').value;
 
-    if (searchType && !searchInput) {
-        showAlert('Vui lòng nhập từ khóa tìm kiếm!', 'warning');
-        return;
-    }
-
-    if (searchInput && !searchType) {
-        showAlert('Vui lòng chọn loại tìm kiếm!', 'warning');
-        return;
-    }
-
-    currentFilters = {
-        search: searchInput,
-        search_type: searchType,
-        selected_date: selectedDate
-    };
-
-    loadRecords(1);
+    currentFilters.selected_date = selectedDate;
+    currentPage = 1;
+    loadRecords(currentPage);
 }
 
 /**
  * Reset filters
  */
 function resetFilters() {
-    document.getElementById('searchType').value = '';
-    document.getElementById('searchInput').value = '';
     document.getElementById('selectedDate').value = '';
-
-    currentFilters = {
-        search: '',
-        search_type: '',
-        selected_date: ''
-    };
-
-    loadRecords(1);
+    currentFilters.selected_date = '';
+    currentPage = 1;
+    loadRecords(currentPage);
 }
 
 /**
@@ -213,26 +205,94 @@ function refreshRecords() {
 }
 
 /**
- * View detail of a medical record
- * Load view từ PHP thay vì render bằng JavaScript
+ * View detail
  */
 function viewDetail(lichHenId) {
+    if (!lichHenId) {
+        showAlert('Không tìm thấy ID lịch hẹn', 'danger');
+        return;
+    }
+
     const modal = new bootstrap.Modal(document.getElementById('detailModal'));
     const modalBody = document.getElementById('detailModalBody');
     
-    modalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>';
+    // Show loading
+    modalBody.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <p class="mt-2 text-muted">Đang tải chi tiết hồ sơ bệnh án...</p>
+        </div>
+    `;
+    
     modal.show();
 
-    // Load view từ PHP thay vì render bằng JavaScript
-    fetch(`./?action=render_doctor_medical_record_detail&exam_id=${lichHenId}`)
-        .then(response => response.text())
+    // Load detail via PHP template
+    fetch(`./?action=render_patient_medical_record_detail&exam_id=${lichHenId}&lich_hen_id=${lichHenId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('HTTP error! status: ' + response.status);
+            }
+            return response.text();
+        })
         .then(html => {
             modalBody.innerHTML = html;
         })
         .catch(error => {
             console.error('Error loading detail:', error);
-            modalBody.innerHTML = `<div class="alert alert-danger">Lỗi khi tải chi tiết: ${error.message}</div>`;
+            modalBody.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Lỗi khi tải chi tiết hồ sơ bệnh án: ${error.message}
+                </div>
+            `;
         });
+}
+
+/**
+ * Show alert
+ */
+function showAlert(message, type = 'info') {
+    // Remove existing alerts
+    const existingAlerts = document.querySelectorAll('.alert-dismissible');
+    existingAlerts.forEach(alert => alert.remove());
+
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.setAttribute('role', 'alert');
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+
+    // Insert at the top of container
+    const container = document.querySelector('.container-fluid');
+    if (container) {
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        // Auto dismiss after 5 seconds
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+}
+
+/**
+ * Escape HTML
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, m => map[m]);
 }
 
 /**
@@ -418,33 +478,3 @@ function zoomImageFullscreen() {
         document.exitFullscreen();
     }
 }
-
-/**
- * Utility functions
- */
-function escapeHtml(text) {
-    if (!text) return '';
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.toString().replace(/[&<>"']/g, m => map[m]);
-}
-
-function showAlert(message, type = 'info') {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
-    alertDiv.style.zIndex = '9999';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.body.appendChild(alertDiv);
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 5000);
-}
-

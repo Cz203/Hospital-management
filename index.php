@@ -258,8 +258,13 @@ switch ($action) {
 
     // ===== PATIENT ROUTES =====
     case 'patient_medical_records':
-        $auth->requireAuth('patient');
-        include 'Views/patient/medical_records.php'; // Hồ sơ bệnh án
+        $medicalRecordController->patientIndex(); // Hồ sơ bệnh án
+        break;
+    case 'get_patient_medical_records':
+        $medicalRecordController->getPatientRecords(); // API lấy danh sách hồ sơ bệnh án
+        break;
+    case 'render_patient_medical_record_detail':
+        $medicalRecordController->renderPatientDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
         break;
 
     case 'home_visit_booking':

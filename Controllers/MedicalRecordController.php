@@ -158,4 +158,90 @@ class MedicalRecordController
         }
         exit();
     }
+
+    /**
+     * Trang hồ sơ bệnh án cho bệnh nhân
+     */
+    public function patientIndex()
+    {
+        $this->auth->requireAuth('patient');
+
+        try {
+            $patientId = $_SESSION['user_id'];
+
+            // Include view
+            include 'Views/patient/medical_records.php';
+        } catch (Exception $e) {
+            error_log("MedicalRecordController patientIndex error: " . $e->getMessage());
+            $_SESSION['error'] = 'Có lỗi xảy ra khi tải trang hồ sơ bệnh án!';
+            header('Location: ./patient_dashboard');
+            exit();
+        }
+    }
+
+    /**
+     * API lấy danh sách hồ sơ bệnh án của bệnh nhân với filter
+     */
+    public function getPatientRecords()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->auth->requireAuth('patient');
+
+        try {
+            $patientId = $_SESSION['user_id'];
+            $input = json_decode(file_get_contents('php://input'), true) ?: [];
+
+            // Lấy dữ liệu từ Model
+            $result = $this->medicalRecordModel->getRecordsByPatient($patientId, $input);
+
+            echo json_encode([
+                'success' => true,
+                'data' => $result['data'],
+                'total' => $result['total'],
+                'page' => $result['page'],
+                'limit' => $result['limit'],
+                'total_pages' => $result['total_pages']
+            ]);
+        } catch (Exception $e) {
+            error_log("MedicalRecordController getPatientRecords error: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi hệ thống: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    /**
+     * Render view chi tiết hồ sơ bệnh án cho bệnh nhân (PHP template)
+     */
+    public function renderPatientDetail()
+    {
+        $this->auth->requireAuth('patient');
+
+        try {
+            $lichHenId = (int)($_GET['exam_id'] ?? $_GET['lich_hen_id'] ?? 0);
+            if ($lichHenId <= 0) {
+                echo '<div class="alert alert-danger">Thiếu lich_hen_id</div>';
+                exit();
+            }
+
+            $patientId = $_SESSION['user_id'];
+
+            // Lấy dữ liệu từ Model
+            $data = $this->medicalRecordModel->getRecordDetailForPatient($lichHenId, $patientId);
+
+            if (!$data) {
+                echo '<div class="alert alert-danger">Không tìm thấy lịch hẹn hoặc lịch hẹn chưa hoàn thành</div>';
+                exit();
+            }
+
+            // Truyền data vào view - dùng lại view của doctor (có thể tạo riêng sau nếu cần)
+            include 'Views/doctor/medical_record_detail.php';
+        } catch (Exception $e) {
+            error_log("MedicalRecordController renderPatientDetail error: " . $e->getMessage());
+            echo '<div class="alert alert-danger">Lỗi hệ thống: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+        exit();
+    }
 }
