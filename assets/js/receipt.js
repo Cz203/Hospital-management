@@ -161,29 +161,6 @@ function getCurrentExamId() {
         return appointmentId;
     }
     
-    console.log('Available elements for exam ID:', {
-        examIdInput: examIdInput?.value,
-        phieuKhamBenhId: phieuKhamBenhId?.value,
-        appointmentItem: appointmentItem?.getAttribute('data-exam-id'),
-        currentAppointment: window.currentAppointment,
-        examIdHidden: examIdHidden?.value,
-        appointmentId: appointmentId
-    });
-    
-    // Debug: Check all possible exam ID elements
-    console.log('Debug - All exam ID related elements:');
-    console.log('exam_id element:', document.getElementById('exam_id'));
-    console.log('id_phieu_kham_benh element:', document.getElementById('id_phieu_kham_benh'));
-    console.log('phieu_kham_id element:', document.getElementById('phieu_kham_id'));
-    console.log('examination_id element:', document.getElementById('examination_id'));
-    
-    // Check all input elements with exam-related names
-    const examInputs = document.querySelectorAll('input[name*="exam"], input[name*="phieu"], input[id*="exam"], input[id*="phieu"]');
-    console.log('All exam/phieu related inputs:', examInputs);
-    examInputs.forEach(input => {
-        console.log(`Input: ${input.name || input.id} = ${input.value}`);
-    });
-    
     return null;
 }
 
@@ -328,23 +305,20 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
     const basicExamRow = document.createElement('tr');
     
     // Get basic exam price from database first, then add other services
-    console.log("Fetching basic exam price from database...");
     fetch('./get_dich_vu_kham')
-        .then(response => {
-            console.log("get_dich_vu_kham response status:", response.status);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            console.log("get_dich_vu_kham response data:", data);
             if (data.success && data.don_gia) {
                 const basicExamPrice = data.don_gia;
-                console.log("Basic exam price from database:", basicExamPrice);
                 const hasBHYT = document.getElementById('receipt_patient_bhyt')?.textContent !== '-' && 
                                document.getElementById('receipt_patient_bhyt')?.textContent !== 'Thu phí';
                 // Chỉ tính giảm giá BHYT nếu có huong_muc từ database
                 const huongMuc = window.receiptHuongMuc;
                 const basicBhytAmount = (hasBHYT && huongMuc !== null && huongMuc > 0) ? Math.round(basicExamPrice * huongMuc) : 0;
                 const basicPatientAmount = basicExamPrice - basicBhytAmount;
+                
+                // Thêm data attribute để đánh dấu đây là dòng khám bệnh
+                basicExamRow.setAttribute('data-loai-dich-vu', 'Kham benh');
                 
                 basicExamRow.innerHTML = `
                     <td>1</td>
@@ -400,7 +374,6 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
         })
         .finally(() => {
             // Always add other services after basic exam is processed (success or error)
-            console.log('Basic exam processed, adding other services...');
             addOtherServices();
             // Release init lock after render completes (will also be released below after final totals)
             // Note: kept here to avoid long lock if later code errors
@@ -433,6 +406,20 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
         // Add rows for each group (tab) - starting from row 4
         groups.forEach((group, index) => {
             const row = document.createElement('tr');
+            
+            // Map group type to loai_dich_vu
+            let loaiDichVu = 'Kham benh'; // default
+            if (group.type === 'xet_nghiem') {
+                loaiDichVu = 'Xet nghiem';
+            } else if (group.type === 'sieu_am') {
+                loaiDichVu = 'Sieu am';
+            } else if (group.type === 'xquang') {
+                loaiDichVu = 'X-Quang';
+            }
+            
+            // Thêm data attribute để đánh dấu loại dịch vụ
+            row.setAttribute('data-loai-dich-vu', loaiDichVu);
+            
             row.innerHTML = `
                 <td>${index + 1}</td>
                 <td>
@@ -481,6 +468,9 @@ function updateReceiptTable(groups, totalBasePrice, totalBhytAmount, totalPatien
             const huongMuc = window.receiptHuongMuc;
             const thanhTienBhytAmount = (canGetDiscount && huongMuc !== null && huongMuc > 0) ? Math.round(thanhTien * huongMuc) : 0;
             const thanhTienPatientAmount = thanhTien - thanhTienBhytAmount;
+            
+            // Thêm data attribute để đánh dấu đây là dòng thuốc
+            medicationRow.setAttribute('data-loai-dich-vu', 'Thuoc');
             
             medicationRow.innerHTML = `
                 <td>${index + 1}</td>
@@ -692,8 +682,15 @@ function collectReceiptData() {
                     
                     // Bỏ qua các dòng tiêu đề hoặc trống
                     if (tenDichVu && tenDichVu !== 'Tên dịch vụ' && donGia > 0) {
+                        // Lấy loại dịch vụ từ data attribute (bắt buộc phải có)
+                        var loaiDichVu = row.getAttribute('data-loai-dich-vu');
+                        if (!loaiDichVu) {
+                            console.warn('Không tìm thấy data-loai-dich-vu cho dòng:', tenDichVu);
+                            loaiDichVu = 'Kham benh'; // Fallback mặc định
+                        }
+                        
                         chiTiet.push({
-                            loai_dich_vu: getLoaiDichVu(tenDichVu),
+                            loai_dich_vu: loaiDichVu,
                             ten_dich_vu: tenDichVu,
                             so_luong: soLuong,
                             don_gia: donGia,
@@ -720,16 +717,6 @@ function collectReceiptData() {
         console.error("Error collecting receipt data:", error);
         return null;
     }
-}
-
-// Helper function để xác định loại dịch vụ
-function getLoaiDichVu(tenDichVu) {
-    if (tenDichVu.toLowerCase().includes('khám bệnh')) return 'Kham benh';
-    if (tenDichVu.toLowerCase().includes('xét nghiệm') || tenDichVu.toLowerCase().includes('xet nghiem')) return 'Xet nghiem';
-    if (tenDichVu.toLowerCase().includes('siêu âm') || tenDichVu.toLowerCase().includes('sieu am')) return 'Sieu am';
-    if (tenDichVu.toLowerCase().includes('x-quang') || tenDichVu.toLowerCase().includes('xquang')) return 'X-Quang';
-    if (tenDichVu.toLowerCase().includes('thuốc') || tenDichVu.toLowerCase().includes('thuoc')) return 'Thuoc';
-    return 'Kham benh'; // Default
 }
 
 // Load receipt code (Số HD) from API

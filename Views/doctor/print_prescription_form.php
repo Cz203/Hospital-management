@@ -303,7 +303,6 @@
     <!-- Thuốc điều trị -->
     <div class="medication-section">
         <div class="medication-title">Thuốc điều trị</div>
-<<<<<<< HEAD
         <?php 
             // Lấy số ngày dùng thuốc hiển thị riêng (ưu tiên từ chi tiết, fallback 1)
             $soNgayIn = 1;
@@ -323,9 +322,6 @@
             </div>
         </div>
         
-=======
-
->>>>>>> feca24286521f4c570348ed0f0dcf7939751d6a4
         <?php if (!empty($prescriptionData['medications'])): ?>
         <table class="medication-table">
             <thead>

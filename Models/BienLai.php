@@ -86,7 +86,7 @@ class BienLai {
      */
     public function getById($id) {
         $sql = "SELECT bl.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.so_the_bhyt, 
-                       pk.doi_tuong_bhyt, bn.ma_benh_nhan, bs.ten as ten_bac_si
+                       pk.doi_tuong_bhyt, pk.benh_nhan_id, bn.id AS benh_nhan_id_thuc_te, bn.ma_benh_nhan, bs.ten as ten_bac_si
                 FROM bien_lai_vien_phi bl
                 JOIN phieu_kham_benh pk ON bl.id_phieu_kham_benh = pk.id  
                 JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
@@ -265,6 +265,61 @@ class BienLai {
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['total'];
+    }
+
+    /**
+     * Lấy danh sách biên lai theo bệnh nhân (patient portal)
+     */
+    public function getReceiptsByPatient($patientId, $limit = 15, $offset = 0, $date = null, $code = null) {
+        $params = [$patientId];
+        $sql = "SELECT bl.*, 
+                       lh.ngay_hen, lh.gio_hen,
+                       DATE_FORMAT(lh.ngay_hen, '%d/%m/%Y') AS ngay_kham_formatted,
+                       TIME_FORMAT(lh.gio_hen, '%H:%i') AS gio_kham_formatted
+                FROM bien_lai_vien_phi bl
+                JOIN phieu_kham_benh pk ON bl.id_phieu_kham_benh = pk.id
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                LEFT JOIN lich_hen lh ON pk.id_lich_hen = lh.id
+                WHERE bn.id = ?";
+        if (!empty($date)) {
+            $sql .= " AND (DATE(bl.ngay_lap) = ? OR (lh.ngay_hen IS NOT NULL AND DATE(lh.ngay_hen) = ?))";
+            $params[] = $date;
+            $params[] = $date;
+        }
+        if (!empty($code)) {
+            $sql .= " AND bl.ma_bien_lai LIKE ?";
+            $params[] = '%' . $code . '%';
+        }
+        $sql .= " ORDER BY bl.ngay_lap DESC LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Đếm tổng số biên lai theo bệnh nhân (patient portal)
+     */
+    public function countReceiptsByPatient($patientId, $date = null, $code = null) {
+        $params = [$patientId];
+        $sql = "SELECT COUNT(*) as total
+                FROM bien_lai_vien_phi bl
+                JOIN phieu_kham_benh pk ON bl.id_phieu_kham_benh = pk.id
+                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                LEFT JOIN lich_hen lh ON pk.id_lich_hen = lh.id
+                WHERE bn.id = ?";
+        if (!empty($date)) {
+            $sql .= " AND (DATE(bl.ngay_lap) = ? OR (lh.ngay_hen IS NOT NULL AND DATE(lh.ngay_hen) = ?))";
+            $params[] = $date;
+            $params[] = $date;
+        }
+        if (!empty($code)) {
+            $sql .= " AND bl.ma_bien_lai LIKE ?";
+            $params[] = '%' . $code . '%';
+        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($result['total'] ?? 0);
     }
 
     /**

@@ -10,13 +10,13 @@ $content = '
                 <i class="fas fa-file-medical text-primary me-2"></i>
                 Hồ sơ bệnh án
             </h1>
-            <p class="text-muted">Xem và quản lý hồ sơ bệnh án của bạn</p>
+            <p class="text-muted">Tra cứu danh sách bệnh án của các bệnh nhân mà bác sĩ phụ trách</p>
         </div>
         <div class="d-flex gap-2">
             <button class="btn btn-primary" onclick="refreshRecords()">
                 <i class="fas fa-sync-alt me-2"></i>Làm mới
             </button>
-            <a href="./patient_dashboard" class="btn btn-outline-secondary">
+            <a href="./doctor_dashboard" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Quay lại
             </a>
         </div>
@@ -29,8 +29,25 @@ $content = '
         </div>
         <div class="card-body">
             <div class="row g-3">
+                <!-- Search Type -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Loại tìm kiếm:</label>
+                    <select class="form-select" id="searchType">
+                        <option value="">-- Chọn loại --</option>
+                        <option value="ma_benh_nhan">Mã bệnh nhân</option>
+                        <option value="so_dien_thoai">Số điện thoại</option>
+                        <option value="cccd">Căn cước công dân (CCCD)</option>
+                    </select>
+                </div>
+
+                <!-- Search Input -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Từ khóa tìm kiếm:</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Nhập từ khóa...">
+                </div>
+
                 <!-- Date Filter -->
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-bold">Chọn ngày:</label>
                     <input type="date" class="form-control" id="selectedDate">
                 </div>
@@ -108,7 +125,7 @@ $content = '
         <div class="card-header">
             <h5 class="mb-0">
                 <i class="fas fa-list text-primary me-2"></i>
-                Hồ sơ bệnh án gần đây
+                Danh sách hồ sơ bệnh án
             </h5>
         </div>
         <div class="card-body">
@@ -127,9 +144,14 @@ $content = '
                                 <th style="width: 80px;">STT</th>
                                 <th style="width: 120px;">Ngày khám</th>
                                 <th style="width: 100px;">Giờ khám</th>
-                                <th>Bác sĩ</th>
+                                <th style="width: 150px;">Mã BN</th>
+                                <th>Họ tên</th>
+                                <th style="width: 100px;">Tuổi</th>
+                                <th style="width: 80px;">Giới tính</th>
+                                <th style="width: 120px;">SĐT</th>
+                                <th style="width: 120px;">CCCD</th>
                                 <th>Chẩn đoán</th>
-                                <th style="width: 180px; text-align: center;">Thao tác</th>
+                                <th style="width: 120px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="recordsTableBody">
@@ -180,7 +202,7 @@ $content = '
 </div>
 
 <link rel="stylesheet" href="assets/css/medical_records.css">
-<script src="assets/js/patient_medical_records.js"></script>
+<script src="assets/js/doctor_medical_records.js"></script>
 ';
 
 renderLayout($content, 'Hồ sơ bệnh án - Hệ thống Quản lý Bệnh viện');

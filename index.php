@@ -15,6 +15,8 @@ require_once 'Controllers/PrescriptionController.php';
 require_once 'Controllers/PatientController.php';
 require_once 'Controllers/ReceptionController.php';
 require_once 'Controllers/ReceiptController.php';
+require_once 'Controllers/MedicalRecordController.php';
+require_once 'Controllers/PatientReceiptController.php';
 // Khởi tạo Controllers
 $auth = new AuthController();
 $doctorController = new DoctorController();
@@ -23,6 +25,8 @@ $appointmentController = new AppointmentController();
 $prescriptionController = new PrescriptionController();
 $patientController = new PatientController();
 $receptionController = new ReceptionController();
+$medicalRecordController = new MedicalRecordController();
+$patientReceiptController = new PatientReceiptController();
 
 // Khởi tạo ReceiptController
 require_once 'config/database.php';
@@ -256,8 +260,22 @@ switch ($action) {
 
     // ===== PATIENT ROUTES =====
     case 'patient_medical_records':
-        $auth->requireAuth('patient');
-        include 'Views/patient/medical_records.php'; // Hồ sơ bệnh án
+        $medicalRecordController->patientIndex(); // Hồ sơ bệnh án
+        break;
+    case 'get_patient_medical_records':
+        $medicalRecordController->getPatientRecords(); // API lấy danh sách hồ sơ bệnh án
+        break;
+    case 'patient_receipts':
+        $patientReceiptController->patientIndex(); // Biên lai viện phí (bệnh nhân)
+        break;
+    case 'get_patient_receipts':
+        $patientReceiptController->getPatientReceipts(); // API danh sách biên lai (bệnh nhân)
+        break;
+    case 'render_patient_receipt_detail':
+        $patientReceiptController->renderPatientReceiptDetail(); // Render chi tiết biên lai (modal bệnh nhân)
+        break;
+    case 'render_patient_medical_record_detail':
+        $medicalRecordController->renderPatientDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
         break;
 
     case 'home_visit_booking':
@@ -377,6 +395,20 @@ switch ($action) {
         break;
     case 'check_examination_completion':
         $doctorController->checkExaminationCompletion(); // Kiểm tra điều kiện hoàn thành
+        break;
+
+    case 'doctor_medical_records':
+        $medicalRecordController->index(); // Hồ sơ bệnh án - tra cứu danh sách bệnh án
+        break;
+    case 'get_doctor_medical_records':
+        $medicalRecordController->getRecords(); // API lấy danh sách hồ sơ bệnh án
+        break;
+    case 'get_doctor_medical_record_detail':
+        $medicalRecordController->getDetail(); // API lấy chi tiết hồ sơ bệnh án (JSON)
+        break;
+    
+    case 'render_doctor_medical_record_detail':
+        $medicalRecordController->renderDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
         break;
 
     case 'get_xray_suggestions':
