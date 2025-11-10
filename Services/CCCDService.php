@@ -13,39 +13,20 @@ class CCCDService
     private $conn;
 
     /**
-     * Fake CCCD database (giả lập cơ sở dữ liệu CCCD thực tế)
-     * Trong thực tế, đây sẽ là API call đến hệ thống Công an
+     * Table name for CCCD data
      */
-    private const FAKE_CCCD_DATABASE = [
-        '001234567890' => [
-            'ten' => 'Cao Dương Quốc Việt',
-            'ngay_sinh' => '2003-03-22',
-            'gioi_tinh' => 'Nam',
-            'dia_chi' => 'An Giang',
-            'ngay_cap' => '2020-01-01',
-            'noi_cap' => 'Cục cảnh sát ĐKQL cư trú và DLQG về dân cư'
-        ],
-        '001234567891' => [
-            'ten' => 'Ung Nguyễn Trường Thịnh',
-            'ngay_sinh' => '2003-03-22',
-            'gioi_tinh' => 'Nam',
-            'dia_chi' => 'Hồ Chí Minh',
-            'ngay_cap' => '2020-06-15',
-            'noi_cap' => 'Cục cảnh sát ĐKQL cư trú và DLQG về dân cư'
-        ],
-        '003456789012' => [
-            'ten' => 'Lê Văn C',
-            'ngay_sinh' => '1988-12-10',
-            'gioi_tinh' => 'Nam',
-            'dia_chi' => 'Đà Nẵng',
-            'ngay_cap' => '2019-03-20',
-            'noi_cap' => 'Cục cảnh sát ĐKQL cư trú và DLQG về dân cư'
-        ]
-    ];
+    private const TABLE_NAME = 'cccd_data';
 
     public function __construct($db = null)
     {
-        $this->conn = $db;
+        if ($db === null) {
+            // Tự động kết nối database nếu chưa có
+            require_once __DIR__ . '/../config/database.php';
+            $database = new Database();
+            $this->conn = $database->getConnection();
+        } else {
+            $this->conn = $db;
+        }
     }
 
     /**
@@ -120,17 +101,30 @@ class CCCDService
             ];
         }
 
-        // Bước 2: Kiểm tra trong fake database (giả lập API call)
-        if (!isset(self::FAKE_CCCD_DATABASE[$cccd])) {
+        // Bước 2: Kiểm tra trong database (giả lập API call)
+        if (!$this->conn) {
+            return [
+                'success' => false,
+                'message' => 'Lỗi kết nối database. Vui lòng thử lại sau!',
+                'verified' => false
+            ];
+        }
+
+        // Lấy thông tin CCCD từ database
+        $cccdData = $this->getCCCDFromDatabase($cccd);
+
+        if (!$cccdData) {
+            // Lấy danh sách CCCD mẫu để gợi ý
+            $sampleCCCDs = $this->getSampleCCCDFromDatabase();
+            '';
+
             return [
                 'success' => false,
                 'message' => 'CCCD không tồn tại trong hệ thống. Vui lòng kiểm tra lại!',
                 'verified' => false,
-                'suggestion' => 'CCCD mẫu để test: ' . implode(', ', array_keys(self::FAKE_CCCD_DATABASE))
+
             ];
         }
-
-        $cccdData = self::FAKE_CCCD_DATABASE[$cccd];
 
         // Bước 3: Verify thông tin (nếu có)
         if ($ten !== null) {
@@ -141,7 +135,7 @@ class CCCDService
             if ($tenNormalized !== $cccdTenNormalized) {
                 return [
                     'success' => false,
-                    'message' => 'Họ tên không khớp với CCCD. CCCD này thuộc về: ' . $cccdData['ten'],
+                    'message' => 'Họ tên không khớp với CCCD. CCCD này thuộc về: ',
                     'verified' => false,
                     'cccd_data' => [
                         'ten' => $cccdData['ten']
@@ -237,18 +231,135 @@ class CCCDService
     }
 
     /**
-     * Get list CCCD mẫu để test
+     * Lấy thông tin CCCD từ database
      */
-    public static function getSampleCCCD()
+    private function getCCCDFromDatabase($cccd)
     {
-        return array_keys(self::FAKE_CCCD_DATABASE);
+        try {
+            $query = "SELECT cccd, ten, ngay_sinh, gioi_tinh, dia_chi, ngay_cap, noi_cap 
+                      FROM " . self::TABLE_NAME . " 
+                      WHERE cccd = :cccd AND trang_thai = 1 
+                      LIMIT 1";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':cccd', $cccd, PDO::PARAM_STR);
+            $stmt->execute();
+
+            if ($stmt->rowCount() > 0) {
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                // Chuyển đổi định dạng ngày về Y-m-d
+                if ($result['ngay_sinh']) {
+                    $result['ngay_sinh'] = date('Y-m-d', strtotime($result['ngay_sinh']));
+                }
+                if ($result['ngay_cap']) {
+                    $result['ngay_cap'] = date('Y-m-d', strtotime($result['ngay_cap']));
+                }
+                return $result;
+            }
+
+            return null;
+        } catch (PDOException $e) {
+            error_log("Error getting CCCD from database: " . $e->getMessage());
+            return null;
+        }
     }
 
     /**
-     * Get CCCD info for testing
+     * Lấy danh sách CCCD mẫu từ database để test
      */
-    public static function getCCCDInfo($cccd)
+    private function getSampleCCCDFromDatabase()
     {
-        return self::FAKE_CCCD_DATABASE[$cccd] ?? null;
+        try {
+            $query = "SELECT cccd FROM " . self::TABLE_NAME . " 
+                      WHERE trang_thai = 1 
+                      ORDER BY id 
+                      LIMIT 10";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute();
+
+            $results = [];
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $results[] = $row['cccd'];
+            }
+
+            return $results;
+        } catch (PDOException $e) {
+            error_log("Error getting sample CCCD from database: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get list CCCD mẫu để test (public method)
+     */
+    public function getSampleCCCD()
+    {
+        return $this->getSampleCCCDFromDatabase();
+    }
+
+    /**
+     * Get CCCD info for testing (public method)
+     */
+    public function getCCCDInfo($cccd)
+    {
+        return $this->getCCCDFromDatabase($cccd);
+    }
+
+    /**
+     * Thêm CCCD mới vào database (dùng cho admin/testing)
+     */
+    public function addCCCD($cccd, $ten, $ngaySinh, $gioiTinh, $diaChi = null, $ngayCap = null, $noiCap = null)
+    {
+        try {
+            // Validate format trước
+            $formatCheck = $this->validateFormat($cccd);
+            if (!$formatCheck['valid']) {
+                return [
+                    'success' => false,
+                    'message' => $formatCheck['message']
+                ];
+            }
+
+            // Kiểm tra CCCD đã tồn tại chưa
+            $existing = $this->getCCCDFromDatabase($cccd);
+            if ($existing) {
+                return [
+                    'success' => false,
+                    'message' => 'CCCD đã tồn tại trong hệ thống'
+                ];
+            }
+
+            $query = "INSERT INTO " . self::TABLE_NAME . " 
+                      (cccd, ten, ngay_sinh, gioi_tinh, dia_chi, ngay_cap, noi_cap, trang_thai) 
+                      VALUES (:cccd, :ten, :ngay_sinh, :gioi_tinh, :dia_chi, :ngay_cap, :noi_cap, 1)";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':cccd', $cccd, PDO::PARAM_STR);
+            $stmt->bindParam(':ten', $ten, PDO::PARAM_STR);
+            $stmt->bindParam(':ngay_sinh', $ngaySinh, PDO::PARAM_STR);
+            $stmt->bindParam(':gioi_tinh', $gioiTinh, PDO::PARAM_STR);
+            $stmt->bindParam(':dia_chi', $diaChi, PDO::PARAM_STR);
+            $stmt->bindParam(':ngay_cap', $ngayCap, PDO::PARAM_STR);
+            $stmt->bindParam(':noi_cap', $noiCap, PDO::PARAM_STR);
+
+            if ($stmt->execute()) {
+                return [
+                    'success' => true,
+                    'message' => 'Thêm CCCD thành công'
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'Lỗi khi thêm CCCD vào database'
+                ];
+            }
+        } catch (PDOException $e) {
+            error_log("Error adding CCCD to database: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Lỗi database: ' . $e->getMessage()
+            ];
+        }
     }
 }

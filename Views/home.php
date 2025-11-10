@@ -1,6 +1,8 @@
 <?php
 require_once 'Models/Doctor.php';
 require_once 'Models/Specialty.php';
+require_once 'Models/Patient.php';
+require_once 'Models/Appointment.php';
 require_once 'Controllers/AuthController.php';
 
 $auth = new AuthController();
@@ -14,6 +16,65 @@ $displayDoctors = array_slice($doctors, 0, 6);
 // Get specialties directly from chuyen_khoa with doctor counts
 $specialtyModel = new Specialty();
 $specialties = $specialtyModel->allWithDoctorCounts();
+
+// Calculate statistics - Get from database efficiently
+// Ensure doctors is an array
+$doctors = is_array($doctors) ? $doctors : [];
+$totalDoctors = count($doctors);
+
+// Ensure specialties is an array
+$specialties = is_array($specialties) ? $specialties : [];
+$totalSpecialties = count($specialties);
+
+// Calculate average experience
+$avgExperience = 0;
+if ($totalDoctors > 0) {
+    $totalExp = 0;
+    $validExpCount = 0;
+    foreach ($doctors as $doctor) {
+        $exp = (int)($doctor['so_nam_kinh_nghiem'] ?? 0);
+        if ($exp > 0) {
+            $totalExp += $exp;
+            $validExpCount++;
+        }
+    }
+    $avgExperience = $validExpCount > 0 ? round($totalExp / $validExpCount) : 0;
+}
+
+// Get total patients count from database using COUNT query
+$totalPatients = 0;
+try {
+    require_once 'config/database.php';
+    $database = new Database();
+    $db = $database->getConnection();
+    if ($db) {
+        $stmt = $db->query("SELECT COUNT(*) as total FROM benh_nhan");
+        if ($stmt) {
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $totalPatients = (int)($result['total'] ?? 0);
+        }
+    }
+} catch (Exception $e) {
+    error_log("Error getting patient count: " . $e->getMessage());
+    $totalPatients = 0;
+}
+
+// Get total appointments count
+$totalAppointments = 0;
+try {
+    $appointmentModel = new Appointment();
+    $totalAppointments = $appointmentModel->countAll();
+} catch (Exception $e) {
+    error_log("Error getting appointment count: " . $e->getMessage());
+    $totalAppointments = 0;
+}
+
+// Patients treated = total appointments (represents actual treatments)
+// Fallback to patients count if no appointments
+$patientsTreated = $totalAppointments > 0 ? $totalAppointments : ($totalPatients > 0 ? $totalPatients : 0);
+
+// Debug: Log values (remove in production)
+// error_log("Stats: Doctors=$totalDoctors, Specialties=$totalSpecialties, Experience=$avgExperience, Patients=$totalPatients, Appointments=$totalAppointments, Treated=$patientsTreated");
 
 // Define specialty colors for consistent styling
 $specialtyColors = [
@@ -38,162 +99,197 @@ $specialtyColors = [
 ];
 
 // Set page title
-$page_title = 'Trang chủ';
+$page_title = 'Trang chủ - ThinhViet Hospital';
 
 // Include header
 include 'Views/layouts/header.php';
 ?>
 
-<!-- Hero Section -->
-<section class="hero-section" id="home">
+<!-- Hero Banner Section (Novena Style) -->
+<section class="banner">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-10 text-center">
-                <div class="hero-content">
-                    <h1 class="hero-title">Phòng khám đa khoa ThinhViet</h1>
+        <div class="row">
+            <div class="col-lg-6 col-md-12 col-xl-7">
+                <div class="block">
+                    <div class="divider mb-3"></div>
+                    <span class="text-uppercase text-sm letter-spacing">Giải pháp chăm sóc sức khỏe toàn diện</span>
+                    <h1 class="mb-3 mt-3">Phòng khám đa khoa ThinhViet</h1>
 
-                    <!-- Search Section -->
-                    <div class="hero-search animate-on-scroll">
-                        <div class="search-container">
-                            <div class="search-box">
-                                <div class="search-input-group">
-                                    <i class="fas fa-search search-icon"></i>
-                                    <input type="text" class="search-input"
-                                        placeholder="Tìm kiếm bác sĩ, chuyên khoa...">
-                                    <button type="button" class="search-btn">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="search-suggestions" class="search-suggestions" style="display:none;">
-                                <div
-                                    class="suggestions-header d-flex align-items-center justify-content-between px-2 py-2">
-                                    <small class="text-muted">Gợi ý</small>
-                                    <button type="button" id="suggestions-clear"
-                                        class="btn btn-sm btn-link text-danger p-0">Xóa tất cả</button>
-                                </div>
-                                <div id="search-suggestions-list"></div>
-                            </div>
-                        </div>
+                    <p class="mb-4 pr-5">Đội ngũ bác sĩ giàu kinh nghiệm, trang thiết bị hiện đại,
+                        dịch vụ chăm sóc tận tâm. Chúng tôi cam kết mang đến sự an tâm và sức khỏe tốt nhất cho bạn.</p>
+
+                    <div class="btn-container">
+                        <a href="./doctor_team" class="btn btn-main-2 btn-icon btn-round-full">
+                            Đặt lịch khám <i class="icofont-simple-right ml-2"></i>
+                        </a>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-
-
-<!-- Appointment Section removed per request -->
-
-<!-- Doctors List Section -->
-<section class="doctors-list-section" id="doctors">
+<!-- Features Section (Novena Style) -->
+<section class="features banner2">
     <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-lg-8 mx-auto">
-                <h2 class="display-4 mb-4 animate-on-scroll">Danh sách bác sĩ</h2>
-                <p class="lead text-muted animate-on-scroll">
-                    Đội ngũ bác sĩ chuyên môn cao với nhiều năm kinh nghiệm trong các lĩnh vực khác nhau.
-                    Cam kết mang đến dịch vụ chăm sóc sức khỏe tốt nhất cho bệnh nhân.
-                </p>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="feature-block d-lg-flex">
+                    <!-- Online Appointment -->
+                    <div class="feature-item mb-5 mb-lg-0">
+                        <div class="feature-icon mb-4">
+                            <i class="icofont-surgeon-alt"></i>
+                        </div>
+                        <span>Dịch vụ 24/7</span>
+                        <h4 class="mb-3">Đặt lịch trực tuyến</h4>
+                        <p class="mb-4">Hỗ trợ đặt lịch khám bệnh mọi lúc mọi nơi. Chúng tôi áp dụng nguyên tắc chăm sóc
+                            sức khỏe gia đình.</p>
+                        <a href="./doctor_team" class="btn btn-main btn-round-full">Đặt lịch ngay</a>
+                    </div>
+
+                    <!-- Working Hours -->
+                    <div class="feature-item mb-5 mb-lg-0">
+                        <div class="feature-icon mb-4">
+                            <i class="icofont-ui-clock"></i>
+                        </div>
+                        <span>Giờ làm việc</span>
+                        <h4 class="mb-3">Lịch làm việc</h4>
+                        <ul class="w-hours list-unstyled">
+                            <li class="d-flex justify-content-between">Thứ 2 - Thứ 4: <span>7:00 - 18:00</span></li>
+                            <li class="d-flex justify-content-between">Thứ 5 - Thứ 6: <span>8:00 - 17:00</span></li>
+                            <li class="d-flex justify-content-between">Thứ 7 - CN: <span>9:00 - 16:00</span></li>
+                        </ul>
+                    </div>
+
+                    <!-- Emergency Cases -->
+                    <div class="feature-item mb-5 mb-lg-0">
+                        <div class="feature-icon mb-4">
+                            <i class="icofont-support"></i>
+                        </div>
+                        <span>Cấp cứu khẩn cấp</span>
+                        <h4 class="mb-3">(84) 28-1234-5678</h4>
+                        <p>Hỗ trợ 24/7 cho các trường hợp khẩn cấp. Liên hệ ngay với chúng tôi khi cần hỗ trợ y tế khẩn
+                            cấp.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Doctors List Section (Novena Style) -->
+<section class="section-home" id="doctors">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 text-center">
+                <div class="section-title">
+                    <h2>Đội ngũ bác sĩ giàu kinh nghiệm</h2>
+                    <div class="divider mx-auto my-4"></div>
+                    <p>Đội ngũ bác sĩ chuyên môn cao với nhiều năm kinh nghiệm trong các lĩnh vực khác nhau.
+                        Cam kết mang đến dịch vụ chăm sóc sức khỏe tốt nhất cho bệnh nhân.</p>
+                </div>
             </div>
         </div>
 
         <div class="row">
             <?php if (!empty($doctors)) : ?>
-            <?php $doctorsLimited = array_slice($doctors, 0, 6);
+                <?php $doctorsLimited = array_slice($doctors, 0, 6);
                 foreach ($doctorsLimited as $doc) : ?>
-            <?php
+                    <?php
                     $spec = $doc['chuyen_khoa'] ?? '';
-                    $colors = $specialtyColors[$spec] ?? ['text' => 'text-primary', 'bg' => 'primary'];
-                    $textClass = $colors['text'];
                     ?>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="doctor-card animate-on-scroll">
-                    <div class="doctor-avatar">
-                        <img src="<?php echo $doc['hinh_anh']; ?>"
-                            alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>"
-                            onerror="this.src='./assets/img/default-doctor.jpg'">
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="doctor-card-novena">
+                            <img src="<?php echo $doc['hinh_anh']; ?>" alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>"
+                                onerror="this.src='./assets/img/default-doctor.jpg'">
+                            <h5><?php echo htmlspecialchars($doc['ten']); ?></h5>
+                            <p class="specialty">
+                                <i class="icofont-stethoscope"></i>
+                                Chuyên khoa <?php echo htmlspecialchars($spec ?: 'Đa khoa'); ?>
+                            </p>
+                            <p class="experience">
+                                <i class="icofont-clock-time"></i>
+                                <?php echo (int)($doc['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh nghiệm
+                            </p>
+                        </div>
                     </div>
-                    <h5><?php echo htmlspecialchars($doc['ten']); ?></h5>
-                    <p class="<?php echo $textClass; ?> mb-2">
-                        <i class="fas fa-stethoscope me-1"></i>
-                        Chuyên khoa <?php echo htmlspecialchars($spec ?: 'Đa khoa'); ?>
-                    </p>
-                    <p class="text-muted small mb-3">
-                        <i class="fas fa-clock me-1"></i>
-                        <?php echo (int)($doc['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh nghiệm
-                    </p>
-
-                </div>
-            </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
             <?php else : ?>
-            <div class="col-12">
-                <div class="text-center">
-                    <i class="fas fa-user-md fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">Chưa có dữ liệu bác sĩ.</p>
+                <div class="col-12">
+                    <div class="text-center">
+                        <i class="icofont-doctor fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Chưa có dữ liệu bác sĩ.</p>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
         </div>
 
         <div class="row mt-4">
             <div class="col-12 text-center">
-                <a class="btn btn-primary btn-lg animate-on-scroll" href="./doctor_team">
-                    <i class="fas fa-users me-2"></i>Xem tất cả bác sĩ
+                <a class="btn btn-main-2 btn-round-full btn-icon" href="./doctor_team">
+                    Xem tất cả bác sĩ <i class="icofont-simple-right ml-3"></i>
                 </a>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Specialties Section -->
-<section class="doctors-section" id="chuyenkhoa">
+<!-- Specialties Section (Novena Style) -->
+<section class="section service gray-bg" id="chuyenkhoa">
     <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-lg-8 mx-auto">
-                <h2 class="display-4 mb-4 text-white animate-on-scroll">Các Chuyên khoa</h2>
-                <p class="lead text-white-50 animate-on-scroll">
-                    Đội ngũ bác sĩ chuyên môn cao với nhiều năm kinh nghiệm trong các chuyên khoa đa dạng.
-                    Chúng tôi cam kết mang đến dịch vụ chăm sóc sức khỏe toàn diện và chuyên nghiệp.
-                </p>
+        <div class="row justify-content-center">
+            <div class="col-lg-7 text-center">
+                <div class="section-title">
+                    <h2>Các chuyên khoa của chúng tôi</h2>
+                    <div class="divider mx-auto my-4"></div>
+                    <p>Đội ngũ bác sĩ chuyên môn cao với nhiều năm kinh nghiệm trong các chuyên khoa đa dạng.
+                        Chúng tôi cam kết mang đến dịch vụ chăm sóc sức khỏe toàn diện và chuyên nghiệp.</p>
+                </div>
             </div>
         </div>
 
         <div class="row">
-            <?php $specialtiesLimited = array_slice($specialties ?? [], 0, 8);
+            <?php
+            $specialtiesLimited = array_slice($specialties ?? [], 0, 6);
             foreach ($specialtiesLimited as $sp) :
                 $name = $sp['ten'];
                 $count = (int)($sp['doctor_count'] ?? 0);
-                $iconClass = !empty($sp['icon']) ? $sp['icon'] : 'fas fa-stethoscope';
-                $desc = $sp['mo_ta'] ?? '';
-                $badgeColor = 'primary';
+
+                // Lấy icon trực tiếp từ database, nếu không có thì dùng default
+                $iconClass = !empty($sp['icon']) ? trim($sp['icon']) : 'icofont-stethoscope';
+
+                // Đảm bảo icon class hợp lệ (nếu có fa- thì giữ nguyên, nếu không có prefix thì thêm icofont-)
+                if (!empty($iconClass)) {
+                    // Nếu icon không có prefix (icofont- hoặc fa-), thêm icofont-
+                    if (strpos($iconClass, 'icofont-') !== 0 && strpos($iconClass, 'fa-') !== 0 && strpos($iconClass, 'fas ') !== 0 && strpos($iconClass, 'far ') !== 0) {
+                        $iconClass = 'icofont-' . $iconClass;
+                    }
+                }
+
+                $desc = $sp['mo_ta'] ?? 'Dịch vụ chăm sóc sức khỏe chuyên nghiệp';
             ?>
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                <a class="text-decoration-none text-reset"
-                    href="./doctors_by_specialty?slug=<?php echo urlencode($sp['slug'] ?? ''); ?>">
-                    <div class="specialty-card animate-on-scroll">
-                        <div class="specialty-icon">
-                            <i class="<?php echo htmlspecialchars($iconClass); ?>"></i>
+                <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+                    <a class="text-decoration-none"
+                        href="./doctors_by_specialty?slug=<?php echo urlencode($sp['slug'] ?? ''); ?>">
+                        <div class="service-item">
+                            <div class="icon d-flex align-items-center">
+                                <i class="<?php echo htmlspecialchars($iconClass); ?> text-lg"></i>
+                                <h4 class="mt-3 mb-3 ml-3"><?php echo htmlspecialchars($name); ?></h4>
+                            </div>
+
+                            <div class="content">
+                                <p class="mb-4"><?php echo htmlspecialchars($desc); ?></p>
+                            </div>
                         </div>
-                        <h5><?php echo htmlspecialchars($name); ?></h5>
-                        <p><?php echo htmlspecialchars($desc); ?></p>
-                        <div class="doctor-count">
-                            <span class="badge bg-<?php echo $badgeColor; ?>">
-                                <i class="fas fa-user-md me-1"></i><?php echo $count; ?> Bác sĩ
-                            </span>
-                        </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
             <?php endforeach; ?>
         </div>
-        <div class="row mt-3">
+
+        <div class="row mt-4">
             <div class="col-12 text-center">
-                <a class="btn btn-primary btn-lg animate-on-scroll" href="./specialties_all">
-                    <i class="fas fa-users me-2"></i>Xem tất chuyên khoa
+                <a class="btn btn-main-2 btn-round-full btn-icon" href="./specialties_all">
+                    Xem tất cả chuyên khoa <i class="icofont-simple-right ml-3"></i>
                 </a>
             </div>
         </div>
@@ -201,202 +297,352 @@ include 'Views/layouts/header.php';
 </section>
 
 
-<!-- Stats Section -->
-<section class="stats-section">
+<!-- Stats Section - Modern Design -->
+<section class="stats-section-modern">
     <div class="container">
         <div class="row">
-            <div class="col-12">
-                <div class="stats-card animate-on-scroll">
-                    <h3 class="text-gradient">Thống kê đội ngũ y tế</h3>
-                    <div class="row">
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-number text-primary"><?php echo count($doctors); ?>+</div>
-                                <div class="stat-label">Bác sĩ chuyên khoa</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-number text-success">
-                                    <?php echo is_array($specialties) ? count($specialties) : 0; ?>+</div>
-                                <div class="stat-label">Chuyên khoa</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-number text-info"><?php
-                                                                    $avgExperience = 0;
-                                                                    if (count($doctors) > 0) {
-                                                                        $totalExp = 0;
-                                                                        foreach ($doctors as $doctor) {
-                                                                            $totalExp += (int)($doctor['so_nam_kinh_nghiem'] ?? 0);
-                                                                        }
-                                                                        $avgExperience = round($totalExp / count($doctors));
-                                                                    }
-                                                                    echo $avgExperience;
-                                                                    ?>+</div>
-                                <div class="stat-label">Năm kinh nghiệm TB</div>
-                            </div>
+            <!-- Total Doctors -->
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4 mb-lg-0">
+                <div class="stat-card stat-card-blue">
+                    <div class="stat-icon">
+                        <i class="icofont-doctor"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">
+                            <span class="count"
+                                data-count="<?php echo (int)$totalDoctors; ?>"><?php echo (int)$totalDoctors; ?></span><span
+                                class="plus-sign">+</span>
+                        </h3>
+                        <p class="stat-label">Bác sĩ chuyên khoa</p>
+                    </div>
+                </div>
+            </div>
 
-                        </div>
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="stat-item">
-                                <div class="stat-number text-warning">50,000+</div>
-                                <div class="stat-label">Bệnh nhân đã điều trị</div>
-                            </div>
-                        </div>
+            <!-- Average Experience -->
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4 mb-lg-0">
+                <div class="stat-card stat-card-green">
+                    <div class="stat-icon">
+                        <i class="icofont-flag"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">
+                            <span class="count"
+                                data-count="<?php echo (int)$avgExperience; ?>"><?php echo (int)$avgExperience; ?></span><span
+                                class="plus-sign">+</span>
+                        </h3>
+                        <p class="stat-label">Năm kinh nghiệm trung bình</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Specialties -->
+            <div class="col-lg-3 col-md-6 col-sm-6 mb-4 mb-lg-0">
+                <div class="stat-card stat-card-orange">
+                    <div class="stat-icon">
+                        <i class="icofont-badge"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">
+                            <span class="count"
+                                data-count="<?php echo (int)$totalSpecialties; ?>"><?php echo (int)$totalSpecialties; ?></span><span
+                                class="plus-sign">+</span>
+                        </h3>
+                        <p class="stat-label">Chuyên khoa</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patients Treated -->
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="stat-card stat-card-red">
+                    <div class="stat-icon">
+                        <i class="icofont-patient-bed"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 class="stat-number">
+                            <span class="count"
+                                data-count="<?php echo (int)$patientsTreated; ?>"><?php echo (int)$patientsTreated; ?></span><span
+                                class="plus-sign">+</span>
+                        </h3>
+                        <p class="stat-label">Bệnh nhân đã điều trị</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
+<style>
+    /* Modern Stats Section */
+    .stats-section-modern {
+        padding: 50px 0;
+        background: #f8f9fa;
+        position: relative;
+    }
+
+    .stat-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, transparent, currentColor, transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-15px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 25px;
+        position: relative;
+        transition: all 0.4s ease;
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .stat-icon i {
+        font-size: 3rem;
+        color: #ffffff;
+        z-index: 2;
+        position: relative;
+    }
+
+    .stat-icon::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.1;
+        transform: scale(0);
+        transition: transform 0.4s ease;
+    }
+
+    .stat-card:hover .stat-icon::after {
+        transform: scale(1.5);
+    }
+
+    .stat-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-number {
+        margin: 0 0 15px 0;
+        font-size: 3.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+        display: block;
+        width: 100%;
+    }
+
+    .stat-number .count {
+        display: inline-block !important;
+        min-width: 80px;
+        text-align: center;
+        font-weight: 700;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    .stat-number .plus-sign {
+        margin-left: 4px;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .stat-label {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Color Themes */
+    .stat-card-blue {
+        color: #223a66;
+    }
+
+    .stat-card-blue .stat-icon {
+        background: linear-gradient(135deg, #223a66 0%, #1e5f8e 100%);
+    }
+
+    .stat-card-blue .stat-number,
+    .stat-card-blue .stat-number .count,
+    .stat-card-blue .stat-number .plus-sign {
+        color: #223a66 !important;
+    }
+
+    .stat-card-green {
+        color: #28a745;
+    }
+
+    .stat-card-green .stat-icon {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .stat-card-green .stat-number,
+    .stat-card-green .stat-number .count,
+    .stat-card-green .stat-number .plus-sign {
+        color: #28a745 !important;
+    }
+
+    .stat-card-orange {
+        color: #fd7e14;
+    }
+
+    .stat-card-orange .stat-icon {
+        background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+    }
+
+    .stat-card-orange .stat-number,
+    .stat-card-orange .stat-number .count,
+    .stat-card-orange .stat-number .plus-sign {
+        color: #fd7e14 !important;
+    }
+
+    .stat-card-red {
+        color: #e12454;
+    }
+
+    .stat-card-red .stat-icon {
+        background: linear-gradient(135deg, #e12454 0%, #c91e42 100%);
+    }
+
+    .stat-card-red .stat-number,
+    .stat-card-red .stat-number .count,
+    .stat-card-red .stat-number .plus-sign {
+        color: #e12454 !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .stats-section-modern {
+            padding: 80px 0;
+        }
+
+        .stat-card {
+            padding: 35px 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-icon {
+            width: 90px;
+            height: 90px;
+            margin-bottom: 20px;
+        }
+
+        .stat-icon i {
+            font-size: 2.5rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-section-modern {
+            padding: 60px 0;
+        }
+
+        .stat-card {
+            padding: 30px 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 18px;
+        }
+
+        .stat-icon i {
+            font-size: 2.2rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-section-modern {
+            padding: 50px 0;
+        }
+
+        .stat-card {
+            padding: 25px 15px;
+        }
+
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon i {
+            font-size: 1.8rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+    }
+</style>
 <?php
 // Include footer
 include 'Views/layouts/footer.php';
 ?>
-<script>
-// Expose specialty names to help detect exact specialty searches
-window.homeSpecialties = <?php echo json_encode(array_map(function ($s) {
-                                    return $s['ten'] ?? '';
-                                }, $specialties ?? [])); ?>;
-(function() {
-    try {
-        var root = document.querySelector('.hero-section') || document.querySelector('.section.hero');
-        var input = root ? root.querySelector('.search-input') : null;
-        var btn = root ? root.querySelector('.search-btn') : null;
-        var specs = Array.isArray(window.homeSpecialties) ? window.homeSpecialties : [];
-        var suggWrap = document.getElementById('search-suggestions');
-        var suggList = document.getElementById('search-suggestions-list');
-        var clearBtn = document.getElementById('suggestions-clear');
-        var names = [];
-        try {
-            names = (<?php echo json_encode(array_map(function ($d) {
-                                return $d['ten'] ?? '';
-                            }, $doctors ?? [])); ?>) || [];
-        } catch (e) {}
-
-        function handleSearch() {
-            var q = (input && input.value ? input.value : '').trim();
-            if (!q) {
-                window.location.href = './doctor_team';
-                return;
-            }
-            var lower = q.toLowerCase();
-            var matchedSpec = '';
-            for (var i = 0; i < specs.length; i++) {
-                var s = String(specs[i] || '');
-                if (s.toLowerCase() === lower) {
-                    matchedSpec = s;
-                    break;
-                }
-            }
-            var url = './doctor_team?q=' + encodeURIComponent(q);
-            if (matchedSpec) url += '&spec=' + encodeURIComponent(matchedSpec);
-            window.location.href = url;
-        }
-
-        if (btn) btn.addEventListener('click', handleSearch);
-        if (input) input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleSearch();
-            }
-            if (e.key === 'Escape') {
-                if (suggWrap) suggWrap.style.display = 'none';
-            }
-        });
-
-        function renderSuggestions(items) {
-            if (!suggWrap || !suggList) return;
-            if (!items.length) {
-                suggWrap.style.display = 'none';
-                suggList.innerHTML = '';
-                return;
-            }
-            var html = '';
-            for (var i = 0; i < Math.min(items.length, 8); i++) {
-                var it = items[i];
-                var type = it.type === 'spec' ? 'Chuyên khoa' : 'Bác sĩ';
-                var icon = it.type === 'spec' ? 'fa-stethoscope' : 'fa-user-md';
-                html +=
-                    '<div class="d-flex align-items-center justify-content-between py-2 px-2 suggestion-item" style="cursor:pointer;">' +
-                    '<div class="d-flex align-items-center"><i class="fas ' + icon +
-                    ' text-primary me-2"></i><span class="s-label">' + it.label + '</span></div>' +
-                    '<div class="d-flex align-items-center gap-2"><small class="text-muted me-2">' + type +
-                    '</small><button type="button" class="btn btn-sm btn-outline-danger s-remove">×</button></div>' +
-                    '</div>';
-            }
-            suggList.innerHTML = html;
-            suggWrap.style.display = 'block';
-            Array.prototype.forEach.call(suggList.children, function(row, idx) {
-                // click row to navigate
-                row.addEventListener('click', function(e) {
-                    if (e.target && e.target.classList.contains('s-remove'))
-                        return; // ignore when remove button
-                    var it = items[idx];
-                    if (!it) return;
-                    if (it.type === 'spec') {
-                        window.location.href = './doctor_team?spec=' + encodeURIComponent(it.label);
-                    } else {
-                        window.location.href = './doctor_team?q=' + encodeURIComponent(it.label);
-                    }
-                });
-                // remove single item
-                var removeBtn = row.querySelector('.s-remove');
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', function(ev) {
-                        ev.stopPropagation();
-                        row.remove();
-                        if (!suggList.children.length) {
-                            suggWrap.style.display = 'none';
-                        }
-                    });
-                }
-            });
-        }
-
-        function onInput() {
-            var q = (input && input.value ? input.value : '').trim().toLowerCase();
-            if (!q) {
-                renderSuggestions([]);
-                return;
-            }
-            var specMatches = specs
-                .filter(function(s) {
-                    return String(s || '').toLowerCase().includes(q);
-                })
-                .map(function(s) {
-                    return {
-                        type: 'spec',
-                        label: String(s)
-                    };
-                });
-            var nameMatches = names
-                .filter(function(n) {
-                    return String(n || '').toLowerCase().includes(q);
-                })
-                .map(function(n) {
-                    return {
-                        type: 'name',
-                        label: String(n)
-                    };
-                });
-            renderSuggestions(specMatches.concat(nameMatches));
-        }
-
-        if (input) input.addEventListener('input', onInput);
-        if (clearBtn) clearBtn.addEventListener('click', function() {
-            if (suggWrap) suggWrap.style.display = 'none';
-            if (suggList) suggList.innerHTML = '';
-        });
-        document.addEventListener('click', function(e) {
-            if (!suggWrap) return;
-            var t = e.target;
-            if (t !== input && !suggWrap.contains(t)) {
-                suggWrap.style.display = 'none';
-            }
-        });
-    } catch (_) {}
-})();
-</script>

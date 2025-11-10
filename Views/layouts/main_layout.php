@@ -148,6 +148,16 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
         color: white;
     }
 
+    .role-sieuam {
+        background-color: #fd7e14;
+        color: white;
+    }
+
+    .role-xetnghiem {
+        background-color: #20c997;
+        color: white;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .main-content {
@@ -162,135 +172,9 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
             transform: translateX(-100%);
             transition: transform 0.3s ease;
         }
+
         .sidebar.show {
             transform: translateX(0);
-
-        .navbar-nav .nav-link {
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .navbar-nav .nav-link:hover {
-            color: #667eea !important;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-        }
-
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-        .dropdown-item {
-            padding: 8px 20px;
-            transition: all 0.3s ease;
-        }
-
-        .dropdown-item:hover {
-            background-color: #f8f9fa;
-            color: #667eea;
-        }
-
-        /* Bell styles */
-        .nav-bell {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            transition: background 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-        }
-
-        .nav-bell i {
-            font-size: 18px;
-            color: #6b7280;
-        }
-
-        .nav-bell:hover {
-            background: linear-gradient(135deg, #e8ecff 0%, #e5f2ff 100%);
-            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
-        }
-
-        .nav-bell .badge {
-            transform: translate(35%, -35%);
-        }
-
-        .role-badge {
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: 500;
-        }
-
-        .role-admin {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .role-doctor {
-            background-color: #198754;
-            color: white;
-        }
-
-        .role-patient {
-            background-color: #0d6efd;
-            color: white;
-        }
-
-        .role-letan {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .role-sieuam {
-            background-color: #fd7e14;
-            color: white;
-        }
-
-        .role-xetnghiem {
-            background-color: #20c997;
-            color: white;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0;
-            }
-
-            .navbar {
-                margin-left: 0;
-            }
-
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-
-            .sidebar.show {
-                transform: translateX(0);
-            }
         }
     }
     </style>
@@ -375,53 +259,53 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
                     </li>
                     <?php elseif ($user_role == 'xray_doctor'): ?>
 
-                        <li class="nav-item">
-                            <a class="nav-link" href="./xray_dashboard">
-                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-x-ray me-1"></i>Chụp X-Quang
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-file-medical me-1"></i>Kết quả
-                            </a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./xray_dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-x-ray me-1"></i>Chụp X-Quang
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-file-medical me-1"></i>Kết quả
+                        </a>
+                    </li>
                     <?php elseif ($user_role == 'sieuam_doctor'): ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="./sieuam_dashboard">
-                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-procedures me-1"></i>Siêu âm
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-file-medical me-1"></i>Kết quả
-                            </a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./sieuam_dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-procedures me-1"></i>Siêu âm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-file-medical me-1"></i>Kết quả
+                        </a>
+                    </li>
                     <?php elseif ($user_role == 'xetnghiem_doctor'): ?>
-                        <li class="nav-item">
-                            <a class="nav-link" href="./xetnghiem_dashboard">
-                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-flask me-1"></i>Xét nghiệm
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-file-medical me-1"></i>Kết quả
-                            </a>
-                        </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./xetnghiem_dashboard">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-flask me-1"></i>Xét nghiệm
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-file-medical me-1"></i>Kết quả
+                        </a>
+                    </li>
                     <?php elseif ($user_role == 'patient'): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="./patient_dashboard">

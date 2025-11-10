@@ -10,26 +10,22 @@ $page_title = 'Đăng nhập';
     <!-- Login Form -->
     <div id="loginForm" class="form-step active">
         <div class="login-header">
-
             <h3>Đăng nhập</h3>
-
         </div>
 
         <div class="login-body">
             <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
+                <div class="alert alert-danger" role="alert">
+                    <i class="icofont-warning me-2"></i>
                     <?php echo $_SESSION['error']; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
             <?php if (isset($_SESSION['success'])): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>
+                <div class="alert alert-success" role="alert">
+                    <i class="icofont-check-circled me-2"></i>
                     <?php echo $_SESSION['success']; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 <?php unset($_SESSION['success']); ?>
             <?php endif; ?>
@@ -40,32 +36,32 @@ $page_title = 'Đăng nhập';
 
                 <div class="mb-4">
                     <label for="phone" class="form-label">
-                        <i class="fas fa-phone me-2"></i>Số điện thoại
+                        <i class="icofont-phone me-2"></i>Số điện thoại
                     </label>
                     <input type="tel" class="form-control" id="phone" name="phone" required>
                 </div>
 
                 <div class="mb-4">
                     <label for="password" class="form-label">
-                        <i class="fas fa-lock me-2"></i>Mật khẩu
+                        <i class="icofont-lock me-2"></i>Mật khẩu
                     </label>
                     <div class="input-group">
                         <input type="password" class="form-control" id="password" name="password" required>
                         <button type="button" class="btn"
                             onclick="togglePasswordVisibility('password', 'passwordIcon')">
-                            <i class="fas fa-eye" id="passwordIcon"></i>
+                            <i class="icofont-eye" id="passwordIcon"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="mb-4 text-end">
                     <a href="#" class="forgot-password" onclick="showForgotPassword()">
-                        <i class="fas fa-key me-1"></i>Quên mật khẩu?
+                        <i class="icofont-key me-1"></i>Quên mật khẩu?
                     </a>
                 </div>
 
                 <button type="submit" class="btn btn-login w-100 mb-4">
-                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                    <i class="icofont-login me-2"></i>Đăng nhập
                 </button>
 
                 <div class="text-center">
@@ -93,7 +89,7 @@ $page_title = 'Đăng nhập';
                 <h5 class="mb-4 text-center">Nhập số điện thoại</h5>
                 <div class="mb-4">
                     <label for="forgotPhone" class="form-label">
-                        <i class="fas fa-phone me-2"></i>Số điện thoại
+                        <i class="icofont-phone me-2"></i>Số điện thoại
                     </label>
                     <div class="input-group">
                         <span class="input-group-text">
@@ -104,17 +100,17 @@ $page_title = 'Đăng nhập';
                         <input type="text" class="form-control" id="forgotPhone" maxlength="11"
                             placeholder="Nhập số điện thoại" required>
                         <button type="button" class="btn btn-primary" id="sendForgotOtpBtn">
-                            <i class="fas fa-paper-plane me-1"></i>Gửi OTP
+                            <i class="icofont-paper-plane me-1"></i>Gửi OTP
                         </button>
                     </div>
                     <div class="form-text">
-                        <i class="fas fa-info-circle me-1"></i>Nhập số điện thoại đã đăng ký
+                        <i class="icofont-info-circle me-1"></i>Nhập số điện thoại đã đăng ký
                     </div>
                 </div>
 
                 <div class="d-grid gap-2">
                     <a href="#" class="back-to-login" onclick="showLoginForm()">
-                        <i class="fas fa-arrow-left"></i>Quay lại đăng nhập
+                        <i class="icofont-arrow-left"></i>Quay lại đăng nhập
                     </a>
                 </div>
             </div>
@@ -124,32 +120,32 @@ $page_title = 'Đăng nhập';
                 <h5 class="mb-4 text-center">Xác thực OTP</h5>
 
                 <div class="alert alert-info mb-4">
-                    <i class="fas fa-info-circle me-2"></i>
+                    <i class="icofont-info-circle me-2"></i>
                     <strong>Mã OTP đã được gửi đến:</strong>
                     <span id="forgotTargetPhone" class="fw-bold"></span>
                 </div>
 
                 <div class="alert alert-warning mb-4" id="forgotTestModeAlert" style="display: none;">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <i class="icofont-warning me-2"></i>
                     <strong>TEST MODE:</strong>
                     <span id="forgotTestOtpCode" class="fw-bold fs-5"></span>
                     <br><small>Mã OTP này được hiển thị vì tài khoản Vonage hết tiền.</small>
                 </div>
 
                 <div class="alert alert-info mb-4" id="forgotOtpTimerAlert" style="display: none;">
-                    <i class="fas fa-clock me-2"></i>
+                    <i class="icofont-clock-time me-2"></i>
                     <strong>Thời gian còn lại:</strong>
                     <span id="forgotOtpTimer" class="timer"></span>
                 </div>
 
                 <div class="mb-4">
                     <label for="forgotOtpCode" class="form-label">
-                        <i class="fas fa-key me-2"></i>Mã OTP
+                        <i class="icofont-key me-2"></i>Mã OTP
                     </label>
                     <div class="input-group">
                         <input type="text" class="form-control" id="forgotOtpCode" maxlength="6" placeholder="123456">
                         <button type="button" class="btn btn-success" id="verifyForgotOtpBtn">
-                            <i class="fas fa-check me-1"></i>Xác thực
+                            <i class="icofont-check-circled me-1"></i>Xác thực
                         </button>
                     </div>
                 </div>
@@ -158,7 +154,7 @@ $page_title = 'Đăng nhập';
 
                 <div class="d-grid gap-2">
                     <button type="button" class="btn btn-secondary" onclick="showForgotStep1()">
-                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        <i class="icofont-arrow-left me-2"></i>Quay lại
                     </button>
                 </div>
             </div>
@@ -169,36 +165,36 @@ $page_title = 'Đăng nhập';
 
                 <div class="mb-4">
                     <label for="newPassword" class="form-label">
-                        <i class="fas fa-lock me-2"></i>Mật khẩu mới
+                        <i class="icofont-lock me-2"></i>Mật khẩu mới
                     </label>
                     <div class="input-group">
                         <input type="password" class="form-control" id="newPassword" required>
                         <button type="button" class="btn"
                             onclick="togglePasswordVisibility('newPassword', 'newPasswordIcon')">
-                            <i class="fas fa-eye" id="newPasswordIcon"></i>
+                            <i class="icofont-eye" id="newPasswordIcon"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <label for="confirmNewPassword" class="form-label">
-                        <i class="fas fa-lock me-2"></i>Xác nhận mật khẩu mới
+                        <i class="icofont-lock me-2"></i>Xác nhận mật khẩu mới
                     </label>
                     <div class="input-group">
                         <input type="password" class="form-control" id="confirmNewPassword" required>
                         <button type="button" class="btn"
                             onclick="togglePasswordVisibility('confirmNewPassword', 'confirmNewPasswordIcon')">
-                            <i class="fas fa-eye" id="confirmNewPasswordIcon"></i>
+                            <i class="icofont-eye" id="confirmNewPasswordIcon"></i>
                         </button>
                     </div>
                 </div>
 
                 <div class="d-grid gap-2">
                     <button type="button" class="btn btn-primary" id="resetPasswordBtn">
-                        <i class="fas fa-save me-2"></i>Đặt lại mật khẩu
+                        <i class="icofont-save me-2"></i>Đặt lại mật khẩu
                     </button>
                     <button type="button" class="btn btn-secondary" onclick="showForgotStep2()">
-                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        <i class="icofont-arrow-left me-2"></i>Quay lại
                     </button>
                 </div>
             </div>

@@ -30,14 +30,57 @@ const totalSteps = 3;
 
 // Load saved step from sessionStorage on page load
 function loadSavedStep() {
-  // Removed: Always start from step 1 on page load
-  currentStep = 1;
-  showStep(currentStep);
+  // Check if there's a saved step from form submission
+  const savedStep = sessionStorage.getItem("registerFormStep");
+
+  // Check if there's an error message in the page (backend validation error)
+  const hasError =
+    document.querySelector("#step3 .alert-danger") ||
+    document.querySelector("#step2 .alert-danger");
+
+  if (savedStep && hasError) {
+    // There was a form submission with error, restore the step
+    currentStep = parseInt(savedStep);
+    showStep(currentStep);
+
+    // Mark OTP as verified if we're past step 1
+    if (currentStep >= 2) {
+      otpVerified = true;
+
+      // Enable step 1 next button
+      const step1NextBtn = document.getElementById("step1NextBtn");
+      if (step1NextBtn) {
+        step1NextBtn.disabled = false;
+        step1NextBtn.className = "btn btn-primary";
+      }
+    }
+
+    // Enable step 2 next button if we're past step 2
+    if (currentStep >= 3) {
+      const step2NextBtn = document.getElementById("step2NextBtn");
+      if (step2NextBtn) {
+        step2NextBtn.disabled = false;
+        step2NextBtn.className = "btn btn-primary";
+      }
+    }
+
+    // Clear the saved step after restoring
+    sessionStorage.removeItem("registerFormStep");
+  } else {
+    // Normal page load or success redirect
+    // Clear any saved step and start from step 1
+    sessionStorage.removeItem("registerFormStep");
+    currentStep = 1;
+    showStep(currentStep);
+  }
 }
 
 function showStep(step) {
   // Removed: Don't save step to sessionStorage anymore
   currentStep = step;
+
+  // Reset auto-advance flags when changing steps
+  step1AutoAdvanceScheduled = false;
 
   // Hide all steps
   document
@@ -59,6 +102,23 @@ function showStep(step) {
       indicator.classList.remove("active");
     }
   });
+
+  // Check step completion when showing step
+  if (step === 2) {
+    // Check step 2 completion when showing step 2
+    setTimeout(function () {
+      if (typeof checkStep2Completion === "function") {
+        checkStep2Completion();
+      }
+    }, 100);
+  } else if (step === 3) {
+    // Check step 3 completion when showing step 3
+    setTimeout(function () {
+      if (typeof checkStep3Completion === "function") {
+        checkStep3Completion();
+      }
+    }, 100);
+  }
 }
 
 // Step 1 Next button
@@ -90,6 +150,8 @@ document.getElementById("step3PrevBtn").addEventListener("click", function () {
 });
 
 // Enable step 1 next button when OTP is verified
+// Auto-advance to step 2 when OTP is verified
+let step1AutoAdvanceScheduled = false;
 function checkStep1Completion() {
   // Check if OTP is verified (use global otpVerified variable)
   const step1NextBtn = document.getElementById("step1NextBtn");
@@ -98,12 +160,76 @@ function checkStep1Completion() {
   step1NextBtn.disabled = !otpVerified;
   if (otpVerified) {
     step1NextBtn.className = "btn btn-primary";
+
+    // Auto-advance to step 2 after a short delay
+    if (currentStep === 1 && !step1AutoAdvanceScheduled) {
+      step1AutoAdvanceScheduled = true;
+      setTimeout(function () {
+        if (currentStep === 1 && otpVerified) {
+          currentStep = 2;
+          showStep(currentStep);
+        }
+        step1AutoAdvanceScheduled = false;
+      }, 800); // Delay 800ms để user thấy feedback
+    }
   } else {
     step1NextBtn.className = "btn btn-secondary";
+    step1AutoAdvanceScheduled = false;
+  }
+}
+
+// Check step 3 completion - enable submit button when all fields are valid
+function checkStep3Completion() {
+  if (currentStep !== 3) return;
+
+  const submitBtn = document.getElementById("submitBtn");
+  if (!submitBtn) return;
+
+  // Check required fields
+  const tenInput = document.getElementById("ten");
+  const emailInput = document.getElementById("email");
+  const cccdInput = document.getElementById("cccd");
+  const dateInput = document.getElementById("ngay_sinh");
+
+  if (!tenInput || !emailInput || !cccdInput) return;
+
+  const ten = tenInput.value.trim();
+  const email = emailInput.value.trim();
+  const cccd = cccdInput.value.trim();
+  const ngaySinh = dateInput ? dateInput.value.trim() : "";
+
+  // Basic validation checks (without showing error messages)
+  const isNameValid = ten.length >= 2;
+  const isEmailValid =
+    email.length > 0 && email.includes("@") && email.includes(".");
+  const isCCCDValid = cccd.length === 12 && cccdVerified;
+
+  // Check date of birth (optional but should be valid if filled)
+  let isDateValid = true;
+  if (ngaySinh) {
+    const date = new Date(ngaySinh);
+    const today = new Date();
+    const age = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+    const actualAge =
+      monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())
+        ? age - 1
+        : age;
+    isDateValid = actualAge >= 6 && !isNaN(date.getTime());
+  }
+
+  const isComplete = isNameValid && isEmailValid && isCCCDValid && isDateValid;
+
+  submitBtn.disabled = !isComplete;
+  if (isComplete) {
+    submitBtn.className = "btn btn-primary";
+  } else {
+    submitBtn.className = "btn btn-secondary";
   }
 }
 
 // Enable step 2 next button when password is valid and confirmed
+// User must manually click the next button to proceed to step 3
 function checkStep2Completion() {
   // Check if password meets all requirements
   const password = document.getElementById("mat_khau").value;
@@ -119,11 +245,14 @@ function checkStep2Completion() {
 
   // Enable/disable step 2 next button
   const step2NextBtn = document.getElementById("step2NextBtn");
+  if (!step2NextBtn) return;
+
   const isComplete = passwordValid && passwordMatch;
 
   step2NextBtn.disabled = !isComplete;
   if (isComplete) {
     step2NextBtn.className = "btn btn-primary";
+    // User must manually click the button to proceed - no auto-advance
   } else {
     step2NextBtn.className = "btn btn-secondary";
   }
@@ -171,20 +300,53 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Create and show error message
         const errorDiv = document.createElement("div");
-        errorDiv.className = "alert alert-danger validation-error";
+        const errorId = "validation-error-" + Date.now();
+        errorDiv.id = errorId;
+        errorDiv.className =
+          "alert alert-danger alert-dismissible fade show validation-error d-flex align-items-start";
         errorDiv.innerHTML =
-          '<i class="fas fa-exclamation-triangle me-2"></i><strong>Vui lòng sửa các lỗi sau:</strong><ul class="mb-0 mt-2">' +
+          '<i class="fas fa-exclamation-triangle me-2 mt-1"></i>' +
+          '<div class="flex-grow-1">' +
+          '<strong>Vui lòng sửa các lỗi sau:</strong><ul class="mb-0 mt-2">' +
           errors.map((error) => `<li>${error}</li>`).join("") +
-          "</ul>";
+          "</ul>" +
+          "</div>" +
+          '<button type="button" class="btn-close ms-auto mt-1" aria-label="Close" onclick="document.getElementById(\'' +
+          errorId +
+          "').remove()\"></button>";
 
         // Insert error message at the top of step 3
         const step3 = document.getElementById("step3");
         const firstChild = step3.firstChild;
         step3.insertBefore(errorDiv, firstChild);
 
+        // Auto close after 3 seconds
+        const autoCloseTimer = setTimeout(() => {
+          const errorElement = document.getElementById(errorId);
+          if (errorElement && errorElement.parentNode) {
+            errorElement.classList.remove("show");
+            setTimeout(() => {
+              if (errorElement.parentNode) {
+                errorElement.remove();
+              }
+            }, 150); // Fade out animation
+          }
+        }, 3000);
+
+        // Clear timer when close button is clicked
+        const closeBtn = errorDiv.querySelector(".btn-close");
+        if (closeBtn) {
+          closeBtn.addEventListener("click", function () {
+            clearTimeout(autoCloseTimer);
+          });
+        }
+
         // Prevent form submission
         return false;
       } else {
+        // Save current step before submitting
+        sessionStorage.setItem("registerFormStep", currentStep.toString());
+
         // Submit the form
         document.querySelector("form").submit();
       }
@@ -375,12 +537,17 @@ function removePhoneValidationMessage() {
 
 // Global validation utilities
 const ValidationUtils = {
-  // Show alert function
+  // Show alert function with auto-close after 3 seconds and close button
   showAlert: function (message, type) {
     const alertDiv = document.createElement("div");
     alertDiv.className = `alert alert-${
       type === "error" ? "danger" : type === "warning" ? "warning" : "success"
-    } alert-dismissible fade show`;
+    } alert-dismissible fade show d-flex align-items-center`;
+
+    // Generate unique ID for this alert
+    const alertId = "alert-" + Date.now();
+    alertDiv.id = alertId;
+
     alertDiv.innerHTML = `
             <i class="fas fa-${
               type === "success"
@@ -389,8 +556,8 @@ const ValidationUtils = {
                 ? "exclamation-triangle"
                 : "times-circle"
             } me-2"></i>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <span class="flex-grow-1">${message}</span>
+            <button type="button" class="btn-close ms-auto" aria-label="Close" onclick="document.getElementById('${alertId}').remove()"></button>
         `;
 
     // Insert vào đầu card-body
@@ -399,12 +566,26 @@ const ValidationUtils = {
       cardBody.insertBefore(alertDiv, cardBody.firstChild);
     }
 
-    // Auto remove sau 5 giây
-    setTimeout(() => {
-      if (alertDiv.parentNode) {
-        alertDiv.remove();
+    // Auto remove sau 3 giây
+    const autoCloseTimer = setTimeout(() => {
+      const alertElement = document.getElementById(alertId);
+      if (alertElement && alertElement.parentNode) {
+        alertElement.classList.remove("show");
+        setTimeout(() => {
+          if (alertElement.parentNode) {
+            alertElement.remove();
+          }
+        }, 150); // Fade out animation
       }
-    }, 5000);
+    }, 3000);
+
+    // Clear timer when close button is clicked
+    const closeBtn = alertDiv.querySelector(".btn-close");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function () {
+        clearTimeout(autoCloseTimer);
+      });
+    }
   },
 
   // Format time function
@@ -620,10 +801,38 @@ document.addEventListener("DOMContentLoaded", function () {
           statusDiv.style.display = "block";
 
           if (data.success) {
-            statusDiv.className = "alert alert-success";
+            // Generate unique ID for this alert
+            const alertId = "otp-status-" + Date.now();
+            statusDiv.className =
+              "alert alert-success alert-dismissible fade show d-flex align-items-center";
             statusDiv.innerHTML =
-              '<i class="fas fa-check-circle me-2"></i>' + data.message;
+              '<i class="fas fa-check-circle me-2"></i>' +
+              '<span class="flex-grow-1">' +
+              data.message +
+              "</span>" +
+              '<button type="button" class="btn-close ms-auto" aria-label="Close" onclick="document.getElementById(\'otpStatus\').style.display=\'none\'"></button>';
+            statusDiv.id = "otpStatus";
             otpVerified = true;
+
+            // Auto close after 3 seconds
+            const autoCloseTimer = setTimeout(() => {
+              if (statusDiv && statusDiv.parentNode) {
+                statusDiv.classList.remove("show");
+                setTimeout(() => {
+                  if (statusDiv.parentNode) {
+                    statusDiv.style.display = "none";
+                  }
+                }, 150); // Fade out animation
+              }
+            }, 3000);
+
+            // Clear timer when close button is clicked
+            const closeBtn = statusDiv.querySelector(".btn-close");
+            if (closeBtn) {
+              closeBtn.addEventListener("click", function () {
+                clearTimeout(autoCloseTimer);
+              });
+            }
 
             // Removed: Don't save to sessionStorage anymore
 
@@ -650,11 +859,36 @@ document.addEventListener("DOMContentLoaded", function () {
             // Enable submit button
             document.getElementById("submitBtn").disabled = false;
           } else {
-            statusDiv.className = "alert alert-danger";
+            statusDiv.className =
+              "alert alert-danger alert-dismissible fade show d-flex align-items-center";
             statusDiv.innerHTML =
-              '<i class="fas fa-exclamation-triangle me-2"></i>' + data.message;
+              '<i class="fas fa-exclamation-triangle me-2"></i>' +
+              '<span class="flex-grow-1">' +
+              data.message +
+              "</span>" +
+              '<button type="button" class="btn-close ms-auto" aria-label="Close" onclick="document.getElementById(\'otpStatus\').style.display=\'none\'"></button>';
             this.innerHTML = '<i class="fas fa-check me-1"></i>Xác thực';
             this.disabled = false;
+
+            // Auto close after 3 seconds
+            const autoCloseTimer = setTimeout(() => {
+              if (statusDiv && statusDiv.parentNode) {
+                statusDiv.classList.remove("show");
+                setTimeout(() => {
+                  if (statusDiv.parentNode) {
+                    statusDiv.style.display = "none";
+                  }
+                }, 150); // Fade out animation
+              }
+            }, 3000);
+
+            // Clear timer when close button is clicked
+            const closeBtn = statusDiv.querySelector(".btn-close");
+            if (closeBtn) {
+              closeBtn.addEventListener("click", function () {
+                clearTimeout(autoCloseTimer);
+              });
+            }
           }
         })
         .catch((error) => {
@@ -688,6 +922,10 @@ document.addEventListener("DOMContentLoaded", function () {
         ValidationUtils.showAlert("Mật khẩu xác nhận không khớp", "warning");
         return false;
       }
+
+      // Save current step to sessionStorage before submitting
+      // This will be used to restore the step if there's an error from backend
+      sessionStorage.setItem("registerFormStep", currentStep.toString());
     });
   }
 });
@@ -1005,22 +1243,40 @@ document.addEventListener("DOMContentLoaded", function () {
   // Add validation for date of birth
   const dateInput = document.getElementById("ngay_sinh");
   if (dateInput) {
-    dateInput.addEventListener("change", validateDateOfBirth);
-    dateInput.addEventListener("input", validateDateOfBirth);
+    dateInput.addEventListener("change", function () {
+      validateDateOfBirth();
+      checkStep3Completion();
+    });
+    dateInput.addEventListener("input", function () {
+      validateDateOfBirth();
+      checkStep3Completion();
+    });
   }
 
   // Add validation for name
   const nameInput = document.getElementById("ten");
   if (nameInput) {
-    nameInput.addEventListener("input", validateName);
-    nameInput.addEventListener("blur", validateName);
+    nameInput.addEventListener("input", function () {
+      validateName();
+      checkStep3Completion();
+    });
+    nameInput.addEventListener("blur", function () {
+      validateName();
+      checkStep3Completion();
+    });
   }
 
   // Add validation for email
   const emailInput = document.getElementById("email");
   if (emailInput) {
-    emailInput.addEventListener("input", validateEmail);
-    emailInput.addEventListener("blur", validateEmail);
+    emailInput.addEventListener("input", function () {
+      validateEmail();
+      checkStep3Completion();
+    });
+    emailInput.addEventListener("blur", function () {
+      validateEmail();
+      checkStep3Completion();
+    });
   }
 
   // Update step 2 validation to include new validations
@@ -1109,6 +1365,13 @@ document.addEventListener("DOMContentLoaded", function () {
             '<i class="fas fa-check-circle"></i> ' + result.message
           );
 
+          // Check step 3 completion after CCCD is verified
+          if (typeof checkStep3Completion === "function") {
+            setTimeout(function () {
+              checkStep3Completion();
+            }, 300);
+          }
+
           // Auto fill data if available
           if (result.cccd_data) {
             // Fill Họ tên
@@ -1140,13 +1403,79 @@ document.addEventListener("DOMContentLoaded", function () {
             // Fill Giới tính
             if (result.cccd_data.gioi_tinh) {
               const genderInput = document.getElementById("gioi_tinh");
-              if (genderInput && !genderInput.value) {
-                genderInput.value = result.cccd_data.gioi_tinh;
-              }
-              // Lock field (disabled for select)
               if (genderInput) {
-                genderInput.disabled = true;
+                // Map incoming value to server enum and display text
+                const raw = String(result.cccd_data.gioi_tinh).trim();
+                const toEnum = (v) => {
+                  const s = String(v || "")
+                    .trim()
+                    .toLowerCase();
+                  if (s === "nữ" || s === "nu") return "Nu";
+                  if (s === "khác" || s === "khac") return "Khac";
+                  if (s === "nam" || s === "male") return "Nam";
+                  // Fallback: return as-is but capitalized first letter
+                  return v.charAt(0).toUpperCase() + v.slice(1);
+                };
+                const toDisplay = (enumVal) => {
+                  if (enumVal === "Nu") return "Nữ";
+                  if (enumVal === "Khac") return "Khác";
+                  return "Nam";
+                };
+
+                const enumVal = toEnum(raw);
+                const displayText = toDisplay(enumVal);
+
+                // Try to find a matching option by value or by display text
+                let matched = false;
+                for (let i = 0; i < genderInput.options.length; i++) {
+                  const opt = genderInput.options[i];
+                  if (
+                    opt.value === enumVal ||
+                    opt.text.trim().toLowerCase() ===
+                      displayText.toLowerCase() ||
+                    opt.text.trim().toLowerCase() === enumVal.toLowerCase()
+                  ) {
+                    genderInput.value = opt.value;
+                    matched = true;
+                    break;
+                  }
+                }
+
+                // If we didn't match an existing option, create/update a temporary option
+                if (!matched) {
+                  let temp = genderInput.querySelector(
+                    'option[data-temp="true"]'
+                  );
+                  if (!temp) {
+                    temp = document.createElement("option");
+                    temp.setAttribute("data-temp", "true");
+                    genderInput.appendChild(temp);
+                  }
+                  temp.value = enumVal;
+                  temp.text = displayText;
+                  genderInput.value = enumVal;
+                }
+
+                // Lock field visually and create hidden input so value is submitted
                 genderInput.classList.add("cccd-locked");
+                const form =
+                  genderInput.closest("form") || document.querySelector("form");
+                if (form) {
+                  const hiddenId = "gioi_tinh_hidden";
+                  let hidden = document.getElementById(hiddenId);
+                  if (!hidden) {
+                    hidden = document.createElement("input");
+                    hidden.type = "hidden";
+                    hidden.id = hiddenId;
+                    hidden.name = genderInput.name || "gioi_tinh";
+                    form.appendChild(hidden);
+                  }
+                  // Hidden carries server enum value
+                  hidden.value = enumVal;
+                }
+
+                // Disable the visible select for UX
+                genderInput.disabled = true;
               }
             }
 
@@ -1206,7 +1535,43 @@ document.addEventListener("DOMContentLoaded", function () {
         break;
     }
 
-    cccdResultDiv.innerHTML = `<div class="${className} py-2 px-3 mb-0">${message}</div>`;
+    // Generate unique ID for this alert
+    const alertId = "cccd-alert-" + Date.now();
+
+    // Create alert with close button - use flexbox to position close button at end
+    const alertHTML = `
+      <div id="${alertId}" class="${className} alert-dismissible fade show d-flex align-items-center py-2 px-3 mb-0">
+        <span class="flex-grow-1">${message}</span>
+        <button type="button" class="btn-close ms-auto" aria-label="Close" onclick="document.getElementById('${alertId}').remove()"></button>
+      </div>
+    `;
+
+    cccdResultDiv.innerHTML = alertHTML;
+
+    // Auto close after 3 seconds (skip for info/loading messages)
+    if (type !== "info") {
+      const autoCloseTimer = setTimeout(() => {
+        const alertElement = document.getElementById(alertId);
+        if (alertElement && alertElement.parentNode) {
+          alertElement.classList.remove("show");
+          setTimeout(() => {
+            if (alertElement.parentNode) {
+              alertElement.remove();
+            }
+          }, 150); // Fade out animation
+        }
+      }, 3000);
+
+      // Clear timer when close button is clicked
+      const closeBtn = document
+        .getElementById(alertId)
+        ?.querySelector(".btn-close");
+      if (closeBtn) {
+        closeBtn.addEventListener("click", function () {
+          clearTimeout(autoCloseTimer);
+        });
+      }
+    }
   }
 
   // Function to unlock CCCD-filled fields
@@ -1227,6 +1592,16 @@ document.addEventListener("DOMContentLoaded", function () {
     if (genderInput) {
       genderInput.disabled = false;
       genderInput.classList.remove("cccd-locked");
+      // Remove hidden field used to carry value when select was disabled
+      const hidden = document.getElementById("gioi_tinh_hidden");
+      if (hidden && hidden.parentNode) {
+        hidden.parentNode.removeChild(hidden);
+      }
+      // Remove any temporary option created for display
+      const tempOpt = genderInput.querySelector('option[data-temp="true"]');
+      if (tempOpt && tempOpt.parentNode) {
+        tempOpt.parentNode.removeChild(tempOpt);
+      }
     }
     if (addressInput) {
       addressInput.readOnly = false;
