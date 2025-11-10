@@ -13,176 +13,174 @@ $content = '
             <p class="text-muted">Xem và quản lý hồ sơ bệnh án của bạn</p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-primary">
-                <i class="fas fa-download me-2"></i>Tải về tất cả
+            <button class="btn btn-primary" onclick="refreshRecords()">
+                <i class="fas fa-sync-alt me-2"></i>Làm mới
             </button>
+            <a href="./patient_dashboard" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại
+            </a>
         </div>
     </div>
 
-    <!-- Medical Records List -->
-    <div class="card shadow">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Hồ sơ bệnh án gần đây</h6>
+    <!-- Filter Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Bộ lọc tìm kiếm</h6>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>Ngày khám</th>
-                            <th>Bác sĩ</th>
-                            <th>Chẩn đoán</th>
-                            <th>Điều trị</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>10/12/2024</td>
-                            <td>Bác sĩ Nguyễn Thị A</td>
-                            <td>Tăng huyết áp nhẹ</td>
-                            <td>Thuốc hạ huyết áp, chế độ ăn</td>
-                            <td><span class="badge bg-success">Đang điều trị</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info">Xem chi tiết</button>
-                                <button class="btn btn-sm btn-primary">Tải về</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>05/12/2024</td>
-                            <td>Bác sĩ Lê Văn B</td>
-                            <td>Đau đầu do căng thẳng</td>
-                            <td>Thuốc giảm đau, nghỉ ngơi</td>
-                            <td><span class="badge bg-success">Đã khỏi</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info">Xem chi tiết</button>
-                                <button class="btn btn-sm btn-primary">Tải về</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>28/11/2024</td>
-                            <td>Bác sĩ Phạm Thị C</td>
-                            <td>Khám sức khỏe định kỳ</td>
-                            <td>Không cần điều trị</td>
-                            <td><span class="badge bg-success">Hoàn thành</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info">Xem chi tiết</button>
-                                <button class="btn btn-sm btn-primary">Tải về</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>15/11/2024</td>
-                            <td>Bác sĩ Hoàng Văn D</td>
-                            <td>Viêm họng</td>
-                            <td>Kháng sinh, thuốc ho</td>
-                            <td><span class="badge bg-success">Đã khỏi</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info">Xem chi tiết</button>
-                                <button class="btn btn-sm btn-primary">Tải về</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>01/11/2024</td>
-                            <td>Bác sĩ Trần Thị E</td>
-                            <td>Khám sức khỏe định kỳ</td>
-                            <td>Không cần điều trị</td>
-                            <td><span class="badge bg-success">Hoàn thành</span></td>
-                            <td>
-                                <button class="btn btn-sm btn-info">Xem chi tiết</button>
-                                <button class="btn btn-sm btn-primary">Tải về</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="row g-3">
+                <!-- Date Filter -->
+                <div class="col-md-4">
+                    <label class="form-label fw-bold">Chọn ngày:</label>
+                    <input type="date" class="form-control" id="selectedDate">
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-12">
+                    <button class="btn btn-primary" onclick="searchRecords()">
+                        <i class="fas fa-search me-2"></i>Tìm kiếm
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="resetFilters()">
+                        <i class="fas fa-redo me-2"></i>Đặt lại
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Health Summary -->
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Tóm tắt sức khỏe</h6>
-                </div>
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <small class="text-muted">Nhóm máu</small>
-                            <div class="fw-bold">A+</div>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Tổng số hồ sơ
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><span id="statTotal">0</span></div>
                         </div>
-                        <div class="col-6 mb-3">
-                            <small class="text-muted">Chiều cao</small>
-                            <div class="fw-bold">170 cm</div>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <small class="text-muted">Cân nặng</small>
-                            <div class="fw-bold">65 kg</div>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <small class="text-muted">BMI</small>
-                            <div class="fw-bold">22.5</div>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <small class="text-muted">Huyết áp</small>
-                            <div class="fw-bold">120/80 mmHg</div>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <small class="text-muted">Nhịp tim</small>
-                            <div class="fw-bold">72 bpm</div>
+                        <div class="col-auto">
+                            <i class="fas fa-file-medical fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Thống kê khám bệnh</h6>
-                </div>
+        <div class="col-md-4">
+            <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Tổng số lần khám</span>
-                            <span>15</span>
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Trang hiện tại
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><span id="statPage">1</span> / <span id="statTotalPages">1</span></div>
                         </div>
-                        <div class="progress">
-                            <div class="progress-bar bg-primary" style="width: 100%"></div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Lần khám trong năm nay</span>
-                            <span>8</span>
-                        </div>
-                        <div class="progress">
-                            <div class="progress-bar bg-success" style="width: 53%"></div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Lần khám định kỳ</span>
-                            <span>5</span>
-                        </div>
-                        <div class="progress">
-                            <div class="progress-bar bg-info" style="width: 33%"></div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>Lần khám cấp cứu</span>
-                            <span>2</span>
-                        </div>
-                        <div class="progress">
-                            <div class="progress-bar bg-warning" style="width: 13%"></div>
+                        <div class="col-auto">
+                            <i class="fas fa-list fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Số bản ghi/trang
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800"><span id="statLimit">15</span></div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-table fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="card shadow">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-list text-primary me-2"></i>
+                Hồ sơ bệnh án gần đây
+            </h5>
+        </div>
+        <div class="card-body">
+            <div id="loadingIndicator" class="text-center py-5" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Đang tải...</span>
+                </div>
+                <p class="mt-2 text-muted">Đang tải dữ liệu...</p>
+            </div>
+
+            <div id="recordsTable" style="display: none;">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <thead class="table-primary">
+                            <tr>
+                                <th style="width: 80px;">STT</th>
+                                <th style="width: 120px;">Ngày khám</th>
+                                <th style="width: 100px;">Giờ khám</th>
+                                <th>Bác sĩ</th>
+                                <th>Chẩn đoán</th>
+                                <th style="width: 180px; text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Page navigation" class="mt-3">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- Pagination will be generated here -->
+                    </ul>
+                </nav>
+            </div>
+
+            <div id="emptyState" class="text-center py-5" style="display: none;">
+                <i class="fas fa-file-medical fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">Chưa có hồ sơ bệnh án nào</h5>
+                <p class="text-muted">Hãy thử thay đổi bộ lọc tìm kiếm</p>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="detailModalLabel">
+                    <i class="fas fa-file-medical me-2"></i>Chi tiết hồ sơ bệnh án
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="detailModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="assets/css/medical_records.css">
+<script src="assets/js/patient_medical_records.js"></script>
 ';
 
 renderLayout($content, 'Hồ sơ bệnh án - Hệ thống Quản lý Bệnh viện');

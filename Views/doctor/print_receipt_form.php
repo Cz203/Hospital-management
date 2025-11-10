@@ -320,55 +320,64 @@ $receiptDetails = $bienLaiModel->getDetails($receiptData['id']);
             <tbody>
                 <?php
                 $stt = 1;
-                $currentSection = '';
                 $totalAmount = 0;
                 $totalBhyt = 0;
                 $totalPatient = 0;
 
-                foreach ($receiptDetails as $detail) {
-                    // Add section header if needed
-                    if ($detail['loai_dich_vu'] !== $currentSection) {
-                        $currentSection = $detail['loai_dich_vu'];
-                        $sectionName = '';
+                $sectionGroups = [
+                    'Kham benh' => ['group' => 'kham_benh', 'order' => 1],
+                    'Xet nghiem' => ['group' => 'can_lam_sang', 'order' => 2],
+                    'Sieu am' => ['group' => 'can_lam_sang', 'order' => 2],
+                    'X-Quang' => ['group' => 'can_lam_sang', 'order' => 2],
+                    'Xray' => ['group' => 'can_lam_sang', 'order' => 2],
+                    'Thuoc' => ['group' => 'thuoc', 'order' => 3]
+                ];
+                $sectionNames = [
+                    'kham_benh' => 'Khám bệnh lâm sàng',
+                    'can_lam_sang' => 'Khám bệnh cận lâm sàng',
+                    'thuoc' => 'Thuốc điều trị'
+                ];
 
-                        switch ($currentSection) {
-                            case 'Kham benh':
-                                $sectionName = 'Khám bệnh lâm sàng';
-                                break;
-                            case 'Xet nghiem':
-                            case 'Sieu am':
-                            case 'Xray':
-                                $sectionName = 'Khám bệnh cận lâm sàng';
-                                break;
-                            case 'Thuoc':
-                                $sectionName = 'Thuốc điều trị';
-                                break;
+                if (!empty($receiptDetails)) {
+                    usort($receiptDetails, function($a, $b) use ($sectionGroups) {
+                        $infoA = $sectionGroups[$a['loai_dich_vu'] ?? ''] ?? ['group' => 'other', 'order' => 999];
+                        $infoB = $sectionGroups[$b['loai_dich_vu'] ?? ''] ?? ['group' => 'other', 'order' => 999];
+                        if ($infoA['order'] !== $infoB['order']) {
+                            return $infoA['order'] - $infoB['order'];
                         }
+                        return ($a['id'] ?? 0) - ($b['id'] ?? 0);
+                    });
 
-                        if ($sectionName) {
+                    $currentGroup = '';
+                    foreach ($receiptDetails as $detail) {
+                        $loai = $detail['loai_dich_vu'] ?? '';
+                        $info = $sectionGroups[$loai] ?? ['group' => 'other', 'order' => 999];
+                        $group = $info['group'];
+
+                        if ($group !== $currentGroup && isset($sectionNames[$group])) {
+                            $currentGroup = $group;
                             echo '<tr>';
-                            echo '<td colspan="7" class="text-start">';
-                            echo '<div class="fw-bold">' . $sectionName . '</div>';
-                            echo '</td>';
+                            echo '<td colspan="7" class="text-start"><div class="fw-bold">' . $sectionNames[$group] . '</div></td>';
                             echo '</tr>';
+                        } elseif ($group !== $currentGroup) {
+                            $currentGroup = $group;
                         }
+
+                        echo '<tr>';
+                        echo '<td>' . $stt . '</td>';
+                        echo '<td class="text-start">' . htmlspecialchars($detail['ten_dich_vu']) . '</td>';
+                        echo '<td>' . (int)$detail['so_luong'] . '</td>';
+                        echo '<td class="text-end">' . number_format((float)$detail['don_gia']) . '</td>';
+                        echo '<td class="text-end">' . number_format((float)$detail['thanh_tien']) . '</td>';
+                        echo '<td class="text-end">' . number_format((float)$detail['quy_bhyt']) . '</td>';
+                        echo '<td class="text-end">' . number_format((float)$detail['nguoi_benh']) . '</td>';
+                        echo '</tr>';
+
+                        $stt++;
+                        $totalAmount += (float)$detail['thanh_tien'];
+                        $totalBhyt += (float)$detail['quy_bhyt'];
+                        $totalPatient += (float)$detail['nguoi_benh'];
                     }
-
-                    // Add detail row
-                    echo '<tr>';
-                    echo '<td>' . $stt . '</td>';
-                    echo '<td class="text-start">' . htmlspecialchars($detail['ten_dich_vu']) . '</td>';
-                    echo '<td>' . $detail['so_luong'] . '</td>';
-                    echo '<td class="text-end">' . number_format($detail['don_gia']) . '</td>';
-                    echo '<td class="text-end">' . number_format($detail['thanh_tien']) . '</td>';
-                    echo '<td class="text-end">' . number_format($detail['quy_bhyt']) . '</td>';
-                    echo '<td class="text-end">' . number_format($detail['nguoi_benh']) . '</td>';
-                    echo '</tr>';
-
-                    $stt++;
-                    $totalAmount += $detail['thanh_tien'];
-                    $totalBhyt += $detail['quy_bhyt'];
-                    $totalPatient += $detail['nguoi_benh'];
                 }
 
                 // Add total row

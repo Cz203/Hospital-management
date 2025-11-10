@@ -1,0 +1,288 @@
+/* Medical Records Page Styles */
+
+.medical-records-container {
+    padding: 20px;
+}
+
+.filter-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.records-table {
+    margin-top: 20px;
+}
+
+.records-table table {
+    font-size: 14px;
+}
+
+.records-table th {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.records-table td {
+    vertical-align: middle;
+}
+
+.records-table .badge {
+    font-size: 12px;
+    padding: 5px 10px;
+}
+
+.detail-modal .accordion-button {
+    font-weight: 600;
+}
+
+.detail-modal .accordion-body {
+    background-color: #f8f9fa;
+}
+
+.detail-modal table {
+    font-size: 13px;
+}
+
+.detail-modal img {
+    transition: transform 0.3s ease;
+}
+
+.detail-modal img:hover {
+    transform: scale(1.05);
+}
+
+/* Loading spinner */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Empty state */
+.empty-state {
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.empty-state i {
+    opacity: 0.3;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 20px;
+}
+
+.pagination .page-link {
+    color: #0d6efd;
+    border-color: #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    cursor: auto;
+}
+
+/* Statistics cards */
+.stats-card {
+    transition: transform 0.2s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .records-table {
+        font-size: 12px;
+    }
+    
+    .records-table th,
+    .records-table td {
+        padding: 8px 4px;
+    }
+    
+    .filter-section .row {
+        margin-bottom: 10px;
+    }
+}
+
+/* Compact style cho modal chi tiết hồ sơ bệnh án - Giảm padding, margin, font size */
+#detailModal .modal-body {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+}
+
+#detailModal .card {
+    margin-bottom: 0.5rem;
+}
+
+#detailModal .card-header {
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+}
+
+#detailModal .card-body {
+    padding: 0.75rem;
+}
+
+#detailModal .mb-3 {
+    margin-bottom: 0.5rem !important;
+}
+
+#detailModal .mb-4 {
+    margin-bottom: 0.75rem !important;
+}
+
+#detailModal .mb-2 {
+    margin-bottom: 0.25rem !important;
+}
+
+#detailModal .mt-3 {
+    margin-top: 0.5rem !important;
+}
+
+#detailModal .mt-4 {
+    margin-top: 0.75rem !important;
+}
+
+#detailModal .row {
+    margin-bottom: 0.25rem;
+}
+
+#detailModal .form-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+}
+
+#detailModal .form-control {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+#detailModal .form-control-sm {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+}
+
+#detailModal textarea.form-control {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    min-height: 50px;
+}
+
+#detailModal h5 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem !important;
+}
+
+#detailModal h6 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem !important;
+}
+
+#detailModal .table {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+#detailModal .table th,
+#detailModal .table td {
+    padding: 0.3rem 0.5rem;
+}
+
+#detailModal .input-group {
+    margin-bottom: 0.25rem;
+}
+
+#detailModal .input-group-text {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+#detailModal .nav-tabs {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+#detailModal .nav-tabs .nav-link {
+    padding: 0.4rem 0.75rem;
+}
+
+#detailModal .badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+}
+
+/* Giảm spacing cho các section */
+#detailModal .card-body > .row {
+    margin-bottom: 0.5rem;
+}
+
+#detailModal .card-body > .mb-4 {
+    margin-bottom: 0.75rem !important;
+}
+
+/* Compact cho prescription */
+#detailModal .prescription-field {
+    margin-bottom: 0.5rem;
+}
+
+#detailModal .prescription-clinic-name {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+#detailModal .prescription-title {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+}
+
+/* Compact cho lab result */
+#detailModal .report {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+}
+
+#detailModal .title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+#detailModal .row-line {
+    margin-bottom: 0.4rem;
+}
+
+/* Compact cho ultrasound */
+#detailModal .result-content,
+#detailModal .conclusion-content {
+    padding: 0.5rem;
+    min-height: 50px;
+    font-size: 0.85rem;
+}
+
+/* Compact cho X-ray */
+#detailModal .border {
+    padding: 0.5rem !important;
+}
+
+/* Giảm padding cho modal header và footer */
+#detailModal .modal-header {
+    padding: 0.5rem 1rem;
+}
+
+#detailModal .modal-footer {
+    padding: 0.5rem 1rem;
+}

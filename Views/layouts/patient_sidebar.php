@@ -45,30 +45,9 @@
             </li>
 
             <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
-                    <i class="fas fa-prescription me-3"></i>
-                    <span>Đơn thuốc</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
-                    <i class="fas fa-flask me-3"></i>
-                    <span>Kết quả xét nghiệm</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
-                    <i class="fas fa-user-md me-3"></i>
-                    <span>Bác sĩ của tôi</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link text-white py-3 px-3 d-flex align-items-center" href="#">
-                    <i class="fas fa-credit-card me-3"></i>
-                    <span>Thanh toán</span>
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('patient_receipts'); ?>" href="./patient_receipts">
+                    <i class="fas fa-receipt me-3"></i>
+                    <span>Biên lai viện phí</span>
                 </a>
             </li>
 

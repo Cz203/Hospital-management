@@ -12,12 +12,10 @@ $formData = $_SESSION['form_data'] ?? [];
 <main class="register-container">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-7 col-xl-6 mt-4">
+            <div class="col-md-8 col-lg-7 col-xl-6">
                 <div class="card">
                     <div class="card-header">
-
-                        <h3 class="text-black mb-0">Đăng ký tài khoản</h3>
-
+                        <h3 class="mb-0">Đăng ký tài khoản</h3>
                     </div>
                     <div class="card-body">
 
@@ -47,13 +45,13 @@ $formData = $_SESSION['form_data'] ?? [];
                             <!-- Bước 1: Xác thực số điện thoại và OTP -->
                             <div id="step1" class="form-step active">
                                 <h5 class="section-title mb-4">
-                                    <i class="fas fa-phone me-2"></i>Bước 1: Xác thực số điện thoại
+                                    <i class="icofont-phone me-2"></i>Bước 1: Xác thực số điện thoại
                                 </h5>
 
                                 <!-- Xác thực số điện thoại -->
                                 <div class="mb-3">
                                     <label for="so_dien_thoai" class="form-label">
-                                        <i class="fas fa-phone me-1"></i>Số điện thoại *
+                                        <i class="icofont-phone me-1"></i>Số điện thoại *
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text">
@@ -65,8 +63,9 @@ $formData = $_SESSION['form_data'] ?? [];
                                             maxlength="11" placeholder="Nhập số điện thoại"
                                             value="<?php echo htmlspecialchars($formData['so_dien_thoai'] ?? ''); ?>"
                                             required>
-                                        <button type="button" class="btn-outline-primary btn-send-otp" id="sendOtpBtn">
-                                            <i class="fas fa-paper-plane me-1"></i>Gửi OTP
+                                        <button type="button" class="btn btn-outline-primary btn-send-otp"
+                                            id="sendOtpBtn">
+                                            <i class="icofont-paper-plane me-1"></i>Gửi OTP
                                         </button>
                                     </div>
                                 </div>
@@ -75,44 +74,44 @@ $formData = $_SESSION['form_data'] ?? [];
                                 <div class="otp-section" id="otpSection">
                                     <div class="mb-3">
                                         <div class="alert alert-info">
-                                            <i class="fas fa-info-circle me-2"></i>
+                                            <i class="icofont-info-circle me-2"></i>
                                             <strong>Mã OTP đã được gửi đến:</strong>
                                             <span id="targetPhoneDisplay" class="fw-bold"></span>
                                         </div>
                                         <div class="alert alert-warning" id="testModeAlert" style="display: none;">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <i class="icofont-warning me-2"></i>
                                             <strong>TEST MODE:</strong>
                                             <span id="testOtpCode" class="fw-bold fs-5"></span>
                                             <br><small>Mã OTP này được hiển thị vì tài khoản Vonage hết tiền. Vui
                                                 lòng sử dụng mã này để xác thực.</small>
                                         </div>
                                         <div class="alert alert-info" id="otpTimerAlert" style="display: none;">
-                                            <i class="fas fa-clock me-2"></i>
+                                            <i class="icofont-clock-time me-2"></i>
                                             <strong>Thời gian còn lại:</strong>
                                             <span id="otpTimer" class="fw-bold fs-5 text-danger"></span>
                                             <br><small>Mã OTP sẽ hết hạn sau khi hết thời gian.</small>
                                         </div>
                                         <label for="otp_code" class="form-label">
-                                            <i class="fas fa-key me-1"></i>Mã OTP *
+                                            <i class="icofont-key me-1"></i>Mã OTP *
                                         </label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="otp_code" name="otp_code"
                                                 pattern="[0-9]{6}" maxlength="6" placeholder="123456"
                                                 value="<?php echo htmlspecialchars($formData['otp_code'] ?? ''); ?>">
                                             <button type="button" class="btn btn-outline-success" id="verifyOtpBtn">
-                                                <i class="fas fa-check me-1"></i>Xác thực
+                                                <i class="icofont-check-circled me-1"></i>Xác thực
                                             </button>
                                         </div>
                                         <div class="form-text">
-                                            <i class="fas fa-sms me-1"></i>Nhập mã 6 số đã được gửi qua SMS
+                                            <i class="icofont-sms me-1"></i>Nhập mã 6 số đã được gửi qua SMS
                                         </div>
                                     </div>
                                     <div id="otpStatus" class="alert" style="display: none;"></div>
                                 </div>
 
                                 <div class="d-grid gap-2">
-                                    <button type="button" class="btn btn-primary" id="step1NextBtn" disabled>
-                                        <i class="fas fa-arrow-right me-2"></i>Tiếp tục
+                                    <button type="button" class="btn btn-primary w-100" id="step1NextBtn" disabled>
+                                        <i class="icofont-arrow-right me-2"></i>Tiếp tục
                                     </button>
                                 </div>
                             </div>
@@ -120,13 +119,13 @@ $formData = $_SESSION['form_data'] ?? [];
                             <!-- Bước 2: Nhập mật khẩu -->
                             <div id="step2" class="form-step">
                                 <h5 class="section-title mb-4">
-                                    <i class="fas fa-lock me-2"></i>Bước 2: Tạo mật khẩu
+                                    <i class="icofont-lock me-2"></i>Bước 2: Tạo mật khẩu
                                 </h5>
 
                                 <!-- Mật khẩu -->
                                 <div class="mb-3">
                                     <label for="mat_khau" class="form-label">
-                                        <i class="fas fa-lock me-1"></i>Mật khẩu *
+                                        <i class="icofont-lock me-1"></i>Mật khẩu *
                                     </label>
                                     <div class="input-group">
                                         <input type="password" class="form-control" id="mat_khau" name="mat_khau"
@@ -134,7 +133,7 @@ $formData = $_SESSION['form_data'] ?? [];
                                             required oninput="validatePassword()">
                                         <button type="button" class="btn btn-outline-secondary"
                                             onclick="togglePasswordVisibility('mat_khau', 'matKhauIcon')">
-                                            <i class="fas fa-eye" id="matKhauIcon"></i>
+                                            <i class="icofont-eye" id="matKhauIcon"></i>
                                         </button>
                                     </div>
 
@@ -149,7 +148,7 @@ $formData = $_SESSION['form_data'] ?? [];
 
                                 <div class="mb-3">
                                     <label for="xac_nhan_mat_khau" class="form-label">
-                                        <i class="fas fa-lock me-1"></i>Xác nhận mật khẩu *
+                                        <i class="icofont-lock me-1"></i>Xác nhận mật khẩu *
                                     </label>
                                     <div class="input-group">
                                         <input type="password" class="form-control" id="xac_nhan_mat_khau"
@@ -158,7 +157,7 @@ $formData = $_SESSION['form_data'] ?? [];
                                             required oninput="validateConfirmPassword()">
                                         <button type="button" class="btn btn-outline-secondary"
                                             onclick="togglePasswordVisibility('xac_nhan_mat_khau', 'xacNhanMatKhauIcon')">
-                                            <i class="fas fa-eye" id="xacNhanMatKhauIcon"></i>
+                                            <i class="icofont-eye" id="xacNhanMatKhauIcon"></i>
                                         </button>
                                     </div>
                                     <div class="password-match mt-2" id="passwordMatch" style="display: none;">
@@ -166,12 +165,12 @@ $formData = $_SESSION['form_data'] ?? [];
                                     </div>
                                 </div>
 
-                                <div class="d-grid gap-2">
-                                    <button type="button" class="btn btn-secondary mb-2" id="step2PrevBtn">
-                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                <div class="d-flex justify-content-between align-items-center gap-2">
+                                    <button type="button" class="btn btn-secondary" id="step2PrevBtn">
+                                        <i class="icofont-arrow-left me-2"></i>Quay lại
                                     </button>
                                     <button type="button" class="btn btn-primary" id="step2NextBtn" disabled>
-                                        <i class="fas fa-arrow-right me-2"></i>Tiếp tục
+                                        <i class="icofont-arrow-right me-2"></i>Tiếp tục
                                     </button>
                                 </div>
                             </div>
@@ -180,7 +179,7 @@ $formData = $_SESSION['form_data'] ?? [];
                             <div id="step3" class="form-step">
                                 <?php if (isset($_SESSION['error'])): ?>
                                 <div class="alert alert-danger">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <i class="icofont-warning me-2"></i>
                                     <?php echo $_SESSION['error'];
                                         unset($_SESSION['error']); ?>
                                 </div>
@@ -188,21 +187,21 @@ $formData = $_SESSION['form_data'] ?? [];
 
                                 <?php if (isset($_SESSION['success'])): ?>
                                 <div class="alert alert-success">
-                                    <i class="fas fa-check-circle me-2"></i>
+                                    <i class="icofont-check-circled me-2"></i>
                                     <?php echo $_SESSION['success'];
                                         unset($_SESSION['success']); ?>
                                 </div>
                                 <?php endif; ?>
 
                                 <h5 class="section-title mb-4">
-                                    <i class="fas fa-user me-2"></i>Bước 3: Thông tin cá nhân
+                                    <i class="icofont-user-alt-4 me-2"></i>Bước 3: Thông tin cá nhân
                                 </h5>
 
                                 <!-- CCCD ở dòng đầu tiên -->
                                 <div class="row">
                                     <div class="col-12 mb-3">
                                         <label for="cccd" class="form-label">
-                                            <i class="fas fa-id-card me-1"></i>Căn cước công dân (CCCD)
+                                            <i class="icofont-id-card me-1"></i>Căn cước công dân (CCCD)
                                             <span class="text-danger">*</span>
                                         </label>
                                         <input type="text" class="form-control" id="cccd" name="cccd"
@@ -210,7 +209,7 @@ $formData = $_SESSION['form_data'] ?? [];
                                             pattern="\d{12}"
                                             value="<?php echo htmlspecialchars($formData['cccd'] ?? ''); ?>" required>
                                         <div class="form-text">
-                                            <i class="fas fa-info-circle"></i> CCCD gồm 12 số - Nhập CCCD để tự động
+                                            <i class="icofont-info-circle"></i> CCCD gồm 12 số - Nhập CCCD để tự động
                                             điền thông tin bên dưới
                                         </div>
                                         <div id="cccd-verification-result" class="mt-2"></div>
@@ -220,14 +219,14 @@ $formData = $_SESSION['form_data'] ?? [];
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="name" class="form-label">
-                                            <i class="fas fa-user me-1"></i>Họ và tên *
+                                            <i class="icofont-user-alt-4 me-1"></i>Họ và tên *
                                         </label>
                                         <input type="text" class="form-control" id="name" name="ten"
                                             value="<?php echo htmlspecialchars($formData['ten'] ?? ''); ?>" required>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="email" class="form-label">
-                                            <i class="fas fa-envelope me-1"></i>Email *
+                                            <i class="icofont-email me-1"></i>Email *
                                         </label>
                                         <input type="email" class="form-control" id="email" name="email"
                                             value="<?php echo htmlspecialchars($formData['email'] ?? ''); ?>" required>
@@ -237,14 +236,14 @@ $formData = $_SESSION['form_data'] ?? [];
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="ngay_sinh" class="form-label">
-                                            <i class="fas fa-calendar me-1"></i>Ngày sinh
+                                            <i class="icofont-calendar me-1"></i>Ngày sinh
                                         </label>
                                         <input type="date" class="form-control" id="ngay_sinh" name="ngay_sinh"
                                             value="<?php echo htmlspecialchars($formData['ngay_sinh'] ?? ''); ?>">
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="gioi_tinh" class="form-label">
-                                            <i class="fas fa-venus-mars me-1"></i>Giới tính
+                                            <i class="icofont-users-alt-4 me-1"></i>Giới tính
                                         </label>
                                         <select class="form-select" id="gioi_tinh" name="gioi_tinh">
                                             <option value="">Chọn giới tính</option>
@@ -264,7 +263,7 @@ $formData = $_SESSION['form_data'] ?? [];
                                 <div class="row">
                                     <div class="col-12 mb-3">
                                         <label for="dia_chi" class="form-label">
-                                            <i class="fas fa-map-marker-alt me-1"></i>Địa chỉ
+                                            <i class="icofont-location-pin me-1"></i>Địa chỉ
                                         </label>
                                         <input type="text" class="form-control" id="dia_chi" name="dia_chi"
                                             value="<?php echo htmlspecialchars($formData['dia_chi'] ?? ''); ?>">
@@ -275,11 +274,11 @@ $formData = $_SESSION['form_data'] ?? [];
                                 <input type="hidden" name="role" value="patient">
 
                                 <div class="d-grid gap-2">
-                                    <button type="button" class="btn btn-secondary mb-2" id="step3PrevBtn">
-                                        <i class="fas fa-arrow-left me-2"></i>Quay lại
+                                    <button type="button" class="btn btn-secondary mb-2 w-100" id="step3PrevBtn">
+                                        <i class="icofont-arrow-left me-2"></i>Quay lại
                                     </button>
                                     <button type="button" class="btn submit-btn" id="submitBtn">
-                                        <i class="fas fa-user-plus me-2"></i>Hoàn tất đăng ký
+                                        <i class="icofont-user-alt-3 me-2"></i>Hoàn tất đăng ký
                                     </button>
                                 </div>
                             </div>
@@ -289,7 +288,7 @@ $formData = $_SESSION['form_data'] ?? [];
                             <p class="mb-0">
                                 Đã có tài khoản?
                                 <a href="./login" class="login-link">
-                                    <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập ngay
+                                    <i class="icofont-login me-1"></i>Đăng nhập ngay
                                 </a>
                             </p>
                         </div>

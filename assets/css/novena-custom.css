@@ -1,0 +1,769 @@
+/* ========================================
+   NOVENA CUSTOM OVERRIDES FOR THINHVIET HOSPITAL
+   ======================================== */
+
+/* Fix dropdown position for notifications */
+#notif-badge {
+  font-size: 0.7rem;
+  padding: 0.25em 0.4em;
+}
+
+#notif-list .list-group-item {
+  border: none;
+  border-bottom: 1px solid #eee;
+}
+
+#notif-list .list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Make dropdowns work with Bootstrap 4 */
+.dropdown-menu {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+}
+
+/* Search box styling in banner (right side) */
+.banner-search-box {
+  background: #fff;
+  padding: 40px 35px;
+  border-radius: 15px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  margin-top: 0;
+}
+
+.banner-search-box h3 {
+  color: #223a66;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.banner-search-box .search-input-banner {
+  border: 2px solid #eee;
+  padding: 15px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.banner-search-box .search-input-banner:focus {
+  border-color: #223a66;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(34, 58, 102, 0.25);
+}
+
+.banner-search-box .btn-block {
+  padding: 15px 30px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Search suggestions dropdown */
+#search-suggestions {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#search-suggestions-list {
+  padding: 10px;
+}
+
+#search-suggestions-list .suggestion-item {
+  padding: 10px 15px;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+#search-suggestions-list .suggestion-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Doctor cards styling */
+.doctor-card-novena {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+.doctor-card-novena:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.doctor-card-novena img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+  border: 5px solid #f8f9fa;
+}
+
+.doctor-card-novena h5 {
+  color: #223a66;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.doctor-card-novena .specialty {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.doctor-card-novena .experience {
+  color: #999;
+  font-size: 13px;
+}
+
+/* Specialty cards styling */
+.specialty-card-novena {
+  background: #fff;
+  border-radius: 10px;
+  padding: 30px 20px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  text-decoration: none;
+  display: block;
+}
+
+.specialty-card-novena:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+  text-decoration: none;
+}
+
+.specialty-card-novena .icon {
+  font-size: 48px;
+  color: #223a66;
+  margin-bottom: 15px;
+}
+
+.specialty-card-novena h5 {
+  color: #223a66;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.specialty-card-novena p {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.specialty-card-novena .badge {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+/* Sections spacing */
+.section-home {
+  padding: 80px 0;
+}
+
+.section-home.gray-bg {
+  background: #f8f9fa;
+}
+
+/* Container padding improvements */
+@media (max-width: 576px) {
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+/* Service section improvements */
+.service.gray-bg {
+  background: #f8f9fa;
+}
+
+/* Features section improvements */
+.features.banner2 {
+  padding: 60px 0;
+}
+
+@media (max-width: 992px) {
+  .features.banner2 {
+    padding: 50px 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .features.banner2 {
+    padding: 40px 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .features.banner2 {
+    padding: 30px 0;
+  }
+}
+
+/* Counter animation */
+.counter-stat {
+  text-align: center;
+  padding: 20px;
+}
+
+.counter-stat i {
+  font-size: 48px;
+  color: #223a66;
+  margin-bottom: 10px;
+}
+
+.counter-stat .count-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #223a66;
+  margin: 10px 0;
+}
+
+.counter-stat p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Auth buttons styling - Login and Register buttons */
+.navbar-nav .nav-item .nav-link.btn {
+  white-space: nowrap;
+}
+
+/* ========================================
+   RESPONSIVE STYLES FOR HOME PAGE
+   ======================================== */
+
+/* Hero Banner Section Responsive */
+@media (max-width: 1200px) {
+  .banner .block h1 {
+    font-size: 2.2rem;
+  }
+
+  .banner .block p {
+    font-size: 1rem;
+    padding-right: 0 !important;
+  }
+  .banner {
+    background: url("../img/bg/slider-bg-1.jpg") no-repeat center center !important;
+    background-size: cover !important;
+  }
+}
+
+@media (max-width: 992px) {
+  /* iPad and smaller tablets */
+  .banner {
+    padding: 80px 0 60px;
+    background: url("../img/bg/slider-bg-1.jpg") no-repeat center center !important;
+    background-size: cover !important;
+  }
+
+  .banner .block h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  .banner .block p {
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+    padding-right: 0 !important;
+  }
+
+  .banner .btn-container {
+    margin-top: 20px;
+  }
+
+  /* Features Section */
+  .feature-block {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .feature-item {
+    margin-bottom: 0 !important;
+    text-align: center;
+    width: 100%;
+  }
+
+  .feature-item:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  /* Section Titles */
+  .section-title h2 {
+    font-size: 2rem;
+  }
+
+  .section-title p {
+    font-size: 0.95rem;
+    padding: 0 20px;
+  }
+
+  /* Service items layout */
+  .service-item .icon {
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .service-item .icon i {
+    margin-right: 15px !important;
+  }
+
+  .service-item .icon h4 {
+    margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Tablet and small tablets */
+  /* Hero Banner */
+  .banner {
+    padding: 60px 0 40px;
+    text-align: center;
+    background: url("../img/bg/slider-bg-1.jpg") no-repeat center center !important;
+    background-size: cover !important;
+  }
+
+  .banner .block {
+    text-align: center;
+  }
+
+  .banner .block h1 {
+    font-size: 1.75rem;
+    line-height: 1.3;
+  }
+
+  .banner .block p {
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    padding-right: 0 !important;
+  }
+
+  .banner .btn-container {
+    justify-content: center;
+    display: flex;
+  }
+
+  /* Features Section */
+  .features {
+    padding: 50px 0;
+  }
+
+  .feature-block {
+    gap: 30px;
+  }
+
+  .feature-item {
+    padding: 25px;
+    margin-bottom: 30px !important;
+  }
+
+  .feature-icon {
+    margin-bottom: 20px;
+  }
+
+  .feature-icon i {
+    font-size: 2.5rem;
+  }
+
+  .feature-item h4 {
+    font-size: 1.25rem;
+  }
+
+  /* Section Home */
+  .section-home {
+    padding: 50px 0;
+  }
+
+  .section-title h2 {
+    font-size: 1.75rem;
+  }
+
+  .section-title p {
+    font-size: 0.9rem;
+    padding: 0 15px;
+  }
+
+  /* Doctor Cards */
+  .doctor-card-novena {
+    margin-bottom: 25px;
+  }
+
+  .doctor-card-novena img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .doctor-card-novena h5 {
+    font-size: 1.1rem;
+  }
+
+  /* Service Items */
+  .service-item {
+    margin-bottom: 25px;
+    padding: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .service-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .service-item .icon {
+    flex-direction: column;
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+  .service-item .icon i {
+    margin-right: 0 !important;
+    margin-bottom: 15px;
+    font-size: 2.5rem;
+  }
+
+  .service-item .icon h4 {
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    text-align: center;
+  }
+
+  /* Banner search box on mobile */
+  .banner-search-box {
+    padding: 25px 20px;
+    margin-top: 30px;
+  }
+
+  .banner-search-box h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+
+  .banner-search-box .search-input-banner {
+    padding: 12px 15px;
+    font-size: 14px;
+  }
+
+  .banner-search-box .btn-block {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  /* Mobile devices */
+  /* Hero Banner */
+  .banner {
+    padding: 40px 0 30px;
+    background: url("../img/bg/slider-bg-1.jpg") no-repeat center center !important;
+    background-size: cover !important;
+  }
+
+  .banner .block h1 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    margin-bottom: 15px;
+  }
+
+  .banner .block .text-uppercase {
+    font-size: 0.75rem;
+  }
+
+  .banner .block p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .banner .btn-main-2 {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  /* Features Section */
+  .features {
+    padding: 40px 0;
+  }
+
+  .feature-item {
+    padding: 20px 15px;
+    margin-bottom: 25px !important;
+  }
+
+  .feature-icon i {
+    font-size: 2rem;
+  }
+
+  .feature-item span {
+    font-size: 0.85rem;
+  }
+
+  .feature-item h4 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+  }
+
+  .feature-item p {
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+
+  .feature-item .btn {
+    padding: 8px 20px;
+    font-size: 0.85rem;
+  }
+
+  /* Working Hours */
+  .w-hours li {
+    font-size: 0.85rem;
+    padding: 5px 0;
+  }
+
+  /* Section Home */
+  .section-home {
+    padding: 40px 0;
+  }
+
+  .section-title h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+  }
+
+  .section-title .divider {
+    margin: 15px auto !important;
+  }
+
+  .section-title p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    padding: 0 10px;
+  }
+
+  /* Doctor Cards */
+  .doctor-card-novena {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .doctor-card-novena img {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 12px;
+  }
+
+  .doctor-card-novena h5 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+
+  .doctor-card-novena .specialty,
+  .doctor-card-novena .experience {
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+  }
+
+  /* Service Items */
+  .service-item {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .service-item .icon i {
+    font-size: 2rem;
+  }
+
+  .service-item .icon h4 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+  }
+
+  .service-item .content p {
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+  }
+
+  /* Buttons */
+  .btn-main-2,
+  .btn-main {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  .btn-icon i {
+    font-size: 0.9rem;
+    margin-left: 5px;
+  }
+
+  .btn-round-full {
+    border-radius: 50px;
+  }
+
+  /* Stats Section - handled in home.php inline styles */
+
+  /* Improve spacing for small screens */
+  .row {
+    margin-left: -10px;
+    margin-right: -10px;
+  }
+
+  .row > [class*="col-"] {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+@media (max-width: 400px) {
+  /* Small mobile devices */
+  .banner .block h1 {
+    font-size: 1.3rem;
+    line-height: 1.2;
+  }
+
+  .section-title h2 {
+    font-size: 1.3rem;
+    line-height: 1.3;
+  }
+
+  .doctor-card-novena img {
+    width: 90px;
+    height: 90px;
+  }
+
+  .feature-icon i {
+    font-size: 1.75rem;
+  }
+
+  .service-item .icon i {
+    font-size: 1.75rem;
+  }
+
+  /* Buttons */
+  .btn-main-2,
+  .btn-main {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+
+  /* Reduce padding */
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+/* Auth buttons responsive - Login and Register buttons */
+@media (max-width: 768px) {
+  /* Target nav-items containing button links (login/register) - High specificity */
+  #navbarmain .navbar-nav .nav-item:not(.dropdown),
+  .navbar-collapse .navbar-nav .nav-item:not(.dropdown) {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 5px 0 !important;
+    text-align: center !important;
+  }
+
+  /* Auth buttons on mobile - 80% width and centered - High specificity */
+  #navbarmain .navbar-nav .nav-item .nav-link.btn,
+  .navbar-collapse .navbar-nav .nav-item .nav-link.btn {
+    width: 80% !important;
+    max-width: 250px !important;
+    margin: 0 auto !important;
+    display: block !important;
+    text-align: center !important;
+    padding: 8px 20px !important;
+    flex: none !important;
+    float: none !important;
+  }
+
+  /* Remove left margin on mobile for second button */
+  #navbarmain .navbar-nav .nav-item.ml-2,
+  .navbar-collapse .navbar-nav .nav-item.ml-2 {
+    margin-left: 0 !important;
+  }
+
+  /* Ensure navbar-nav doesn't interfere */
+  #navbarmain .navbar-nav,
+  .navbar-collapse .navbar-nav {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-on-scroll {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Alert close button styling - Ensure X button displays correctly and is positioned at end */
+.alert.alert-dismissible {
+  position: relative;
+  padding-right: 3.5rem; /* Make room for close button */
+}
+
+.alert.alert-dismissible.d-flex {
+  padding-right: 1rem; /* Reset padding when using flexbox */
+}
+
+.alert .btn-close {
+  position: static; /* Override any absolute positioning */
+  opacity: 0.5;
+  padding: 0.5rem 0.5rem;
+  margin: -0.5rem -0.5rem -0.5rem auto; /* Push to end */
+  background: transparent
+    url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e")
+    center/1em auto no-repeat;
+  border: 0;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.alert .btn-close:hover {
+  opacity: 0.75;
+}
+
+.alert .btn-close:focus {
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  opacity: 1;
+}
+
+/* Ensure flex-grow-1 works correctly in alerts */
+.alert.d-flex .flex-grow-1 {
+  flex: 1 1 auto;
+  min-width: 0; /* Prevent overflow */
+}
+
+/* Ensure close button stays at end */
+.alert.d-flex .btn-close.ms-auto {
+  margin-left: auto !important;
+  flex-shrink: 0; /* Prevent button from shrinking */
+}
