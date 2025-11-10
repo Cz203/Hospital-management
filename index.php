@@ -16,6 +16,7 @@ require_once 'Controllers/PatientController.php';
 require_once 'Controllers/ReceptionController.php';
 require_once 'Controllers/ReceiptController.php';
 require_once 'Controllers/MedicalRecordController.php';
+require_once 'Controllers/PatientReceiptController.php';
 // Khởi tạo Controllers
 $auth = new AuthController();
 $doctorController = new DoctorController();
@@ -25,6 +26,7 @@ $prescriptionController = new PrescriptionController();
 $patientController = new PatientController();
 $receptionController = new ReceptionController();
 $medicalRecordController = new MedicalRecordController();
+$patientReceiptController = new PatientReceiptController();
 
 // Khởi tạo ReceiptController
 require_once 'config/database.php';
@@ -262,6 +264,15 @@ switch ($action) {
         break;
     case 'get_patient_medical_records':
         $medicalRecordController->getPatientRecords(); // API lấy danh sách hồ sơ bệnh án
+        break;
+    case 'patient_receipts':
+        $patientReceiptController->patientIndex(); // Biên lai viện phí (bệnh nhân)
+        break;
+    case 'get_patient_receipts':
+        $patientReceiptController->getPatientReceipts(); // API danh sách biên lai (bệnh nhân)
+        break;
+    case 'render_patient_receipt_detail':
+        $patientReceiptController->renderPatientReceiptDetail(); // Render chi tiết biên lai (modal bệnh nhân)
         break;
     case 'render_patient_medical_record_detail':
         $medicalRecordController->renderPatientDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
