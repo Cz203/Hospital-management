@@ -473,12 +473,38 @@ document
         statusDiv.style.display = "block";
 
         if (data.success) {
-          statusDiv.className = "alert alert-success";
+          const alertId = "forgot-otp-status-" + Date.now();
+          statusDiv.className =
+            "alert alert-success alert-dismissible fade show d-flex align-items-center";
           statusDiv.innerHTML =
-            '<i class="fas fa-check-circle me-2"></i>' + data.message;
+            '<i class="fas fa-check-circle me-2"></i>' +
+            '<span class="flex-grow-1">' +
+            data.message +
+            "</span>" +
+            '<button type="button" class="btn-close ms-auto" aria-label="Close" onclick="document.getElementById(\'forgotOtpStatus\').style.display=\'none\'"></button>';
           forgotOtpVerified = true;
           button.innerHTML = '<i class="fas fa-check me-1"></i>Đã xác thực';
           button.disabled = true;
+
+          // Auto close after 3 seconds
+          const autoCloseTimer = setTimeout(() => {
+            if (statusDiv && statusDiv.parentNode) {
+              statusDiv.classList.remove("show");
+              setTimeout(() => {
+                if (statusDiv.parentNode) {
+                  statusDiv.style.display = "none";
+                }
+              }, 150); // Fade out animation
+            }
+          }, 3000);
+
+          // Clear timer when close button is clicked
+          const closeBtn = statusDiv.querySelector(".btn-close");
+          if (closeBtn) {
+            closeBtn.addEventListener("click", function () {
+              clearTimeout(autoCloseTimer);
+            });
+          }
 
           // Stop timer
           if (forgotOtpTimer) {
@@ -519,11 +545,37 @@ document
           // Clear timeout
           clearTimeout(timeoutId);
 
-          statusDiv.className = "alert alert-danger";
+          const alertId = "forgot-otp-status-" + Date.now();
+          statusDiv.className =
+            "alert alert-danger alert-dismissible fade show d-flex align-items-center";
           statusDiv.innerHTML =
-            '<i class="fas fa-exclamation-triangle me-2"></i>' + data.message;
+            '<i class="fas fa-exclamation-triangle me-2"></i>' +
+            '<span class="flex-grow-1">' +
+            data.message +
+            "</span>" +
+            '<button type="button" class="btn-close ms-auto" aria-label="Close" onclick="document.getElementById(\'forgotOtpStatus\').style.display=\'none\'"></button>';
           button.innerHTML = '<i class="fas fa-check me-1"></i>Xác thực';
           button.disabled = false;
+
+          // Auto close after 3 seconds
+          const autoCloseTimer = setTimeout(() => {
+            if (statusDiv && statusDiv.parentNode) {
+              statusDiv.classList.remove("show");
+              setTimeout(() => {
+                if (statusDiv.parentNode) {
+                  statusDiv.style.display = "none";
+                }
+              }, 150); // Fade out animation
+            }
+          }, 3000);
+
+          // Clear timer when close button is clicked
+          const closeBtn = statusDiv.querySelector(".btn-close");
+          if (closeBtn) {
+            closeBtn.addEventListener("click", function () {
+              clearTimeout(autoCloseTimer);
+            });
+          }
         }
       })
       .catch((error) => {
@@ -617,10 +669,20 @@ document
           // Show success message in the center of the form
           const step3Container = document.getElementById("forgotStep3");
           const successDiv = document.createElement("div");
-          successDiv.id = "resetPasswordSuccess";
+          const alertId = "reset-password-success-" + Date.now();
+          successDiv.id = alertId;
           successDiv.className =
-            "alert alert-success text-center mt-3 mb-3 d-block w-100";
-          successDiv.innerHTML = `<i class="fas fa-check-circle me-2"></i>${data.message}`;
+            "alert alert-success alert-dismissible fade show d-flex align-items-center justify-content-between mt-3 mb-3 d-block w-100";
+          successDiv.innerHTML =
+            '<div class="d-flex align-items-center flex-grow-1 justify-content-center">' +
+            '<i class="fas fa-check-circle me-2"></i>' +
+            "<span>" +
+            data.message +
+            "</span>" +
+            "</div>" +
+            '<button type="button" class="btn-close ms-2" aria-label="Close" onclick="document.getElementById(\'' +
+            alertId +
+            "').remove()\"></button>";
 
           // Insert after the title and before the form fields
           const title = step3Container.querySelector("h3, h4, h5");
@@ -631,14 +693,35 @@ document
             step3Container.insertBefore(successDiv, step3Container.firstChild);
           }
 
+          // Auto close after 3 seconds
+          const autoCloseTimer = setTimeout(() => {
+            const alertElement = document.getElementById(alertId);
+            if (alertElement && alertElement.parentNode) {
+              alertElement.classList.remove("show");
+              setTimeout(() => {
+                if (alertElement.parentNode) {
+                  alertElement.remove();
+                }
+              }, 150); // Fade out animation
+            }
+          }, 3000);
+
+          // Clear timer when close button is clicked
+          const closeBtn = successDiv.querySelector(".btn-close");
+          if (closeBtn) {
+            closeBtn.addEventListener("click", function () {
+              clearTimeout(autoCloseTimer);
+            });
+          }
+
           // Reset button
           button.innerHTML = '<i class="fas fa-save me-2"></i>Đặt lại mật khẩu';
           button.disabled = false;
 
-          // Redirect to login form after 2 seconds
+          // Redirect to login form after 3 seconds (after alert auto-closes)
           setTimeout(() => {
             showLoginForm();
-          }, 2000);
+          }, 3000);
         } else {
           // Show error in password field
           const passwordInput = document.getElementById("newPassword");

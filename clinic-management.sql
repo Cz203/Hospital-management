@@ -441,23 +441,23 @@ CREATE TABLE `chuyen_khoa` (
 --
 
 INSERT INTO `chuyen_khoa` (`id`, `ten`, `slug`, `mo_ta`, `icon`, `thu_tu`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 'Tim mạch', 'tim-mach', 'Khám và điều trị bệnh lý tim mạch', 'fas fa-heartbeat', 60, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(2, 'Thần kinh', 'than-kinh', 'Bệnh lý hệ thần kinh trung ương và ngoại biên', 'fas fa-brain', 70, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(3, 'Nhi khoa', 'nhi-khoa', 'Chăm sóc sức khỏe trẻ em', 'fas fa-child', 80, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(4, 'Sản phụ khoa', 'san-phu-khoa', 'Chăm sóc sức khỏe phụ nữ và thai sản', 'fas fa-baby', 30, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(5, 'Da liễu', 'da-lieu', 'Khám và điều trị các bệnh lý da', 'fas fa-allergies', 110, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(6, 'Mắt', 'mat', 'Khám và điều trị các bệnh lý mắt', 'fas fa-eye', 90, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(7, 'Tai mũi họng', 'tai-mui-hong', 'Bệnh lý tai, mũi, họng', 'fas fa-head-side-cough', 100, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(9, 'Chấn thương chỉnh hình', 'chan-thuong-chinh-hinh', 'v', 'fas fa-bone', 170, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(10, 'Ung bướu', 'ung-buou', 'Chẩn đoán và điều trị các bệnh lý ung thư', 'fas fa-microscope', 20, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(11, 'Nội tiết', 'noi-tiet', 'Bệnh lý nội tiết và chuyển hóa', 'fas fa-pills', 150, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(12, 'Tiêu hóa', 'tieu-hoa', 'Bệnh lý đường tiêu hóa', 'fas fa-notes-medical', 160, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(13, 'Nội tổng quát', 'noi-tong-quat', 'Khám và điều trị các bệnh lý nội khoa tổng quát', 'fas fa-stethoscope', 10, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(14, 'Nam khoa', 'nam-khoa', 'Sức khỏe nam giới', 'fas fa-mars', 130, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(15, 'Truyền nhiễm', 'truyen-nhiem', 'Bệnh truyền nhiễm và kiểm soát nhiễm khuẩn', 'fas fa-virus', 140, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(16, 'Chẩn đoán hình ảnh', 'chuan-doan-hinh-anh', 'X-quang, CT, MRI, siêu âm', 'fas fa-x-ray', 40, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(17, 'Xét nghiệm', 'xet-nghiem', 'Xét nghiệm huyết học, sinh hóa, vi sinh', 'fas fa-flask', 50, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
-(18, 'Khoa sản', 'sieu-am', 'siêu âm thai', NULL, 0, 'active', '2025-10-09 21:16:16', '2025-10-11 17:45:16');
+(1, 'Tim mạch', 'tim-mach', 'Khám và điều trị bệnh lý tim mạch', 'icofont-heart-beat-alt', 60, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(2, 'Thần kinh', 'than-kinh', 'Bệnh lý hệ thần kinh trung ương và ngoại biên', 'icofont-brain-alt', 70, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(3, 'Nhi khoa', 'nhi-khoa', 'Chăm sóc sức khỏe trẻ em', 'icofont-baby', 80, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(4, 'Sản phụ khoa', 'san-phu-khoa', 'Chăm sóc sức khỏe phụ nữ và thai sản', 'icofont-dna-alt-1', 30, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(5, 'Da liễu', 'da-lieu', 'Khám và điều trị các bệnh lý da', 'icofont-medical-sign-alt', 110, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(6, 'Mắt', 'mat', 'Khám và điều trị các bệnh lý mắt', 'icofont-eye', 90, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(7, 'Tai mũi họng', 'tai-mui-hong', 'Bệnh lý tai, mũi, họng', 'icofont-earphone', 100, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(9, 'Chấn thương chỉnh hình', 'chan-thuong-chinh-hinh', 'v', 'icofont-bone', 170, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(10, 'Ung bướu', 'ung-buou', 'Chẩn đoán và điều trị các bệnh lý ung thư', 'icofont-hospital', 20, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(11, 'Nội tiết', 'noi-tiet', 'Bệnh lý nội tiết và chuyển hóa', 'icofont-pills', 150, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(12, 'Tiêu hóa', 'tieu-hoa', 'Bệnh lý đường tiêu hóa', 'icofont-medicine', 160, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(13, 'Nội tổng quát', 'noi-tong-quat', 'Khám và điều trị các bệnh lý nội khoa tổng quát', 'icofont-stethoscope', 10, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(14, 'Nam khoa', 'nam-khoa', 'Sức khỏe nam giới', 'icofont-doctor-alt', 130, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(15, 'Truyền nhiễm', 'truyen-nhiem', 'Bệnh truyền nhiễm và kiểm soát nhiễm khuẩn', 'icofont-injection-syringe', 140, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(16, 'Chẩn đoán hình ảnh', 'chuan-doan-hinh-anh', 'X-quang, CT, MRI, siêu âm', 'icofont-medical-sign-alt', 40, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(17, 'Xét nghiệm', 'xet-nghiem', 'Xét nghiệm huyết học, sinh hóa, vi sinh', 'icofont-laboratory', 50, 'active', '2025-09-22 06:53:16', '2025-09-22 08:38:22'),
+(18, 'Khoa sản', 'sieu-am', 'siêu âm thai', 'icofont-medical-sign-alt', 0, 'active', '2025-10-09 21:16:16', '2025-10-11 17:45:16');
 
 -- --------------------------------------------------------
 

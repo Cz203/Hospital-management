@@ -1,76 +1,74 @@
-<?php $page_title = 'Tất cả chuyên khoa';
-include 'Views/layouts/header.php'; ?>
+<?php
+$page_title = 'Tất cả chuyên khoa';
+include 'Views/layouts/header.php';
+?>
 
-<section class="page-header bg-gradient-primary text-white" style="margin-top: 81px;">
+<!-- Page Header (Novena Style) -->
+<section class="section page-header-section"
+    style="background: linear-gradient(135deg, #223a66 0%, #1e5f8e 100%); position: relative; overflow: hidden; padding-top: 100px; padding-bottom: 60px;">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="display-5 fw-bold mb-2"><i class="fas fa-list me-3"></i>Tất cả chuyên khoa</h1>
-                <p class="lead mb-0">Chọn chuyên khoa để xem danh sách bác sĩ tương ứng</p>
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <div class="section-title">
+                    <h2 class="text-white mb-3">Tất cả chuyên khoa</h2>
+                    <div class="divider mx-auto my-4" style="background: rgba(255,255,255,0.3);"></div>
+                    <p class="text-white-50">Chọn chuyên khoa để xem danh sách bác sĩ tương ứng</p>
+                </div>
             </div>
-            <div class="col-lg-4 text-lg-end">
-                <a href="./home" class="btn btn-outline-light btn-lg"><i class="fas fa-home me-2"></i>Trang chủ</a>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="text-center">
+                    <div class="d-inline-flex">
+                        <div class="text-center mr-5">
+                            <div class="h2 text-white mb-1"><?php echo count($specialties ?? []); ?>+</div>
+                            <small class="text-white-50">Chuyên khoa</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="doctors-section py-5">
+<!-- Specialties Grid (Novena Style) -->
+<section class="section" style="padding-top: 80px; padding-bottom: 80px;">
     <div class="container">
         <div class="row">
             <?php foreach (($specialties ?? []) as $sp):
-                $iconClass = !empty($sp['icon']) ? $sp['icon'] : 'fas fa-stethoscope';
+                $name = $sp['ten'];
                 $count = isset($sp['doctor_count']) ? (int)$sp['doctor_count'] : 0;
-                $badgeColor = $count > 0 ? 'success' : 'secondary';
-            ?>
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-4 d-flex">
-                <a class="text-decoration-none text-reset d-block h-100 w-100"
-                    href="./doctors_by_specialty?slug=<?php echo urlencode($sp['slug'] ?? ''); ?>">
-                    <div class="specialty-card animate-on-scroll h-100">
-                        <div class="specialty-icon"><i class="<?php echo htmlspecialchars($iconClass); ?>"></i></div>
-                        <h5><?php echo htmlspecialchars($sp['ten']); ?></h5>
-                        <p><?php echo htmlspecialchars($sp['mo_ta'] ?? ''); ?></p>
-                        <div class="doctor-count">
-                            <span class="badge bg-<?php echo $badgeColor; ?>">
-                                <i class="fas fa-user-md me-1"></i><?php echo $count; ?> Bác sĩ
-                            </span>
-                        </div>
-                    </div>
 
+                // Lấy icon trực tiếp từ database, nếu không có thì dùng default
+                $iconClass = !empty($sp['icon']) ? trim($sp['icon']) : 'icofont-stethoscope';
+
+                // Đảm bảo icon class hợp lệ (nếu có fa- thì giữ nguyên, nếu không có prefix thì thêm icofont-)
+                if (!empty($iconClass)) {
+                    // Nếu icon không có prefix (icofont- hoặc fa-), thêm icofont-
+                    if (strpos($iconClass, 'icofont-') !== 0 && strpos($iconClass, 'fa-') !== 0 && strpos($iconClass, 'fas ') !== 0 && strpos($iconClass, 'far ') !== 0) {
+                        $iconClass = 'icofont-' . $iconClass;
+                    }
+                }
+
+                $desc = $sp['mo_ta'] ?? 'Dịch vụ chăm sóc sức khỏe chuyên nghiệp';
+                $badgeColor = $count > 0 ? 'primary' : 'secondary';
+            ?>
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <a class="text-decoration-none"
+                    href="./doctors_by_specialty?slug=<?php echo urlencode($sp['slug'] ?? ''); ?>">
+                    <div class="specialty-card-novena">
+                        <div class="icon">
+                            <i class="<?php echo htmlspecialchars($iconClass); ?>"></i>
+                        </div>
+                        <h5><?php echo htmlspecialchars($name); ?></h5>
+                        <p><?php echo htmlspecialchars($desc); ?></p>
+
+                    </div>
                 </a>
             </div>
             <?php endforeach; ?>
         </div>
     </div>
 </section>
-
-<style>
-.specialty-card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e9ecef;
-    padding: 1.5rem;
-    text-align: center;
-    transition: all .25s;
-    display: flex;
-    flex-direction: column;
-}
-
-.specialty-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12)
-}
-
-.specialty-icon {
-    font-size: 2rem;
-    color: #0d6efd;
-    margin-bottom: .75rem
-}
-
-.doctor-count {
-    margin-top: auto;
-}
-</style>
 
 <?php include 'Views/layouts/footer.php'; ?>

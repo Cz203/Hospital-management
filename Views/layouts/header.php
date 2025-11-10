@@ -2,23 +2,38 @@
 <html lang="vi">
 
 <head>
-    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="description" content="ThinhViet Hospital - Phòng khám đa khoa uy tín">
+    <meta name="author" content="Cao Dương Quốc Việt & Ung Nguyễn Trường Thịnh">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($page_title) ? $page_title : 'ThinhViet Hospital'; ?></title>
-    <?php include 'Views/layouts/socket_bootstrap.php'; ?>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Font Awesome -->
+    <title>
+        <?php echo isset($page_title) ? $page_title . ' - ThinhViet Hospital' : 'ThinhViet Hospital - Chăm sóc sức khỏe toàn diện'; ?>
+    </title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="./assets/images/favicon.ico" />
+
+    <?php include 'Views/layouts/socket_bootstrap.php'; ?>
+
+    <!-- Bootstrap CSS từ Novena -->
+    <link rel="stylesheet" href="./assets/plugins/bootstrap/css/bootstrap.min.css">
+
+    <!-- Icon Font từ Novena -->
+    <link rel="stylesheet" href="./assets/plugins/icofont/icofont.min.css">
+
+    <!-- Slick Slider CSS -->
+    <link rel="stylesheet" href="./assets/plugins/slick-carousel/slick/slick.css">
+    <link rel="stylesheet" href="./assets/plugins/slick-carousel/slick/slick-theme.css">
+
+    <!-- Font Awesome (giữ lại cho icons hiện tại) -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <!-- Novena Main Stylesheet -->
+    <link rel="stylesheet" href="./assets/css/home.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="./assets/css/home.css?v=<?php echo filemtime('./assets/css/home.css'); ?>">
-    <link rel="stylesheet" href="./assets/css/theme.css?v=<?php echo filemtime('./assets/css/theme.css'); ?>">
+    <!-- Custom CSS Override -->
+    <link rel="stylesheet" href="./assets/css/novena-custom.css?v=<?php echo time(); ?>">
 
     <!-- Additional CSS for specific pages -->
     <?php if (isset($additional_css)) : ?>
@@ -28,83 +43,133 @@
     <?php endif; ?>
 </head>
 
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
-        <div class="container">
-            <!-- Brand -->
-            <a class="navbar-brand d-flex align-items-center" href="./home">
-                <div class="brand-icon me-2">
-                    <i class="fas fa-heartbeat"></i>
+<body id="top">
+
+    <header>
+        <!-- Top Bar -->
+        <div class="header-top-bar">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <ul class="top-bar-info list-inline-item pl-0 mb-0">
+                            <li class="list-inline-item">
+                                <a href="mailto:info@thinhviet.com">
+                                    <i class="icofont-support-faq mr-2"></i>info@thinhviet.com
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <i class="icofont-location-pin mr-2"></i>123 Đường ABC, Quận 1, TP.HCM
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="text-lg-right top-right-bar mt-2 mt-lg-0">
+                            <a href="tel:+842812345678">
+                                <span>Gọi ngay: </span>
+                                <span class="h4">(84) 28-1234-5678</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="brand-text">
-                    <span class="brand-name">ThinhViet</span>
-                    <span class="brand-subtitle">Hospital</span>
-                </div>
-            </a>
+            </div>
+        </div>
 
-            <!-- Mobile Toggle -->
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <!-- Main Navigation -->
+        <nav class="navbar navbar-expand-lg navigation" id="navbar">
+            <div class="container">
+                <a class="navbar-brand" href="./home">
+                    <img src="./assets/img/novena-logo.png" alt="ThinhViet Hospital" class="img-fluid">
+                </a>
 
-            <!-- Navigation Menu -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Main Navigation -->
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="home">
-                            <i class="fas fa-home me-1"></i>Trang chủ
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="doctor_team">
-                            <i class="fas fa-calendar-check me-1"></i>Đặt lịch
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./home#chuyenkhoa">
-                            <i class="fas fa-stethoscope me-1"></i>Chuyên khoa
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./home#doctors">
-                            <i class="fas fa-user-md me-1"></i>Bác sĩ
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./contact">
-                            <i class="fas fa-envelope me-1"></i>Liên hệ
-                        </a>
-                    </li>
-                </ul>
+                <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarmain"
+                    aria-controls="navbarmain" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="icofont-navigation-menu"></span>
+                </button>
 
-                <!-- Authentication Links + Notifications -->
-                <ul class="navbar-nav">
-                    <?php $ctx = getCurrentUserContext(); ?>
-                    <?php if (!$ctx['id']) : ?>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-outline-light btn-sm px-3" href="login">
-                            <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập
-                        </a>
-                    </li>
-                    <li class="nav-item ms-2">
-                        <a class="nav-link btn btn-primary btn-sm px-3" href="./register">
-                            <i class="fas fa-user-plus me-1"></i>Đăng ký
-                        </a>
-                    </li>
-                    <?php else : ?>
-                    <!-- Notifications bell -->
-                    <li class="nav-item me-2">
-                        <div class="dropdown">
-                            <a class="nav-link position-relative" href="#" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false" title="Thông báo">
-                                <i class="fas fa-bell"></i>
+                <div class="collapse navbar-collapse" id="navbarmain">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="./home">Trang chủ</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="./doctor_team">Đặt lịch khám</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="./home#chuyenkhoa">Chuyên khoa</a>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                                Bác sĩ <i class="icofont-thin-down"></i>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="dropdown03">
+                                <li><a class="dropdown-item" href="./doctor_team">Danh sách bác sĩ</a></li>
+                                <li><a class="dropdown-item" href="./specialties_all">Bác sĩ theo chuyên khoa</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="./contact">Liên hệ</a>
+                        </li>
+
+                        <?php $ctx = getCurrentUserContext(); ?>
+                        <?php if (!$ctx['id']) : ?>
+                        <!-- Not logged in -->
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-main btn-sm" href="./login"
+                                style="color: #fff; padding: 8px 20px; border-radius: 5px;">
+                                <i class="icofont-login mr-1"></i>Đăng nhập
+                            </a>
+                        </li>
+                        <li class="nav-item ml-2">
+                            <a class="nav-link btn btn-main-2 btn-sm" href="./register"
+                                style="padding: 8px 20px; border-radius: 5px;">
+                                <i class="icofont-ui-add mr-1"></i>Đăng ký
+                            </a>
+                        </li>
+                        <?php else : ?>
+                        <!-- Logged in -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="dropdown-user" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                                <i class="icofont-user-alt-4 mr-1"></i>
+                                <?php echo htmlspecialchars($ctx['name'] ?: 'Người dùng', ENT_QUOTES, 'UTF-8'); ?>
+                                <i class="icofont-thin-down"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
+                                <li>
+                                    <a class="dropdown-item" href="./<?php echo $ctx['role']; ?>_dashboard">
+                                        <i class="icofont-dashboard-web mr-2"></i>Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="./<?php echo $ctx['role']; ?>_profile">
+                                        <i class="icofont-user mr-2"></i>Hồ sơ
+                                    </a>
+                                </li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="./logout">
+                                        <i class="icofont-logout mr-2"></i>Đăng xuất
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Notifications (giữ lại chức năng cũ) -->
+                        <li class="nav-item dropdown ml-2">
+                            <a class="nav-link position-relative" href="#" id="dropdown-notif" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                                <i class="icofont-notification"></i>
                                 <span id="notif-badge"
                                     class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end p-0" style="width: 320px;">
+                            <ul class="dropdown-menu dropdown-menu-right p-0" style="width: 320px;">
                                 <li class="dropdown-header px-3 py-2 fw-bold">Thông báo</li>
                                 <li>
                                     <div id="notif-list" class="list-group list-group-flush small"
@@ -113,50 +178,17 @@
                                     </div>
                                 </li>
                             </ul>
-                        </div>
-                    </li>
-                    <li class="nav-item">
-                        <div class="dropdown d-flex align-items-center">
-                            <div class="user-avatar me-2">
-                                <i class="fas fa-user-circle"></i>
-                            </div>
-                            <span
-                                class="user-name me-1"><?php echo htmlspecialchars($ctx['name'] ?: 'Người dùng', ENT_QUOTES, 'UTF-8'); ?></span>
-                            <button class="btn btn-link text-white p-0 ms-1" type="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <a class="dropdown-item" href="./<?php echo $ctx['role']; ?>_dashboard">
-                                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="./<?php echo $ctx['role']; ?>_profile">
-                                        <i class="fas fa-user me-2"></i>Hồ sơ
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li>
-                                    <a class="dropdown-item text-danger" href="./logout">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
-                    <?php endif; ?>
-                </ul>
+                        </li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </header>
 
-    <!-- Scroll Progress Bar removed to reduce lag -->
+    <!-- Notifications script (giữ lại từ header cũ) -->
     <script>
-    // Notifications helper for socket/client code to push messages
+    // Notifications helper
     (function setupNotifications() {
         var notifBadge = document.getElementById('notif-badge');
         var notifList = document.getElementById('notif-list');
@@ -229,11 +261,11 @@
         };
 
         // Clear badge when opening dropdown
-        var bells = document.querySelectorAll('a.nav-link[title="Thông báo"][data-bs-toggle="dropdown"]');
-        if (bells && bells.length) {
-            bells.forEach(function(b) {
-                b.addEventListener('show.bs.dropdown', function() {
-                    if (notifBadge) {
+        var dropdowns = document.querySelectorAll('[data-toggle="dropdown"]');
+        if (dropdowns && dropdowns.length) {
+            dropdowns.forEach(function(d) {
+                d.addEventListener('click', function() {
+                    if (this.id === 'dropdown-notif' && notifBadge) {
                         notifBadge.textContent = '0';
                         notifBadge.classList.add('d-none');
                     }
@@ -241,7 +273,7 @@
             });
         }
 
-        // Hydrate from storage and drain early queue
+        // Hydrate from storage
         try {
             var stored = readStore();
             if (stored && stored.length && notifList) {
