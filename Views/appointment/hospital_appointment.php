@@ -152,12 +152,12 @@ include 'Views/layouts/header.php';
 
                             <!-- Form Actions -->
                             <div class="form-actions-custom mt-4">
-                                <button type="submit" id="submitBtn" class="btn btn-main btn-round-full btn-lg"
+                                <button type="submit" id="submitBtn" class="btn btn-main-2 btn-round-full btn-lg"
                                     disabled>
                                     <i class="icofont-calendar mr-2"></i>
                                     Đặt lịch hẹn
                                 </button>
-                                <a href="./doctor_team" class="btn btn-main-2 btn-round-full btn-lg ml-3">
+                                <a href="./doctor_team" class="btn btn-main btn-round-full btn-lg ml-3">
                                     <i class="icofont-simple-left mr-2"></i>
                                     Quay lại
                                 </a>

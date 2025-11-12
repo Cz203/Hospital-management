@@ -94,7 +94,7 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
     }
 
     /* Bell styles */
-    .nav-bell {
+    .nav-bel1 {
         width: 40px;
         height: 40px;
         border-radius: 50%;
@@ -119,6 +119,19 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
 
     .nav-bell .badge {
         transform: translate(35%, -35%);
+    }
+
+    /* Notification items highlight */
+    .notif-item.unread {
+        background-color: rgba(102, 126, 234, 0.08);
+    }
+
+    .notif-item.unread:hover {
+        background-color: #08429840;
+    }
+
+    .notif-item.clicked {
+        background-color: rgba(32, 201, 151, 0.12);
     }
 
     .role-badge {
@@ -327,24 +340,8 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
 
                 <!-- User Menu -->
                 <div class="navbar-nav">
-                    <!-- Notifications -->
-                    <div class="nav-item dropdown me-3">
-                        <a class="nav-link position-relative nav-bell" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            <i class="fas fa-bell"></i>
-                            <span id="notif-badge"
-                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end p-0" style="width: 340px;">
-                            <li class="dropdown-header px-3 py-2 fw-bold">Thông báo</li>
-                            <li>
-                                <div id="notif-list" class="list-group list-group-flush small"
-                                    style="max-height: 320px; overflow-y: auto;">
-                                    <div class="p-3 text-muted">Không có thông báo</div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
+                    <!-- Notifications (shared) -->
+                    <?php include 'Views/layouts/notifications_dropdown.php'; ?>
                     <div class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
                             data-bs-toggle="dropdown">
@@ -476,34 +473,34 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
         }, 3000);
     });
 
-    // Notifications helper for socket/client code to push messages
+    // Notifications helper: render from server (DB)
     (function setupNotifications() {
         var notifBadge = document.getElementById('notif-badge');
         var notifList = document.getElementById('notif-list');
         var userIdMeta = document.querySelector('meta[name="user-id"]');
         var currentUserId = userIdMeta ? (userIdMeta.getAttribute('content') || '').trim() : '';
 
-        function getStoreKey() {
-            return currentUserId ? ('hm_notifications_' + currentUserId) : 'hm_notifications';
-        }
-
-        function readStore() {
+        function getNotifLinkByRole() {
             try {
-                return JSON.parse(localStorage.getItem(getStoreKey()) || '[]');
+                var roleMeta = document.querySelector('meta[name="user-role"]');
+                var role = roleMeta ? (roleMeta.getAttribute('content') || '').trim() : '';
+                if (role === 'patient') return './patient_appointments';
+                if (role === 'doctor' || role === 'xray_doctor' || role === 'sieuam_doctor' || role ===
+                    'xetnghiem_doctor') {
+                    return './doctor_appointment_management';
+                }
+                return './';
             } catch (e) {
-                return [];
+                return './';
             }
         }
 
-        function writeStore(items) {
-            try {
-                localStorage.setItem(getStoreKey(), JSON.stringify(items.slice(0, 20)));
-            } catch (e) {}
-        }
-
-        function renderItem(message, type, ts) {
+        function renderItem(message, type, ts, isUnread) {
             var item = document.createElement('a');
-            item.className = 'list-group-item list-group-item-action d-flex align-items-start';
+            item.className = 'list-group-item list-group-item-action d-flex align-items-start notif-item';
+            if (isUnread) item.classList.add('unread');
+            item.href = getNotifLinkByRole();
+            item.style.cursor = 'pointer';
             var color = 'primary';
             if (type === 'success') color = 'success';
             else if (type === 'warning') color = 'warning';
@@ -534,46 +531,50 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
             if (!notifList) return;
             var empty = notifList.querySelector('.text-muted');
             if (empty) empty.remove();
-            var item = renderItem(message, type, Date.now());
+            var item = renderItem(message, type, Date.now(), true);
             notifList.prepend(item);
             if (notifBadge) {
                 notifBadge.classList.remove('d-none');
                 var current = parseInt(notifBadge.textContent || '0');
                 notifBadge.textContent = String(current + 1);
             }
-            // persist
-            var items = readStore();
-            items.unshift({
-                message: message,
-                type: type || 'info',
-                ts: Date.now()
-            });
-            writeStore(items);
         };
 
-        // Clear badge when opening dropdown
-        var bell = document.querySelector('.nav-item.dropdown.me-3 > a[data-bs-toggle="dropdown"]');
-        if (bell) {
-            bell.addEventListener('show.bs.dropdown', function() {
+        // Mark all read when opening dropdown (server + UI)
+        var notifDropdown = document.querySelector('.notifications-dropdown');
+        if (notifDropdown) {
+            notifDropdown.addEventListener('show.bs.dropdown', function() {
+                if (currentUserId) {
+                    fetch('./notifications_mark_all_read').catch(function() {});
+                }
                 if (notifBadge) {
                     notifBadge.textContent = '0';
                     notifBadge.classList.add('d-none');
                 }
             });
-        }
-
-        // Drain queued notifications from early socket events & hydrate from storage/server
-        try {
-            // hydrate existing from storage
-            var stored = readStore();
-            if (stored && stored.length) {
-                var emptyHydrate = notifList.querySelector('.text-muted');
-                if (emptyHydrate) emptyHydrate.remove();
-                stored.slice(0, 20).reverse().forEach(function(n) {
-                    notifList.prepend(renderItem(n.message, n.type, n.ts));
+            // Highlight clicked notification
+            var list = document.getElementById('notif-list');
+            if (list) {
+                list.addEventListener('click', function(e) {
+                    var target = e.target;
+                    while (target && target !== list && !target.classList.contains('notif-item')) {
+                        target = target.parentNode;
+                    }
+                    if (target && target.classList && target.classList.contains('notif-item')) {
+                        Array.prototype.forEach.call(list.querySelectorAll('.notif-item.clicked'), function(
+                            el) {
+                            el.classList.remove('clicked');
+                        });
+                        target.classList.add('clicked');
+                        target.classList.remove('unread');
+                    }
                 });
             }
-            // hydrate from server API (ưu tiên server)
+        }
+
+        // Hydrate from server (DB) and drain queued notifications from early socket events
+        try {
+            // hydrate from server API
             if (currentUserId) {
                 fetch('./notifications')
                     .then(function(r) {
@@ -581,14 +582,22 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
                     })
                     .then(function(resp) {
                         if (resp && resp.success && Array.isArray(resp.data)) {
+                            // compute unread count
+                            var unreadCount = 0;
+                            try {
+                                unreadCount = resp.data.filter(function(n) {
+                                    return String(n.da_doc) === '0' || n.da_doc === 0;
+                                }).length;
+                            } catch (e) {}
                             var serverItems = resp.data.map(function(n) {
                                 return {
                                     message: n.noi_dung,
                                     type: n.loai || 'info',
-                                    ts: new Date(n.ngay_tao).getTime()
+                                    ts: new Date(n.ngay_tao).getTime(),
+                                    isUnread: (String(n.da_doc) === '0' || n.da_doc === 0)
                                 };
                             });
-                            // render trực tiếp server items và đồng bộ localStorage
+                            // render trực tiếp server items
                             while (notifList.firstChild) notifList.removeChild(notifList.firstChild);
                             if (!serverItems.length) {
                                 var div = document.createElement('div');
@@ -596,21 +605,26 @@ $displayName = htmlspecialchars($ctx['name'] ?: 'Bệnh nhân', ENT_QUOTES, 'UTF
                                 div.textContent = 'Không có thông báo';
                                 notifList.appendChild(div);
                             } else {
+                                // resp.data is DESC (newest first). Append to keep newest on top.
                                 serverItems.slice(0, 20).forEach(function(n) {
-                                    notifList.prepend(renderItem(n.message, n.type, n.ts));
+                                    notifList.appendChild(renderItem(n.message, n.type, n.ts, n
+                                        .isUnread));
                                 });
                             }
-                            writeStore(serverItems);
+                            // update badge
+                            if (notifBadge) {
+                                if (unreadCount > 0) {
+                                    notifBadge.classList.remove('d-none');
+                                    notifBadge.textContent = String(unreadCount);
+                                } else {
+                                    notifBadge.textContent = '0';
+                                    notifBadge.classList.add('d-none');
+                                }
+                            }
                         }
                     }).catch(function(e) {});
             }
-            // then drain queue
-            if (window.__notifQueue && Array.isArray(window.__notifQueue)) {
-                window.__notifQueue.forEach(function(n) {
-                    window.addNotification(n.message, n.type);
-                });
-                window.__notifQueue = [];
-            }
+            // no client-side queue
         } catch (e) {}
     })();
     </script>

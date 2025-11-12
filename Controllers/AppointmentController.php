@@ -250,6 +250,86 @@ class AppointmentController
     }
 
     /**
+     * Trả về chi tiết lịch hẹn theo role hiện tại (JSON)
+     * - patient: thông tin bác sĩ + thời gian + ngay_tao
+     * - doctor/x*doctor: thông tin bệnh nhân + thời gian + ngay_tao
+     */
+    public function getAppointmentDetail()
+    {
+        header('Content-Type: application/json');
+        if (!$this->auth->isLoggedIn()) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit();
+        }
+
+        $appointmentId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($appointmentId <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Thiếu ID lịch hẹn']);
+            exit();
+        }
+
+        $role = $_SESSION['user_role'] ?? '';
+        if ($role === '') {
+            $ctx = $this->auth->resolveCurrentUserContext();
+            $role = $ctx['role'] ?? '';
+        }
+        $userId = $_SESSION['user_id'] ?? 0;
+
+        $appointment = $this->appointmentModel->getById($appointmentId);
+        if (!$appointment) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy lịch hẹn']);
+            exit();
+        }
+
+        // Kiểm tra quyền truy cập theo role
+        if ($role === 'patient') {
+            if ((int)$appointment['benh_nhan_id'] !== (int)$userId) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Forbidden']);
+                exit();
+            }
+            // Lấy email và chuyên khoa chính xác từ bảng bác sĩ (chuyen_khoa_id/ten)
+            $doctor = $this->doctorModel->getById((int)$appointment['bac_si_id']);
+            $result = [
+                'doctor_name' => $doctor['ten'] ?? ($appointment['ten_bac_si'] ?? ''),
+                'doctor_email' => $doctor['email'] ?? '',
+                'chuyen_khoa' => $doctor['chuyen_khoa'] ?? ($appointment['chuyen_khoa'] ?? ''),
+                'ngay_hen' => $appointment['ngay_hen'],
+                'gio_hen' => $appointment['gio_hen'],
+                'ngay_tao' => $appointment['ngay_tao'] ?? null,
+            ];
+            echo json_encode(['success' => true, 'data' => $result]);
+            exit();
+        } elseif (in_array($role, ['doctor', 'xray_doctor', 'sieuam_doctor', 'xetnghiem_doctor'], true)) {
+            if ((int)$appointment['bac_si_id'] !== (int)$userId) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => 'Forbidden']);
+                exit();
+            }
+            $patient = $this->patientModel->getById((int)$appointment['benh_nhan_id']);
+            $result = [
+                'patient_name' => $patient['ten'] ?? ($appointment['ten_benh_nhan'] ?? ''),
+                'patient_email' => $patient['email'] ?? '',
+                'patient_phone' => $patient['so_dien_thoai'] ?? '',
+                'patient_gender' => $patient['gioi_tinh'] ?? ($appointment['gioi_tinh'] ?? ''),
+                'patient_address' => $patient['dia_chi'] ?? '',
+                'ngay_tao' => $appointment['ngay_tao'] ?? null,
+                'ngay_hen' => $appointment['ngay_hen'],
+                'gio_hen' => $appointment['gio_hen'],
+            ];
+            echo json_encode(['success' => true, 'data' => $result]);
+            exit();
+        } else {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Role không hợp lệ']);
+            exit();
+        }
+    }
+
+    /**
      * Đặt lịch hẹn mới
      */
     public function bookAppointment()
@@ -510,6 +590,11 @@ class AppointmentController
             // Send HTTP request to socket server
             require_once 'Services/SocketService.php';
             SocketService::emit('new_appointment', $notificationData);
+
+            // Persist notification in DB for doctor
+            require_once 'Models/Notification.php';
+            $notif = new Notification();
+            $notif->createForDoctor((int)$doctorId, $notificationData['message'], 'info', $notificationData);
         } catch (Exception $e) {
             error_log("Socket notification error: " . $e->getMessage());
         }
@@ -548,6 +633,11 @@ class AppointmentController
             // Send HTTP request to socket server
             require_once 'Services/SocketService.php';
             SocketService::emit('patient_booking_confirmation', $notificationData);
+
+            // Persist notification in DB for patient
+            require_once 'Models/Notification.php';
+            $notif = new Notification();
+            $notif->createForPatient((int)$patientId, $notificationData['message'], 'success', $notificationData);
         } catch (Exception $e) {
             error_log("Patient booking confirmation error: " . $e->getMessage());
         }
@@ -588,6 +678,11 @@ class AppointmentController
             // Send notification to doctor
             require_once 'Services/SocketService.php';
             SocketService::emit('appointment_cancelled_by_patient', $notificationData);
+
+            // Persist notification in DB for doctor
+            require_once 'Models/Notification.php';
+            $notif = new Notification();
+            $notif->createForDoctor((int)$doctorId, $notificationData['message'], 'warning', $notificationData);
         } catch (Exception $e) {
             error_log("Patient cancellation notification error: " . $e->getMessage());
         }

@@ -380,8 +380,28 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function viewAppointmentDetails(appointmentId) {
-    // TODO: Implement view appointment details modal
-    alert("Xem chi tiết lịch hẹn ID: " + appointmentId);
+    fetch('./get_appointment_detail?id=' + encodeURIComponent(appointmentId))
+        .then(function(r) {
+            return r.json();
+        })
+        .then(function(resp) {
+            if (!resp || !resp.success) {
+                alert(resp && resp.message ? resp.message : 'Không thể tải chi tiết lịch hẹn');
+                return;
+            }
+            var d = resp.data || {};
+            var html = '' +
+                '<div class="mb-2"><strong>Bác sĩ:</strong> ' + (d.doctor_name || '') + '</div>' +
+                '<div class="mb-2"><strong>Email:</strong> ' + (d.doctor_email || '') + '</div>' +
+                '<div class="mb-2"><strong>Chuyên khoa:</strong> ' + (d.chuyen_khoa || '') + '</div>' +
+                '<div class="mb-2"><strong>Ngày hẹn:</strong> ' + (d.ngay_hen || '') + '</div>' +
+                '<div class="mb-2"><strong>Giờ hẹn:</strong> ' + (d.gio_hen || '') + '</div>' +
+                '<div class="mb-2"><strong>Ngày tạo:</strong> ' + (d.ngay_tao || '') + '</div>';
+            showAppointmentModal('Chi tiết lịch hẹn', html);
+        })
+        .catch(function() {
+            alert('Lỗi tải chi tiết lịch hẹn');
+        });
 }
 
 function cancelAppointment(appointmentId) {
@@ -405,5 +425,32 @@ function cancelAppointment(appointmentId) {
 function downloadReport(appointmentId) {
     // TODO: Implement download report
     alert("Tải báo cáo lịch hẹn ID: " + appointmentId);
+}
+
+function showAppointmentModal(title, bodyHtml) {
+    try {
+        var old = document.getElementById('appt-detail-modal');
+        if (old && old.parentNode) old.parentNode.removeChild(old);
+    } catch (e) {}
+    var wrap = document.createElement('div');
+    wrap.id = 'appt-detail-modal';
+    wrap.className = 'modal fade';
+    wrap.tabIndex = -1;
+    wrap.innerHTML = '' +
+        '<div class="modal-dialog modal-dialog-centered">' +
+        '  <div class="modal-content">' +
+        '    <div class="modal-header">' +
+        '      <h5 class="modal-title">' + title + '</h5>' +
+        '      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>' +
+        '    </div>' +
+        '    <div class="modal-body">' + bodyHtml + '</div>' +
+        '    <div class="modal-footer">' +
+        '      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>' +
+        '    </div>' +
+        '  </div>' +
+        '</div>';
+    document.body.appendChild(wrap);
+    var modal = new bootstrap.Modal(wrap);
+    modal.show();
 }
 </script>

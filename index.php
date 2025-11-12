@@ -17,6 +17,7 @@ require_once 'Controllers/ReceptionController.php';
 require_once 'Controllers/ReceiptController.php';
 require_once 'Controllers/MedicalRecordController.php';
 require_once 'Controllers/PatientReceiptController.php';
+require_once 'Controllers/NotificationController.php';
 // Khởi tạo Controllers
 $auth = new AuthController();
 $doctorController = new DoctorController();
@@ -27,6 +28,7 @@ $patientController = new PatientController();
 $receptionController = new ReceptionController();
 $medicalRecordController = new MedicalRecordController();
 $patientReceiptController = new PatientReceiptController();
+$notificationController = new NotificationController();
 
 // Khởi tạo ReceiptController
 require_once 'config/database.php';
@@ -406,7 +408,7 @@ switch ($action) {
     case 'get_doctor_medical_record_detail':
         $medicalRecordController->getDetail(); // API lấy chi tiết hồ sơ bệnh án (JSON)
         break;
-    
+
     case 'render_doctor_medical_record_detail':
         $medicalRecordController->renderDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
         break;
@@ -703,6 +705,10 @@ switch ($action) {
         $appointmentController->getDoctorSchedule(); // Lấy lịch làm việc bác sĩ (AJAX)
         break;
 
+    case 'get_appointment_detail':
+        $appointmentController->getAppointmentDetail(); // JSON chi tiết lịch hẹn theo role
+        break;
+
     case 'reception_find_patient':
         $receptionController->findPatientByPhone(); // Tra cứu BN theo SĐT (AJAX)
         break;
@@ -729,6 +735,16 @@ switch ($action) {
         header('Content-Type: application/json');
         $prescriptionController->getPrescriptionByExamId();
         exit();
+
+        // ===== NOTIFICATIONS (DB) =====
+    case 'notifications':
+        // GET list notifications for current user
+        $notificationController->list();
+        break;
+    case 'notifications_mark_all_read':
+        // POST/GET mark all as read
+        $notificationController->markAllRead();
+        break;
 
 
 

@@ -1038,11 +1038,25 @@ class DoctorController
                 $notificationData['message'] = "Bác sĩ $doctorName đã hủy lịch hẹn của bạn vào $dateVn lúc {$appointment['gio_hen']}";
                 require_once 'Services/SocketService.php';
                 SocketService::emit('appointment_cancelled_by_doctor', $notificationData);
+                // Persist DB for patient
+                try {
+                    require_once 'Models/Notification.php';
+                    $notif = new Notification();
+                    $notif->createForPatient((int)$patientId, $notificationData['message'], 'warning', $notificationData);
+                } catch (Exception $e) {
+                }
             } else {
                 // Notify patient about status change
                 $notificationData['message'] = "Bác sĩ $doctorName đã cập nhật trạng thái lịch hẹn ngày $dateVn thành: $newStatus";
                 require_once 'Services/SocketService.php';
                 SocketService::emit('appointment_status_changed', $notificationData);
+                // Persist DB for patient
+                try {
+                    require_once 'Models/Notification.php';
+                    $notif = new Notification();
+                    $notif->createForPatient((int)$patientId, $notificationData['message'], 'info', $notificationData);
+                } catch (Exception $e) {
+                }
             }
         } catch (Exception $e) {
             error_log("Appointment status change notification error: " . $e->getMessage());
@@ -3575,16 +3589,20 @@ class DoctorController
         $yeuCauLower = mb_strtolower($yeuCau, 'UTF-8');
 
         // Kiểm tra "máu toàn phần"
-        if (strpos($yeuCauLower, 'máu toàn phần') !== false || 
+        if (
+            strpos($yeuCauLower, 'máu toàn phần') !== false ||
             strpos($yeuCauLower, 'cong thuc mau') !== false ||
-            strpos($yeuCauLower, 'công thức máu') !== false) {
+            strpos($yeuCauLower, 'công thức máu') !== false
+        ) {
             return 'mau_toan_phan';
         }
 
         // Kiểm tra "máu" hoặc "nước tiểu" (không phải "máu toàn phần")
-        if (strpos($yeuCauLower, 'máu') !== false || 
+        if (
+            strpos($yeuCauLower, 'máu') !== false ||
             strpos($yeuCauLower, 'nước tiểu') !== false ||
-            strpos($yeuCauLower, 'nuoc tieu') !== false) {
+            strpos($yeuCauLower, 'nuoc tieu') !== false
+        ) {
             return 'mau_nuoc_tieu';
         }
 
@@ -4163,7 +4181,7 @@ class DoctorController
                 ");
                 $stmt2->execute([$id]);
                 $resultPhieu = $stmt2->fetch(PDO::FETCH_ASSOC);
-                
+
                 if ($resultPhieu && !empty($resultPhieu['id'])) {
                     $stmt3 = $pdo->prepare("
                         SELECT stt, ten_xet_nghiem, gia_tri_tham_chieu, ket_qua, don_vi, may_qtkt
