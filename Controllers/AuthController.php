@@ -517,7 +517,7 @@ class AuthController
     public function loginPatient()
     {
         $securityOptions = ['csrf' => true];
-        $this->handleLogin('patient', 'Patient', 'patient_dashboard', 'login', null, null, $securityOptions);
+        $this->handleLogin('patient', 'Patient', 'home', 'login', null, null, $securityOptions);
     }
 
 
@@ -655,7 +655,7 @@ class AuthController
 
                     case 'patient':
                         $cccd = trim($_POST['cccd'] ?? '');
-                        
+
                         // Validate CCCD nếu được nhập
                         if (!empty($cccd)) {
                             require_once 'Services/CCCDService.php';
@@ -663,9 +663,9 @@ class AuthController
                             $database = new Database();
                             $db = $database->getConnection();
                             $cccdService = new CCCDService($db);
-                            
+
                             $verifyResult = $cccdService->verifyCCCD($cccd, $name, $_POST['ngay_sinh'] ?? null);
-                            
+
                             if (!$verifyResult['success']) {
                                 $_SESSION['error'] = $verifyResult['message'];
                                 $_SESSION['form_data'] = $_POST;
@@ -673,7 +673,7 @@ class AuthController
                                 exit();
                             }
                         }
-                        
+
                         $data = [
                             'ten' => $name,
                             'email' => $email,
@@ -712,7 +712,7 @@ class AuthController
         // Hiển thị form register
         include 'Views/auth/register.php';
     }
-    
+
     public function logout()
     {
         // Clear only our keys to avoid nuking unrelated PHP session data

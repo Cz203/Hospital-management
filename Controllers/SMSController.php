@@ -29,7 +29,6 @@ class SMSController
         }
     }
 
-
     // Tạo mã OTP ngẫu nhiên 6 số
     private function generateOTP()
     {

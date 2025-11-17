@@ -7,6 +7,14 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 // Load Composer autoloader để sử dụng Vonage SDK
 require_once 'vendor/autoload.php';
 
+// Load environment variables from .env (if present)
+try {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->safeLoad();
+} catch (Throwable $e) {
+    // ignore if dotenv not available
+}
+
 require_once 'Controllers/AuthController.php';
 require_once 'Controllers/DoctorController.php';
 require_once 'Controllers/AdminController.php';

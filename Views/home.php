@@ -104,7 +104,23 @@ $page_title = 'Trang chủ - ThinhViet Hospital';
 // Include header
 include 'Views/layouts/header.php';
 ?>
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+<script type="module">
+import {
+    createChat
+} from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
 
+createChat({
+    webhookUrl: <?php echo json_encode($_ENV['N8N_WEBHOOK_URL'] ?? getenv('N8N_WEBHOOK_URL') ?? ''); ?>,
+    title: 'Phòng khám đa khoa Thịnh Việt',
+    subtitle: 'Chúng tôi luôn sẵn sàng hỗ trợ.',
+    initialMessages: [
+        'Chào mừng bạn đã đến với website phòng khám đa khoa Thịnh Việt.',
+        'Tôi có thể giúp gì cho bạn?'
+    ],
+    inputPlaceholder: 'Nhập câu hỏi của bạn...'
+});
+</script>
 <!-- Hero Banner Section (Novena Style) -->
 <section class="banner">
     <div class="container">
