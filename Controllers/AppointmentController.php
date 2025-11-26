@@ -450,15 +450,42 @@ class AppointmentController
 
         $patientId = $_SESSION['user_id'];
 
+        // Lọc theo ngày hẹn (nếu có)
+        $selectedDate = $_GET['ngay_hen'] ?? '';
+        // Phân trang
+        $page     = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $page     = max(1, $page);
+        $perPage  = 6;
+
         // Lấy tất cả lịch hẹn của bệnh nhân
         $allAppointments = $this->appointmentModel->getByPatientId($patientId) ?: [];
 
-        // Phân loại appointments theo trạng thái
-        $upcomingAppointments = [];
+        // Nếu có chọn ngày hợp lệ thì lọc theo ngày đó (định dạng Y-m-d giống trong DB)
+        if (!empty($selectedDate)) {
+            $dt = \DateTime::createFromFormat('Y-m-d', $selectedDate);
+            if ($dt !== false) {
+                $normalized = $dt->format('Y-m-d');
+                $allAppointments = array_values(array_filter($allAppointments, function ($appt) use ($normalized) {
+                    return isset($appt['ngay_hen']) && $appt['ngay_hen'] === $normalized;
+                }));
+            }
+        }
+
+        // Tính toán phân trang từ danh sách đã lọc
+        $totalAppointments = count($allAppointments);
+        $totalPages        = max(1, (int) ceil($totalAppointments / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+        $offset           = ($page - 1) * $perPage;
+        $pagedAppointments = array_slice($allAppointments, $offset, $perPage);
+
+        // Phân loại appointments theo trạng thái (chỉ trên trang hiện tại)
+        $upcomingAppointments  = [];
         $completedAppointments = [];
         $cancelledAppointments = [];
 
-        foreach ($allAppointments as $appointment) {
+        foreach ($pagedAppointments as $appointment) {
             switch ($appointment['trang_thai']) {
                 case 'Chờ xác nhận':
                 case 'Đã xác nhận':
@@ -475,6 +502,10 @@ class AppointmentController
                     break;
             }
         }
+
+        // Biến hỗ trợ view phân trang
+        $currentPage = $page;
+        // $totalPages đã set ở trên
 
         // Include trực tiếp file view với dữ liệu
         include 'Views/patient/appointments.php';

@@ -2,7 +2,7 @@
 // Helper function để format ngày giờ
 function formatDateTime($date, $time)
 {
-    $dateTime = $date . ' ' . $time;
+    $dateTime = trim($date . ' ' . ($time ?? ''));
     return date('d/m/Y H:i', strtotime($dateTime));
 }
 
@@ -13,11 +13,11 @@ function getStatusBadgeClass($status)
         case 'Đã xác nhận':
             return 'bg-success';
         case 'Chờ xác nhận':
-            return 'bg-warning';
+            return 'bg-warning text-dark';
         case 'Hoàn thành':
             return 'bg-info';
         case 'Đang khám':
-            return 'bg-warning';
+            return 'bg-warning text-dark';
         case 'hủy':
             return 'bg-danger';
         default:
@@ -44,21 +44,34 @@ function getStatusText($status)
     }
 }
 
+// Thông tin phân trang
+$currentPage = $currentPage ?? ($_GET['page'] ?? 1);
+$totalPages  = $totalPages  ?? 1;
+
+// Pagination helper (dùng chung)
+require_once 'Views/layouts/pagination_helper.php';
+
 // Start output buffering
 ob_start();
 ?>
 <div class="container-fluid">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Page Header hiện đại, tương tự patient appointments -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
-            <h1 class="h3 mb-0 text-gray-800">
-                <i class="fas fa-calendar-check text-primary me-2"></i>
+            <h1 class="h3 mb-1 text-gray-800 d-flex align-items-center">
+                <span
+                    class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center me-2"
+                    style="width:36px;height:36px;">
+                    <i class="fas fa-calendar-check text-primary"></i>
+                </span>
                 Quản lý lịch hẹn
             </h1>
-            <p class="text-muted">Quản lý lịch hẹn khám bệnh của bệnh nhân</p>
+            <p class="text-muted mb-0 small">
+                Theo dõi, duyệt và cập nhật lịch hẹn khám bệnh của bệnh nhân.
+            </p>
         </div>
         <div class="d-flex gap-2">
-            <button class="btn btn-primary" onclick="refreshAppointments()">
+            <button class="btn btn-outline-secondary" onclick="refreshAppointments()">
                 <i class="fas fa-sync-alt me-2"></i>Làm mới
             </button>
         </div>
@@ -139,58 +152,71 @@ ob_start();
         </div>
     </div>
 
-    <!-- Filter Tabs -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <ul class="nav nav-tabs" id="appointmentTabs" role="tablist">
+    <!-- Tabs trong card, giống style patient appointments -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header border-0 pb-0 bg-white">
+            <ul class="nav nav-tabs card-header-tabs" id="appointmentTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending"
-                        type="button" role="tab">
-                        <i class="fas fa-clock me-2"></i>Chờ xác nhận
-                        <span class="badge bg-warning ms-2"><?php echo count($pendingAppointments); ?></span>
+                    <button class="nav-link active d-flex align-items-center" id="pending-tab" data-bs-toggle="tab"
+                        data-bs-target="#pending" type="button" role="tab">
+                        <i class="fas fa-clock me-2"></i>
+                        <span>Chờ xác nhận</span>
+                        <span class="badge rounded-pill bg-warning text-dark ms-2">
+                            <?php echo count($pendingAppointments); ?>
+                        </span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="confirmed-tab" data-bs-toggle="tab" data-bs-target="#confirmed"
-                        type="button" role="tab">
-                        <i class="fas fa-check-circle me-2"></i>Đã xác nhận
-                        <span class="badge bg-success ms-2"><?php echo count($confirmedAppointments); ?></span>
+                    <button class="nav-link d-flex align-items-center" id="confirmed-tab" data-bs-toggle="tab"
+                        data-bs-target="#confirmed" type="button" role="tab">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span>Đã xác nhận</span>
+                        <span class="badge rounded-pill bg-success ms-2">
+                            <?php echo count($confirmedAppointments); ?>
+                        </span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="examining-tab" data-bs-toggle="tab" data-bs-target="#examining"
-                        type="button" role="tab">
-                        <i class="fas fa-stethoscope me-2"></i>Đang khám
-                        <span
-                            class="badge bg-warning ms-2"><?php echo isset($examiningAppointments) ? count($examiningAppointments) : 0; ?></span>
+                    <button class="nav-link d-flex align-items-center" id="examining-tab" data-bs-toggle="tab"
+                        data-bs-target="#examining" type="button" role="tab">
+                        <i class="fas fa-stethoscope me-2"></i>
+                        <span>Đang khám</span>
+                        <span class="badge rounded-pill bg-warning text-dark ms-2">
+                            <?php echo isset($examiningAppointments) ? count($examiningAppointments) : 0; ?>
+                        </span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed"
-                        type="button" role="tab">
-                        <i class="fas fa-check-double me-2"></i>Hoàn thành
-                        <span class="badge bg-info ms-2"><?php echo count($completedAppointments); ?></span>
+                    <button class="nav-link d-flex align-items-center" id="completed-tab" data-bs-toggle="tab"
+                        data-bs-target="#completed" type="button" role="tab">
+                        <i class="fas fa-check-double me-2"></i>
+                        <span>Hoàn thành</span>
+                        <span class="badge rounded-pill bg-info ms-2">
+                            <?php echo count($completedAppointments); ?>
+                        </span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="cancelled-tab" data-bs-toggle="tab" data-bs-target="#cancelled"
-                        type="button" role="tab">
-                        <i class="fas fa-times-circle me-2"></i>Đã hủy
-                        <span class="badge bg-danger ms-2"><?php echo count($cancelledAppointments); ?></span>
+                    <button class="nav-link d-flex align-items-center" id="cancelled-tab" data-bs-toggle="tab"
+                        data-bs-target="#cancelled" type="button" role="tab">
+                        <i class="fas fa-times-circle me-2"></i>
+                        <span>Đã hủy</span>
+                        <span class="badge rounded-pill bg-danger ms-2">
+                            <?php echo count($cancelledAppointments); ?>
+                        </span>
                     </button>
                 </li>
             </ul>
-        </div>
     </div>
+
+        <div class="card-body">
 
     <!-- Tab Content -->
     <div class="tab-content" id="appointmentTabContent">
         <!-- Pending Appointments -->
-        <div class="tab-pane fade show active" id="pending" role="tabpanel">
-            <div class="card shadow">
-                <div class="card-body">
+                <div class="tab-pane fade show active" id="pending" role="tabpanel" aria-labelledby="pending-tab">
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="table table-hover align-middle mb-0" width="100%">
                             <thead>
                                 <tr>
                                     <th>Ngày giờ</th>
@@ -205,9 +231,14 @@ ob_start();
                             <tbody>
                                 <?php if (empty($pendingAppointments)): ?>
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
-                                        <i class="fas fa-calendar-times fa-2x mb-2"></i><br>
-                                        Không có lịch hẹn chờ xác nhận
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <span
+                                            class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3"
+                                            style="width:64px;height:64px;">
+                                            <i class="fas fa-calendar-times text-warning fa-lg"></i>
+                                        </span>
+                                        <div class="fw-semibold">Không có lịch hẹn chờ xác nhận</div>
+                                        <div class="text-muted small">Các lịch mới đặt sẽ hiển thị tại đây.</div>
                                     </td>
                                 </tr>
                                 <?php else: ?>
@@ -223,14 +254,19 @@ ob_start();
                                             </div>
                                             <div>
                                                 <div class="fw-bold">
-                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?></div>
+                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?>
+                                                </div>
                                                 <small
                                                     class="text-muted"><?php echo $appointment['gioi_tinh'] ?? 'N/A'; ?></small>
                                             </div>
                                         </div>
                                     </td>
                                     <td><?php echo htmlspecialchars($appointment['so_dien_thoai'] ?? 'N/A'); ?></td>
-                                    <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 220px;">
+                                            <?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <span
                                             class="badge bg-info"><?php echo htmlspecialchars($appointment['loai_lich'] ?? 'Trực tiếp'); ?></span>
@@ -238,44 +274,41 @@ ob_start();
                                     <td>
                                         <?php if (!empty($appointment['link_tu_van'])): ?>
                                         <a href="<?php echo htmlspecialchars($appointment['link_tu_van']); ?>"
-                                            target="_blank" class="btn btn-sm btn-success">
-                                            <i class="fas fa-video me-1"></i>Tham gia tư vấn
+                                            target="_blank" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-video me-1"></i>Tư vấn
                                         </a>
                                         <?php else: ?>
-                                        <span class="text-muted">Không có</span>
+                                        <span class="text-muted small">Không có</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <button class="btn btn-success btn-sm"
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-success"
                                             onclick="updateAppointmentStatus(<?php echo $appointment['id']; ?>, 'Đã xác nhận')">
-                                            <i class="fas fa-check"></i> Xác nhận
+                                                <i class="fas fa-check me-1"></i>Xác nhận
                                         </button>
-
-                                        <button class="btn btn-sm btn-danger"
+                                            <button class="btn btn-outline-danger"
                                             onclick="cancelAppointment(<?php echo $appointment['id']; ?>)">
                                             <i class="fas fa-times me-1"></i>Từ chối
                                         </button>
-                                        <button class="btn btn-sm btn-info"
+                                            <button class="btn btn-outline-secondary"
                                             onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">
                                             <i class="fas fa-eye me-1"></i>Chi tiết
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
                         </table>
-                    </div>
-                </div>
             </div>
         </div>
 
         <!-- Confirmed Appointments -->
-        <div class="tab-pane fade" id="confirmed" role="tabpanel">
-            <div class="card shadow">
-                <div class="card-body">
+                <div class="tab-pane fade" id="confirmed" role="tabpanel" aria-labelledby="confirmed-tab">
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="table table-hover align-middle mb-0" width="100%">
                             <thead>
                                 <tr>
                                     <th>Ngày giờ</th>
@@ -290,9 +323,15 @@ ob_start();
                             <tbody>
                                 <?php if (empty($confirmedAppointments)): ?>
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
-                                        <i class="fas fa-check-circle fa-2x mb-2"></i><br>
-                                        Không có lịch hẹn đã xác nhận
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <span
+                                            class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3"
+                                            style="width:64px;height:64px;">
+                                            <i class="fas fa-check-circle text-success fa-lg"></i>
+                                        </span>
+                                        <div class="fw-semibold">Không có lịch hẹn đã xác nhận</div>
+                                        <div class="text-muted small">Khi bạn xác nhận lịch, chúng sẽ hiển thị tại đây.
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php else: ?>
@@ -308,14 +347,19 @@ ob_start();
                                             </div>
                                             <div>
                                                 <div class="fw-bold">
-                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?></div>
+                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?>
+                                                </div>
                                                 <small
                                                     class="text-muted"><?php echo $appointment['gioi_tinh'] ?? 'N/A'; ?></small>
                                             </div>
                                         </div>
                                     </td>
                                     <td><?php echo htmlspecialchars($appointment['so_dien_thoai'] ?? 'N/A'); ?></td>
-                                    <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 220px;">
+                                            <?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <span
                                             class="badge bg-info"><?php echo htmlspecialchars($appointment['loai_lich'] ?? 'Trực tiếp'); ?></span>
@@ -323,43 +367,41 @@ ob_start();
                                     <td>
                                         <?php if (!empty($appointment['link_tu_van'])): ?>
                                         <a href="<?php echo htmlspecialchars($appointment['link_tu_van']); ?>"
-                                            target="_blank" class="btn btn-sm btn-success">
-                                            <i class="fas fa-video me-1"></i>Tham gia tư vấn
+                                            target="_blank" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-video me-1"></i>Tư vấn
                                         </a>
                                         <?php else: ?>
-                                        <span class="text-muted">Không có</span>
+                                        <span class="text-muted small">Không có</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary"
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-primary"
                                             onclick="completeAppointment(<?php echo $appointment['id']; ?>)">
                                             <i class="fas fa-check-double me-1"></i>Hoàn thành
                                         </button>
-                                        <button class="btn btn-sm btn-warning"
+                                            <button class="btn btn-outline-warning"
                                             onclick="cancelAppointment(<?php echo $appointment['id']; ?>)">
                                             <i class="fas fa-times me-1"></i>Hủy
                                         </button>
-                                        <button class="btn btn-sm btn-info"
+                                            <button class="btn btn-outline-secondary"
                                             onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">
                                             <i class="fas fa-eye me-1"></i>Chi tiết
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
                         </table>
-                    </div>
-                </div>
             </div>
         </div>
 
         <!-- Examining Appointments -->
-        <div class="tab-pane fade" id="examining" role="tabpanel">
-            <div class="card shadow">
-                <div class="card-body">
+                <div class="tab-pane fade" id="examining" role="tabpanel" aria-labelledby="examining-tab">
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="table table-hover align-middle mb-0" width="100%">
                             <thead>
                                 <tr>
                                     <th>Ngày giờ</th>
@@ -373,9 +415,13 @@ ob_start();
                             <tbody>
                                 <?php if (empty($examiningAppointments ?? [])): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        <i class="fas fa-user-md fa-2x mb-2"></i><br>
-                                        Không có lịch đang khám
+                                    <td colspan="6" class="text-center text-muted py-5">
+                                        <span
+                                            class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3"
+                                            style="width:64px;height:64px;">
+                                            <i class="fas fa-user-md text-info fa-lg"></i>
+                                        </span>
+                                        <div class="fw-semibold">Không có lịch đang khám</div>
                                     </td>
                                 </tr>
                                 <?php else: foreach (($examiningAppointments ?? []) as $appointment): ?>
@@ -390,34 +436,35 @@ ob_start();
                                             </div>
                                             <div>
                                                 <div class="fw-bold">
-                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?></div>
+                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?>
+                                                </div>
                                                 <small
                                                     class="text-muted"><?php echo $appointment['gioi_tinh'] ?? 'N/A'; ?></small>
                                             </div>
                                         </div>
                                     </td>
                                     <td><?php echo htmlspecialchars($appointment['so_dien_thoai'] ?? 'N/A'); ?></td>
-                                    <td><?php echo htmlspecialchars($appointment['ly_do'] ?? ''); ?></td>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 220px;">
+                                            <?php echo htmlspecialchars($appointment['ly_do'] ?? ''); ?>
+                                        </span>
+                                    </td>
                                     <td><span
                                             class="badge bg-info"><?php echo htmlspecialchars($appointment['loai_lich'] ?? 'Trực tiếp'); ?></span>
                                     </td>
-                                    <td><span class="badge bg-warning">Đang khám</span></td>
+                                    <td><span class="badge bg-warning text-dark">Đang khám</span></td>
                                 </tr>
                                 <?php endforeach;
                                 endif; ?>
                             </tbody>
                         </table>
-                    </div>
-                </div>
             </div>
         </div>
 
         <!-- Completed Appointments -->
-        <div class="tab-pane fade" id="completed" role="tabpanel">
-            <div class="card shadow">
-                <div class="card-body">
+                <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="table table-hover align-middle mb-0" width="100%">
                             <thead>
                                 <tr>
                                     <th>Ngày giờ</th>
@@ -432,9 +479,13 @@ ob_start();
                             <tbody>
                                 <?php if (empty($completedAppointments)): ?>
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
-                                        <i class="fas fa-check-double fa-2x mb-2"></i><br>
-                                        Không có lịch hẹn đã hoàn thành
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <span
+                                            class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3"
+                                            style="width:64px;height:64px;">
+                                            <i class="fas fa-check-double text-success fa-lg"></i>
+                                        </span>
+                                        <div class="fw-semibold">Không có lịch hẹn đã hoàn thành</div>
                                     </td>
                                 </tr>
                                 <?php else: ?>
@@ -450,51 +501,54 @@ ob_start();
                                             </div>
                                             <div>
                                                 <div class="fw-bold">
-                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?></div>
+                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?>
+                                                </div>
                                                 <small
                                                     class="text-muted"><?php echo $appointment['gioi_tinh'] ?? 'N/A'; ?></small>
                                             </div>
                                         </div>
                                     </td>
                                     <td><?php echo htmlspecialchars($appointment['so_dien_thoai'] ?? 'N/A'); ?></td>
-                                    <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 220px;">
+                                            <?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?>
+                                        </span>
+                                    </td>
                                     <td><span class="badge bg-success">Hoàn thành</span></td>
                                     <td>
                                         <?php if (!empty($appointment['link_tu_van'])): ?>
                                         <a href="<?php echo htmlspecialchars($appointment['link_tu_van']); ?>"
-                                            target="_blank" class="btn btn-sm btn-success">
+                                            target="_blank" class="btn btn-sm btn-outline-success">
                                             <i class="fas fa-video me-1"></i>Xem lại cuộc họp
                                         </a>
                                         <?php else: ?>
-                                        <span class="text-muted">Không có</span>
+                                        <span class="text-muted small">Không có</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-info"
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-secondary"
                                             onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">
                                             <i class="fas fa-eye me-1"></i>Chi tiết
                                         </button>
-                                        <button class="btn btn-sm btn-primary"
+                                            <button class="btn btn-primary"
                                             onclick="createMedicalRecord(<?php echo $appointment['id']; ?>)">
                                             <i class="fas fa-file-medical me-1"></i>Hồ sơ
                                         </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
                         </table>
-                    </div>
-                </div>
             </div>
         </div>
 
         <!-- Cancelled Appointments -->
-        <div class="tab-pane fade" id="cancelled" role="tabpanel">
-            <div class="card shadow">
-                <div class="card-body">
+                <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
                     <div class="table-responsive">
-                        <table class="table table-bordered" width="100%" cellspacing="0">
+                        <table class="table table-hover align-middle mb-0" width="100%">
                             <thead>
                                 <tr>
                                     <th>Ngày giờ</th>
@@ -509,9 +563,13 @@ ob_start();
                             <tbody>
                                 <?php if (empty($cancelledAppointments)): ?>
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
-                                        <i class="fas fa-times-circle fa-2x mb-2"></i><br>
-                                        Không có lịch hẹn đã hủy
+                                    <td colspan="7" class="text-center text-muted py-5">
+                                        <span
+                                            class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-3"
+                                            style="width:64px;height:64px;">
+                                            <i class="fas fa-times-circle text-danger fa-lg"></i>
+                                        </span>
+                                        <div class="fw-semibold">Không có lịch hẹn đã hủy</div>
                                     </td>
                                 </tr>
                                 <?php else: ?>
@@ -527,28 +585,36 @@ ob_start();
                                             </div>
                                             <div>
                                                 <div class="fw-bold">
-                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?></div>
+                                                    <?php echo htmlspecialchars($appointment['ten_benh_nhan']); ?>
+                                                </div>
                                                 <small
                                                     class="text-muted"><?php echo $appointment['gioi_tinh'] ?? 'N/A'; ?></small>
                                             </div>
                                         </div>
                                     </td>
                                     <td><?php echo htmlspecialchars($appointment['so_dien_thoai'] ?? 'N/A'); ?></td>
-                                    <td><?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?></td>
-                                    <td><?php echo htmlspecialchars($appointment['ghi_chu'] ?? 'Không có lý do'); ?>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 220px;">
+                                            <?php echo htmlspecialchars($appointment['ly_do'] ?? 'Không có'); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-truncate d-inline-block" style="max-width: 220px;">
+                                            <?php echo htmlspecialchars($appointment['ghi_chu'] ?? 'Không có lý do'); ?>
+                                        </span>
                                     </td>
                                     <td>
                                         <?php if (!empty($appointment['link_tu_van'])): ?>
                                         <a href="<?php echo htmlspecialchars($appointment['link_tu_van']); ?>"
-                                            target="_blank" class="btn btn-sm btn-success">
+                                            target="_blank" class="btn btn-sm btn-outline-success">
                                             <i class="fas fa-video me-1"></i>Xem lại cuộc họp
                                         </a>
                                         <?php else: ?>
-                                        <span class="text-muted">Không có</span>
+                                        <span class="text-muted small">Không có</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-info"
+                                        <button class="btn btn-sm btn-outline-secondary"
                                             onclick="viewAppointmentDetails(<?php echo $appointment['id']; ?>)">
                                             <i class="fas fa-eye me-1"></i>Chi tiết
                                         </button>
@@ -561,6 +627,15 @@ ob_start();
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="card-footer bg-white border-0 pt-0">
+            <?php
+            renderPagination(
+                (int) $currentPage,
+                (int) $totalPages,
+                './doctor_appointment_management'
+            );
+            ?>
         </div>
     </div>
 </div>
@@ -595,10 +670,6 @@ ob_start();
 </style>
 
 <script>
-function refreshAppointments() {
-    location.reload();
-}
-
 function confirmAppointment(appointmentId) {
     if (confirm("Bạn có chắc chắn muốn xác nhận lịch hẹn này?")) {
         updateAppointmentStatus(appointmentId, 'Đã xác nhận');
@@ -683,6 +754,66 @@ function refreshAppointments() {
     console.log("Refreshing appointments...");
     window.location.reload();
 }
+
+// Lưu/khôi phục tab đang mở (giống giao diện patient appointments)
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        var TAB_KEY = 'doctorAppointmentsActiveTab';
+        var tabsRoot = document.getElementById('appointmentTabs');
+        if (!tabsRoot) return;
+
+        var tabButtons = tabsRoot.querySelectorAll('button[data-bs-target]');
+
+        // Lưu tab khi người dùng chuyển
+        tabButtons.forEach(function(btn) {
+            btn.addEventListener('shown.bs.tab', function(e) {
+                var target = e.target.getAttribute('data-bs-target') || '';
+                if (!target) return;
+                var paneId = target.charAt(0) === '#' ? target.substring(1) : target;
+                try {
+                    localStorage.setItem(TAB_KEY, paneId);
+                } catch (err) {}
+            });
+        });
+
+        // Khôi phục tab đã lưu khi F5
+        var savedPane = null;
+        try {
+            savedPane = localStorage.getItem(TAB_KEY);
+        } catch (err) {
+            savedPane = null;
+        }
+
+        if (savedPane) {
+            var btnSelector = 'button[data-bs-target="#' + savedPane + '"]';
+            var savedBtn = tabsRoot.querySelector(btnSelector);
+            if (savedBtn && !savedBtn.classList.contains('active')) {
+                try {
+                    if (window.bootstrap && bootstrap.Tab) {
+                        var tab = bootstrap.Tab.getOrCreateInstance(savedBtn);
+                        tab.show();
+                    } else {
+                        tabButtons.forEach(function(b) {
+                            b.classList.remove('active');
+                        });
+                        savedBtn.classList.add('active');
+                        ['pending', 'confirmed', 'examining', 'completed', 'cancelled'].forEach(function(id) {
+                            var pane = document.getElementById(id);
+                            if (!pane) return;
+                            pane.classList.remove('show', 'active');
+                        });
+                        var activePane = document.getElementById(savedPane);
+                        if (activePane) {
+                            activePane.classList.add('show', 'active');
+                        }
+                    }
+                } catch (e) {}
+            }
+        }
+    } catch (e) {
+        // Nếu localStorage không khả dụng thì bỏ qua
+    }
+});
 
 // Listen for custom refresh event from socket client
 document.addEventListener('appointmentRefresh', function() {

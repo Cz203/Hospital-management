@@ -8,7 +8,7 @@ class VonageConfig
     private $from_number;
 
     public function __construct()
-    {
+    {                                                                                                                                                                                                   
         // Load thông tin từ file .env
         $this->loadEnvFile();
 

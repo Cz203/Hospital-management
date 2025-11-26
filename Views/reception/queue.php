@@ -18,9 +18,10 @@ ob_start();
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label">Bệnh nhân (ID)</label>
-                        <input type="number" id="q-patient" class="form-control" placeholder="Nhập ID bệnh nhân">
-                        <div class="form-text">Bạn có thể tra cứu bệnh nhân ở trang Dashboard trước.</div>
+                        <label class="form-label">Số điện thoại bệnh nhân</label>
+                        <input type="text" id="q-patient" class="form-control"
+                            placeholder="Nhập số điện thoại bệnh nhân (0xxxxxxxxx hoặc 84xxxxxxxxx)">
+                        <div class="form-text">Có thể tra cứu hoặc kiểm tra bệnh nhân ở trang Dashboard trước.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Chuyên khoa</label>
@@ -74,6 +75,7 @@ ob_start();
                 </div>
                 <div class="card-body">
                     <div id="queue-table" class="table-responsive">Chưa có dữ liệu</div>
+                    <div id="queue-pagination" class="mt-2"></div>
                 </div>
             </div>
         </div>
@@ -106,19 +108,37 @@ document.getElementById('q-specialty').addEventListener('change', function() {
 });
 
 function issueTicket() {
-    var patientId = parseInt(document.getElementById('q-patient').value || '0', 10);
+    var phone = (document.getElementById('q-patient').value || '').trim();
     var specialtyId = parseInt(document.getElementById('q-specialty').value || '0', 10);
     var priority = parseInt(document.getElementById('q-priority').value || '0', 10);
     var counter = (document.getElementById('q-counter').value || '').trim();
-    if (!patientId || !specialtyId) {
-        alert('Vui lòng nhập ID bệnh nhân và chọn chuyên khoa');
+    if (!phone || !specialtyId) {
+        alert('Vui lòng nhập số điện thoại bệnh nhân và chọn chuyên khoa');
         return;
     }
+    // Bước 1: tìm bệnh nhân theo SĐT
+    var findParams = new URLSearchParams();
+    findParams.set('phone', phone);
+    var xhrFind = new XMLHttpRequest();
+    xhrFind.open('POST', './reception_find_patient', true);
+    xhrFind.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhrFind.onreadystatechange = function() {
+        if (xhrFind.readyState === 4) {
+            try {
+                var respFind = JSON.parse(xhrFind.responseText);
+                if (!respFind || !respFind.success || !respFind.data || !respFind.data.id) {
+                    alert((respFind && respFind.message) || 'Không tìm thấy bệnh nhân với số điện thoại này');
+        return;
+    }
+                var patientId = respFind.data.id;
+
+                // Bước 2: phát phiếu dựa trên patientId vừa tìm được
     var params = new URLSearchParams();
     params.set('benh_nhan_id', patientId);
     params.set('chuyen_khoa_id', specialtyId);
     params.set('uu_tien', priority);
     if (counter) params.set('quay', counter);
+
     var xhr = new XMLHttpRequest();
     xhr.open('POST', './reception_issue_ticket', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -127,7 +147,8 @@ function issueTicket() {
             try {
                 var resp = JSON.parse(xhr.responseText);
                 if (resp && resp.success) {
-                    alert('Đã phát số: #' + resp.data.ticket.so_thu_tu + ' cho BS ' + resp.data.ticket.bac_si_id);
+                                alert('Đã phát số: #' + resp.data.ticket.so_thu_tu + ' cho BS ' + resp.data
+                                    .ticket.bac_si_id);
                     // auto select doctor and refresh queue
                     var dsel = document.getElementById('f-doctor');
                     if (resp.data.ticket && resp.data.ticket.bac_si_id) {
@@ -143,18 +164,27 @@ function issueTicket() {
         }
     };
     xhr.send(params.toString());
+            } catch (e) {
+                alert('Lỗi tìm bệnh nhân theo số điện thoại');
+            }
+        }
+    };
+    xhrFind.send(findParams.toString());
 }
 
-function loadQueue() {
+function loadQueue(page) {
     var d = document.getElementById('f-doctor').value;
     var date = document.getElementById('f-date').value;
     var st = document.getElementById('f-status').value;
+    var pageNum = page || 1;
     if (!d) {
         document.getElementById('queue-table').innerHTML =
             '<span class="text-muted">Chọn bác sĩ để xem hàng đợi</span>';
         return;
     }
-    var url = './reception_queue_list?bac_si_id=' + encodeURIComponent(d) + '&ngay=' + encodeURIComponent(date);
+    var url = './reception_queue_list?bac_si_id=' + encodeURIComponent(d) +
+        '&ngay=' + encodeURIComponent(date) +
+        '&page=' + encodeURIComponent(pageNum);
     if (st) url += '&trang_thai=' + encodeURIComponent(st);
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
@@ -163,7 +193,7 @@ function loadQueue() {
             try {
                 var resp = JSON.parse(xhr.responseText);
                 if (resp && resp.success) {
-                    renderQueue(resp.data || []);
+                    renderQueue(resp.data || [], resp.pagination || null);
                 } else {
                     document.getElementById('queue-table').innerHTML = '<span class="text-warning">' + (resp
                         .message || 'Không có dữ liệu') + '</span>';
@@ -177,9 +207,10 @@ function loadQueue() {
     xhr.send();
 }
 
-function renderQueue(rows) {
+function renderQueue(rows, pagination) {
     if (!rows.length) {
         document.getElementById('queue-table').innerHTML = '<span class="text-muted">Không có phiếu</span>';
+        document.getElementById('queue-pagination').innerHTML = '';
         return;
     }
     // Lưu dữ liệu vào bộ nhớ tạm để phục vụ in phiếu
@@ -210,6 +241,62 @@ function renderQueue(rows) {
     });
     html += '</tbody></table>';
     document.getElementById('queue-table').innerHTML = html;
+
+    // Phân trang
+    var pagEl = document.getElementById('queue-pagination');
+    // Hiển thị phân trang ngay cả khi chỉ có 1 trang để người dùng dễ nhận biết
+    if (!pagination || !pagination.total_pages || pagination.total_pages < 1) {
+        pagEl.innerHTML = '';
+        return;
+    }
+    var current = pagination.current_page || 1;
+    var totalPages = pagination.total_pages;
+
+    var phtml = '<nav aria-label="Queue pagination"><ul class="pagination pagination-sm justify-content-center mb-0">';
+
+    // Prev
+    var prevDisabled = current <= 1 ? ' disabled' : '';
+    phtml += '<li class="page-item' + prevDisabled + '">';
+    phtml += '<button type="button" class="page-link" onclick="if(' + current +
+        ' > 1) loadQueue(' + (current - 1) + ');">&laquo;</button></li>';
+
+    // Window of pages
+    var windowSize = 2;
+    var start = Math.max(1, current - windowSize);
+    var end = Math.min(totalPages, current + windowSize);
+
+    if (start > 1) {
+        phtml += '<li class="page-item' + (current === 1 ? ' active' : '') +
+            '"><button type="button" class="page-link" onclick="loadQueue(1)">1</button></li>';
+        if (start > 2) {
+            phtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+        }
+    }
+
+    for (var i = start; i <= end; i++) {
+        if (i === 1 || i === totalPages) continue;
+        var active = i === current ? ' active' : '';
+        phtml += '<li class="page-item' + active +
+            '"><button type="button" class="page-link" onclick="loadQueue(' + i + ')">' + i + '</button></li>';
+    }
+
+    if (end < totalPages) {
+        if (end < totalPages - 1) {
+            phtml += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+        }
+        phtml += '<li class="page-item' + (current === totalPages ? ' active' : '') +
+            '"><button type="button" class="page-link" onclick="loadQueue(' + totalPages + ')">' + totalPages +
+            '</button></li>';
+    }
+
+    // Next
+    var nextDisabled = current >= totalPages ? ' disabled' : '';
+    phtml += '<li class="page-item' + nextDisabled + '">';
+    phtml += '<button type="button" class="page-link" onclick="if(' + current +
+        ' < ' + totalPages + ') loadQueue(' + (current + 1) + ');">&raquo;</button></li>';
+
+    phtml += '</ul></nav>';
+    pagEl.innerHTML = phtml;
 }
 
 function updateStatus(id, st) {

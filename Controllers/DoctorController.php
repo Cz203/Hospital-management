@@ -201,13 +201,26 @@ class DoctorController
         $appointmentModel = new Appointment();
         $allAppointments = $appointmentModel->getByDoctorId($doctorId) ?: [];
 
+        // Phân trang cho danh sách lịch hẹn của bác sĩ
+        $page    = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $page    = max(1, $page);
+        $perPage = 8;
+
+        $totalAppointments = count($allAppointments);
+        $totalPages        = max(1, (int) ceil($totalAppointments / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+        $offset            = ($page - 1) * $perPage;
+        $pagedAppointments = array_slice($allAppointments, $offset, $perPage);
+
         // Phân loại appointments theo trạng thái
         $pendingAppointments = [];
         $confirmedAppointments = [];
         $completedAppointments = [];
         $cancelledAppointments = [];
 
-        foreach ($allAppointments as $appointment) {
+        foreach ($pagedAppointments as $appointment) {
             switch ($appointment['trang_thai']) {
                 case 'Chờ xác nhận':
                     $pendingAppointments[] = $appointment;
@@ -233,10 +246,14 @@ class DoctorController
         // Lấy thống kê
         $stats = $appointmentModel->getStats($doctorId);
 
-        // Nhóm thêm danh sách đang khám
-        $examiningAppointments = array_values(array_filter($allAppointments, function ($a) {
+        // Nhóm thêm danh sách đang khám (trong trang hiện tại)
+        $examiningAppointments = array_values(array_filter($pagedAppointments, function ($a) {
             return isset($a['trang_thai']) && $a['trang_thai'] === 'Đang khám';
         }));
+
+        // Thông tin phân trang cho view
+        $currentPage = $page;
+        // $totalPages đã tính ở trên
 
         // Start output buffering để lấy content
         ob_start();
@@ -950,7 +967,7 @@ class DoctorController
     private function isMonday()
     {
         $dt = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
-        return (int)$dt->format('N') === 1; // 4 = monday (VN timezone)
+        return (int)$dt->format('N') === 1; // 1 = monday (VN timezone)
     }
 
     /**

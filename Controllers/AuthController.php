@@ -735,7 +735,7 @@ class AuthController
         }
 
         // Kiểm tra session timeout (30 phút)
-        if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 1800)) {
+        if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 3600)) {
             session_destroy();
             header("Location: ./login");
             exit();

@@ -213,16 +213,18 @@ class ReceptionController
 
         $name = trim($_POST['ten'] ?? '');
         $email = trim($_POST['email'] ?? '');
-        $password = $_POST['mat_khau'] ?? '';
         $phone = trim($_POST['so_dien_thoai'] ?? '');
         $dob = trim($_POST['ngay_sinh'] ?? '');
         $gender = trim($_POST['gioi_tinh'] ?? '');
         $address = trim($_POST['dia_chi'] ?? '');
         $cccd = trim($_POST['cccd'] ?? '');
 
+        // Mật khẩu mặc định cho bệnh nhân do lễ tân tạo
+        $defaultPassword = '1111';
+
         // Basic validation
-        if ($name === '' || $email === '' || $password === '' || $phone === '') {
-            $_SESSION['error'] = 'Vui lòng nhập đủ Tên, Email, Mật khẩu, Số điện thoại.';
+        if ($name === '' || $email === '' || $phone === '') {
+            $_SESSION['error'] = 'Vui lòng nhập đủ Tên, Email, Số điện thoại.';
             header('Location: ./reception_patient_create');
             exit();
         }
@@ -260,7 +262,7 @@ class ReceptionController
             $ok = $this->patientModel->create([
                 'ten' => $name,
                 'email' => $email,
-                'mat_khau' => $password,
+                'mat_khau' => $defaultPassword,
                 'so_dien_thoai' => $phoneNorm,
                 'phone_verified' => 1,
                 'ngay_sinh' => $dob,
@@ -438,31 +440,70 @@ class ReceptionController
         $date = isset($_GET['ngay']) ? $_GET['ngay'] : date('Y-m-d');
         $status = isset($_GET['trang_thai']) ? $_GET['trang_thai'] : null;
 
+        // Phân trang
+        $page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $page  = max(1, $page);
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        if ($limit <= 0) {
+            $limit = 10;
+        }
+        $offset = ($page - 1) * $limit;
+
         try {
             $pdo = $this->doctorModel->getConnection();
-            $sql = "SELECT t.*, bn.ten AS ten_benh_nhan, bs.ten AS ten_bac_si, lh.gio_hen AS thoi_gian_du_kien
-                    FROM phieu_boc_so t
+
+            $baseSql = "FROM phieu_boc_so t
                     JOIN benh_nhan bn ON bn.id = t.benh_nhan_id
                     JOIN bac_si bs ON bs.id = t.bac_si_id
                     LEFT JOIN lich_hen lh ON lh.id = t.lich_hen_id
                     WHERE t.ngay = :d";
             $params = [':d' => $date];
+
             if ($doctorId > 0) {
-                $sql .= " AND t.bac_si_id = :bs";
+                $baseSql .= " AND t.bac_si_id = :bs";
                 $params[':bs'] = $doctorId;
             }
             if (!empty($status)) {
-                $sql .= " AND t.trang_thai = :st";
+                $baseSql .= " AND t.trang_thai = :st";
                 $params[':st'] = $status;
             } else {
                 // Mặc định ẩn các phiếu đã bắt đầu khám khỏi giao diện lễ tân
-                $sql .= " AND t.trang_thai <> 'dang_kham'";
+                $baseSql .= " AND t.trang_thai <> 'dang_kham'";
             }
-            $sql .= " ORDER BY t.uu_tien DESC, t.so_thu_tu ASC";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
+
+            // Đếm tổng số phiếu
+            $countSql = "SELECT COUNT(*) " . $baseSql;
+            $stmtCount = $pdo->prepare($countSql);
+            $stmtCount->execute($params);
+            $total = (int)$stmtCount->fetchColumn();
+
+            // Lấy danh sách phiếu cho trang hiện tại
+            $dataSql = "SELECT t.*, bn.ten AS ten_benh_nhan, bs.ten AS ten_bac_si, lh.gio_hen AS thoi_gian_du_kien "
+                . $baseSql
+                . " ORDER BY t.uu_tien DESC, t.so_thu_tu ASC
+                        LIMIT :limit OFFSET :offset";
+
+            $stmt = $pdo->prepare($dataSql);
+            foreach ($params as $k => $v) {
+                $stmt->bindValue($k, $v);
+            }
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-            echo json_encode(['success' => true, 'data' => $rows]);
+
+            $totalPages = max(1, (int)ceil($total / $limit));
+
+            echo json_encode([
+                'success' => true,
+                'data' => $rows,
+                'pagination' => [
+                    'current_page' => $page,
+                    'per_page' => $limit,
+                    'total' => $total,
+                    'total_pages' => $totalPages,
+                ],
+            ]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
