@@ -37,6 +37,14 @@
             </li>
 
             <li class="nav-item">
+                <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('reception_schedule_management'); ?>"
+                    href="./reception_schedule_management">
+                    <i class="fas fa-calendar-alt me-3"></i>
+                    <span>Lịch làm việc lễ tân</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a class="nav-link text-white py-3 px-3 d-flex align-items-center <?php echo isActiveUrl('reception_patient_create'); ?>"
                     href="./reception_patient_create">
                     <i class="fas fa-user-plus me-3"></i>
@@ -80,44 +88,44 @@
 </div>
 
 <style>
-.sidebar {
-    backdrop-filter: blur(6px);
-    box-shadow: 4px 0 24px rgba(0, 0, 0, .08);
-    background: linear-gradient(180deg, #0d6efd 0%, #1f86ff 45%, #f7fbff 100%) !important;
-    color: #fff;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.sidebar .nav-link {
-    color: #fff !important;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-    border-radius: 10px;
-    margin: 4px 8px;
-    padding: .75rem .9rem;
-}
-
-.sidebar .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-    border-left-color: #0dcaf0;
-    transform: translateX(2px);
-}
-
-.sidebar .nav-link.active {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-left-color: #0dcaf0;
-    font-weight: 600;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-}
-
-@media (max-width: 768px) {
     .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        backdrop-filter: blur(6px);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, .08);
+        background: linear-gradient(180deg, #0d6efd 0%, #1f86ff 45%, #f7fbff 100%) !important;
+        color: #fff;
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .sidebar.show {
-        transform: translateX(0);
+    .sidebar .nav-link {
+        color: #fff !important;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+        border-radius: 10px;
+        margin: 4px 8px;
+        padding: .75rem .9rem;
     }
-}
+
+    .sidebar .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.12);
+        border-left-color: #0dcaf0;
+        transform: translateX(2px);
+    }
+
+    .sidebar .nav-link.active {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-left-color: #0dcaf0;
+        font-weight: 600;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.show {
+            transform: translateX(0);
+        }
+    }
 </style>

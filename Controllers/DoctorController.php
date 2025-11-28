@@ -41,6 +41,48 @@ class DoctorController
     }
 
     /**
+     * Chọn bác sĩ dịch vụ (X-Quang / Xét nghiệm / Siêu âm) theo chuyên khoa và lịch làm việc
+     * - Ưu tiên các bác sĩ đang có lịch làm việc trong ngày hiện tại
+     * - Trong số đó, chọn người có ít phiếu dịch vụ nhất trong ngày (rảnh nhất)
+     *
+     * @param int $specialtyId 16 = Chẩn đoán hình ảnh (X-Quang), 17 = Xét nghiệm, 18 = Siêu âm
+     * @param string $serviceType xray|lab|ultrasound
+     * @return int|null id bác sĩ hoặc null nếu không tìm được
+     */
+    private function chooseServiceDoctor(int $specialtyId, string $serviceType): ?int
+    {
+        try {
+            // Lấy ngày và giờ hiện tại theo múi giờ Việt Nam
+            $now = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+            $today = $now->format('Y-m-d');
+            $timeNow = $now->format('H:i:s');
+
+            // Lấy danh sách bác sĩ theo chuyên khoa đang có ca làm việc bao gồm thời điểm hiện tại
+            $candidates = $this->doctorModel->getOnDutyDoctorsBySpecialtyAndDate($specialtyId, $today, $timeNow);
+            if (empty($candidates)) {
+                return null;
+            }
+
+            $bestDoctorId = null;
+            $bestLoad = PHP_INT_MAX;
+
+            foreach ($candidates as $doc) {
+                $docId = (int)$doc['id'];
+                $load = $this->doctorModel->countAssignedServiceRequests($docId, $serviceType, $today);
+                if ($load < $bestLoad) {
+                    $bestLoad = $load;
+                    $bestDoctorId = $docId;
+                }
+            }
+
+            return $bestDoctorId;
+        } catch (Exception $e) {
+            error_log('chooseServiceDoctor error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Hiển thị trang quản lý lịch làm việc
      */
     public function manageSchedule()
@@ -1666,13 +1708,24 @@ class DoctorController
                 $existingXray = null;
             }
 
+            // Tự động phân công bác sĩ X-Quang theo lịch làm việc (chuyên khoa id = 16)
+            $assignedXrayDoctorId = $this->chooseServiceDoctor(16, 'xray');
+            if ($assignedXrayDoctorId === null) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Hiện tại không có bác sĩ X-Quang nào có lịch làm việc hôm nay. Vui lòng thêm lịch làm việc cho bác sĩ X-Quang trước khi lưu phiếu.'
+                ]);
+                exit();
+            }
+
             $data = [
                 'id_phieu_kham_benh' => $idPhieuKhamBenh,
                 'so_dien_thoai' => $soDienThoai,
                 'quan' => $quan,
                 'yeu_cau_chup' => $yeuCauChup,
                 'bac_si_kham' => $bacSiKham,
-                'chan_doan_vao_vien' => $chanDoanVaoVien
+                'chan_doan_vao_vien' => $chanDoanVaoVien,
+                'bac_si_xquang_id' => $assignedXrayDoctorId
             ];
 
             if ($existingXray) {
@@ -1784,8 +1837,14 @@ class DoctorController
         $date = isset($_GET['date']) ? $_GET['date'] : null; // format YYYY-MM-DD
         $keyword = isset($_GET['name']) ? trim($_GET['name']) : (isset($_GET['keyword']) ? trim($_GET['keyword']) : null);
 
+        // Nếu là xray_doctor thì chỉ xem các phiếu đã được phân công cho chính mình
+        $assignedDoctorId = null;
+        if ($_SESSION['user_role'] === 'xray_doctor') {
+            $assignedDoctorId = (int)$_SESSION['user_id'];
+        }
+
         try {
-            $list = $this->phieuChupXquangModel->getRequested($limit, $offset, $date, $keyword);
+            $list = $this->phieuChupXquangModel->getRequested($limit, $offset, $date, $keyword, $assignedDoctorId);
             echo json_encode(['success' => true, 'data' => $list]);
         } catch (Exception $e) {
             error_log('getRequestedXrayList error: ' . $e->getMessage());
@@ -2203,21 +2262,34 @@ class DoctorController
                 $date = $dateRow ? $dateRow['d'] : date('Y-m-d');
             }
 
+            // Nếu là xray_doctor thì chỉ tính phiếu được phân công cho chính mình
+            $assignedDoctorId = null;
+            if ($_SESSION['user_role'] === 'xray_doctor') {
+                $assignedDoctorId = (int)$_SESSION['user_id'];
+            }
+
+            $whereDoctor = '';
+            $paramsDate = [$date];
+            if ($assignedDoctorId !== null) {
+                $whereDoctor = " AND bac_si_xquang_id = ?";
+                $paramsDate[] = $assignedDoctorId;
+            }
+
             // Tổng phiếu tạo theo ngày
-            $stmt1 = $db->prepare("SELECT COUNT(*) AS c FROM phieu_chup_xquang WHERE DATE(ngay_tao) = ?");
-            $stmt1->execute([$date]);
+            $stmt1 = $db->prepare("SELECT COUNT(*) AS c FROM phieu_chup_xquang WHERE DATE(ngay_tao) = ?" . $whereDoctor);
+            $stmt1->execute($paramsDate);
             $row1 = $stmt1->fetch(PDO::FETCH_ASSOC);
             $totalToday = (int)($row1['c'] ?? 0);
 
             // Hoàn thành theo ngày (lọc theo ngày tạo phiếu)
-            $stmt2 = $db->prepare("SELECT COUNT(*) AS c FROM phieu_chup_xquang WHERE trang_thai = 'Hoàn thành' AND DATE(ngay_tao) = ?");
-            $stmt2->execute([$date]);
+            $stmt2 = $db->prepare("SELECT COUNT(*) AS c FROM phieu_chup_xquang WHERE trang_thai = 'Hoàn thành' AND DATE(ngay_tao) = ?" . $whereDoctor);
+            $stmt2->execute($paramsDate);
             $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
             $completedToday = (int)($row2['c'] ?? 0);
 
             // Đang chờ chụp: trạng thái Đã yêu cầu theo ngày tạo
-            $stmt3 = $db->prepare("SELECT COUNT(*) AS c FROM phieu_chup_xquang WHERE trang_thai = 'Đã yêu cầu' AND DATE(ngay_tao) = ?");
-            $stmt3->execute([$date]);
+            $stmt3 = $db->prepare("SELECT COUNT(*) AS c FROM phieu_chup_xquang WHERE trang_thai = 'Đã yêu cầu' AND DATE(ngay_tao) = ?" . $whereDoctor);
+            $stmt3->execute($paramsDate);
             $row3 = $stmt3->fetch(PDO::FETCH_ASSOC);
             $waitingCount = (int)($row3['c'] ?? 0);
 
@@ -2649,6 +2721,16 @@ class DoctorController
             $nam = $_POST['nam'] ?? '';
             $thoiGianYeuCau = date('Y-m-d H:i:s');
 
+            // Tự động phân công bác sĩ Siêu âm theo lịch làm việc (chuyên khoa id = 18)
+            $assignedUltrasoundDoctorId = $this->chooseServiceDoctor(18, 'ultrasound');
+            if ($assignedUltrasoundDoctorId === null) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Hiện tại không có bác sĩ Siêu âm nào có lịch làm việc hôm nay. Vui lòng thêm lịch làm việc cho bác sĩ Siêu âm trước khi lưu phiếu.'
+                ]);
+                return;
+            }
+
             // Kiểm tra yêu cầu siêu âm có hợp lệ không
             $validation = $this->phieuYeuCauSieuAmModel->validateUltrasoundRequests($yeuCau);
             if (!$validation['valid']) {
@@ -2670,7 +2752,8 @@ class DoctorController
                 'chan_doan' => $chanDoan,
                 'yeu_cau' => $yeuCau,
                 'bac_si_kham' => $bacSiKham,
-                'thoi_gian_yeu_cau' => $thoiGianYeuCau
+                'thoi_gian_yeu_cau' => $thoiGianYeuCau,
+                'bac_si_sieu_am_id' => $assignedUltrasoundDoctorId
             ];
 
             if ($existingForm) {
@@ -2827,31 +2910,44 @@ class DoctorController
             $database = new Database();
             $pdo = $database->getConnection();
 
+            // Nếu là sieuam_doctor thì chỉ tính phiếu được phân công cho chính mình
+            $assignedDoctorId = null;
+            if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'sieuam_doctor') {
+                $assignedDoctorId = (int)$_SESSION['user_id'];
+            }
+
+            $whereDoctor = '';
+            $paramsDate = [$date];
+            if ($assignedDoctorId !== null) {
+                $whereDoctor = " AND bac_si_sieu_am_id = ?";
+                $paramsDate[] = $assignedDoctorId;
+            }
+
             // Tổng yêu cầu hôm nay
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as total_today 
                 FROM phieu_yeu_cau_sieu_am 
-                WHERE DATE(ngay_tao) = ?
+                WHERE DATE(ngay_tao) = ?" . $whereDoctor . "
             ");
-            $stmt->execute([$date]);
+            $stmt->execute($paramsDate);
             $totalToday = $stmt->fetch(PDO::FETCH_ASSOC)['total_today'];
 
             // Đã siêu âm xong hôm nay
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as completed_today 
                 FROM phieu_yeu_cau_sieu_am 
-                WHERE DATE(ngay_tao) = ? AND trang_thai = 'Hoàn thành'
+                WHERE DATE(ngay_tao) = ? AND trang_thai = 'Hoàn thành'" . $whereDoctor . "
             ");
-            $stmt->execute([$date]);
+            $stmt->execute($paramsDate);
             $completedToday = $stmt->fetch(PDO::FETCH_ASSOC)['completed_today'];
 
             // Đang chờ siêu âm
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as pending 
                 FROM phieu_yeu_cau_sieu_am 
-                WHERE trang_thai = 'Đã yêu cầu'
+                WHERE trang_thai = 'Đã yêu cầu' AND DATE(ngay_tao) = ?" . $whereDoctor . "
             ");
-            $stmt->execute();
+            $stmt->execute($paramsDate);
             $pending = $stmt->fetch(PDO::FETCH_ASSOC)['pending'];
 
             echo json_encode([
@@ -2881,6 +2977,12 @@ class DoctorController
             $database = new Database();
             $pdo = $database->getConnection();
 
+            // Nếu là sieuam_doctor thì chỉ xem các phiếu đã được phân công cho chính mình
+            $assignedDoctorId = null;
+            if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'sieuam_doctor') {
+                $assignedDoctorId = (int)$_SESSION['user_id'];
+            }
+
             $sql = "
                 SELECT pysa.*, pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, 
                        pk.chan_doan_vao_vien as chan_doan, bn.ma_benh_nhan
@@ -2894,6 +2996,11 @@ class DoctorController
             if (!empty($keyword)) {
                 $sql .= " AND bn.ma_benh_nhan LIKE ?";
                 $params[] = "%{$keyword}%";
+            }
+
+            if ($assignedDoctorId !== null) {
+                $sql .= " AND pysa.bac_si_sieu_am_id = ?";
+                $params[] = $assignedDoctorId;
             }
 
             $sql .= " ORDER BY pysa.ngay_tao DESC";
@@ -3392,6 +3499,16 @@ class DoctorController
             // Debug: Log all POST data
             error_log('saveLabForm POST data: ' . print_r($_POST, true));
 
+            // Tự động phân công bác sĩ Xét nghiệm theo lịch làm việc (chuyên khoa id = 17)
+            $assignedLabDoctorId = $this->chooseServiceDoctor(17, 'lab');
+            if ($assignedLabDoctorId === null) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Hiện tại không có bác sĩ Xét nghiệm nào có lịch làm việc hôm nay. Vui lòng thêm lịch làm việc cho bác sĩ Xét nghiệm trước khi lưu phiếu.'
+                ]);
+                return;
+            }
+
             // Prepare data for Model
             $data = [
                 'exam_id' => $_POST['exam_id'] ?? '',
@@ -3407,7 +3524,8 @@ class DoctorController
                 'bac_si_kham' => $_POST['bac_si_kham'] ?? '',
                 'ngay' => $_POST['ngay'] ?? '',
                 'thang' => $_POST['thang'] ?? '',
-                'nam' => $_POST['nam'] ?? ''
+                'nam' => $_POST['nam'] ?? '',
+                'bac_si_xet_nghiem_id' => $assignedLabDoctorId
             ];
 
             // Use Model to handle business logic
@@ -3563,6 +3681,12 @@ class DoctorController
             $database = new Database();
             $pdo = $database->getConnection();
 
+            // Nếu là xetnghiem_doctor thì chỉ xem các phiếu đã được phân công cho chính mình
+            $assignedDoctorId = null;
+            if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'xetnghiem_doctor') {
+                $assignedDoctorId = (int)$_SESSION['user_id'];
+            }
+
             $sql = "
                 SELECT pxn.*, pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, 
                        pk.chan_doan_vao_vien as chan_doan, bn.ma_benh_nhan
@@ -3576,6 +3700,11 @@ class DoctorController
             if (!empty($keyword)) {
                 $sql .= " AND bn.ma_benh_nhan LIKE ?";
                 $params[] = "%{$keyword}%";
+            }
+
+            if ($assignedDoctorId !== null) {
+                $sql .= " AND pxn.bac_si_xet_nghiem_id = ?";
+                $params[] = $assignedDoctorId;
             }
 
             $sql .= " ORDER BY pxn.ngay_tao DESC";
@@ -4119,31 +4248,44 @@ class DoctorController
             $database = new Database();
             $pdo = $database->getConnection();
 
+            // Nếu là xetnghiem_doctor thì chỉ tính phiếu được phân công cho chính mình
+            $assignedDoctorId = null;
+            if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'xetnghiem_doctor') {
+                $assignedDoctorId = (int)$_SESSION['user_id'];
+            }
+
+            $whereDoctor = '';
+            $paramsDate = [$date];
+            if ($assignedDoctorId !== null) {
+                $whereDoctor = " AND bac_si_xet_nghiem_id = ?";
+                $paramsDate[] = $assignedDoctorId;
+            }
+
             // Tổng số phiếu yêu cầu xét nghiệm hôm nay
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as total_today
                 FROM phieu_yeu_cau_xet_nghiem 
-                WHERE DATE(ngay_tao) = ?
+                WHERE DATE(ngay_tao) = ?" . $whereDoctor . "
             ");
-            $stmt->execute([$date]);
+            $stmt->execute($paramsDate);
             $today = $stmt->fetch(PDO::FETCH_ASSOC)['total_today'];
 
             // Số phiếu đã hoàn thành hôm nay
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as completed
                 FROM phieu_yeu_cau_xet_nghiem 
-                WHERE DATE(ngay_tao) = ? AND trang_thai = 'Hoàn thành'
+                WHERE DATE(ngay_tao) = ? AND trang_thai = 'Hoàn thành'" . $whereDoctor . "
             ");
-            $stmt->execute([$date]);
+            $stmt->execute($paramsDate);
             $completed = $stmt->fetch(PDO::FETCH_ASSOC)['completed'];
 
             // Số phiếu đang chờ xử lý hôm nay
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as pending
                 FROM phieu_yeu_cau_xet_nghiem 
-                WHERE DATE(ngay_tao) = ? AND trang_thai = 'Đã yêu cầu'
+                WHERE DATE(ngay_tao) = ? AND trang_thai = 'Đã yêu cầu'" . $whereDoctor . "
             ");
-            $stmt->execute([$date]);
+            $stmt->execute($paramsDate);
             $pending = $stmt->fetch(PDO::FETCH_ASSOC)['pending'];
 
             echo json_encode([

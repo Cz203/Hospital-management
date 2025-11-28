@@ -180,6 +180,10 @@ switch ($action) {
         $adminController->manageDoctorSchedules(); // Quản lý lịch làm việc bác sĩ
         break;
 
+    case 'admin_reception_schedules':
+        $adminController->receptionSchedules(); // Quản lý lịch làm việc lễ tân
+        break;
+
     case 'doctors_list':
         $adminController->doctorsList(); // Danh sách bác sĩ (Admin)
         break;
@@ -221,6 +225,20 @@ switch ($action) {
         $adminController->adminGetScheduleInfo();
         break;
 
+    // ADMIN RECEPTION SCHEDULE MANAGEMENT
+    case 'admin_add_reception_schedule':
+        $adminController->adminAddReceptionSchedule();
+        break;
+    case 'admin_update_reception_schedule':
+        $adminController->adminUpdateReceptionSchedule();
+        break;
+    case 'admin_delete_reception_schedule':
+        $adminController->adminDeleteReceptionSchedule();
+        break;
+    case 'admin_get_reception_schedule_info':
+        $adminController->adminGetReceptionScheduleInfo();
+        break;
+
     // ===== ADMIN APPOINTMENT MANAGEMENT =====
     case 'admin_appointments':
         $adminController->appointments();
@@ -260,6 +278,18 @@ switch ($action) {
 
     case 'reception_doctor_schedules':
         $receptionController->doctorSchedules(); // Trang lịch làm việc bác sĩ (lễ tân)
+        break;
+
+    case 'reception_schedule_management':
+        $receptionController->scheduleManagement(); // Lịch làm việc lễ tân
+        break;
+
+    case 'reception_add_schedule':
+        $receptionController->addSchedule(); // Lưu ca trực lễ tân
+        break;
+
+    case 'reception_delete_schedule':
+        $receptionController->deleteSchedule(); // Xóa ca trực lễ tân
         break;
 
     case 'reception_queue':

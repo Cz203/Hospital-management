@@ -239,6 +239,18 @@ class AdminController
             // Chuẩn hóa lưu DB về dạng 0xxxxxxxxx
             $data['so_dien_thoai'] = '0' . $digits;
         }
+        // Kiểm tra trùng số điện thoại giữa các bác sĩ khác (cho phép giữ số hiện tại)
+        if (!empty($data['so_dien_thoai'])) {
+            $currentDoctor = $this->doctorModel->getById($id);
+            $currentPhone = $currentDoctor['so_dien_thoai'] ?? '';
+            if ($data['so_dien_thoai'] !== $currentPhone) {
+                if ($this->doctorModel->phoneExists($data['so_dien_thoai'])) {
+                    $_SESSION['error'] = 'Số điện thoại này đã được sử dụng bởi một bác sĩ khác.';
+                    header('Location: ./doctors_list');
+                    exit();
+                }
+            }
+        }
         try {
             $ok = $this->doctorModel->updateProfile($id, $data);
             $_SESSION['success'] = $ok ? 'Cập nhật bác sĩ thành công!' : 'Không thể cập nhật bác sĩ.';
@@ -862,5 +874,332 @@ class AdminController
         ];
 
         return $stats;
+    }
+
+    // ========== QUẢN LÝ LỊCH LÀM VIỆC LỄ TÂN (ADMIN) ==========
+
+    /**
+     * Trang quản lý lịch làm việc lễ tân (admin xem & chỉnh) – giao diện giống lịch bác sĩ
+     */
+    public function receptionSchedules()
+    {
+        $this->auth->requireAuth('admin');
+
+        // Lấy danh sách lễ tân
+        require_once 'Models/Reception.php';
+        $receptionModel = new Reception();
+        $receptions = $receptionModel->getAll();
+
+        // Lấy lịch làm việc lễ tân và thống kê
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        $allSchedules = [];
+        $scheduleStats = [
+            'total_schedules' => 0,
+            'active_schedules' => 0,
+            'morning_shifts' => 0,
+            'afternoon_shifts' => 0,
+        ];
+
+        foreach ($receptions as $rec) {
+            $rid = (int)$rec['id'];
+            $sql = "SELECT * FROM lich_lam_viec_le_tan
+                    WHERE letan_id = :id
+                    ORDER BY 
+                        CASE thu_trong_tuan 
+                            WHEN 'Thứ 2' THEN 1
+                            WHEN 'Thứ 3' THEN 2
+                            WHEN 'Thứ 4' THEN 3
+                            WHEN 'Thứ 5' THEN 4
+                            WHEN 'Thứ 6' THEN 5
+                            WHEN 'Thứ 7' THEN 6
+                            WHEN 'Chủ nhật' THEN 7
+                        END, gio_bat_dau";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':id', $rid, PDO::PARAM_INT);
+            $stmt->execute();
+            $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $allSchedules[$rid] = [
+                'reception' => $rec,
+                'schedules' => $schedules,
+            ];
+
+            // Cập nhật thống kê
+            $scheduleStats['total_schedules'] += count($schedules);
+            foreach ($schedules as $schedule) {
+                if (($schedule['trang_thai'] ?? 'active') === 'active') {
+                    $scheduleStats['active_schedules']++;
+                }
+                switch ($schedule['loai_ca']) {
+                    case 'Ca sáng':
+                        $scheduleStats['morning_shifts']++;
+                        break;
+                    case 'Ca chiều':
+                        $scheduleStats['afternoon_shifts']++;
+                        break;
+                }
+            }
+        }
+
+        // Nhóm lịch theo ngày giống bác sĩ
+        $daysOfWeek = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+        $schedulesByDay = [];
+
+        foreach ($daysOfWeek as $day) {
+            $schedulesByDay[$day] = [];
+            foreach ($allSchedules as $rid => $data) {
+                $daySchedules = array_values(array_filter($data['schedules'], function ($sc) use ($day) {
+                    return ($sc['thu_trong_tuan'] ?? '') === $day && ($sc['trang_thai'] ?? 'active') === 'active';
+                }));
+                if (!empty($daySchedules)) {
+                    $schedulesByDay[$day][] = [
+                        'reception' => $data['reception'],
+                        'schedules' => $daySchedules,
+                    ];
+                }
+            }
+        }
+
+        $pageTitle = 'Quản lý lịch làm việc lễ tân';
+
+        ob_start();
+        include 'Views/admin/reception_schedules.php';
+        $content = ob_get_clean();
+
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $pageTitle);
+    }
+
+    // ===== ADMIN RECEPTION SCHEDULE MANAGEMENT (LỄ TÂN) =====
+
+    public function adminAddReceptionSchedule()
+    {
+        $this->auth->requireAuth('admin');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $receptionId = (int)($input['reception_id'] ?? 0);
+        $thuTrongTuan = trim($input['thu_trong_tuan'] ?? '');
+        $gioBatDau = trim($input['gio_bat_dau'] ?? '');
+        $gioKetThuc = trim($input['gio_ket_thuc'] ?? '');
+        $loaiCa = trim($input['loai_ca'] ?? '');
+        $ghiChu = trim($input['ghi_chu'] ?? '');
+
+        if ($receptionId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng chọn lễ tân!']);
+            exit();
+        }
+        if (empty($thuTrongTuan) || empty($gioBatDau) || empty($gioKetThuc) || empty($loaiCa)) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc!']);
+            exit();
+        }
+        if (strtotime($gioBatDau) >= strtotime($gioKetThuc)) {
+            echo json_encode(['success' => false, 'message' => 'Giờ kết thúc phải sau giờ bắt đầu!']);
+            exit();
+        }
+
+        require_once 'Models/Reception.php';
+        $receptionModel = new Reception();
+        $rec = $receptionModel->getById($receptionId);
+        if (!$rec) {
+            echo json_encode(['success' => false, 'message' => 'Lễ tân không tồn tại!']);
+            exit();
+        }
+
+        // Kiểm tra xung đột lịch trong bảng lich_lam_viec_le_tan
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+        $checkSql = "SELECT COUNT(*) FROM lich_lam_viec_le_tan
+                     WHERE letan_id = :id AND thu_trong_tuan = :thu
+                       AND trang_thai = 'active'
+                       AND (gio_bat_dau < :gio_ket_thuc AND gio_ket_thuc > :gio_bat_dau)";
+        $st = $db->prepare($checkSql);
+        $st->bindParam(':id', $receptionId, PDO::PARAM_INT);
+        $st->bindParam(':thu', $thuTrongTuan);
+        $st->bindParam(':gio_bat_dau', $gioBatDau);
+        $st->bindParam(':gio_ket_thuc', $gioKetThuc);
+        $st->execute();
+        if ((int)$st->fetchColumn() > 0) {
+            echo json_encode(['success' => false, 'message' => 'Ca trực bị xung đột với ca đã có!']);
+            exit();
+        }
+
+        $insertSql = "INSERT INTO lich_lam_viec_le_tan
+                      (letan_id, thu_trong_tuan, gio_bat_dau, gio_ket_thuc, loai_ca, ghi_chu, trang_thai)
+                      VALUES (:id, :thu, :gio_bat_dau, :gio_ket_thuc, :loai_ca, :ghi_chu, 'active')";
+        $ins = $db->prepare($insertSql);
+        $ins->bindParam(':id', $receptionId, PDO::PARAM_INT);
+        $ins->bindParam(':thu', $thuTrongTuan);
+        $ins->bindParam(':gio_bat_dau', $gioBatDau);
+        $ins->bindParam(':gio_ket_thuc', $gioKetThuc);
+        $ins->bindParam(':loai_ca', $loaiCa);
+        $ins->bindParam(':ghi_chu', $ghiChu);
+
+        if ($ins->execute()) {
+            $newId = (int)$db->lastInsertId();
+            echo json_encode([
+                'success' => true,
+                'message' => 'Thêm lịch làm việc lễ tân thành công!',
+                'schedule_id' => $newId,
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra khi thêm lịch làm việc!']);
+        }
+        exit();
+    }
+
+    public function adminUpdateReceptionSchedule()
+    {
+        $this->auth->requireAuth('admin');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $scheduleId = (int)($input['schedule_id'] ?? 0);
+        $receptionId = (int)($input['reception_id'] ?? 0);
+        $thuTrongTuan = trim($input['thu_trong_tuan'] ?? '');
+        $gioBatDau = trim($input['gio_bat_dau'] ?? '');
+        $gioKetThuc = trim($input['gio_ket_thuc'] ?? '');
+        $loaiCa = trim($input['loai_ca'] ?? '');
+        $ghiChu = trim($input['ghi_chu'] ?? '');
+        $trangThai = trim($input['trang_thai'] ?? 'active');
+
+        if ($scheduleId <= 0 || $receptionId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thông tin lịch không hợp lệ!']);
+            exit();
+        }
+        if (empty($thuTrongTuan) || empty($gioBatDau) || empty($gioKetThuc) || empty($loaiCa)) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ thông tin bắt buộc!']);
+            exit();
+        }
+        if (strtotime($gioBatDau) >= strtotime($gioKetThuc)) {
+            echo json_encode(['success' => false, 'message' => 'Giờ kết thúc phải sau giờ bắt đầu!']);
+            exit();
+        }
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        // Kiểm tra xung đột, loại trừ chính lịch này
+        $checkSql = "SELECT COUNT(*) FROM lich_lam_viec_le_tan
+                     WHERE letan_id = :id AND thu_trong_tuan = :thu
+                       AND trang_thai = 'active'
+                       AND id != :sid
+                       AND (gio_bat_dau < :gio_ket_thuc AND gio_ket_thuc > :gio_bat_dau)";
+        $st = $db->prepare($checkSql);
+        $st->bindParam(':id', $receptionId, PDO::PARAM_INT);
+        $st->bindParam(':thu', $thuTrongTuan);
+        $st->bindParam(':sid', $scheduleId, PDO::PARAM_INT);
+        $st->bindParam(':gio_bat_dau', $gioBatDau);
+        $st->bindParam(':gio_ket_thuc', $gioKetThuc);
+        $st->execute();
+        if ((int)$st->fetchColumn() > 0) {
+            echo json_encode(['success' => false, 'message' => 'Lịch làm việc này bị xung đột với lịch khác!']);
+            exit();
+        }
+
+        $updateSql = "UPDATE lich_lam_viec_le_tan
+                      SET thu_trong_tuan = :thu, gio_bat_dau = :gio_bat_dau,
+                          gio_ket_thuc = :gio_ket_thuc, loai_ca = :loai_ca,
+                          ghi_chu = :ghi_chu, trang_thai = :trang_thai,
+                          ngay_cap_nhat = NOW()
+                      WHERE id = :sid AND letan_id = :id";
+        $stmt = $db->prepare($updateSql);
+        $stmt->bindParam(':thu', $thuTrongTuan);
+        $stmt->bindParam(':gio_bat_dau', $gioBatDau);
+        $stmt->bindParam(':gio_ket_thuc', $gioKetThuc);
+        $stmt->bindParam(':loai_ca', $loaiCa);
+        $stmt->bindParam(':ghi_chu', $ghiChu);
+        $stmt->bindParam(':trang_thai', $trangThai);
+        $stmt->bindParam(':sid', $scheduleId, PDO::PARAM_INT);
+        $stmt->bindParam(':id', $receptionId, PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            echo json_encode(['success' => true, 'message' => 'Cập nhật lịch làm việc lễ tân thành công!']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra khi cập nhật lịch làm việc!']);
+        }
+        exit();
+    }
+
+    public function adminDeleteReceptionSchedule()
+    {
+        $this->auth->requireAuth('admin');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $scheduleId = (int)($input['schedule_id'] ?? 0);
+        $receptionId = (int)($input['reception_id'] ?? 0);
+
+        if ($scheduleId <= 0 || $receptionId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thông tin lịch không hợp lệ!']);
+            exit();
+        }
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+        $sql = "DELETE FROM lich_lam_viec_le_tan WHERE id = :sid AND letan_id = :id";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':sid', $scheduleId, PDO::PARAM_INT);
+        $stmt->bindParam(':id', $receptionId, PDO::PARAM_INT);
+
+        if ($stmt->execute()) {
+            echo json_encode(['success' => true, 'message' => 'Xóa lịch làm việc lễ tân thành công!']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Có lỗi xảy ra khi xóa lịch làm việc!']);
+        }
+        exit();
+    }
+
+    public function adminGetReceptionScheduleInfo()
+    {
+        $this->auth->requireAuth('admin');
+
+        $scheduleId = (int)($_GET['schedule_id'] ?? 0);
+        $receptionId = (int)($_GET['reception_id'] ?? 0);
+
+        if ($scheduleId <= 0 || $receptionId <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Thông tin lịch không hợp lệ!']);
+            exit();
+        }
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+        $sql = "SELECT * FROM lich_lam_viec_le_tan WHERE id = :sid AND letan_id = :id";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':sid', $scheduleId, PDO::PARAM_INT);
+        $stmt->bindParam(':id', $receptionId, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            echo json_encode(['success' => true, 'data' => $row]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Không tìm thấy lịch làm việc!']);
+        }
+        exit();
     }
 }

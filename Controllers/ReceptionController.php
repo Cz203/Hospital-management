@@ -68,6 +68,190 @@ class ReceptionController
     }
 
     /**
+     * Lịch làm việc của Lễ tân (tự đăng ký ca trực, lịch lặp theo tuần)
+     */
+    public function scheduleManagement()
+    {
+        $this->auth->requireAuth('letan');
+
+        // Lấy thông tin lễ tân hiện tại
+        $receptionId = $_SESSION['user_id'];
+        $receptionName = $_SESSION['user_name'] ?? 'Lễ tân';
+
+        // Lấy tất cả lịch làm việc của lễ tân từ bảng lich_lam_viec_le_tan
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        $sql = "SELECT * FROM lich_lam_viec_le_tan 
+                WHERE letan_id = :id
+                ORDER BY 
+                    CASE thu_trong_tuan 
+                        WHEN 'Thứ 2' THEN 1
+                        WHEN 'Thứ 3' THEN 2
+                        WHEN 'Thứ 4' THEN 3
+                        WHEN 'Thứ 5' THEN 4
+                        WHEN 'Thứ 6' THEN 5
+                        WHEN 'Thứ 7' THEN 6
+                        WHEN 'Chủ nhật' THEN 7
+                    END, gio_bat_dau";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':id', $receptionId, PDO::PARAM_INT);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Gom lịch theo ngày & loại ca để render dạng bảng
+        $groupedSchedules = [];
+        foreach ($rows as $row) {
+            $day = $row['thu_trong_tuan'];
+            $shift = $row['loai_ca'];
+            if (!isset($groupedSchedules[$day])) {
+                $groupedSchedules[$day] = [];
+            }
+            if (!isset($groupedSchedules[$day][$shift])) {
+                $groupedSchedules[$day][$shift] = [];
+            }
+            $groupedSchedules[$day][$shift][] = $row;
+        }
+
+        $page_title = 'Lịch làm việc lễ tân';
+
+        ob_start();
+        include 'Views/reception/schedule_management.php';
+        $content = ob_get_clean();
+
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * Thêm ca trực lễ tân (lịch lặp theo thứ)
+     */
+    public function addSchedule()
+    {
+        $this->auth->requireAuth('letan');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        $receptionId = $_SESSION['user_id'];
+        $thu = $_POST['thu_trong_tuan'] ?? '';
+        $loaiCa = $_POST['loai_ca'] ?? '';
+        $gioBatDau = $_POST['gio_bat_dau'] ?? '';
+        $gioKetThuc = $_POST['gio_ket_thuc'] ?? '';
+        $ghiChu = $_POST['ghi_chu'] ?? '';
+
+        if ($thu === '' || $loaiCa === '' || $gioBatDau === '' || $gioKetThuc === '') {
+            $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin ca trực.';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        // Giống logic bác sĩ: chỉ cho phép đăng ký/hoàn tất lịch cơ bản từ ngày 23 → 25 hằng tháng
+        if (!$this->isWithinReceptionRegistrationWindow()) {
+            $_SESSION['error'] = 'Chỉ được đăng ký/hoàn tất lịch từ ngày 23 đến 25 hằng tháng!';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        // Kiểm tra thời gian hợp lệ: giờ kết thúc phải sau giờ bắt đầu (giống bác sĩ)
+        if (strtotime($gioBatDau) >= strtotime($gioKetThuc)) {
+            $_SESSION['error'] = 'Giờ kết thúc phải sau giờ bắt đầu!';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        try {
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            // Kiểm tra xung đột ca trực (đơn giản: cùng thứ, trùng giờ)
+            $checkSql = "SELECT COUNT(*) FROM lich_lam_viec_le_tan 
+                         WHERE letan_id = :id AND thu_trong_tuan = :thu 
+                           AND (gio_bat_dau < :gio_ket_thuc AND gio_ket_thuc > :gio_bat_dau)";
+            $st = $db->prepare($checkSql);
+            $st->bindParam(':id', $receptionId, PDO::PARAM_INT);
+            $st->bindParam(':thu', $thu);
+            $st->bindParam(':gio_bat_dau', $gioBatDau);
+            $st->bindParam(':gio_ket_thuc', $gioKetThuc);
+            $st->execute();
+            if ((int)$st->fetchColumn() > 0) {
+                $_SESSION['error'] = 'Ca trực bị trùng với ca đã đăng ký.';
+                header('Location: ./reception_schedule_management');
+                exit();
+            }
+
+            $insertSql = "INSERT INTO lich_lam_viec_le_tan
+                          (letan_id, thu_trong_tuan, gio_bat_dau, gio_ket_thuc, loai_ca, ghi_chu, trang_thai)
+                          VALUES (:id, :thu, :gio_bat_dau, :gio_ket_thuc, :loai_ca, :ghi_chu, 'active')";
+            $ins = $db->prepare($insertSql);
+            $ins->bindParam(':id', $receptionId, PDO::PARAM_INT);
+            $ins->bindParam(':thu', $thu);
+            $ins->bindParam(':gio_bat_dau', $gioBatDau);
+            $ins->bindParam(':gio_ket_thuc', $gioKetThuc);
+            $ins->bindParam(':loai_ca', $loaiCa);
+            $ins->bindParam(':ghi_chu', $ghiChu);
+            $ins->execute();
+
+            $_SESSION['success'] = 'Thêm ca trực thành công.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi khi thêm ca trực: ' . $e->getMessage();
+        }
+
+        header('Location: ./reception_schedule_management');
+        exit();
+    }
+
+    /**
+     * Xóa ca trực lễ tân
+     */
+    public function deleteSchedule()
+    {
+        $this->auth->requireAuth('letan');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        // Giống bác sĩ: chỉ cho phép xóa ca trực vào Thứ 2 (theo giờ Việt Nam)
+        if (!$this->isMonday()) {
+            $_SESSION['error'] = 'Chỉ được xóa ca trực vào Thứ 2.';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        $receptionId = $_SESSION['user_id'];
+        $scheduleId = isset($_POST['schedule_id']) ? (int)$_POST['schedule_id'] : 0;
+
+        if ($scheduleId <= 0) {
+            $_SESSION['error'] = 'Ca trực không hợp lệ.';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        try {
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            $sql = "DELETE FROM lich_lam_viec_le_tan WHERE id = :sid AND letan_id = :id";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':sid', $scheduleId, PDO::PARAM_INT);
+            $stmt->bindParam(':id', $receptionId, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $_SESSION['success'] = 'Đã xóa ca trực.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi khi xóa ca trực: ' . $e->getMessage();
+        }
+
+        header('Location: ./reception_schedule_management');
+        exit();
+    }
+
+    /**
      * API: Lấy lịch làm việc theo bác sĩ theo NGÀY (áp dụng ngoại lệ theo ngày)
      */
     public function getDoctorSchedules()
@@ -602,6 +786,27 @@ class ReceptionController
         }
         echo json_encode(['success' => true, 'data' => $ticket]);
         exit();
+    }
+
+    /**
+     * Logic cửa sổ đăng ký lịch làm việc cho Lễ tân
+     * Giống với bác sĩ: chỉ được đăng ký/hoàn tất lịch cơ bản từ ngày 23 → 25 hằng tháng
+     */
+    private function isWithinReceptionRegistrationWindow(): bool
+    {
+        $dt = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        $day = (int)$dt->format('j');
+        return $day >= 23 && $day <= 25;
+    }
+
+    /**
+     * Kiểm tra hôm nay là Thứ 2 (theo timezone Việt Nam)
+     * Dùng để áp logic: chỉ cho phép lễ tân xóa ca trực vào Thứ 2, giống bác sĩ.
+     */
+    private function isMonday(): bool
+    {
+        $dt = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        return (int)$dt->format('N') === 1; // 1 = Monday
     }
 
     // ===== Helpers =====

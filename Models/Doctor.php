@@ -596,4 +596,104 @@ class Doctor extends User
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Lấy danh sách bác sĩ theo chuyên khoa
+     */
+    public function getDoctorsBySpecialty(int $specialtyId): array
+    {
+        $sql = "SELECT id, ten FROM bac_si WHERE chuyen_khoa_id = :ck";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':ck', $specialtyId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy danh sách bác sĩ theo chuyên khoa đang có lịch làm việc trong ngày Y-m-d.
+     * Nếu truyền thêm $timeHis (H:i:s) thì chỉ giữ lại bác sĩ có ca làm việc bao gồm thời điểm đó.
+     */
+    public function getOnDutyDoctorsBySpecialtyAndDate(int $specialtyId, string $dateYmd, ?string $timeHis = null): array
+    {
+        $doctors = $this->getDoctorsBySpecialty($specialtyId);
+        $result = [];
+
+        // Nếu có truyền thời gian hiện tại, convert ra timestamp giờ-phút-giây để so sánh
+        $currentTs = null;
+        if ($timeHis !== null && preg_match('/^\d{2}:\d{2}:\d{2}$/', $timeHis)) {
+            $currentTs = strtotime($timeHis);
+        }
+
+        foreach ($doctors as $doc) {
+            $schedules = $this->getSchedulesByDate((int)$doc['id'], $dateYmd);
+            if (empty($schedules)) {
+                continue;
+            }
+
+            // Nếu không yêu cầu xét theo giờ, chỉ cần có bất kỳ ca nào trong ngày là được
+            if ($currentTs === null) {
+                $result[] = $doc;
+                continue;
+            }
+
+            // Lọc theo ca bao gồm thời điểm hiện tại
+            $hasActiveNow = false;
+            foreach ($schedules as $sc) {
+                if (empty($sc['gio_bat_dau']) || empty($sc['gio_ket_thuc'])) {
+                    continue;
+                }
+                $startTs = strtotime($sc['gio_bat_dau']);
+                $endTs   = strtotime($sc['gio_ket_thuc']);
+                if ($startTs === false || $endTs === false) {
+                    continue;
+                }
+                // đang trong ca: start <= now < end
+                if ($currentTs >= $startTs && $currentTs < $endTs) {
+                    $hasActiveNow = true;
+                    break;
+                }
+            }
+
+            if ($hasActiveNow) {
+                $result[] = $doc;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Đếm số phiếu dịch vụ (x-quang / xét nghiệm / siêu âm) đã được phân công cho bác sĩ trong 1 ngày
+     *
+     * @param int $doctorId
+     * @param string $serviceType xray|lab|ultrasound
+     * @param string $dateYmd     Ngày dạng Y-m-d
+     */
+    public function countAssignedServiceRequests(int $doctorId, string $serviceType, string $dateYmd): int
+    {
+        switch ($serviceType) {
+            case 'xray':
+                $table = 'phieu_chup_xquang';
+                $col   = 'bac_si_xquang_id';
+                break;
+            case 'lab':
+                $table = 'phieu_yeu_cau_xet_nghiem';
+                $col   = 'bac_si_xet_nghiem_id';
+                break;
+            case 'ultrasound':
+                $table = 'phieu_yeu_cau_sieu_am';
+                $col   = 'bac_si_sieu_am_id';
+                break;
+            default:
+                return 0;
+        }
+
+        $sql = "SELECT COUNT(*) AS cnt FROM {$table} WHERE {$col} = :doctor_id AND DATE(ngay_tao) = :d";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':doctor_id', $doctorId, PDO::PARAM_INT);
+        $stmt->bindParam(':d', $dateYmd);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['cnt'] ?? 0);
+    }
 }

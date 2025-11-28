@@ -46,4 +46,30 @@ class Reception extends User
         $stmt->bindParam(':so_dien_thoai', $data['so_dien_thoai']);
         return $stmt->execute();
     }
+
+    /**
+     * Lấy danh sách tất cả lễ tân (cho Admin quản lý lịch làm việc)
+     */
+    public function getAll()
+    {
+        $query = "SELECT id, ten, email, so_dien_thoai, ngay_tao, ngay_cap_nhat 
+        FROM " . $this->table_name . " 
+        ORDER BY ten ASC";
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lấy 1 lễ tân theo ID
+     */
+    public function getById(int $id): ?array
+    {
+        $query = "SELECT * FROM " . $this->table_name . " WHERE id = :id LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
 }

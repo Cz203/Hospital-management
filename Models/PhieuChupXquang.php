@@ -18,8 +18,8 @@ class PhieuChupXquang
     {
         $sql = "INSERT INTO phieu_chup_xquang (
             id_phieu_kham_benh, so_dien_thoai, quan, yeu_cau_chup, 
-            bac_si_kham, chan_doan_vao_vien, trang_thai
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            bac_si_kham, chan_doan_vao_vien, trang_thai, bac_si_xquang_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->db->prepare($sql);
         if (!$stmt) {
@@ -28,6 +28,7 @@ class PhieuChupXquang
         }
 
         $trangThai = 'Đã yêu cầu';
+        $assignedDoctorId = isset($data['bac_si_xquang_id']) ? (int)$data['bac_si_xquang_id'] : null;
 
         $result = $stmt->execute([
             $data['id_phieu_kham_benh'],
@@ -36,7 +37,8 @@ class PhieuChupXquang
             $data['yeu_cau_chup'],
             $data['bac_si_kham'],
             $data['chan_doan_vao_vien'] ?? '',
-            $trangThai
+            $trangThai,
+            $assignedDoctorId
         ]);
 
         if (!$result) {
@@ -167,8 +169,14 @@ class PhieuChupXquang
 
     /**
      * Lấy danh sách phiếu chụp có trạng thái "Đã yêu cầu"
+     *
+     * @param int         $limit
+     * @param int         $offset
+     * @param string|null $date    YYYY-MM-DD
+     * @param string|null $keyword Mã bệnh nhân
+     * @param int|null    $assignedDoctorId Nếu truyền, chỉ lấy phiếu thuộc về bác sĩ X-Quang này
      */
-    public function getRequested($limit = 50, $offset = 0, $date = null, $keyword = null)
+    public function getRequested($limit = 50, $offset = 0, $date = null, $keyword = null, $assignedDoctorId = null)
     {
         $whereDate = $date ? " AND DATE(px.ngay_tao) = ?" : "";
         $whereKeyword = '';
@@ -176,12 +184,18 @@ class PhieuChupXquang
             // Search by patient code (ma_benh_nhan)
             $whereKeyword = " AND bn.ma_benh_nhan LIKE ?";
         }
+        $whereDoctor = '';
+        if ($assignedDoctorId !== null) {
+            $whereDoctor = " AND px.bac_si_xquang_id = ?";
+        }
+
         $sql = "SELECT px.id, px.id_phieu_kham_benh, px.yeu_cau_chup, px.trang_thai, px.ngay_tao,
                        pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, bn.ma_benh_nhan
                 FROM phieu_chup_xquang px
                 JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
                 JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
-                WHERE px.trang_thai = 'Đã yêu cầu'" . $whereDate . $whereKeyword . "
+                WHERE px.trang_thai = 'Đã yêu cầu'"
+            . $whereDate . $whereKeyword . $whereDoctor . "
                 ORDER BY px.ngay_tao DESC, px.id DESC
                 LIMIT ? OFFSET ?";
 
@@ -198,6 +212,9 @@ class PhieuChupXquang
         if ($keyword !== null && $keyword !== '') {
             $stmt->bindValue($bindIndex++, "%" . $keyword . "%", PDO::PARAM_STR);
         }
+        if ($assignedDoctorId !== null) {
+            $stmt->bindValue($bindIndex++, (int)$assignedDoctorId, PDO::PARAM_INT);
+        }
         $stmt->bindValue($bindIndex++, (int)$limit, PDO::PARAM_INT);
         $stmt->bindValue($bindIndex++, (int)$offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -211,7 +228,7 @@ class PhieuChupXquang
     {
         $sql = "UPDATE phieu_chup_xquang SET 
             so_dien_thoai = ?, quan = ?, yeu_cau_chup = ?, 
-            bac_si_kham = ?, chan_doan_vao_vien = ?, ngay_cap_nhat = CURRENT_TIMESTAMP
+            bac_si_kham = ?, chan_doan_vao_vien = ?, bac_si_xquang_id = ?, ngay_cap_nhat = CURRENT_TIMESTAMP
             WHERE id = ?";
 
         $stmt = $this->db->prepare($sql);
@@ -226,6 +243,7 @@ class PhieuChupXquang
             $data['yeu_cau_chup'],
             $data['bac_si_kham'],
             $data['chan_doan_vao_vien'] ?? '',
+            isset($data['bac_si_xquang_id']) ? (int)$data['bac_si_xquang_id'] : null,
             $id
         ]);
 

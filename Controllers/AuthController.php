@@ -715,10 +715,46 @@ class AuthController
 
     public function logout()
     {
+        // Lưu lại role hiện tại trước khi clear session
+        $role = $_SESSION['user_role'] ?? '';
+
         // Clear only our keys to avoid nuking unrelated PHP session data
-        unset($_SESSION['user_id'], $_SESSION['user_role'], $_SESSION['last_activity'], $_SESSION['user_name'], $_SESSION['user_email']);
+        unset(
+            $_SESSION['user_id'],
+            $_SESSION['user_role'],
+            $_SESSION['last_activity'],
+            $_SESSION['user_name'],
+            $_SESSION['user_email']
+        );
         session_regenerate_id(true);
-        header("Location: ./");
+
+        // Chuyển hướng về trang đăng nhập tương ứng với role vừa logout
+        switch ($role) {
+            case 'admin':
+                header("Location: ./login_admin");
+                break;
+            case 'doctor':
+                header("Location: ./login_doctor");
+                break;
+            case 'xray_doctor':
+                header("Location: ./login_xquang");
+                break;
+            case 'sieuam_doctor':
+                header("Location: ./login_sieuam");
+                break;
+            case 'xetnghiem_doctor':
+                header("Location: ./login_xetnghiem");
+                break;
+            case 'letan':
+                header("Location: ./login_reception");
+                break;
+            case 'patient':
+                header("Location: ./login");
+                break;
+            default:
+                header("Location: ./login");
+                break;
+        }
         exit();
     }
 
@@ -734,12 +770,13 @@ class AuthController
             exit();
         }
 
-        // Kiểm tra session timeout (30 phút)
-        if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 3600)) {
-            session_destroy();
-            header("Location: ./login");
-            exit();
-        }
+        // BỎ CHECK AUTO LOGOUT THEO THỜI GIAN NHÀN RỖI
+        // Nếu sau này muốn bật lại, có thể dùng đoạn sau và chỉnh timeout:
+        // if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 3600)) {
+        //     session_destroy();
+        //     header("Location: ./login");
+        //     exit();
+        // }
 
         // Cập nhật last activity
         $_SESSION['last_activity'] = time();
