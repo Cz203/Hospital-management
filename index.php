@@ -176,6 +176,10 @@ switch ($action) {
         $adminController->dashboard(); // Trang chủ admin
         break;
 
+    case 'get_revenue_stats':
+        $adminController->getRevenueStats(); // API: Lấy thống kê doanh thu theo filter
+        break;
+
     case 'doctor_schedules':
         $adminController->manageDoctorSchedules(); // Quản lý lịch làm việc bác sĩ
         break;
@@ -195,6 +199,14 @@ switch ($action) {
         break;
     case 'admin_delete_doctor':
         $adminController->adminDeleteDoctor(); // Xóa bác sĩ (Admin)
+        break;
+
+    case 'patients':
+        $adminController->patientsList(); // Danh sách bệnh nhân (Admin)
+        break;
+
+    case 'reception_list':
+        $adminController->receptionList(); // Danh sách lễ tân (Admin)
         break;
 
     // ===== SPECIALTIES (ADMIN) =====
@@ -245,6 +257,20 @@ switch ($action) {
         break;
     case 'admin_cancel_appointment':
         $adminController->cancelAppointment();
+        break;
+
+    // ===== ADMIN FACE RECOGNITION =====
+    case 'admin_face_registration':
+        $adminController->faceRegistration(); // Trang đăng ký face recognition
+        break;
+    case 'admin_save_face_encoding':
+        $adminController->saveFaceEncoding(); // API: Lưu face encoding
+        break;
+    case 'admin_get_users':
+        $adminController->getUsers(); // API: Lấy danh sách users
+        break;
+    case 'admin_get_user_info':
+        $adminController->getUserInfo(); // API: Lấy thông tin user
         break;
 
     // ===== DASHBOARD ROUTES =====
@@ -394,6 +420,17 @@ switch ($action) {
 
     case 'doctor_get_schedule_info':
         $doctorController->getScheduleInfo(); // Lấy thông tin lịch làm việc
+        break;
+
+    // ===== DOCTOR ATTENDANCE =====
+    case 'doctor_attendance':
+        $doctorController->attendance(); // Trang chấm công bác sĩ
+        break;
+    case 'doctor_process_attendance':
+        $doctorController->processAttendance(); // API: Xử lý chấm công
+        break;
+    case 'doctor_get_today_attendance':
+        $doctorController->getTodayAttendance(); // API: Lấy trạng thái chấm công hôm nay
         break;
 
     case 'doctor_get_schedules_by_day':
@@ -844,6 +881,17 @@ switch ($action) {
         break;
     case 'reception_vnpay_return':
         $receptionController->vnpayReturn(); // Xử lý kết quả VNPAY
+        break;
+
+    // ===== RECEPTION ATTENDANCE =====
+    case 'reception_attendance':
+        $receptionController->attendance(); // Trang chấm công lễ tân
+        break;
+    case 'reception_process_attendance':
+        $receptionController->processAttendance(); // API: Xử lý chấm công
+        break;
+    case 'reception_get_today_attendance':
+        $receptionController->getTodayAttendance(); // API: Lấy trạng thái chấm công hôm nay
         break;
 
     case 'patient_appointments':

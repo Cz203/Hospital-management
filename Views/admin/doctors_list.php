@@ -111,32 +111,15 @@
                 </table>
             </div>
             <?php
-            // Pagination controls (dựa trên biến $total, $page, $perPage)
+            require_once __DIR__ . '/../layouts/pagination_helper.php';
             $total = $total ?? 0;
             $page = $page ?? 1;
             $perPage = $perPage ?? 10;
             $totalPages = $total && $perPage ? (int)ceil($total / $perPage) : 1;
-            if ($totalPages > 1):
+            if ($totalPages > 1) {
+                renderPagination($page, $totalPages, './doctors_list', ['per_page' => $perPage]);
+            }
             ?>
-                <nav>
-                    <ul class="pagination justify-content-end">
-                        <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-                            <a class="page-link"
-                                href="./doctors_list?page=<?php echo max(1, $page - 1); ?>&per_page=<?php echo $perPage; ?>">«</a>
-                        </li>
-                        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-                            <li class="page-item <?php echo $p == $page ? 'active' : ''; ?>">
-                                <a class="page-link"
-                                    href="./doctors_list?page=<?php echo $p; ?>&per_page=<?php echo $perPage; ?>"><?php echo $p; ?></a>
-                            </li>
-                        <?php endfor; ?>
-                        <li class="page-item <?php echo $page >= $totalPages ? 'disabled' : ''; ?>">
-                            <a class="page-link"
-                                href="./doctors_list?page=<?php echo min($totalPages, $page + 1); ?>&per_page=<?php echo $perPage; ?>">»</a>
-                        </li>
-                    </ul>
-                </nav>
-            <?php endif; ?>
         </div>
     </div>
 </div>

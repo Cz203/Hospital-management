@@ -1,6 +1,6 @@
 <!-- Ultrasound Doctor Sidebar -->
-<div class="sidebar bg-primary text-white"
-    style="width: 250px; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; overflow-y: auto;">
+<div class="sidebar text-white"
+    style="width: 250px; height: 100vh; position: fixed; left: 0; top: 0; z-index: 1000; overflow-y: auto; background-color: #0d6efd;">
     <div class="p-4">
         <!-- Logo -->
         <div class="text-center mb-4">
@@ -12,31 +12,43 @@
         <!-- Navigation Menu -->
         <nav class="nav flex-column">
             <!-- Dashboard -->
-            <a class="nav-link text-white py-3 <?php echo isActiveUrl('sieuam_dashboard') ? 'active bg-light text-primary' : ''; ?>"
-                href="./sieuam_dashboard">
+            <a class="nav-link text-white py-3 <?php echo isActiveUrl('sieuam_dashboard') ? 'active bg-light' : ''; ?>"
+                href="./sieuam_dashboard"
+                style="<?php echo isActiveUrl('sieuam_dashboard') ? 'color: #0d6efd !important;' : ''; ?>">
                 <i class="fas fa-tachometer-alt me-2"></i>
                 Dashboard
+            </a>
+
+            <!-- Attendance -->
+            <a class="nav-link text-white py-3 <?php echo isActiveUrl('doctor_attendance') ? 'active bg-light' : ''; ?>"
+                href="./doctor_attendance"
+                style="<?php echo isActiveUrl('doctor_attendance') ? 'color: #0d6efd !important;' : ''; ?>">
+                <i class="fas fa-clock me-2"></i>
+                Chấm công
             </a>
 
             <!-- Schedule Management -->
 
             <!-- Duty Registration -->
-            <a class="nav-link text-white py-3 <?php echo isActiveUrl('doctor_schedule_management') ? 'active bg-light text-primary' : ''; ?>"
-                href="./doctor_schedule_management">
+            <a class="nav-link text-white py-3 <?php echo isActiveUrl('doctor_schedule_management') ? 'active bg-light' : ''; ?>"
+                href="./doctor_schedule_management"
+                style="<?php echo isActiveUrl('doctor_schedule_management') ? 'color: #0d6efd !important;' : ''; ?>">
                 <i class="fas fa-user-clock me-2"></i>
                 Đăng ký ca trực
             </a>
 
             <!-- History -->
-            <a class="nav-link text-white py-3 <?php echo isActiveUrl('sieuam_history') ? 'active bg-light text-primary' : ''; ?>"
-                href="./sieuam_history">
+            <a class="nav-link text-white py-3 <?php echo isActiveUrl('sieuam_history') ? 'active bg-light' : ''; ?>"
+                href="./sieuam_history"
+                style="<?php echo isActiveUrl('sieuam_history') ? 'color: #0d6efd !important;' : ''; ?>">
                 <i class="fas fa-history me-2"></i>
                 Lịch sử siêu âm
             </a>
 
             <!-- Settings -->
-            <a class="nav-link text-white py-3 <?php echo isActiveUrl('sieuam_settings') ? 'active bg-light text-primary' : ''; ?>"
-                href="./sieuam_settings">
+            <a class="nav-link text-white py-3 <?php echo isActiveUrl('sieuam_settings') ? 'active bg-light' : ''; ?>"
+                href="./sieuam_settings"
+                style="<?php echo isActiveUrl('sieuam_settings') ? 'color: #0d6efd !important;' : ''; ?>">
                 <i class="fas fa-cog me-2"></i>
                 Cài đặt
             </a>
@@ -45,8 +57,8 @@
         <!-- User Info -->
         <div class="mt-5 pt-4 border-top border-light">
             <div class="d-flex align-items-center">
-                <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center me-3"
-                    style="width: 40px; height: 40px;">
+                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3"
+                    style="width: 40px; height: 40px; color: #0d6efd;">
                     <i class="fas fa-user-md"></i>
                 </div>
                 <div>

@@ -84,8 +84,29 @@ class Patient extends User
 
     public function getAll()
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao FROM " . $this->table_name;
+        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao
+                  FROM " . $this->table_name . " ORDER BY ngay_tao DESC";
         $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function countAll(): int
+    {
+        $stmt = $this->conn->query("SELECT COUNT(*) AS c FROM " . $this->table_name);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['c'] ?? 0);
+    }
+
+    public function getPaginated(int $offset, int $limit): array
+    {
+        $sql = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao
+                FROM " . $this->table_name . " 
+                ORDER BY ngay_tao DESC
+                LIMIT :offset, :limit";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

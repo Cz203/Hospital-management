@@ -4801,4 +4801,163 @@ class DoctorController
         }
         exit();
     }
+
+    /**
+     * Trang chấm công cho bác sĩ
+     */
+    public function attendance()
+    {
+        $this->auth->requireAuth('doctor'); // 'doctor' sẽ tự động bao gồm tất cả loại bác sĩ
+
+        $page_title = 'Chấm công';
+
+        ob_start();
+        include 'Views/doctor/attendance.php';
+        $content = ob_get_clean();
+
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * API: Chấm công check-in/check-out
+     */
+    public function processAttendance()
+    {
+        $this->auth->requireAuth('doctor'); // 'doctor' sẽ tự động bao gồm tất cả loại bác sĩ
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $action = trim($input['action'] ?? ''); // 'check_in' hoặc 'check_out'
+        $faceEncoding = $input['face_encoding'] ?? null;
+        $imageData = $input['image_data'] ?? null;
+
+        if (empty($action) || !in_array($action, ['check_in', 'check_out']) || empty($faceEncoding)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc!']);
+            exit();
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        $userType = 'doctor';
+
+        if (!$userId) {
+            echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập!']);
+            exit();
+        }
+
+        require_once 'Models/Attendance.php';
+        $attendanceModel = new Attendance();
+
+        // Lưu ảnh nếu có
+        $imagePath = null;
+        if ($imageData) {
+            $imagePath = $this->saveAttendanceImage($imageData, $userId, $userType, $action);
+        }
+
+        // So sánh face encoding để xác nhận danh tính (so sánh trực tiếp với face encoding của user)
+        $faceEncodingJson = is_string($faceEncoding) ? $faceEncoding : json_encode($faceEncoding);
+        $comparison = $attendanceModel->compareFaceWithUser($faceEncodingJson, $userId, $userType);
+
+        if (!$comparison['match']) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Không nhận diện được khuôn mặt hoặc không khớp với tài khoản! ' . ($comparison['message'] ?? ''),
+                'distance' => $comparison['distance'] ?? null,
+                'threshold' => $comparison['threshold'] ?? null,
+                'debug' => $comparison
+            ]);
+            exit();
+        }
+
+        // Xử lý check-in hoặc check-out
+        if ($action === 'check_in') {
+            $result = $attendanceModel->checkIn($userId, $userType, $faceEncodingJson, $imagePath);
+        } else {
+            $result = $attendanceModel->checkOut($userId, $userType, $faceEncodingJson, $imagePath);
+        }
+
+        if ($result['success']) {
+            $result['confidence'] = $recognized['confidence'] ?? 1.0;
+        }
+
+        echo json_encode($result);
+        exit();
+    }
+
+    /**
+     * Lưu ảnh chấm công
+     */
+    private function saveAttendanceImage($imageData, $userId, $userType, $action)
+    {
+        try {
+            // Loại bỏ phần "data:image/png;base64," nếu có
+            if (strpos($imageData, ',') !== false) {
+                $imageData = explode(',', $imageData)[1];
+            }
+
+            $imageData = base64_decode($imageData);
+            if ($imageData === false) {
+                return null;
+            }
+
+            $uploadDir = __DIR__ . '/../uploads/attendance/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $fileName = $action . '_' . $userId . '_' . $userType . '_' . time() . '.jpg';
+            $filePath = $uploadDir . $fileName;
+
+            file_put_contents($filePath, $imageData);
+
+            return 'uploads/attendance/' . $fileName;
+        } catch (Exception $e) {
+            error_log("Error saving attendance image: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * API: Lấy trạng thái chấm công hôm nay
+     */
+    public function getTodayAttendance()
+    {
+        try {
+            $this->auth->requireAuth('doctor'); // 'doctor' sẽ tự động bao gồm tất cả loại bác sĩ
+            header('Content-Type: application/json; charset=utf-8');
+
+            $userId = $_SESSION['user_id'] ?? null;
+            $userType = 'doctor';
+
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập!']);
+                exit();
+            }
+
+            require_once 'Models/Attendance.php';
+            $attendanceModel = new Attendance();
+
+            $status = $attendanceModel->getTodayStatus($userId, $userType);
+
+            echo json_encode([
+                'success' => true,
+                'status' => $status ?: null
+            ]);
+            exit();
+        } catch (Exception $e) {
+            error_log("Error in getTodayAttendance: " . $e->getMessage());
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi khi lấy thông tin chấm công: ' . $e->getMessage()
+            ]);
+            exit();
+        }
+    }
 }

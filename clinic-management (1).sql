@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th10 28, 2025 lúc 02:08 PM
+-- Thời gian đã tạo: Th10 30, 2025 lúc 05:23 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -24,6 +24,27 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `attendance`
+--
+
+CREATE TABLE `attendance` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `user_type` enum('doctor','reception','admin') NOT NULL,
+  `check_in_time` datetime NOT NULL COMMENT 'Thời gian check in',
+  `check_out_time` datetime DEFAULT NULL COMMENT 'Thời gian check out',
+  `check_in_image` varchar(500) DEFAULT NULL COMMENT 'Ảnh check in',
+  `check_out_image` varchar(500) DEFAULT NULL COMMENT 'Ảnh check out',
+  `status` enum('checked_in','checked_out') NOT NULL DEFAULT 'checked_in',
+  `location` varchar(255) DEFAULT NULL COMMENT 'Vị trí chấm công (nếu có GPS)',
+  `notes` text DEFAULT NULL,
+  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Bảng lưu lịch sử chấm công';
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `bac_si`
 --
 
@@ -39,22 +60,24 @@ CREATE TABLE `bac_si` (
   `so_nam_kinh_nghiem` int(11) DEFAULT 0,
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `hinh_anh` varchar(255) DEFAULT NULL
+  `hinh_anh` varchar(255) DEFAULT NULL,
+  `face_encoding` text DEFAULT NULL COMMENT 'Face encoding dạng JSON array',
+  `face_encoding_updated` timestamp NULL DEFAULT NULL COMMENT 'Thời gian cập nhật face encoding'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `bac_si`
 --
 
-INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen_khoa_id`, `chuyen_khoa`, `so_giay_phep`, `so_nam_kinh_nghiem`, `ngay_tao`, `ngay_cap_nhat`, `hinh_anh`) VALUES
-(1, 'GSTS. Cao Việt', 'caoviet5.work@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901000001', 1, 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-11-25 09:21:19', 'uploads/bacsiviet.png'),
-(48, 'Bác Sĩ X-Quang', 'xquang@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 16, 'Chẩn đoán hình ảnh', 'XQ001', 10, '2025-09-26 07:16:15', '2025-11-27 08:38:02', NULL),
-(49, 'Xét nghiệm', 'untt1608@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 17, 'Xét nghiệm', NULL, 12, '2025-09-27 08:25:38', '2025-11-28 09:22:38', NULL),
-(50, 'BS Siêu Âm', 'sieuam@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 18, 'Siêu âm', '111', 20, '2025-10-10 19:52:54', '2025-11-27 08:38:47', NULL),
-(51, 'GSTS Cường', 'Cuong@gmail.com', '$2y$10$KNTQBO3N/YQnSdptvUSwXOJaPXc5UKlkyPN//9Ci17ahxdnAsDQrS', '0913996110', 1, 'Tim mạch', '32424', 15, '2025-11-25 08:17:28', '2025-11-25 09:21:36', 'uploads/doctor_1764058648_8ec3caa3.png'),
-(52, 'GSTS. bxcbxcvbcxvb', '', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 6, 'Mắt', 'TM001', 15, '2025-08-12 09:06:03', '2025-11-25 09:21:47', 'uploads/bacsiviet.png'),
-(53, 'Bác Sĩ X', 'xquang123123@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 16, 'Chẩn đoán hình ảnh', 'XQ001', 10, '2025-09-26 07:16:15', '2025-11-27 08:38:02', NULL),
-(54, 'BS Siêu', 'sbxcvbxcb@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456788', 18, 'Siêu âm', '111', 20, '2025-10-10 19:52:54', '2025-11-27 08:38:47', NULL);
+INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen_khoa_id`, `chuyen_khoa`, `so_giay_phep`, `so_nam_kinh_nghiem`, `ngay_tao`, `ngay_cap_nhat`, `hinh_anh`, `face_encoding`, `face_encoding_updated`) VALUES
+(1, 'GSTS. Cao Việt', 'caoviet5.work@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901000001', 1, 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-11-30 09:39:40', 'uploads/bacsiviet.png', '[-0.05986754596233368, 0.02018611505627632, 0.02642958238720894, -0.030725955963134766, -0.08226002007722855, -0.0399940125644207, -0.061973243951797485, -0.1686525046825409, 0.08570847660303116, -0.07525307685136795, 0.2758917808532715, -0.08660413324832916, -0.19506466388702393, -0.07866273820400238, -0.026311106979846954, 0.1508258879184723, -0.1523006111383438, -0.0904824435710907, -0.040493760257959366, -0.005005368962883949, 0.03765793517231941, -0.032867155969142914, 0.053457632660865784, 0.06421910226345062, -0.059297263622283936, -0.2917565405368805, -0.0814698114991188, -0.15659987926483154, 0.08976602554321289, 0.007167993113398552, -0.07505811005830765, -0.011682453565299511, -0.1746027171611786, -0.05451739579439163, 0.03092031553387642, 0.02570171467959881, -0.02910556085407734, -0.06255146116018295, 0.2483554482460022, -0.07279561460018158, -0.25553637742996216, 0.012617254629731178, 0.04841793328523636, 0.1840982735157013, 0.12607623636722565, 0.08263113349676132, 0.03113972209393978, -0.15841129422187805, 0.1336800903081894, -0.157190203666687, 0.13641835749149323, 0.13008429110050201, 0.11878733336925507, 0.016221417114138603, -0.04650956392288208, -0.16269391775131226, 0.01389572024345398, 0.13829445838928223, -0.19648639857769012, 0.06092250719666481, 0.15721659362316132, -0.01306949369609356, -0.02179442159831524, -0.11215949058532715, 0.2540172338485718, 0.10362017899751663, -0.16737109422683716, -0.12366127967834473, 0.12653575837612152, -0.13668394088745117, -0.0365201011300087, 0.06872706115245819, -0.16180960834026337, -0.2100307047367096, -0.3016079366207123, 0.027311597019433975, 0.4121001064777374, 0.09588581323623657, -0.16087044775485992, -0.010359585285186768, -0.0837550163269043, -0.009263699874281883, 0.1458984762430191, 0.13692954182624817, 0.01451045274734497, -0.03445039689540863, -0.04790196567773819, -0.04131702333688736, 0.19872064888477325, -0.09525568038225174, -0.004090211354196072, 0.20718589425086975, -0.016378598287701607, 0.0663137435913086, -0.05054525285959244, 0.08498286455869675, -0.05578616261482239, 0.04326251521706581, -0.09049475193023682, 0.07058132439851761, -0.028851218521595, -0.00466740969568491, 0.03601527586579323, 0.08143873512744904, -0.1723882555961609, 0.11903289705514908, 0.019253015518188477, 0.030053671449422836, 0.06688787043094635, -0.011402709409594536, -0.07460042089223862, -0.11626703292131424, 0.1316819041967392, -0.23694822192192078, 0.20877274870872498, 0.145663782954216, 0.14021489024162292, 0.12129432708024979, 0.09672152251005173, 0.09805785119533539, 0.020099762827157974, -0.04443282261490822, -0.2921779751777649, -0.011022021062672138, 0.10772218555212021, -0.05638066679239273, 0.06633511930704117, 0.0509943813085556]', '2025-11-30 08:46:56'),
+(48, 'Bác Sĩ X-Quang', 'xquang@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 16, 'Chẩn đoán hình ảnh', 'XQ001', 10, '2025-09-26 07:16:15', '2025-11-27 08:38:02', NULL, NULL, NULL),
+(49, 'Xét nghiệm', 'untt1608@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 17, 'Xét nghiệm', NULL, 12, '2025-09-27 08:25:38', '2025-11-28 09:22:38', NULL, NULL, NULL),
+(50, 'BS Siêu Âm', 'sieuam@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 18, 'Siêu âm', '111', 20, '2025-10-10 19:52:54', '2025-11-27 08:38:47', NULL, NULL, NULL),
+(51, 'GSTS Cường', 'Cuong@gmail.com', '$2y$10$KNTQBO3N/YQnSdptvUSwXOJaPXc5UKlkyPN//9Ci17ahxdnAsDQrS', '0913996110', 1, 'Tim mạch', '32424', 15, '2025-11-25 08:17:28', '2025-11-25 09:21:36', 'uploads/doctor_1764058648_8ec3caa3.png', NULL, NULL),
+(54, 'BS Siêu', 'sbxcvbxcb@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456788', 18, 'Siêu âm', '111', 20, '2025-10-10 19:52:54', '2025-11-27 08:38:47', NULL, NULL, NULL),
+(79, 'GSTS. bxcbxcvxcvbcxvb', 'vzxcv@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 6, 'Mắt', 'TM001', 15, '2025-08-12 09:06:03', '2025-11-25 09:21:47', 'uploads/bacsiviet.png', NULL, NULL),
+(80, 'Bác Sĩ X', 'xquang1231zxcvzxcv23@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 16, 'Chẩn đoán hình ảnh', 'XQ001', 10, '2025-09-26 07:16:15', '2025-11-27 08:38:02', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -144,8 +167,10 @@ CREATE TABLE `bien_lai_vien_phi` (
 -- Đang đổ dữ liệu cho bảng `bien_lai_vien_phi`
 --
 
-INSERT INTO `bien_lai_vien_phi` (`id`, `ma_bien_lai`, `id_phieu_kham_benh`, `tong_tien_co_ban`, `tong_quy_bhyt`, `tong_nguoi_benh`, `ngay_lap`, `nguoi_lap`, `trang_thai`, `ghi_chu`, `created_at`, `updated_at`) VALUES
-(16, 'BL202511271358', 40, 993000.00, 0.00, 993000.00, '2025-11-27 15:43:28', 'GSTS. Cao Việt', 'Đã thanh toán chuyển khoản', 'Biên lai tự động tạo từ hệ thống', '2025-11-27 08:43:28', '2025-11-27 08:45:12');
+INSERT INTO `bien_lai_vien_phi` (`id`, `ma_bien_lai`, `id_phieu_kham_benh`, `id_le_tan`, `id_bac_si`, `tong_tien_co_ban`, `tong_quy_bhyt`, `tong_nguoi_benh`, `ngay_lap`, `nguoi_lap`, `trang_thai`, `ghi_chu`, `created_at`, `updated_at`) VALUES
+(16, 'BL202511271358', 40, NULL, 1, 993000.00, 0.00, 993000.00, '2025-11-27 15:43:28', 'GSTS. Cao Việt', 'Đã thanh toán chuyển khoản', 'Biên lai tự động tạo từ hệ thống', '2025-11-27 08:43:28', '2025-11-30 10:02:37'),
+(17, 'BL202511295052', 43, NULL, 1, 100000.00, 0.00, 100000.00, '2025-11-29 01:11:54', 'GSTS. Cao Việt', 'Đã thanh toán tiền mặt', 'Biên lai tự động tạo từ hệ thống', '2025-11-28 18:11:54', '2025-11-30 10:02:37'),
+(18, 'BL202511306315', 44, 1, 1, 200000.00, 0.00, 200000.00, '2025-11-30 17:05:54', 'GSTS. Cao Việt', 'Đã thanh toán tiền mặt', 'Biên lai tự động tạo từ hệ thống', '2025-11-30 10:05:54', '2025-11-30 10:16:26');
 
 -- --------------------------------------------------------
 
@@ -175,6 +200,33 @@ INSERT INTO `cccd_data` (`id`, `cccd`, `ten`, `ngay_sinh`, `gioi_tinh`, `dia_chi
 (1, '001234567890', 'Cao Dương Quốc Việt', '2003-03-22', 'Nam', 'An Giang', '2020-01-01', 'Cục cảnh sát ĐKQL cư trú và DLQG về dân cư', 1, '2025-11-09 06:13:23', '2025-11-09 06:13:23'),
 (2, '001234567891', 'Ung Nguyễn Trường Thịnh', '2003-03-22', 'Nam', 'Hồ Chí Minh', '2020-06-15', 'Cục cảnh sát ĐKQL cư trú và DLQG về dân cư', 1, '2025-11-09 06:13:23', '2025-11-09 06:13:23'),
 (3, '003456789012', 'Lê Văn C', '1988-12-10', 'Nữ', 'Đà Nẵng', '2019-03-20', 'Cục cảnh sát ĐKQL cư trú và DLQG về dân cư', 1, '2025-11-09 06:13:23', '2025-11-09 06:13:23');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `cham_cong`
+--
+
+CREATE TABLE `cham_cong` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL COMMENT 'ID của bác sĩ hoặc lễ tân',
+  `user_type` enum('doctor','reception') NOT NULL COMMENT 'Loại người dùng: bác sĩ hoặc lễ tân',
+  `ngay_cham` date NOT NULL COMMENT 'Ngày chấm công',
+  `gio_vao` time DEFAULT NULL COMMENT 'Giờ vào làm',
+  `gio_ra` time DEFAULT NULL COMMENT 'Giờ ra về',
+  `trang_thai` enum('check_in','check_out','completed') DEFAULT 'check_in' COMMENT 'Trạng thái: đã vào, đã ra, hoàn thành',
+  `ghi_chu` text DEFAULT NULL COMMENT 'Ghi chú (nếu có)',
+  `face_id_data` text DEFAULT NULL COMMENT 'Dữ liệu face recognition (embedding hoặc face ID)',
+  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Bảng chấm công bằng face recognition';
+
+--
+-- Đang đổ dữ liệu cho bảng `cham_cong`
+--
+
+INSERT INTO `cham_cong` (`id`, `user_id`, `user_type`, `ngay_cham`, `gio_vao`, `gio_ra`, `trang_thai`, `ghi_chu`, `face_id_data`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(2, 1, 'doctor', '2025-11-30', '16:19:28', '16:19:45', 'completed', NULL, '{\"recognized_user_id\":1,\"confidence\":0.7616,\"recognized_at\":\"2025-11-30 16:19:45\"}', '2025-11-30 09:19:28', '2025-11-30 09:19:45');
 
 -- --------------------------------------------------------
 
@@ -461,6 +513,23 @@ INSERT INTO `don_thuoc` (`MaDonThuoc`, `MaBenhNhan`, `MaBacSi`, `id_phieu_kham_b
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `face_encodings`
+--
+
+CREATE TABLE `face_encodings` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL COMMENT 'ID của nhân viên (bác sĩ, lễ tân, admin)',
+  `user_type` enum('doctor','reception','admin') NOT NULL COMMENT 'Loại nhân viên',
+  `face_encoding` text NOT NULL COMMENT 'Face encoding dạng JSON array',
+  `sample_image_path` varchar(500) DEFAULT NULL COMMENT 'Đường dẫn ảnh mẫu',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Bảng lưu face encodings của nhân viên';
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `ho_so_benh_an`
 --
 
@@ -539,6 +608,8 @@ CREATE TABLE `le_tan` (
   `email` varchar(255) NOT NULL,
   `mat_khau` varchar(255) NOT NULL,
   `so_dien_thoai` varchar(20) DEFAULT NULL,
+  `face_encoding` text DEFAULT NULL COMMENT 'Face encoding dạng JSON array',
+  `face_encoding_updated` timestamp NULL DEFAULT NULL COMMENT 'Thời gian cập nhật face encoding',
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -547,9 +618,9 @@ CREATE TABLE `le_tan` (
 -- Đang đổ dữ liệu cho bảng `le_tan`
 --
 
-INSERT INTO `le_tan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 'Lễ tân A\r\n', '', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', '2025-10-20 21:03:32', '2025-11-28 10:37:45'),
-(2, 'Lễ tân B', '', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456788', '2025-10-20 21:03:32', '2025-11-28 10:38:04');
+INSERT INTO `le_tan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `face_encoding`, `face_encoding_updated`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 'Lễ tân A\r\n', '', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', NULL, NULL, '2025-10-20 21:03:32', '2025-11-28 10:37:45'),
+(2, 'Lễ tân B', '', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456788', NULL, NULL, '2025-10-20 21:03:32', '2025-11-28 10:38:04');
 
 -- --------------------------------------------------------
 
@@ -578,13 +649,8 @@ CREATE TABLE `lich_hen` (
 --
 
 INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(209, 45, 1, '2025-11-28', '16:40:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-11-28 09:31:15', '2025-11-28 09:34:04'),
-(210, 45, 51, '2025-11-28', '16:40:00', NULL, 'Tại viện', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-11-28 09:32:15', '2025-11-28 09:32:15'),
-(211, 45, 1, '2025-11-28', '16:50:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-11-28 09:32:21', '2025-11-28 09:51:54'),
-(212, 45, 51, '2025-11-28', '16:50:00', NULL, 'Tại viện', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-11-28 09:32:26', '2025-11-28 09:32:26'),
-(213, 45, 1, '2025-11-28', '17:00:00', NULL, 'Tại viện', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-11-28 09:32:30', '2025-11-28 09:32:30'),
-(214, 45, 51, '2025-11-28', '17:00:00', NULL, 'Tại viện', NULL, NULL, 'Đã xác nhận', 'Lễ tân phát số walk-in', '2025-11-28 09:32:35', '2025-11-28 09:32:35'),
-(215, 45, 48, '2025-11-28', '16:40:00', 'Chụp X-Quang', 'Tại viện', NULL, NULL, 'Đã xác nhận', 'Tự động tạo từ Chụp X-Quang cho phiếu khám #41', '2025-11-28 09:34:33', '2025-11-28 09:34:33');
+(217, 45, 1, '2025-11-29', '07:00:00', '', 'Trực tiếp', NULL, '', 'Hoàn thành', NULL, '2025-11-28 18:09:34', '2025-11-28 18:27:28'),
+(218, 45, 1, '2025-11-30', '17:10:00', NULL, 'Tại viện', NULL, NULL, 'Đang khám', NULL, '2025-11-30 10:05:05', '2025-11-30 10:06:09');
 
 -- --------------------------------------------------------
 
@@ -614,8 +680,13 @@ INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`,
 (32, 1, 'Thứ 6', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-28 08:39:05', '2025-11-28 08:39:05'),
 (35, 51, 'Thứ 6', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-28 09:27:08', '2025-11-28 09:32:07'),
 (37, 48, 'Thứ 6', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-28 10:09:00', '2025-11-28 10:09:00'),
-(38, 53, 'Thứ 6', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-28 10:10:31', '2025-11-28 10:10:31'),
-(39, 53, 'Thứ 6', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-28 10:17:03', '2025-11-28 10:17:03');
+(41, 1, 'Thứ 7', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-28 18:09:13', '2025-11-28 18:09:13'),
+(42, 1, 'Chủ nhật', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-30 10:05:00', '2025-11-30 10:05:00'),
+(43, 1, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-30 14:29:03', '2025-11-30 14:29:03'),
+(44, 48, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-30 14:29:12', '2025-11-30 14:29:12'),
+(45, 50, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-30 14:29:23', '2025-11-30 14:29:23'),
+(46, 51, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-30 14:29:53', '2025-11-30 14:29:53'),
+(47, 49, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-30 14:30:20', '2025-11-30 14:30:20');
 
 -- --------------------------------------------------------
 
@@ -641,7 +712,10 @@ CREATE TABLE `lich_lam_viec_le_tan` (
 --
 
 INSERT INTO `lich_lam_viec_le_tan` (`id`, `letan_id`, `thu_trong_tuan`, `gio_bat_dau`, `gio_ket_thuc`, `loai_ca`, `ghi_chu`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(3, 1, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-28 13:03:44', '2025-11-28 13:03:44');
+(3, 1, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-28 13:03:44', '2025-11-28 13:03:44'),
+(4, 1, 'Chủ nhật', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-30 14:28:12', '2025-11-30 14:28:12'),
+(5, 1, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-30 14:30:39', '2025-11-30 14:30:39'),
+(6, 2, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-30 14:30:50', '2025-11-30 14:30:50');
 
 -- --------------------------------------------------------
 
@@ -760,7 +834,8 @@ INSERT INTO `phieu_boc_so` (`id`, `ngay`, `so_thu_tu`, `benh_nhan_id`, `bac_si_i
 (85, '2025-11-28', 3, 45, 1, 211, 'dang_kham', 0, NULL, NULL, NULL, '2025-11-28 16:51:09', NULL, '2025-11-28 09:32:21', '2025-11-28 09:51:09'),
 (86, '2025-11-28', 4, 45, 51, 212, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-11-28 09:32:26', '2025-11-28 09:32:26'),
 (87, '2025-11-28', 5, 45, 1, 213, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-11-28 09:32:30', '2025-11-28 09:32:30'),
-(88, '2025-11-28', 6, 45, 51, 214, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-11-28 09:32:35', '2025-11-28 09:32:35');
+(88, '2025-11-28', 6, 45, 51, 214, 'cho', 0, NULL, NULL, NULL, NULL, NULL, '2025-11-28 09:32:35', '2025-11-28 09:32:35'),
+(89, '2025-11-30', 1, 45, 1, 218, 'dang_kham', 0, NULL, NULL, NULL, '2025-11-30 17:05:34', NULL, '2025-11-30 10:05:05', '2025-11-30 10:05:34');
 
 -- --------------------------------------------------------
 
@@ -859,8 +934,10 @@ CREATE TABLE `phieu_kham_benh` (
 
 INSERT INTO `phieu_kham_benh` (`id`, `id_lich_hen`, `benh_nhan_id`, `bac_si_id`, `so_y_te`, `benh_vien`, `buong_kham`, `ho_ten`, `ngay_sinh`, `thang_sinh`, `nam_sinh`, `tuoi`, `gioi_tinh`, `nghe_nghiep`, `dan_toc`, `ngoai_kieu`, `noi_lam_viec`, `dia_chi`, `doi_tuong_bhyt`, `doi_tuong_thu_phi`, `doi_tuong_mien`, `doi_tuong_khac`, `bhyt_ngay`, `bhyt_thang`, `bhyt_nam`, `so_the_bhyt`, `dien_thoai_bao_tin`, `gio_kham`, `phut_kham`, `ngay_kham`, `thang_kham`, `nam_kham`, `chan_doan_gioi_thieu`, `qua_trinh_benh_li`, `tien_su_ban_than`, `tien_su_gia_dinh`, `kham_toan_than`, `mach`, `nhiet_do`, `huyet_ap_tam_thu`, `huyet_ap_tam_truong`, `nhip_tho`, `kham_cac_bo_phan`, `tom_tat_lam_sang`, `chan_doan_vao_vien`, `da_xu_li`, `khoa_dieu_tri`, `chu_y`, `ngay_ky`, `thang_ky`, `nam_ky`, `ten_bac_si`, `lich_hen`, `created_at`, `updated_at`) VALUES
 (40, NULL, 44, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913992110', NULL, NULL, 27, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Đau bụng ', '', '', '', 27, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-27 08:34:39', '2025-11-27 08:34:39'),
-(41, 209, 45, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'CAO DƯƠNG QUỐC VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 28, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'zxczxc', '', '', '', 28, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-28 09:34:19', '2025-11-28 09:34:19'),
-(42, 211, 45, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'CAO DƯƠNG QUỐC VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 28, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'zxcvzxcv', '', '', '', 28, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-28 09:51:23', '2025-11-28 09:51:23');
+(41, NULL, 45, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'CAO DƯƠNG QUỐC VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 28, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'zxczxc', '', '', '', 28, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-28 09:34:19', '2025-11-28 09:34:19'),
+(42, NULL, 45, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'CAO DƯƠNG QUỐC VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 28, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'zxcvzxcv', '', '', '', 28, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-28 09:51:23', '2025-11-28 09:51:23'),
+(43, 217, 45, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'CAO DƯƠNG QUỐC VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 29, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'zxvv', '', '', '', 29, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-28 18:11:44', '2025-11-28 18:11:44'),
+(44, 218, 45, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'CAO DƯƠNG QUỐC VIỆT', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 30, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'vào viện', '', '', '', 30, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-30 10:05:50', '2025-11-30 10:05:50');
 
 -- --------------------------------------------------------
 
@@ -1010,6 +1087,8 @@ CREATE TABLE `quan_tri_vien` (
   `email` varchar(255) NOT NULL,
   `mat_khau` varchar(255) NOT NULL,
   `so_dien_thoai` varchar(20) DEFAULT NULL,
+  `face_encoding` text DEFAULT NULL COMMENT 'Face encoding dạng JSON array',
+  `face_encoding_updated` timestamp NULL DEFAULT NULL COMMENT 'Thời gian cập nhật face encoding',
   `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1018,8 +1097,8 @@ CREATE TABLE `quan_tri_vien` (
 -- Đang đổ dữ liệu cho bảng `quan_tri_vien`
 --
 
-INSERT INTO `quan_tri_vien` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 'admin', 'admin@gmail.com', '$2y$10$yhTSpU/RsVsqqst2e48peOojd/lGjmkkO30KVX3rTHXrkCcG65oR6', '0123456789', '2025-08-12 07:44:29', '2025-09-06 08:35:36');
+INSERT INTO `quan_tri_vien` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `face_encoding`, `face_encoding_updated`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 'admin', 'admin@gmail.com', '$2y$10$yhTSpU/RsVsqqst2e48peOojd/lGjmkkO30KVX3rTHXrkCcG65oR6', '0123456789', NULL, NULL, '2025-08-12 07:44:29', '2025-09-06 08:35:36');
 
 -- --------------------------------------------------------
 
@@ -1136,9 +1215,16 @@ INSERT INTO `thong_bao` (`id`, `doi_tuong`, `bac_si_id`, `benh_nhan_id`, `quan_t
 (32, 'bac_si', 1, NULL, NULL, 'warning', 'Bệnh nhân Cao Dương Quốc Việt đã hủy lịch hẹn vào 2025-11-12 lúc 16:30:00', '{\"appointmentId\":143,\"patientId\":43,\"doctorId\":1,\"patientName\":\"Cao Dương Quốc Việt\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-11-12\",\"appointmentTime\":\"16:30:00\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã hủy lịch hẹn vào 2025-11-12 lúc 16:30:00\",\"timestamp\":\"2025-11-25 14:17:48\"}', 1, '2025-11-25 07:17:48'),
 (33, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 25-11-2025 lúc 14:40', '{\"doctorId\":\"1\",\"patientId\":43,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-11-25\",\"appointmentTime\":\"14:40\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 25-11-2025 lúc 14:40\",\"timestamp\":\"2025-11-25 14:36:04\"}', 1, '2025-11-25 07:36:04'),
 (36, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 25-11-2025 lúc 16:20', '{\"doctorId\":\"1\",\"patientId\":43,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-11-25\",\"appointmentTime\":\"16:20\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 25-11-2025 lúc 16:20\",\"timestamp\":\"2025-11-25 15:52:21\"}', 1, '2025-11-25 08:52:21'),
-(38, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 28-11-2025 lúc 16:30', '{\"doctorId\":\"1\",\"patientId\":45,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-11-28\",\"appointmentTime\":\"16:30\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 28-11-2025 lúc 16:30\",\"timestamp\":\"2025-11-28 16:24:47\"}', 0, '2025-11-28 09:24:47'),
-(39, 'benh_nhan', NULL, 45, NULL, 'success', 'Bạn đã đặt lịch hẹn thành công với bác sĩ GSTS. Cao Việt vào 28-11-2025 lúc 16:30', '{\"patientId\":45,\"doctorId\":\"1\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-11-28\",\"appointmentTime\":\"16:30\",\"message\":\"Bạn đã đặt lịch hẹn thành công với bác sĩ GSTS. Cao Việt vào 28-11-2025 lúc 16:30\",\"timestamp\":\"2025-11-28 16:24:47\"}', 0, '2025-11-28 09:24:47'),
-(40, 'benh_nhan', NULL, 45, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 28-11-2025 thành: Đã xác nhận', '{\"appointmentId\":208,\"patientId\":45,\"doctorId\":1,\"patientName\":\"Cao Dương Quốc Việt\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-11-28\",\"appointmentTime\":\"16:30:00\",\"newStatus\":\"Đã xác nhận\",\"note\":\"\",\"timestamp\":\"2025-11-28 16:25:56\",\"message\":\"Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 28-11-2025 thành: Đã xác nhận\"}', 0, '2025-11-28 09:25:56');
+(38, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 28-11-2025 lúc 16:30', '{\"doctorId\":\"1\",\"patientId\":45,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-11-28\",\"appointmentTime\":\"16:30\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 28-11-2025 lúc 16:30\",\"timestamp\":\"2025-11-28 16:24:47\"}', 1, '2025-11-28 09:24:47'),
+(39, 'benh_nhan', NULL, 45, NULL, 'success', 'Bạn đã đặt lịch hẹn thành công với bác sĩ GSTS. Cao Việt vào 28-11-2025 lúc 16:30', '{\"patientId\":45,\"doctorId\":\"1\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-11-28\",\"appointmentTime\":\"16:30\",\"message\":\"Bạn đã đặt lịch hẹn thành công với bác sĩ GSTS. Cao Việt vào 28-11-2025 lúc 16:30\",\"timestamp\":\"2025-11-28 16:24:47\"}', 1, '2025-11-28 09:24:47'),
+(40, 'benh_nhan', NULL, 45, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 28-11-2025 thành: Đã xác nhận', '{\"appointmentId\":208,\"patientId\":45,\"doctorId\":1,\"patientName\":\"Cao Dương Quốc Việt\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-11-28\",\"appointmentTime\":\"16:30:00\",\"newStatus\":\"Đã xác nhận\",\"note\":\"\",\"timestamp\":\"2025-11-28 16:25:56\",\"message\":\"Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 28-11-2025 thành: Đã xác nhận\"}', 1, '2025-11-28 09:25:56'),
+(41, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 05-12-2025 lúc 07:00', '{\"doctorId\":\"1\",\"patientId\":45,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-12-05\",\"appointmentTime\":\"07:00\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 05-12-2025 lúc 07:00\",\"timestamp\":\"2025-11-28 21:28:14\"}', 1, '2025-11-28 14:28:16'),
+(42, 'benh_nhan', NULL, 45, NULL, 'success', 'Bạn đã đặt lịch hẹn thành công với bác sĩ GSTS. Cao Việt vào 05-12-2025 lúc 07:00', '{\"patientId\":45,\"doctorId\":\"1\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-12-05\",\"appointmentTime\":\"07:00\",\"message\":\"Bạn đã đặt lịch hẹn thành công với bác sĩ GSTS. Cao Việt vào 05-12-2025 lúc 07:00\",\"timestamp\":\"2025-11-28 21:28:16\"}', 1, '2025-11-28 14:28:18'),
+(43, 'benh_nhan', NULL, 45, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 05-12-2025 thành: Đã xác nhận', '{\"appointmentId\":216,\"patientId\":45,\"doctorId\":1,\"patientName\":\"Cao Dương Quốc Việt\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-12-05\",\"appointmentTime\":\"07:00:00\",\"newStatus\":\"Đã xác nhận\",\"note\":\"\",\"timestamp\":\"2025-11-28 21:29:16\",\"message\":\"Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 05-12-2025 thành: Đã xác nhận\"}', 1, '2025-11-28 14:29:18'),
+(44, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 29-11-2025 lúc 07:00', '{\"doctorId\":\"1\",\"patientId\":45,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-11-29\",\"appointmentTime\":\"07:00\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 29-11-2025 lúc 07:00\",\"timestamp\":\"2025-11-29 01:09:34\"}', 1, '2025-11-28 18:09:36'),
+(45, 'benh_nhan', NULL, 45, NULL, 'success', 'Bạn đã đặt lịch hẹn thành công với bác sĩ GSTS. Cao Việt vào 29-11-2025 lúc 07:00', '{\"patientId\":45,\"doctorId\":\"1\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-11-29\",\"appointmentTime\":\"07:00\",\"message\":\"Bạn đã đặt lịch hẹn thành công với bác sĩ GSTS. Cao Việt vào 29-11-2025 lúc 07:00\",\"timestamp\":\"2025-11-29 01:09:36\"}', 1, '2025-11-28 18:09:38'),
+(46, 'benh_nhan', NULL, 45, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 29-11-2025 thành: Đã xác nhận', '{\"appointmentId\":217,\"patientId\":45,\"doctorId\":1,\"patientName\":\"Cao Dương Quốc Việt\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-11-29\",\"appointmentTime\":\"07:00:00\",\"newStatus\":\"Đã xác nhận\",\"note\":\"Bác sĩ đã xác nhận\",\"timestamp\":\"2025-11-29 01:10:56\",\"message\":\"Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 29-11-2025 thành: Đã xác nhận\"}', 1, '2025-11-28 18:10:58'),
+(47, 'benh_nhan', NULL, 45, NULL, 'info', 'Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 29-11-2025 thành: Đã xác nhận', '{\"appointmentId\":217,\"patientId\":45,\"doctorId\":1,\"patientName\":\"Cao Dương Quốc Việt\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-11-29\",\"appointmentTime\":\"07:00:00\",\"newStatus\":\"Đã xác nhận\",\"note\":\"Bác sĩ đã xác nhận\",\"timestamp\":\"2025-11-29 01:11:07\",\"message\":\"Bác sĩ GSTS. Cao Việt đã cập nhật trạng thái lịch hẹn ngày 29-11-2025 thành: Đã xác nhận\"}', 1, '2025-11-28 18:11:09');
 
 -- --------------------------------------------------------
 
@@ -1268,6 +1354,15 @@ INSERT INTO `xray_suggestions` (`id`, `ten_goi_y`, `gia_tien`, `mo_ta`, `loai_ch
 --
 
 --
+-- Chỉ mục cho bảng `attendance`
+--
+ALTER TABLE `attendance`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user` (`user_id`,`user_type`),
+  ADD KEY `idx_date` (`check_in_time`),
+  ADD KEY `idx_status` (`status`);
+
+--
 -- Chỉ mục cho bảng `bac_si`
 --
 ALTER TABLE `bac_si`
@@ -1300,9 +1395,9 @@ ALTER TABLE `bien_lai_vien_phi`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `ma_bien_lai` (`ma_bien_lai`),
   ADD KEY `id_phieu_kham_benh` (`id_phieu_kham_benh`),
-  ADD KEY `id_le_tan` (`id_le_tan`),
-  ADD KEY `id_bac_si` (`id_bac_si`),
-  ADD KEY `ngay_lap` (`ngay_lap`);
+  ADD KEY `ngay_lap` (`ngay_lap`),
+  ADD KEY `idx_id_le_tan` (`id_le_tan`),
+  ADD KEY `idx_id_bac_si` (`id_bac_si`);
 
 --
 -- Chỉ mục cho bảng `cccd_data`
@@ -1312,6 +1407,15 @@ ALTER TABLE `cccd_data`
   ADD UNIQUE KEY `uk_cccd` (`cccd`),
   ADD KEY `idx_cccd` (`cccd`),
   ADD KEY `idx_trang_thai` (`trang_thai`);
+
+--
+-- Chỉ mục cho bảng `cham_cong`
+--
+ALTER TABLE `cham_cong`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_daily_checkin` (`user_id`,`user_type`,`ngay_cham`),
+  ADD KEY `idx_user_date` (`user_id`,`user_type`,`ngay_cham`),
+  ADD KEY `idx_ngay_cham` (`ngay_cham`);
 
 --
 -- Chỉ mục cho bảng `chi_so_xet_nghiem`
@@ -1368,6 +1472,14 @@ ALTER TABLE `don_thuoc`
   ADD KEY `idx_benh_nhan` (`MaBenhNhan`),
   ADD KEY `idx_bac_si` (`MaBacSi`),
   ADD KEY `idx_phieu_kham` (`id_phieu_kham_benh`);
+
+--
+-- Chỉ mục cho bảng `face_encodings`
+--
+ALTER TABLE `face_encodings`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user` (`user_id`,`user_type`),
+  ADD KEY `idx_active` (`is_active`);
 
 --
 -- Chỉ mục cho bảng `ho_so_benh_an`
@@ -1570,10 +1682,16 @@ ALTER TABLE `xray_suggestions`
 --
 
 --
+-- AUTO_INCREMENT cho bảng `attendance`
+--
+ALTER TABLE `attendance`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT cho bảng `bac_si`
 --
 ALTER TABLE `bac_si`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT cho bảng `bao_hiem_y_te`
@@ -1591,13 +1709,19 @@ ALTER TABLE `benh_nhan`
 -- AUTO_INCREMENT cho bảng `bien_lai_vien_phi`
 --
 ALTER TABLE `bien_lai_vien_phi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT cho bảng `cccd_data`
 --
 ALTER TABLE `cccd_data`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT cho bảng `cham_cong`
+--
+ALTER TABLE `cham_cong`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT cho bảng `chi_so_xet_nghiem`
@@ -1636,6 +1760,12 @@ ALTER TABLE `dich_vu_kham`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT cho bảng `face_encodings`
+--
+ALTER TABLE `face_encodings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
@@ -1669,19 +1799,19 @@ ALTER TABLE `le_tan`
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=216;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=219;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec_le_tan`
 --
 ALTER TABLE `lich_lam_viec_le_tan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec_le_tan_ngoai_le`
@@ -1699,7 +1829,7 @@ ALTER TABLE `lich_lam_viec_ngoai_le`
 -- AUTO_INCREMENT cho bảng `phieu_boc_so`
 --
 ALTER TABLE `phieu_boc_so`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_chup_xquang`
@@ -1711,7 +1841,7 @@ ALTER TABLE `phieu_chup_xquang`
 -- AUTO_INCREMENT cho bảng `phieu_kham_benh`
 --
 ALTER TABLE `phieu_kham_benh`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_tien_su_di_ung`
@@ -1759,7 +1889,7 @@ ALTER TABLE `sieu_am_hinh_anh`
 -- AUTO_INCREMENT cho bảng `thong_bao`
 --
 ALTER TABLE `thong_bao`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT cho bảng `xet_nghiem_suggestions`

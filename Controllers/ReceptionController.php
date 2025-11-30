@@ -1053,12 +1053,19 @@ class ReceptionController
                 $paymentStatus = 'Đã thanh toán tiền mặt';
             }
 
-            // Cập nhật trạng thái thanh toán
+            // Lấy id_le_tan từ session (nếu là reception)
+            $idLeTan = null;
+            if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'letan') {
+                $idLeTan = $_SESSION['user_id'] ?? null;
+            }
+
+            // Cập nhật trạng thái thanh toán và id_le_tan
             $result = $this->bienLaiModel->updatePaymentStatus(
                 $receiptId,
                 $paymentStatus,
                 $paymentMethod,
-                $paymentNote
+                $paymentNote,
+                $idLeTan
             );
 
             if (!$result) {
@@ -1156,12 +1163,19 @@ class ReceptionController
                 $receiptId = explode('_', $txnRef)[1] ?? null;
 
                 if ($receiptId) {
-                    // Update receipt status
+                    // Lấy id_le_tan từ session (nếu là reception)
+                    $idLeTan = null;
+                    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'letan') {
+                        $idLeTan = $_SESSION['user_id'] ?? null;
+                    }
+
+                    // Update receipt status và id_le_tan
                     $this->bienLaiModel->updatePaymentStatus(
                         $receiptId,
                         'Đã thanh toán chuyển khoản',
                         'Thanh toán VNPAY',
-                        'VNPAY Transaction: ' . $result['transaction_id']
+                        'VNPAY Transaction: ' . $result['transaction_id'],
+                        $idLeTan
                     );
                 }
 
@@ -1214,6 +1228,165 @@ class ReceptionController
                 'success' => false,
                 'message' => 'Lỗi khi lấy danh sách biên lai'
             ]);
+        }
+    }
+
+    /**
+     * Trang chấm công cho lễ tân
+     */
+    public function attendance()
+    {
+        $this->auth->requireAuth('letan');
+
+        $page_title = 'Chấm công';
+
+        ob_start();
+        include 'Views/reception/attendance.php';
+        $content = ob_get_clean();
+
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * API: Chấm công check-in/check-out
+     */
+    public function processAttendance()
+    {
+        $this->auth->requireAuth('letan');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $action = trim($input['action'] ?? ''); // 'check_in' hoặc 'check_out'
+        $faceEncoding = $input['face_encoding'] ?? null;
+        $imageData = $input['image_data'] ?? null;
+
+        if (empty($action) || !in_array($action, ['check_in', 'check_out']) || empty($faceEncoding)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc!']);
+            exit();
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        $userType = 'reception';
+
+        if (!$userId) {
+            echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập!']);
+            exit();
+        }
+
+        require_once 'Models/Attendance.php';
+        $attendanceModel = new Attendance();
+
+        // Lưu ảnh nếu có
+        $imagePath = null;
+        if ($imageData) {
+            $imagePath = $this->saveAttendanceImage($imageData, $userId, $userType, $action);
+        }
+
+        // So sánh face encoding để xác nhận danh tính (so sánh trực tiếp với face encoding của user)
+        $faceEncodingJson = is_string($faceEncoding) ? $faceEncoding : json_encode($faceEncoding);
+        $comparison = $attendanceModel->compareFaceWithUser($faceEncodingJson, $userId, $userType);
+
+        if (!$comparison['match']) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Không nhận diện được khuôn mặt hoặc không khớp với tài khoản! ' . ($comparison['message'] ?? ''),
+                'distance' => $comparison['distance'] ?? null,
+                'threshold' => $comparison['threshold'] ?? null,
+                'debug' => $comparison
+            ]);
+            exit();
+        }
+
+        // Xử lý check-in hoặc check-out
+        if ($action === 'check_in') {
+            $result = $attendanceModel->checkIn($userId, $userType, $faceEncodingJson, $imagePath);
+        } else {
+            $result = $attendanceModel->checkOut($userId, $userType, $faceEncodingJson, $imagePath);
+        }
+
+        if ($result['success']) {
+            $result['confidence'] = $recognized['confidence'] ?? 1.0;
+        }
+
+        echo json_encode($result);
+        exit();
+    }
+
+    /**
+     * Lưu ảnh chấm công
+     */
+    private function saveAttendanceImage($imageData, $userId, $userType, $action)
+    {
+        try {
+            // Loại bỏ phần "data:image/png;base64," nếu có
+            if (strpos($imageData, ',') !== false) {
+                $imageData = explode(',', $imageData)[1];
+            }
+
+            $imageData = base64_decode($imageData);
+            if ($imageData === false) {
+                return null;
+            }
+
+            $uploadDir = __DIR__ . '/../uploads/attendance/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $fileName = $action . '_' . $userId . '_' . $userType . '_' . time() . '.jpg';
+            $filePath = $uploadDir . $fileName;
+
+            file_put_contents($filePath, $imageData);
+
+            return 'uploads/attendance/' . $fileName;
+        } catch (Exception $e) {
+            error_log("Error saving attendance image: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * API: Lấy trạng thái chấm công hôm nay
+     */
+    public function getTodayAttendance()
+    {
+        try {
+            $this->auth->requireAuth('letan');
+            header('Content-Type: application/json; charset=utf-8');
+
+            $userId = $_SESSION['user_id'] ?? null;
+            $userType = 'reception';
+
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập!']);
+                exit();
+            }
+
+            require_once 'Models/Attendance.php';
+            $attendanceModel = new Attendance();
+
+            $status = $attendanceModel->getTodayStatus($userId, $userType);
+
+            echo json_encode([
+                'success' => true,
+                'status' => $status ?: null
+            ]);
+            exit();
+        } catch (Exception $e) {
+            error_log("Error in getTodayAttendance: " . $e->getMessage());
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi khi lấy thông tin chấm công: ' . $e->getMessage()
+            ]);
+            exit();
         }
     }
 }
