@@ -127,6 +127,8 @@ CREATE TABLE `bien_lai_vien_phi` (
   `id` int(11) NOT NULL,
   `ma_bien_lai` varchar(50) NOT NULL,
   `id_phieu_kham_benh` int(11) NOT NULL,
+  `id_le_tan` int(11) DEFAULT NULL COMMENT 'ID lễ tân lập biên lai',
+  `id_bac_si` int(11) DEFAULT NULL COMMENT 'ID bác sĩ khám bệnh',
   `tong_tien_co_ban` decimal(15,2) DEFAULT 0.00,
   `tong_quy_bhyt` decimal(15,2) DEFAULT 0.00,
   `tong_nguoi_benh` decimal(15,2) DEFAULT 0.00,
@@ -1298,6 +1300,8 @@ ALTER TABLE `bien_lai_vien_phi`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `ma_bien_lai` (`ma_bien_lai`),
   ADD KEY `id_phieu_kham_benh` (`id_phieu_kham_benh`),
+  ADD KEY `id_le_tan` (`id_le_tan`),
+  ADD KEY `id_bac_si` (`id_bac_si`),
   ADD KEY `ngay_lap` (`ngay_lap`);
 
 --

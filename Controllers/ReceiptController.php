@@ -7,9 +7,11 @@ class ReceiptController
 {
     private $receiptDataModel;
     private $bienLaiModel;
+    private $db;
 
     public function __construct($database)
     {
+        $this->db = $database;
         $this->receiptDataModel = new ReceiptData($database);
         $this->bienLaiModel = new BienLai();
     }
@@ -21,7 +23,7 @@ class ReceiptController
     {
         try {
             $examId = $_GET['exam_id'] ?? '';
-            
+
             if (empty($examId)) {
                 echo json_encode(['success' => false, 'message' => 'ID phiếu khám không hợp lệ']);
                 return;
@@ -29,17 +31,16 @@ class ReceiptController
 
             $requests = $this->receiptDataModel->getAllRequests($examId);
             $medications = $this->receiptDataModel->getMedications($examId);
-            
+
             // Lấy huong_muc từ bao_hiem_y_te của bệnh nhân
             $huongMuc = $this->getBhytHuongMuc($examId);
-            
+
             echo json_encode([
                 'success' => true,
                 'data' => $requests,
                 'medications' => $medications,
                 'huong_muc' => $huongMuc
             ]);
-            
         } catch (Exception $e) {
             error_log('ReceiptController getReceiptData error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -56,32 +57,31 @@ class ReceiptController
             require_once 'config/database.php';
             $database = new Database();
             $pdo = $database->getConnection();
-            
+
             // Lấy bao_hiem_y_te_id từ bệnh nhân thông qua exam_id
             $sql = "SELECT bn.bao_hiem_y_te_id 
                     FROM phieu_kham_benh pk
                     JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                     WHERE pk.id = ?";
-            
+
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$examId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($result && !empty($result['bao_hiem_y_te_id'])) {
                 // Lấy huong_muc từ bao_hiem_y_te (chỉ lấy giá trị thực tế từ database)
                 $sql2 = "SELECT huong_muc FROM bao_hiem_y_te WHERE id = ? AND huong_muc IS NOT NULL AND huong_muc > 0";
                 $stmt2 = $pdo->prepare($sql2);
                 $stmt2->execute([$result['bao_hiem_y_te_id']]);
                 $bhyt = $stmt2->fetch(PDO::FETCH_ASSOC);
-                
+
                 if ($bhyt && isset($bhyt['huong_muc']) && $bhyt['huong_muc'] > 0) {
                     return (float)$bhyt['huong_muc'];
                 }
             }
-            
+
             // Trả về null nếu không tìm thấy trong database
             return null;
-            
         } catch (Exception $e) {
             error_log('ReceiptController getBhytHuongMuc error: ' . $e->getMessage());
             // Trả về null nếu có lỗi
@@ -96,14 +96,14 @@ class ReceiptController
     {
         try {
             $examId = $_GET['exam_id'] ?? '';
-            
+
             if (empty($examId)) {
                 echo json_encode(['success' => false, 'message' => 'ID phiếu khám không hợp lệ']);
                 return;
             }
 
             $bienLai = $this->bienLaiModel->getByExamId($examId);
-            
+
             if ($bienLai) {
                 echo json_encode([
                     'success' => true,
@@ -115,7 +115,6 @@ class ReceiptController
                     'message' => 'Chưa có biên lai'
                 ]);
             }
-            
         } catch (Exception $e) {
             error_log('ReceiptController getReceiptCode error: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
@@ -130,26 +129,26 @@ class ReceiptController
         $totalBasePrice = 0;
         $totalBhytAmount = 0;
         $totalPatientAmount = 0;
-        
+
         $calculatedRequests = [];
-        
+
         foreach ($requests as $request) {
             $basePrice = (int)$request['price'];
             $totalBasePrice += $basePrice;
-            
+
             $bhytAmount = 0;
             $patientAmount = $basePrice;
-            
+
             // Chỉ tính giảm giá BHYT nếu có huong_muc từ database
             if ($hasBHYT && $huongMuc !== null && $huongMuc > 0) {
                 // Có BHYT và có huong_muc từ database: sử dụng huong_muc
                 $bhytAmount = round($basePrice * $huongMuc);
                 $patientAmount = $basePrice - $bhytAmount;
             }
-            
+
             $totalBhytAmount += $bhytAmount;
             $totalPatientAmount += $patientAmount;
-            
+
             $calculatedRequests[] = [
                 'type' => $request['type'],
                 'content' => $request['content'],
@@ -158,7 +157,7 @@ class ReceiptController
                 'patient_amount' => $patientAmount
             ];
         }
-        
+
         return [
             'requests' => $calculatedRequests,
             'total_base_price' => $totalBasePrice,
@@ -174,7 +173,7 @@ class ReceiptController
     {
         $ones = ['', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
         $tens = ['', '', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi', 'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi'];
-        
+
         if ($num === 0) return 'không';
         if ($num < 10) return $ones[$num];
         if ($num < 20) {
@@ -231,7 +230,6 @@ class ReceiptController
 
             // Include the print template - let template handle the logic
             include 'Views/doctor/print_receipt_form.php';
-            
         } catch (Exception $e) {
             error_log('ReceiptController printReceiptForm error: ' . $e->getMessage());
             echo "Lỗi hệ thống khi in biên lai";
@@ -246,12 +244,12 @@ class ReceiptController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $input = json_decode(file_get_contents('php://input'), true);
-            
+
             if (!$input) {
                 echo json_encode(['success' => false, 'message' => 'Dữ liệu không hợp lệ']);
                 return;
             }
-            
+
             // Validate required fields
             $requiredFields = ['id_phieu_kham_benh', 'tong_tien_co_ban', 'tong_quy_bhyt', 'tong_nguoi_benh'];
             foreach ($requiredFields as $field) {
@@ -260,11 +258,11 @@ class ReceiptController
                     return;
                 }
             }
-            
+
             // Kiểm tra biên lai đã tồn tại chưa
             $existingReceipt = $this->bienLaiModel->getByExamId($input['id_phieu_kham_benh']);
             $isUpdate = $existingReceipt !== false;
-            
+
             if ($isUpdate) {
                 // Cập nhật biên lai đã tồn tại
                 $receiptData = [
@@ -276,16 +274,35 @@ class ReceiptController
                     'ghi_chu' => $input['ghi_chu'] ?? '',
                     'chi_tiet' => $input['chi_tiet'] ?? []
                 ];
-                
+
                 $bienLaiId = $this->bienLaiModel->updateReceipt($receiptData);
                 $maBienLai = $existingReceipt['ma_bien_lai'];
             } else {
                 // Tạo biên lai mới
                 $maBienLai = 'BL' . date('Ymd') . rand(1000, 9999);
-                
+
+                // Lấy id_bac_si từ phieu_kham_benh
+                $idBacSi = null;
+                try {
+                    $stmt = $this->db->prepare("SELECT bac_si_id FROM phieu_kham_benh WHERE id = ?");
+                    $stmt->execute([$input['id_phieu_kham_benh']]);
+                    $phieuKham = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $idBacSi = $phieuKham['bac_si_id'] ?? null;
+                } catch (Exception $e) {
+                    error_log('Error getting bac_si_id: ' . $e->getMessage());
+                }
+
+                // Lấy id_le_tan từ session (nếu là reception)
+                $idLeTan = null;
+                if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'reception') {
+                    $idLeTan = $_SESSION['user_id'] ?? null;
+                }
+
                 $receiptData = [
                     'ma_bien_lai' => $maBienLai,
                     'id_phieu_kham_benh' => $input['id_phieu_kham_benh'],
+                    'id_le_tan' => $idLeTan,
+                    'id_bac_si' => $idBacSi,
                     'tong_tien_co_ban' => $input['tong_tien_co_ban'],
                     'tong_quy_bhyt' => $input['tong_quy_bhyt'],
                     'tong_nguoi_benh' => $input['tong_nguoi_benh'],
@@ -295,18 +312,17 @@ class ReceiptController
                     'ghi_chu' => $input['ghi_chu'] ?? '',
                     'chi_tiet' => $input['chi_tiet'] ?? []
                 ];
-                
+
                 $bienLaiId = $this->bienLaiModel->saveReceipt($receiptData);
             }
-            
+
             echo json_encode([
-                'success' => true, 
+                'success' => true,
                 'message' => $isUpdate ? 'Cập nhật biên lai thành công' : 'Lưu biên lai thành công',
                 'bien_lai_id' => $bienLaiId,
                 'ma_bien_lai' => $maBienLai,
                 'is_update' => $isUpdate
             ]);
-            
         } catch (Exception $e) {
             error_log('Error saving receipt: ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống khi lưu biên lai']);

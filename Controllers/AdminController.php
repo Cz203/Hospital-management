@@ -3,6 +3,8 @@
 require_once 'Models/Admin.php';
 require_once 'Models/Doctor.php';
 require_once 'Models/Specialty.php';
+require_once 'Models/Patient.php';
+require_once 'Models/Reception.php';
 
 class AdminController
 {
@@ -10,6 +12,8 @@ class AdminController
     private $adminModel;
     private $doctorModel;
     private $specialtyModel;
+    private $patientModel;
+    private $receptionModel;
 
     public function __construct()
     {
@@ -17,6 +21,8 @@ class AdminController
         $this->adminModel = new Admin();
         $this->doctorModel = new Doctor();
         $this->specialtyModel = new Specialty();
+        $this->patientModel = new Patient();
+        $this->receptionModel = new Reception();
     }
 
     /**
@@ -152,6 +158,66 @@ class AdminController
         $content = ob_get_clean();
 
         // Sử dụng renderLayout function
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * Danh sách bệnh nhân (Admin view)
+     */
+    public function patientsList()
+    {
+        $this->auth->requireAuth('admin');
+
+        $perPage = max(1, (int)($_GET['per_page'] ?? 10));
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $total = method_exists($this->patientModel, 'countAll') ? $this->patientModel->countAll() : 0;
+        $totalPages = $perPage > 0 ? (int)ceil($total / $perPage) : 1;
+        if ($page > $totalPages && $totalPages > 0) $page = $totalPages;
+        $offset = ($page - 1) * $perPage;
+
+        if (method_exists($this->patientModel, 'getPaginated')) {
+            $patients = $this->patientModel->getPaginated($offset, $perPage);
+        } else {
+            $patients = $this->patientModel->getAll();
+        }
+
+        $page_title = 'Danh sách Bệnh nhân';
+
+        ob_start();
+        include 'Views/admin/patients_list.php';
+        $content = ob_get_clean();
+
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * Danh sách lễ tân (Admin view)
+     */
+    public function receptionList()
+    {
+        $this->auth->requireAuth('admin');
+
+        $perPage = max(1, (int)($_GET['per_page'] ?? 10));
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $total = method_exists($this->receptionModel, 'countAll') ? $this->receptionModel->countAll() : 0;
+        $totalPages = $perPage > 0 ? (int)ceil($total / $perPage) : 1;
+        if ($page > $totalPages && $totalPages > 0) $page = $totalPages;
+        $offset = ($page - 1) * $perPage;
+
+        if (method_exists($this->receptionModel, 'getPaginated')) {
+            $receptions = $this->receptionModel->getPaginated($offset, $perPage);
+        } else {
+            $receptions = $this->receptionModel->getAll();
+        }
+
+        $page_title = 'Danh sách Lễ tân';
+
+        ob_start();
+        include 'Views/admin/reception_list.php';
+        $content = ob_get_clean();
+
         require_once 'Views/layouts/layout_helper.php';
         renderLayout($content, $page_title);
     }
@@ -557,13 +623,333 @@ class AdminController
      */
     private function getDashboardStats()
     {
-        // Đây là placeholder, bạn có thể implement logic thống kê thực tế
-        return [
-            'total_doctors' => 10,
-            'total_patients' => 150,
-            'total_appointments' => 45,
-            'total_revenue' => 50000000
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        $stats = [
+            'total_doctors' => 0,
+            'total_patients' => 0,
+            'total_appointments_today' => 0,
+            'total_revenue_month' => 0,
+            'appointments_by_month' => [],
+            'revenue_by_month' => [],
+            // Thêm các chỉ số mới cho phòng khám đa khoa
+            'new_patients_today' => 0,
+            'examining_patients' => 0,
+            'pending_appointments' => 0,
+            'unpaid_receipts' => 0,
+            'xray_today' => 0,
+            'ultrasound_today' => 0,
+            'lab_today' => 0,
+            'prescriptions_today' => 0,
+            'revenue_today' => 0,
+            'revenue_week' => 0,
+            'bhyt_ratio' => 0,
+            'on_duty_doctors' => 0,
+            'on_duty_receptions' => 0,
+            'completed_exams_today' => 0,
+            'appointments_status' => [
+                'pending' => 0,
+                'confirmed' => 0,
+                'examining' => 0,
+                'completed' => 0,
+                'cancelled' => 0
+            ]
         ];
+
+        try {
+            $today = date('Y-m-d');
+            $currentMonth = date('Y-m');
+            $weekStart = date('Y-m-d', strtotime('monday this week'));
+            $weekEnd = date('Y-m-d', strtotime('sunday this week'));
+
+            // Tổng số bác sĩ
+            $stmt = $db->query("SELECT COUNT(*) as total FROM bac_si");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['total_doctors'] = (int)($result['total'] ?? 0);
+
+            // Tổng số bệnh nhân
+            $stmt = $db->query("SELECT COUNT(*) as total FROM benh_nhan");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['total_patients'] = (int)($result['total'] ?? 0);
+
+            // Bệnh nhân mới hôm nay
+            $stmt = $db->prepare("SELECT COUNT(*) as total FROM benh_nhan WHERE DATE(ngay_tao) = :today");
+            $stmt->execute([':today' => $today]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['new_patients_today'] = (int)($result['total'] ?? 0);
+
+            // Lịch hẹn hôm nay
+            $stmt = $db->prepare("SELECT COUNT(*) as total FROM lich_hen WHERE ngay_hen = :today");
+            $stmt->execute([':today' => $today]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['total_appointments_today'] = (int)($result['total'] ?? 0);
+
+            // Lịch hẹn theo trạng thái hôm nay
+            $stmt = $db->prepare("
+                SELECT 
+                    SUM(CASE WHEN trang_thai = 'Chờ xác nhận' THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN trang_thai = 'Đã xác nhận' THEN 1 ELSE 0 END) as confirmed,
+                    SUM(CASE WHEN trang_thai = 'Đang khám' THEN 1 ELSE 0 END) as examining,
+                    SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed,
+                    SUM(CASE WHEN trang_thai = 'hủy' THEN 1 ELSE 0 END) as cancelled
+                FROM lich_hen 
+                WHERE ngay_hen = :today
+            ");
+            $stmt->execute([':today' => $today]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['appointments_status'] = [
+                'pending' => (int)($result['pending'] ?? 0),
+                'confirmed' => (int)($result['confirmed'] ?? 0),
+                'examining' => (int)($result['examining'] ?? 0),
+                'completed' => (int)($result['completed'] ?? 0),
+                'cancelled' => (int)($result['cancelled'] ?? 0)
+            ];
+            $stats['pending_appointments'] = $stats['appointments_status']['pending'];
+            $stats['examining_patients'] = $stats['appointments_status']['examining'];
+            $stats['completed_exams_today'] = $stats['appointments_status']['completed'];
+
+            // Doanh thu hôm nay
+            $stmt = $db->prepare("
+                SELECT COALESCE(SUM(tong_nguoi_benh), 0) as total 
+                FROM bien_lai_vien_phi 
+                WHERE DATE(ngay_lap) = :today 
+                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+            ");
+            $stmt->execute([':today' => $today]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['revenue_today'] = (float)($result['total'] ?? 0);
+
+            // Doanh thu tuần này
+            $stmt = $db->prepare("
+                SELECT COALESCE(SUM(tong_nguoi_benh), 0) as total 
+                FROM bien_lai_vien_phi 
+                WHERE DATE(ngay_lap) BETWEEN :week_start AND :week_end
+                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+            ");
+            $stmt->execute([':week_start' => $weekStart, ':week_end' => $weekEnd]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['revenue_week'] = (float)($result['total'] ?? 0);
+
+            // Doanh thu tháng này
+            $stmt = $db->prepare("
+                SELECT COALESCE(SUM(tong_nguoi_benh), 0) as total 
+                FROM bien_lai_vien_phi 
+                WHERE DATE_FORMAT(ngay_lap, '%Y-%m') = :month 
+                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+            ");
+            $stmt->execute([':month' => $currentMonth]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['total_revenue_month'] = (float)($result['total'] ?? 0);
+
+            // Biên lai chưa thanh toán
+            $stmt = $db->query("SELECT COUNT(*) as total FROM bien_lai_vien_phi WHERE trang_thai = 'Chưa thanh toán'");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['unpaid_receipts'] = (int)($result['total'] ?? 0);
+
+            // Tỷ lệ BHYT (tính từ biên lai tháng này)
+            $stmt = $db->prepare("
+                SELECT 
+                    COALESCE(SUM(tong_quy_bhyt), 0) as bhyt_total,
+                    COALESCE(SUM(tong_tien_co_ban), 0) as total_base
+                FROM bien_lai_vien_phi 
+                WHERE DATE_FORMAT(ngay_lap, '%Y-%m') = :month 
+                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+            ");
+            $stmt->execute([':month' => $currentMonth]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $bhytTotal = (float)($result['bhyt_total'] ?? 0);
+            $totalBase = (float)($result['total_base'] ?? 0);
+            $stats['bhyt_ratio'] = $totalBase > 0 ? round(($bhytTotal / $totalBase) * 100, 1) : 0;
+
+            // X-Quang hôm nay
+            $stmt = $db->prepare("SELECT COUNT(*) as total FROM phieu_chup_xquang WHERE DATE(ngay_tao) = :today");
+            $stmt->execute([':today' => $today]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['xray_today'] = (int)($result['total'] ?? 0);
+
+            // Siêu âm hôm nay
+            $stmt = $db->prepare("SELECT COUNT(*) as total FROM phieu_yeu_cau_sieu_am WHERE DATE(ngay_tao) = :today");
+            $stmt->execute([':today' => $today]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['ultrasound_today'] = (int)($result['total'] ?? 0);
+
+            // Xét nghiệm hôm nay
+            $stmt = $db->prepare("SELECT COUNT(*) as total FROM phieu_yeu_cau_xet_nghiem WHERE DATE(ngay_tao) = :today");
+            $stmt->execute([':today' => $today]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['lab_today'] = (int)($result['total'] ?? 0);
+
+            // Đơn thuốc hôm nay
+            $stmt = $db->prepare("SELECT COUNT(*) as total FROM don_thuoc WHERE DATE(NgayKe) = :today");
+            $stmt->execute([':today' => $today]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['prescriptions_today'] = (int)($result['total'] ?? 0);
+
+            // Bác sĩ đang trực (có lịch làm việc hôm nay)
+            $dayOfWeek = date('N'); // 1=Monday, 7=Sunday
+            $dayNames = ['', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+            $currentDayName = $dayNames[$dayOfWeek] ?? 'Thứ 2';
+
+            $stmt = $db->prepare("
+                SELECT COUNT(DISTINCT bs.id) as total
+                FROM bac_si bs
+                INNER JOIN lich_lam_viec llv ON bs.id = llv.bac_si_id
+                WHERE llv.trang_thai = 'active'
+                AND llv.thu_trong_tuan = :day_name
+            ");
+            $stmt->execute([':day_name' => $currentDayName]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['on_duty_doctors'] = (int)($result['total'] ?? 0);
+
+            // Lễ tân đang trực
+            $stmt = $db->prepare("
+                SELECT COUNT(DISTINCT lt.id) as total
+                FROM le_tan lt
+                INNER JOIN lich_lam_viec_le_tan llt ON lt.id = llt.letan_id
+                WHERE llt.trang_thai = 'active'
+                AND llt.thu_trong_tuan = :day_name
+            ");
+            $stmt->execute([':day_name' => $currentDayName]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['on_duty_receptions'] = (int)($result['total'] ?? 0);
+
+            // Lịch hẹn theo tháng (12 tháng gần nhất)
+            $stmt = $db->prepare("
+                SELECT DATE_FORMAT(ngay_hen, '%Y-%m') as ym, COUNT(*) as c
+                FROM lich_hen
+                WHERE ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                GROUP BY DATE_FORMAT(ngay_hen, '%Y-%m')
+                ORDER BY ym ASC
+            ");
+            $stmt->execute();
+            $stats['appointments_by_month'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Doanh thu theo tháng (12 tháng gần nhất)
+            $stmt = $db->prepare("
+                SELECT DATE_FORMAT(ngay_lap, '%Y-%m') as ym, COALESCE(SUM(tong_nguoi_benh), 0) as s
+                FROM bien_lai_vien_phi
+                WHERE ngay_lap >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+                GROUP BY DATE_FORMAT(ngay_lap, '%Y-%m')
+                ORDER BY ym ASC
+            ");
+            $stmt->execute();
+            $stats['revenue_by_month'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getting dashboard stats: " . $e->getMessage());
+        }
+
+        return $stats;
+    }
+
+    /**
+     * API: Lấy dữ liệu doanh thu theo filter (ngày/tuần/tháng/năm)
+     */
+    public function getRevenueStats()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->auth->requireAuth('admin');
+
+        $filter = $_GET['filter'] ?? 'month'; // day, week, month, year
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        try {
+            $data = [];
+
+            switch ($filter) {
+                case 'day':
+                    // 30 ngày gần nhất
+                    $stmt = $db->prepare("
+                        SELECT DATE(ngay_lap) as label, COALESCE(SUM(tong_nguoi_benh), 0) as value
+                        FROM bien_lai_vien_phi
+                        WHERE ngay_lap >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                        AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+                        GROUP BY DATE(ngay_lap)
+                        ORDER BY label ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $data[] = [
+                            'label' => date('d/m', strtotime($row['label'])),
+                            'value' => $row['value']
+                        ];
+                    }
+                    break;
+
+                case 'week':
+                    // 12 tuần gần nhất
+                    $stmt = $db->prepare("
+                        SELECT YEARWEEK(ngay_lap, 1) as yw, COALESCE(SUM(tong_nguoi_benh), 0) as value
+                        FROM bien_lai_vien_phi
+                        WHERE ngay_lap >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
+                        AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+                        GROUP BY YEARWEEK(ngay_lap, 1)
+                        ORDER BY yw ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $year = substr($row['yw'], 0, 4);
+                        $week = substr($row['yw'], 4);
+                        $data[] = [
+                            'label' => "Tuần $week/$year",
+                            'value' => $row['value']
+                        ];
+                    }
+                    break;
+
+                case 'month':
+                    // 12 tháng gần nhất
+                    $stmt = $db->prepare("
+                        SELECT DATE_FORMAT(ngay_lap, '%Y-%m') as ym, COALESCE(SUM(tong_nguoi_benh), 0) as value
+                        FROM bien_lai_vien_phi
+                        WHERE ngay_lap >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                        AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+                        GROUP BY DATE_FORMAT(ngay_lap, '%Y-%m')
+                        ORDER BY ym ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $data[] = [
+                            'label' => date('m/Y', strtotime($row['ym'] . '-01')),
+                            'value' => $row['value']
+                        ];
+                    }
+                    break;
+
+                case 'year':
+                    // 5 năm gần nhất
+                    $stmt = $db->prepare("
+                        SELECT YEAR(ngay_lap) as y, COALESCE(SUM(tong_nguoi_benh), 0) as value
+                        FROM bien_lai_vien_phi
+                        WHERE ngay_lap >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)
+                        AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+                        GROUP BY YEAR(ngay_lap)
+                        ORDER BY y ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $data[] = [
+                            'label' => $row['y'],
+                            'value' => $row['value']
+                        ];
+                    }
+                    break;
+            }
+
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            error_log("Error getting revenue stats: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
     }
 
     // ========== QUẢN LÝ LỊCH LÀM VIỆC BÁC SĨ (ADMIN) ==========
@@ -1201,5 +1587,205 @@ class AdminController
             echo json_encode(['success' => false, 'message' => 'Không tìm thấy lịch làm việc!']);
         }
         exit();
+    }
+
+    /**
+     * Trang đăng ký face recognition cho nhân viên (chỉ admin)
+     */
+    public function faceRegistration()
+    {
+        $this->auth->requireAuth('admin');
+
+        require_once 'Models/Doctor.php';
+        require_once 'Models/Reception.php';
+
+        $doctorModel = new Doctor();
+        $receptionModel = new Reception();
+
+        // Lấy danh sách bác sĩ và lễ tân
+        $doctors = $doctorModel->getAll();
+        $receptions = $receptionModel->getAll();
+
+        $page_title = 'Đăng ký nhận diện khuôn mặt';
+
+        ob_start();
+        include 'Views/admin/face_registration.php';
+        $content = ob_get_clean();
+
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * API: Lưu face encoding (chỉ admin)
+     */
+    public function saveFaceEncoding()
+    {
+        $this->auth->requireAuth('admin');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $userId = (int)($input['user_id'] ?? 0);
+        $userType = trim($input['user_type'] ?? '');
+        $faceEncoding = $input['face_encoding'] ?? null;
+        $imageData = $input['image_data'] ?? null;
+
+        if ($userId <= 0 || empty($userType) || empty($faceEncoding)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc!']);
+            exit();
+        }
+
+        if (!in_array($userType, ['doctor', 'reception', 'admin'])) {
+            echo json_encode(['success' => false, 'message' => 'Loại người dùng không hợp lệ!']);
+            exit();
+        }
+
+        // Lưu ảnh mẫu nếu có
+        $sampleImagePath = null;
+        if ($imageData && !empty($imageData)) {
+            $sampleImagePath = $this->saveSampleImage($imageData, $userId, $userType);
+        }
+
+        require_once 'Models/Attendance.php';
+        $attendanceModel = new Attendance();
+
+        $faceEncodingJson = is_string($faceEncoding) ? $faceEncoding : json_encode($faceEncoding);
+
+        $result = $attendanceModel->saveFaceEncoding($userId, $userType, $faceEncodingJson, $sampleImagePath);
+
+        if ($result) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Đăng ký nhận diện khuôn mặt thành công!'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi khi lưu face encoding!'
+            ]);
+        }
+        exit();
+    }
+
+    /**
+     * API: Lấy danh sách users theo type (doctor/reception)
+     */
+    public function getUsers()
+    {
+        $this->auth->requireAuth('admin');
+        header('Content-Type: application/json; charset=utf-8');
+
+        $userType = $_GET['type'] ?? '';
+
+        if (!in_array($userType, ['doctor', 'reception'])) {
+            echo json_encode(['success' => false, 'message' => 'Loại người dùng không hợp lệ!']);
+            exit();
+        }
+
+        require_once 'Models/Doctor.php';
+        require_once 'Models/Reception.php';
+
+        if ($userType === 'doctor') {
+            $model = new Doctor();
+            $users = $model->getAll();
+        } else {
+            $model = new Reception();
+            $users = $model->getAll();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'users' => $users ?: []
+        ]);
+        exit();
+    }
+
+    /**
+     * API: Lấy thông tin user
+     */
+    public function getUserInfo()
+    {
+        $this->auth->requireAuth('admin');
+        header('Content-Type: application/json; charset=utf-8');
+
+        $userId = (int)($_GET['id'] ?? 0);
+        $userType = $_GET['type'] ?? '';
+
+        if ($userId <= 0 || !in_array($userType, ['doctor', 'reception'])) {
+            echo json_encode(['success' => false, 'message' => 'Thông tin không hợp lệ!']);
+            exit();
+        }
+
+        require_once 'Models/Doctor.php';
+        require_once 'Models/Reception.php';
+
+        if ($userType === 'doctor') {
+            $model = new Doctor();
+        } else {
+            $model = new Reception();
+        }
+
+        $user = $model->getById($userId);
+
+        if ($user) {
+            echo json_encode([
+                'success' => true,
+                'user' => $user
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Không tìm thấy người dùng!'
+            ]);
+        }
+        exit();
+    }
+
+    /**
+     * Lưu ảnh mẫu face registration
+     */
+    private function saveSampleImage($imageData, $userId, $userType)
+    {
+        try {
+            // Loại bỏ phần "data:image/png;base64," nếu có
+            if (strpos($imageData, ',') !== false) {
+                $imageData = explode(',', $imageData)[1];
+            }
+
+            $decodedData = base64_decode($imageData, true);
+            if ($decodedData === false) {
+                error_log("Failed to decode base64 image data");
+                return null;
+            }
+
+            $uploadDir = __DIR__ . '/../uploads/face_samples/';
+            if (!is_dir($uploadDir)) {
+                $created = mkdir($uploadDir, 0777, true);
+                if (!$created) {
+                    error_log("Failed to create directory: $uploadDir");
+                    return null;
+                }
+            }
+
+            $fileName = 'face_sample_' . $userType . '_' . $userId . '_' . time() . '.jpg';
+            $filePath = $uploadDir . $fileName;
+
+            $written = file_put_contents($filePath, $decodedData);
+            if ($written === false) {
+                error_log("Failed to write file: $filePath");
+                return null;
+            }
+
+            return 'uploads/face_samples/' . $fileName;
+        } catch (Exception $e) {
+            error_log("Error saving sample image: " . $e->getMessage());
+            return null;
+        }
     }
 }
