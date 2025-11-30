@@ -4837,9 +4837,22 @@ class DoctorController
         $action = trim($input['action'] ?? ''); // 'check_in' hoặc 'check_out'
         $faceEncoding = $input['face_encoding'] ?? null;
         $imageData = $input['image_data'] ?? null;
+        $location = $input['location'] ?? null; // Địa điểm chấm công (GPS hoặc địa chỉ) - BẮT BUỘC
 
         if (empty($action) || !in_array($action, ['check_in', 'check_out']) || empty($faceEncoding)) {
             echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc!']);
+            exit();
+        }
+
+        // BẮT BUỘC: Kiểm tra location (GPS)
+        if (empty($location)) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng bật GPS và cho phép truy cập vị trí để chấm công!']);
+            exit();
+        }
+
+        // Validate format location (phải có dạng latitude,longitude)
+        if (!preg_match('/^-?\d+\.?\d*,-?\d+\.?\d*$/', $location)) {
+            echo json_encode(['success' => false, 'message' => 'Định dạng vị trí GPS không hợp lệ!']);
             exit();
         }
 
@@ -4853,6 +4866,43 @@ class DoctorController
 
         require_once 'Models/Attendance.php';
         $attendanceModel = new Attendance();
+
+        // Validate ảnh có hợp lệ không (kiểm tra kích thước, format)
+        if ($imageData) {
+            // Kiểm tra base64 image data
+            if (strlen($imageData) < 100) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh không hợp lệ!']);
+                exit();
+            }
+
+            // Decode để kiểm tra kích thước ảnh
+            $imageDataDecoded = base64_decode(explode(',', $imageData)[1] ?? $imageData);
+            if ($imageDataDecoded === false || strlen($imageDataDecoded) < 1000) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh không hợp lệ hoặc quá nhỏ!']);
+                exit();
+            }
+
+            // Kiểm tra kích thước file (ảnh từ camera thường > 10KB)
+            if (strlen($imageDataDecoded) < 10000) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh không hợp lệ. Vui lòng chụp lại từ camera!']);
+                exit();
+            }
+
+            // Kiểm tra ảnh có chứa timestamp watermark không (bằng cách tìm pattern timestamp)
+            // Timestamp được vẽ ở góc dưới bên trái, nên ảnh phải có kích thước đủ lớn
+            // Nếu ảnh quá nhỏ hoặc không có watermark, có thể là ảnh upload
+            $imageInfo = @getimagesizefromstring($imageDataDecoded);
+            if ($imageInfo === false) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh không hợp lệ. Vui lòng chụp lại từ camera!']);
+                exit();
+            }
+
+            // Kiểm tra độ phân giải tối thiểu (ảnh từ camera thường có độ phân giải nhất định)
+            if ($imageInfo[0] < 320 || $imageInfo[1] < 240) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh có độ phân giải quá thấp. Vui lòng chụp lại từ camera!']);
+                exit();
+            }
+        }
 
         // Lưu ảnh nếu có
         $imagePath = null;
@@ -4877,9 +4927,9 @@ class DoctorController
 
         // Xử lý check-in hoặc check-out
         if ($action === 'check_in') {
-            $result = $attendanceModel->checkIn($userId, $userType, $faceEncodingJson, $imagePath);
+            $result = $attendanceModel->checkIn($userId, $userType, $faceEncodingJson, $imagePath, $location);
         } else {
-            $result = $attendanceModel->checkOut($userId, $userType, $faceEncodingJson, $imagePath);
+            $result = $attendanceModel->checkOut($userId, $userType, $faceEncodingJson, $imagePath, $location);
         }
 
         if ($result['success']) {

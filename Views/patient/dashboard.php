@@ -125,7 +125,7 @@ $content = '
                 <div class="card-body d-flex align-items-center">
                     <div class="icon-circle bg-soft-primary me-3">
                         <i class="fas fa-calendar-check"></i>
-                    </div>
+                            </div>
                     <div class="flex-grow-1">
                         <div class="card-label">Lịch hẹn sắp tới</div>
                         <div class="card-value">' . number_format($stats['upcoming_appointments']) . '</div>
@@ -140,7 +140,7 @@ $content = '
                 <div class="card-body d-flex align-items-center">
                     <div class="icon-circle bg-soft-success me-3">
                         <i class="fas fa-check-circle"></i>
-                    </div>
+                            </div>
                     <div class="flex-grow-1">
                         <div class="card-label">Lịch hẹn đã hoàn thành</div>
                         <div class="card-value">' . number_format($stats['completed_appointments']) . '</div>
@@ -154,7 +154,7 @@ $content = '
                 <div class="card-body d-flex align-items-center">
                     <div class="icon-circle bg-soft-info me-3">
                         <i class="fas fa-file-medical"></i>
-                    </div>
+                            </div>
                     <div class="flex-grow-1">
                         <div class="card-label">Hồ sơ bệnh án</div>
                         <div class="card-value">' . number_format($stats['total_medical_records']) . '</div>
@@ -168,7 +168,7 @@ $content = '
                 <div class="card-body d-flex align-items-center">
                     <div class="icon-circle bg-soft-warning me-3">
                         <i class="fas fa-receipt"></i>
-                    </div>
+                            </div>
                     <div class="flex-grow-1">
                         <div class="card-label">Biên lai chưa thanh toán</div>
                         <div class="card-value">' . number_format($stats['unpaid_receipts']) . '</div>

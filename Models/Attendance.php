@@ -245,12 +245,13 @@ class Attendance
             $stmt->execute([$userId, $userType, $now, $imagePath, $location]);
 
             // Lưu vào bảng cham_cong
-            $chamCongSql = "INSERT INTO cham_cong (user_id, user_type, ngay_cham, gio_vao, trang_thai, face_id_data, ngay_tao) 
-                           VALUES (?, ?, ?, ?, 'check_in', ?, NOW())
+            $chamCongSql = "INSERT INTO cham_cong (user_id, user_type, ngay_cham, gio_vao, trang_thai, face_id_data, dia_diem, ngay_tao) 
+                           VALUES (?, ?, ?, ?, 'check_in', ?, ?, NOW())
                            ON DUPLICATE KEY UPDATE 
                            gio_vao = VALUES(gio_vao), 
                            trang_thai = 'check_in',
                            face_id_data = VALUES(face_id_data),
+                           dia_diem = VALUES(dia_diem),
                            ngay_cap_nhat = NOW()";
             $faceIdData = json_encode([
                 'recognized_user_id' => $userId,
@@ -258,7 +259,7 @@ class Attendance
                 'recognized_at' => $now
             ]);
             $chamCongStmt = $this->db->prepare($chamCongSql);
-            $chamCongStmt->execute([$userId, $userType, $today, date('H:i:s'), $faceIdData]);
+            $chamCongStmt->execute([$userId, $userType, $today, date('H:i:s'), $faceIdData, $location]);
 
             return [
                 'success' => true,
@@ -277,7 +278,7 @@ class Attendance
     /**
      * Chấm công check-out
      */
-    public function checkOut($userId, $userType, $faceEncoding, $imagePath = null)
+    public function checkOut($userId, $userType, $faceEncoding, $imagePath = null, $location = null)
     {
         try {
             $today = date('Y-m-d');
@@ -307,16 +308,14 @@ class Attendance
             $stmt->execute([$now, $imagePath, $existing['id']]);
 
             // Cập nhật cham_cong
+            // Nếu chưa có dia_diem khi check-in, cập nhật khi check-out
             $chamCongSql = "UPDATE cham_cong 
-                           SET gio_ra = ?, trang_thai = 'completed', ngay_cap_nhat = NOW() 
+                           SET gio_ra = ?, trang_thai = 'completed', 
+                               dia_diem = COALESCE(dia_diem, ?), 
+                               ngay_cap_nhat = NOW() 
                            WHERE user_id = ? AND user_type = ? AND ngay_cham = ?";
-            $faceIdData = json_encode([
-                'recognized_user_id' => $userId,
-                'confidence' => 1.0,
-                'recognized_at' => $now
-            ]);
             $chamCongStmt = $this->db->prepare($chamCongSql);
-            $chamCongStmt->execute([date('H:i:s'), $userId, $userType, $today]);
+            $chamCongStmt->execute([date('H:i:s'), $location, $userId, $userType, $today]);
 
             return [
                 'success' => true,
