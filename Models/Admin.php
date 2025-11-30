@@ -109,4 +109,9 @@ class Admin extends User
         $stmt->bindParam(":id", $id);
         return $stmt->execute();
     }
+
+    /**
+     * Thống kê cho dashboard admin
+     * Gom tất cả truy vấn thống kê vào model thay vì controller
+     */
 }

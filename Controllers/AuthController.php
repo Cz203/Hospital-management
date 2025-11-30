@@ -99,8 +99,7 @@ class AuthController
                 }
 
                 $this->setUserSessionSafe($user, $role);
-                header("Location: ./{$redirectPath}");
-                exit();
+                $this->performPostLoginRedirect($redirectPath);
             }
 
             $errorMsg = $customErrorMsg ?? self::ERROR_MESSAGES['invalid_credentials'];
@@ -310,6 +309,29 @@ class AuthController
         exit();
     }
 
+    /**
+     * Perform redirect after successful login.
+     * If a return_to path was stored in session (by requireAuth), use it;
+     * otherwise use the provided default dashboard path.
+     */
+    private function performPostLoginRedirect(string $defaultPath)
+    {
+        if (!empty($_SESSION['return_to'])) {
+            $target = $_SESSION['return_to'];
+            unset($_SESSION['return_to']);
+
+            // Prevent open redirect: allow only same-host or relative paths
+            $urlParts = parse_url($target);
+            if (!isset($urlParts['host'])) {
+                header("Location: {$target}");
+                exit();
+            }
+        }
+
+        header("Location: ./{$defaultPath}");
+        exit();
+    }
+
     public function loginAdmin()
     {
         $securityOptions = [
@@ -363,8 +385,7 @@ class AuthController
 
             if ($user) {
                 $this->setUserSessionSafe($user, 'xray_doctor');
-                header("Location: ./xray_dashboard");
-                exit();
+                $this->performPostLoginRedirect('xray_dashboard');
             }
 
             $_SESSION['error'] = self::ERROR_MESSAGES['invalid_credentials'];
@@ -407,8 +428,7 @@ class AuthController
 
             if ($user) {
                 $this->setUserSessionSafe($user, 'sieuam_doctor');
-                header("Location: ./sieuam_dashboard");
-                exit();
+                $this->performPostLoginRedirect('sieuam_dashboard');
             }
 
             $_SESSION['error'] = self::ERROR_MESSAGES['invalid_credentials'];
@@ -497,8 +517,7 @@ class AuthController
                     $_SESSION['chuyen_khoa_ten'] = $doctor['chuyen_khoa_ten'];
                     $_SESSION['last_activity'] = time();
 
-                    header("Location: ./xetnghiem_dashboard");
-                    exit();
+                    $this->performPostLoginRedirect('xetnghiem_dashboard');
                 }
 
                 $_SESSION['error'] = "Số điện thoại hoặc mật khẩu không đúng!";
@@ -766,6 +785,12 @@ class AuthController
     public function requireAuth($role = null)
     {
         if (!$this->isLoggedIn()) {
+            // Save the current request URI so we can return user here after successful login
+            try {
+                $_SESSION['return_to'] = $_SERVER['REQUEST_URI'] ?? null;
+            } catch (Exception $e) {
+                // ignore session write issues
+            }
             header("Location: ./login");
             exit();
         }
