@@ -270,6 +270,28 @@ $formData = $_SESSION['form_data'] ?? [];
                                     </div>
                                 </div>
 
+                                <!-- Thông tin bảo hiểm y tế (tự động từ CCCD) -->
+                                <input type="hidden" name="bao_hiem_y_te_id" id="bao_hiem_y_te_id">
+                                <input type="hidden" name="bao_hiem_y_te" id="bao_hiem_y_te">
+
+                                <div class="row">
+                                    <div class="col-12 mb-3">
+                                        <div class="alert alert-info d-none" id="bhyt-info-box">
+                                            <div class="d-flex align-items-center">
+                                                <i class="icofont-id-card me-2"></i>
+                                                <div>
+                                                    <div><strong>Mã BHYT:</strong> <span id="bhyt_ma"></span></div>
+                                                    <div><strong>Trạng thái:</strong> <span
+                                                            id="bhyt_trang_thai"></span></div>
+                                                    <div><strong>Hạn sử dụng:</strong> <span id="bhyt_han"></span></div>
+                                                    <div><strong>Mức hưởng:</strong> <span
+                                                            id="bhyt_huong_muc"></span></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Hidden role field for patient -->
                                 <input type="hidden" name="role" value="patient">
 

@@ -89,6 +89,24 @@
                             <textarea name="dia_chi" id="dia_chi" class="form-control" rows="2"></textarea>
                         </div>
 
+                        <!-- Thông tin bảo hiểm y tế (tự động từ CCCD) -->
+                        <input type="hidden" name="bao_hiem_y_te_id" id="bao_hiem_y_te_id">
+                        <input type="hidden" name="bao_hiem_y_te" id="bao_hiem_y_te">
+
+                        <div class="col-12">
+                            <div class="alert alert-info d-none" id="bhyt-info-box">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-id-card-alt me-2"></i>
+                                    <div>
+                                        <div><strong>Mã BHYT:</strong> <span id="bhyt_ma"></span></div>
+                                        <div><strong>Trạng thái:</strong> <span id="bhyt_trang_thai"></span></div>
+                                        <div><strong>Hạn sử dụng:</strong> <span id="bhyt_han"></span></div>
+                                        <div><strong>Mức hưởng:</strong> <span id="bhyt_huong_muc"></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i> Lưu bệnh nhân

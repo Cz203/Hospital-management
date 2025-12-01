@@ -655,8 +655,11 @@ class AuthController
 
                     case 'patient':
                         $cccd = trim($_POST['cccd'] ?? '');
+                        $baoHiemId = isset($_POST['bao_hiem_y_te_id']) ? (int)$_POST['bao_hiem_y_te_id'] : null;
+                        $baoHiemCode = trim($_POST['bao_hiem_y_te'] ?? '');
 
                         // Validate CCCD nếu được nhập
+                        // Đồng thời, nếu frontend chưa gửi BHYT, backend sẽ tự lấy từ CCCDService
                         if (!empty($cccd)) {
                             require_once 'Services/CCCDService.php';
                             require_once 'config/database.php';
@@ -672,6 +675,14 @@ class AuthController
                                 header("Location: ./register");
                                 exit();
                             }
+
+                            // Nếu frontend chưa gửi BHYT nhưng verifyCCCD trả về BHYT, dùng luôn kết quả này
+                            if ((!$baoHiemId || $baoHiemId <= 0) && !empty($verifyResult['bao_hiem_y_te']['id'] ?? null)) {
+                                $baoHiemId = (int)$verifyResult['bao_hiem_y_te']['id'];
+                            }
+                            if ($baoHiemCode === '' && !empty($verifyResult['bao_hiem_y_te']['ma_bao_hiem'] ?? '')) {
+                                $baoHiemCode = $verifyResult['bao_hiem_y_te']['ma_bao_hiem'];
+                            }
                         }
 
                         $data = [
@@ -685,6 +696,14 @@ class AuthController
                             'dia_chi' => $_POST['dia_chi'] ?? '',
                             'cccd' => $cccd
                         ];
+
+                        // Nếu có thông tin BHYT từ CCCD, lưu vào bảng benh_nhan
+                        if ($baoHiemId && $baoHiemId > 0) {
+                            $data['bao_hiem_y_te_id'] = $baoHiemId;
+                        }
+                        if ($baoHiemCode !== '') {
+                            $data['bao_hiem_y_te'] = $baoHiemCode;
+                        }
                         $success = $patient->create($data);
                         break;
                 }

@@ -4915,13 +4915,22 @@ class DoctorController
         $comparison = $attendanceModel->compareFaceWithUser($faceEncodingJson, $userId, $userType);
 
         if (!$comparison['match']) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Không nhận diện được khuôn mặt hoặc không khớp với tài khoản! ' . ($comparison['message'] ?? ''),
-                'distance' => $comparison['distance'] ?? null,
-                'threshold' => $comparison['threshold'] ?? null,
-                'debug' => $comparison
-            ]);
+            $baseMessage = $comparison['message'] ?? '';
+            // Nếu chưa đăng ký khuôn mặt, báo lỗi rõ ràng hơn
+            if ($baseMessage === 'Chưa đăng ký khuôn mặt') {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Bạn chưa đăng ký nhận diện khuôn mặt. Vui lòng liên hệ quản trị viên để đăng ký trước khi chấm công.',
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không nhận diện được khuôn mặt hoặc không khớp với tài khoản! ' . $baseMessage,
+                    'distance' => $comparison['distance'] ?? null,
+                    'threshold' => $comparison['threshold'] ?? null,
+                    'debug' => $comparison
+                ]);
+            }
             exit();
         }
 

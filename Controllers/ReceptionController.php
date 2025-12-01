@@ -402,6 +402,8 @@ class ReceptionController
         $gender = trim($_POST['gioi_tinh'] ?? '');
         $address = trim($_POST['dia_chi'] ?? '');
         $cccd = trim($_POST['cccd'] ?? '');
+        $baoHiemId = isset($_POST['bao_hiem_y_te_id']) ? (int)$_POST['bao_hiem_y_te_id'] : null;
+        $baoHiemCode = trim($_POST['bao_hiem_y_te'] ?? '');
 
         // Mật khẩu mặc định cho bệnh nhân do lễ tân tạo
         $defaultPassword = '1111';
@@ -443,7 +445,7 @@ class ReceptionController
             }
 
             // Insert
-            $ok = $this->patientModel->create([
+            $createData = [
                 'ten' => $name,
                 'email' => $email,
                 'mat_khau' => $defaultPassword,
@@ -453,7 +455,17 @@ class ReceptionController
                 'gioi_tinh' => $gender,
                 'dia_chi' => $address,
                 'cccd' => $cccd,
-            ]);
+            ];
+
+            // Nếu có thông tin BHYT từ CCCD, lưu vào bảng benh_nhan
+            if ($baoHiemId && $baoHiemId > 0) {
+                $createData['bao_hiem_y_te_id'] = $baoHiemId;
+            }
+            if ($baoHiemCode !== '') {
+                $createData['bao_hiem_y_te'] = $baoHiemCode;
+            }
+
+            $ok = $this->patientModel->create($createData);
             if ($ok) {
                 $_SESSION['success'] = 'Thêm bệnh nhân thành công!';
                 header('Location: ./reception_patient_create');
@@ -1344,13 +1356,21 @@ class ReceptionController
         $comparison = $attendanceModel->compareFaceWithUser($faceEncodingJson, $userId, $userType);
 
         if (!$comparison['match']) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Không nhận diện được khuôn mặt hoặc không khớp với tài khoản! ' . ($comparison['message'] ?? ''),
-                'distance' => $comparison['distance'] ?? null,
-                'threshold' => $comparison['threshold'] ?? null,
-                'debug' => $comparison
-            ]);
+            $baseMessage = $comparison['message'] ?? '';
+            if ($baseMessage === 'Chưa đăng ký khuôn mặt') {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Bạn chưa đăng ký nhận diện khuôn mặt. Vui lòng liên hệ quản trị viên để đăng ký trước khi chấm công.',
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không nhận diện được khuôn mặt hoặc không khớp với tài khoản! ' . $baseMessage,
+                    'distance' => $comparison['distance'] ?? null,
+                    'threshold' => $comparison['threshold'] ?? null,
+                    'debug' => $comparison
+                ]);
+            }
             exit();
         }
 

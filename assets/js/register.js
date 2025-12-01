@@ -1497,6 +1497,61 @@ document.addEventListener("DOMContentLoaded", function () {
               "success",
               '<i class="fas fa-check-circle"></i> Xác thực thành công!'
             );
+            }
+          }
+
+          // Fill thông tin bảo hiểm y tế nếu có
+          const bhytBox = document.getElementById("bhyt-info-box");
+          const bhytIdInput = document.getElementById("bao_hiem_y_te_id");
+          const bhytCodeInput = document.getElementById("bao_hiem_y_te");
+          const bhytMaSpan = document.getElementById("bhyt_ma");
+          const bhytTrangThaiSpan = document.getElementById("bhyt_trang_thai");
+          const bhytHanSpan = document.getElementById("bhyt_han");
+          const bhytHuongMucSpan = document.getElementById("bhyt_huong_muc");
+
+          if (bhytBox && bhytIdInput && bhytCodeInput) {
+            if (result.bao_hiem_y_te) {
+              const bh = result.bao_hiem_y_te;
+              bhytIdInput.value = bh.id || "";
+              bhytCodeInput.value = bh.ma_bao_hiem || "";
+
+              if (bhytMaSpan) bhytMaSpan.textContent = bh.ma_bao_hiem || "Không có";
+
+              if (bhytTrangThaiSpan) {
+                const statusText =
+                  bh.con_han === true
+                    ? "Còn hiệu lực"
+                    : "Hết hạn hoặc không hiệu lực";
+                bhytTrangThaiSpan.textContent = statusText;
+              }
+
+              if (bhytHanSpan) {
+                const han =
+                  (bh.ngay_bat_dau || "") +
+                  " - " +
+                  (bh.ngay_het_han || "Không rõ");
+                bhytHanSpan.textContent = han;
+              }
+
+              if (bhytHuongMucSpan) {
+                const percent =
+                  typeof bh.huong_muc === "number"
+                    ? Math.round(bh.huong_muc * 100) + "%"
+                    : "";
+                bhytHuongMucSpan.textContent = percent || "Không rõ";
+              }
+
+              bhytBox.classList.remove("d-none");
+            } else {
+              // Không có BHYT -> clear & ẩn box
+              bhytIdInput.value = "";
+              bhytCodeInput.value = "";
+              if (bhytMaSpan) bhytMaSpan.textContent = "";
+              if (bhytTrangThaiSpan) bhytTrangThaiSpan.textContent = "";
+              if (bhytHanSpan) bhytHanSpan.textContent = "";
+              if (bhytHuongMucSpan) bhytHuongMucSpan.textContent = "";
+              bhytBox.classList.add("d-none");
+            }
           }
         } else {
           cccdVerified = false;
