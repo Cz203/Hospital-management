@@ -41,6 +41,45 @@
     <link rel="stylesheet" href="<?php echo $css; ?>">
     <?php endforeach; ?>
     <?php endif; ?>
+
+    <style>
+    /* Unified nav-bell styles (match main_layout) */
+    .nav-bell {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        transition: background 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-bell i {
+        font-size: 18px;
+        color: #6b7280;
+    }
+
+    .nav-bell:hover {
+        background: linear-gradient(135deg, #e8ecff 0%, #e5f2ff 100%);
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+    }
+
+    /* Notification items highlight */
+    .notif-item.unread {
+        background-color: rgba(102, 126, 234, 0.08);
+    }
+
+    .notif-item.unread:hover {
+        background-color: #08429840;
+    }
+
+    .notif-item.clicked {
+        background-color: rgba(32, 201, 151, 0.12);
+    }
+    </style>
 </head>
 
 <body id="top">
@@ -161,23 +200,9 @@
                             </ul>
                         </li>
 
-                        <!-- Notifications (giữ lại chức năng cũ) -->
-                        <li class="nav-item dropdown ml-2">
-                            <a class="nav-link position-relative" href="#" id="dropdown-notif" data-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false">
-                                <i class="icofont-notification"></i>
-                                <span id="notif-badge"
-                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-right p-0" style="width: 320px;">
-                                <li class="dropdown-header px-3 py-2 fw-bold">Thông báo</li>
-                                <li>
-                                    <div id="notif-list" class="list-group list-group-flush small"
-                                        style="max-height: 320px; overflow-y: auto;">
-                                        <div class="p-3 text-muted">Không có thông báo</div>
-                                    </div>
-                                </li>
-                            </ul>
+                        <!-- Notifications (shared) -->
+                        <li class="nav-item ml-2">
+                            <?php include 'Views/layouts/notifications_dropdown.php'; ?>
                         </li>
                         <?php endif; ?>
                     </ul>
@@ -188,34 +213,34 @@
 
     <!-- Notifications script (giữ lại từ header cũ) -->
     <script>
-    // Notifications helper
+    // Notifications helper: render from server (DB)
     (function setupNotifications() {
         var notifBadge = document.getElementById('notif-badge');
         var notifList = document.getElementById('notif-list');
         var userIdMeta = document.querySelector('meta[name="user-id"]');
         var currentUserId = userIdMeta ? (userIdMeta.getAttribute('content') || '').trim() : '';
 
-        function getStoreKey() {
-            return currentUserId ? ('hm_notifications_' + currentUserId) : 'hm_notifications';
-        }
-
-        function readStore() {
+        function getNotifLinkByRole() {
             try {
-                return JSON.parse(localStorage.getItem(getStoreKey()) || '[]');
+                var roleMeta = document.querySelector('meta[name="user-role"]');
+                var role = roleMeta ? (roleMeta.getAttribute('content') || '').trim() : '';
+                if (role === 'patient') return './patient_appointments';
+                if (role === 'doctor' || role === 'xray_doctor' || role === 'sieuam_doctor' || role ===
+                    'xetnghiem_doctor') {
+                    return './doctor_appointment_management';
+                }
+                return './';
             } catch (e) {
-                return [];
+                return './';
             }
         }
 
-        function writeStore(items) {
-            try {
-                localStorage.setItem(getStoreKey(), JSON.stringify(items.slice(0, 20)));
-            } catch (e) {}
-        }
-
-        function renderItem(message, type, ts) {
+        function renderItem(message, type, ts, isUnread) {
             var item = document.createElement('a');
-            item.className = 'list-group-item list-group-item-action d-flex align-items-start';
+            item.className = 'list-group-item list-group-item-action d-flex align-items-start notif-item';
+            if (isUnread) item.classList.add('unread');
+            item.href = getNotifLinkByRole();
+            item.style.cursor = 'pointer';
             var color = 'primary';
             if (type === 'success') color = 'success';
             else if (type === 'warning') color = 'warning';
@@ -244,51 +269,99 @@
             if (!notifList) return;
             var empty = notifList.querySelector('.text-muted');
             if (empty) empty.remove();
-            var item = renderItem(message, type, Date.now());
+            var item = renderItem(message, type, Date.now(), true);
             notifList.prepend(item);
             if (notifBadge) {
                 notifBadge.classList.remove('d-none');
                 var current = parseInt(notifBadge.textContent || '0');
                 notifBadge.textContent = String(current + 1);
             }
-            var items = readStore();
-            items.unshift({
-                message: message,
-                type: type || 'info',
-                ts: Date.now()
-            });
-            writeStore(items);
         };
 
-        // Clear badge when opening dropdown
-        var dropdowns = document.querySelectorAll('[data-toggle="dropdown"]');
-        if (dropdowns && dropdowns.length) {
-            dropdowns.forEach(function(d) {
-                d.addEventListener('click', function() {
-                    if (this.id === 'dropdown-notif' && notifBadge) {
-                        notifBadge.textContent = '0';
-                        notifBadge.classList.add('d-none');
+        // Mark all read when opening dropdown (server + UI)
+        var notifDropdown = document.querySelector('.notifications-dropdown');
+        if (notifDropdown) {
+            notifDropdown.addEventListener('show.bs.dropdown', function() {
+                if (currentUserId) {
+                    fetch('./notifications_mark_all_read').catch(function() {});
+                }
+                if (notifBadge) {
+                    notifBadge.textContent = '0';
+                    notifBadge.classList.add('d-none');
+                }
+            });
+            // Highlight clicked notification
+            var list = document.getElementById('notif-list');
+            if (list) {
+                list.addEventListener('click', function(e) {
+                    var target = e.target;
+                    while (target && target !== list && !target.classList.contains('notif-item')) {
+                        target = target.parentNode;
+                    }
+                    if (target && target.classList && target.classList.contains('notif-item')) {
+                        Array.prototype.forEach.call(list.querySelectorAll('.notif-item.clicked'), function(
+                            el) {
+                            el.classList.remove('clicked');
+                        });
+                        target.classList.add('clicked');
+                        target.classList.remove('unread');
                     }
                 });
-            });
+            }
         }
 
-        // Hydrate from storage
+        // Hydrate from server (DB) and then drain queued items
         try {
-            var stored = readStore();
-            if (stored && stored.length && notifList) {
-                var emptyHydrate = notifList.querySelector('.text-muted');
-                if (emptyHydrate) emptyHydrate.remove();
-                stored.slice(0, 20).reverse().forEach(function(n) {
-                    notifList.prepend(renderItem(n.message, n.type, n.ts));
-                });
+            if (currentUserId) {
+                fetch('./notifications')
+                    .then(function(r) {
+                        return r.json();
+                    })
+                    .then(function(resp) {
+                        if (resp && resp.success && Array.isArray(resp.data)) {
+                            // compute unread count
+                            var unreadCount = 0;
+                            try {
+                                unreadCount = resp.data.filter(function(n) {
+                                    return String(n.da_doc) === '0' || n.da_doc === 0;
+                                }).length;
+                            } catch (e) {}
+                            var serverItems = resp.data.map(function(n) {
+                                return {
+                                    message: n.noi_dung,
+                                    type: n.loai || 'info',
+                                    ts: new Date(n.ngay_tao).getTime(),
+                                    isUnread: (String(n.da_doc) === '0' || n.da_doc === 0)
+                                };
+                            });
+                            while (notifList.firstChild) notifList.removeChild(notifList.firstChild);
+                            if (!serverItems.length) {
+                                var div = document.createElement('div');
+                                div.className = 'p-3 text-muted';
+                                div.textContent = 'Không có thông báo';
+                                notifList.appendChild(div);
+                            } else {
+                                // resp.data is DESC (newest first). Append to keep newest on top.
+                                serverItems.slice(0, 20).forEach(function(n) {
+                                    notifList.appendChild(renderItem(n.message, n.type, n.ts, n
+                                        .isUnread));
+                                });
+                            }
+                            // update badge UI
+                            if (notifBadge) {
+                                if (unreadCount > 0) {
+                                    notifBadge.classList.remove('d-none');
+                                    notifBadge.textContent = String(unreadCount);
+                                } else {
+                                    notifBadge.textContent = '0';
+                                    notifBadge.classList.add('d-none');
+                                }
+                            }
+                        }
+                    })
+                    .catch(function() {});
             }
-            if (window.__notifQueue && Array.isArray(window.__notifQueue)) {
-                window.__notifQueue.forEach(function(n) {
-                    window.addNotification(n.message, n.type);
-                });
-                window.__notifQueue = [];
-            }
+            // no client-side queue
         } catch (e) {}
     })();
     </script>

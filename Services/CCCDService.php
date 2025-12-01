@@ -155,7 +155,32 @@ class CCCDService
             ];
         }
 
-        // Bước 4: Kiểm tra CCCD đã được đăng ký chưa
+        // Bước 4: Tìm thông tin bảo hiểm y tế (nếu có) dựa trên tên + ngày sinh
+        $baoHiemInfo = $this->getBaoHiemForCCCDData($cccdData);
+
+        // Tính trạng thái còn hạn / hết hạn cho BHYT (nếu tìm thấy)
+        $baoHiemResult = null;
+        if ($baoHiemInfo) {
+            $today = date('Y-m-d');
+            $conHan = ($baoHiemInfo['trang_thai'] === 'Hieu luc')
+                && (!empty($baoHiemInfo['ngay_bat_dau']) ? $baoHiemInfo['ngay_bat_dau'] <= $today : true)
+                && (!empty($baoHiemInfo['ngay_het_han']) ? $baoHiemInfo['ngay_het_han'] >= $today : true);
+
+            $baoHiemResult = [
+                'id' => (int)$baoHiemInfo['id'],
+                'ma_bao_hiem' => $baoHiemInfo['ma_bao_hiem'],
+                'loai_the' => $baoHiemInfo['loai_the'],
+                'ten_chu_the' => $baoHiemInfo['ten_chu_the'],
+                'ngay_bat_dau' => $baoHiemInfo['ngay_bat_dau'],
+                'ngay_het_han' => $baoHiemInfo['ngay_het_han'],
+                'noi_cap' => $baoHiemInfo['noi_cap'],
+                'trang_thai' => $baoHiemInfo['trang_thai'],
+                'huong_muc' => (float)$baoHiemInfo['huong_muc'],
+                'con_han' => $conHan,
+            ];
+        }
+
+        // Bước 5: Kiểm tra CCCD đã được đăng ký chưa
         if ($this->conn) {
             $checkQuery = "SELECT id, ten FROM benh_nhan WHERE cccd = :cccd LIMIT 1";
             $stmt = $this->conn->prepare($checkQuery);
@@ -168,17 +193,21 @@ class CCCDService
                     'success' => false,
                     'message' => 'CCCD này đã được đăng ký.',
                     'verified' => true,
-                    'already_registered' => true
+                    'already_registered' => true,
+                    'cccd_data' => $cccdData,
+                    'bao_hiem_y_te' => $baoHiemResult,
                 ];
             }
         }
 
-        // Bước 5: Xác thực thành công
+        // Bước 6: Xác thực thành công
         return [
             'success' => true,
             'message' => 'Xác thực CCCD thành công!',
             'verified' => true,
-            'cccd_data' => $cccdData
+            'cccd_data' => $cccdData,
+            // Thông tin bảo hiểm y tế (nếu tìm thấy)
+            'bao_hiem_y_te' => $baoHiemResult,
         ];
     }
 
@@ -260,6 +289,42 @@ class CCCDService
             return null;
         } catch (PDOException $e) {
             error_log("Error getting CCCD from database: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Lấy thông tin bảo hiểm y tế cho một người dựa trên dữ liệu CCCD (tên + ngày sinh).
+     * Không map trực tiếp trong bảng cccd_data, mà truy vấn sang bảng bao_hiem_y_te.
+     */
+    private function getBaoHiemForCCCDData(array $cccdData)
+    {
+        if (!$this->conn) {
+            return null;
+        }
+
+        try {
+            // Ưu tiên match theo: tên + ngày sinh.
+            // (Có thể mở rộng thêm điều kiện khác nếu cần.)
+            $sql = "SELECT id, ma_bao_hiem, loai_the, ten_chu_the, ngay_sinh, gioi_tinh, 
+                           ngay_bat_dau, ngay_het_han, noi_cap, trang_thai, huong_muc
+                    FROM bao_hiem_y_te
+                    WHERE ten_chu_the = :ten_chu_the
+                      AND ngay_sinh = :ngay_sinh
+                    LIMIT 1";
+
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':ten_chu_the', $cccdData['ten'], PDO::PARAM_STR);
+            $stmt->bindParam(':ngay_sinh', $cccdData['ngay_sinh'], PDO::PARAM_STR);
+            $stmt->execute();
+
+            if ($stmt->rowCount() > 0) {
+                return $stmt->fetch(PDO::FETCH_ASSOC);
+            }
+
+            return null;
+        } catch (PDOException $e) {
+            error_log('Error getting bao_hiem_y_te for CCCD: ' . $e->getMessage());
             return null;
         }
     }

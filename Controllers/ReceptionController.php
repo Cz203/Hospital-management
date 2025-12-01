@@ -68,6 +68,190 @@ class ReceptionController
     }
 
     /**
+     * Lịch làm việc của Lễ tân (tự đăng ký ca trực, lịch lặp theo tuần)
+     */
+    public function scheduleManagement()
+    {
+        $this->auth->requireAuth('letan');
+
+        // Lấy thông tin lễ tân hiện tại
+        $receptionId = $_SESSION['user_id'];
+        $receptionName = $_SESSION['user_name'] ?? 'Lễ tân';
+
+        // Lấy tất cả lịch làm việc của lễ tân từ bảng lich_lam_viec_le_tan
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        $sql = "SELECT * FROM lich_lam_viec_le_tan 
+                WHERE letan_id = :id
+                ORDER BY 
+                    CASE thu_trong_tuan 
+                        WHEN 'Thứ 2' THEN 1
+                        WHEN 'Thứ 3' THEN 2
+                        WHEN 'Thứ 4' THEN 3
+                        WHEN 'Thứ 5' THEN 4
+                        WHEN 'Thứ 6' THEN 5
+                        WHEN 'Thứ 7' THEN 6
+                        WHEN 'Chủ nhật' THEN 7
+                    END, gio_bat_dau";
+        $stmt = $db->prepare($sql);
+        $stmt->bindParam(':id', $receptionId, PDO::PARAM_INT);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Gom lịch theo ngày & loại ca để render dạng bảng
+        $groupedSchedules = [];
+        foreach ($rows as $row) {
+            $day = $row['thu_trong_tuan'];
+            $shift = $row['loai_ca'];
+            if (!isset($groupedSchedules[$day])) {
+                $groupedSchedules[$day] = [];
+            }
+            if (!isset($groupedSchedules[$day][$shift])) {
+                $groupedSchedules[$day][$shift] = [];
+            }
+            $groupedSchedules[$day][$shift][] = $row;
+        }
+
+        $page_title = 'Lịch làm việc lễ tân';
+
+        ob_start();
+        include 'Views/reception/schedule_management.php';
+        $content = ob_get_clean();
+
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * Thêm ca trực lễ tân (lịch lặp theo thứ)
+     */
+    public function addSchedule()
+    {
+        $this->auth->requireAuth('letan');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        $receptionId = $_SESSION['user_id'];
+        $thu = $_POST['thu_trong_tuan'] ?? '';
+        $loaiCa = $_POST['loai_ca'] ?? '';
+        $gioBatDau = $_POST['gio_bat_dau'] ?? '';
+        $gioKetThuc = $_POST['gio_ket_thuc'] ?? '';
+        $ghiChu = $_POST['ghi_chu'] ?? '';
+
+        if ($thu === '' || $loaiCa === '' || $gioBatDau === '' || $gioKetThuc === '') {
+            $_SESSION['error'] = 'Vui lòng điền đầy đủ thông tin ca trực.';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        // Giống logic bác sĩ: chỉ cho phép đăng ký/hoàn tất lịch cơ bản từ ngày 23 → 25 hằng tháng
+        if (!$this->isWithinReceptionRegistrationWindow()) {
+            $_SESSION['error'] = 'Chỉ được đăng ký/hoàn tất lịch từ ngày 23 đến 25 hằng tháng!';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        // Kiểm tra thời gian hợp lệ: giờ kết thúc phải sau giờ bắt đầu (giống bác sĩ)
+        if (strtotime($gioBatDau) >= strtotime($gioKetThuc)) {
+            $_SESSION['error'] = 'Giờ kết thúc phải sau giờ bắt đầu!';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        try {
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            // Kiểm tra xung đột ca trực (đơn giản: cùng thứ, trùng giờ)
+            $checkSql = "SELECT COUNT(*) FROM lich_lam_viec_le_tan 
+                         WHERE letan_id = :id AND thu_trong_tuan = :thu 
+                           AND (gio_bat_dau < :gio_ket_thuc AND gio_ket_thuc > :gio_bat_dau)";
+            $st = $db->prepare($checkSql);
+            $st->bindParam(':id', $receptionId, PDO::PARAM_INT);
+            $st->bindParam(':thu', $thu);
+            $st->bindParam(':gio_bat_dau', $gioBatDau);
+            $st->bindParam(':gio_ket_thuc', $gioKetThuc);
+            $st->execute();
+            if ((int)$st->fetchColumn() > 0) {
+                $_SESSION['error'] = 'Ca trực bị trùng với ca đã đăng ký.';
+                header('Location: ./reception_schedule_management');
+                exit();
+            }
+
+            $insertSql = "INSERT INTO lich_lam_viec_le_tan
+                          (letan_id, thu_trong_tuan, gio_bat_dau, gio_ket_thuc, loai_ca, ghi_chu, trang_thai)
+                          VALUES (:id, :thu, :gio_bat_dau, :gio_ket_thuc, :loai_ca, :ghi_chu, 'active')";
+            $ins = $db->prepare($insertSql);
+            $ins->bindParam(':id', $receptionId, PDO::PARAM_INT);
+            $ins->bindParam(':thu', $thu);
+            $ins->bindParam(':gio_bat_dau', $gioBatDau);
+            $ins->bindParam(':gio_ket_thuc', $gioKetThuc);
+            $ins->bindParam(':loai_ca', $loaiCa);
+            $ins->bindParam(':ghi_chu', $ghiChu);
+            $ins->execute();
+
+            $_SESSION['success'] = 'Thêm ca trực thành công.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi khi thêm ca trực: ' . $e->getMessage();
+        }
+
+        header('Location: ./reception_schedule_management');
+        exit();
+    }
+
+    /**
+     * Xóa ca trực lễ tân
+     */
+    public function deleteSchedule()
+    {
+        $this->auth->requireAuth('letan');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        // Giống bác sĩ: chỉ cho phép xóa ca trực vào Thứ 2 (theo giờ Việt Nam)
+        if (!$this->isMonday()) {
+            $_SESSION['error'] = 'Chỉ được xóa ca trực vào Thứ 2.';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        $receptionId = $_SESSION['user_id'];
+        $scheduleId = isset($_POST['schedule_id']) ? (int)$_POST['schedule_id'] : 0;
+
+        if ($scheduleId <= 0) {
+            $_SESSION['error'] = 'Ca trực không hợp lệ.';
+            header('Location: ./reception_schedule_management');
+            exit();
+        }
+
+        try {
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            $sql = "DELETE FROM lich_lam_viec_le_tan WHERE id = :sid AND letan_id = :id";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':sid', $scheduleId, PDO::PARAM_INT);
+            $stmt->bindParam(':id', $receptionId, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $_SESSION['success'] = 'Đã xóa ca trực.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi khi xóa ca trực: ' . $e->getMessage();
+        }
+
+        header('Location: ./reception_schedule_management');
+        exit();
+    }
+
+    /**
      * API: Lấy lịch làm việc theo bác sĩ theo NGÀY (áp dụng ngoại lệ theo ngày)
      */
     public function getDoctorSchedules()
@@ -213,16 +397,20 @@ class ReceptionController
 
         $name = trim($_POST['ten'] ?? '');
         $email = trim($_POST['email'] ?? '');
-        $password = $_POST['mat_khau'] ?? '';
         $phone = trim($_POST['so_dien_thoai'] ?? '');
         $dob = trim($_POST['ngay_sinh'] ?? '');
         $gender = trim($_POST['gioi_tinh'] ?? '');
         $address = trim($_POST['dia_chi'] ?? '');
         $cccd = trim($_POST['cccd'] ?? '');
+        $baoHiemId = isset($_POST['bao_hiem_y_te_id']) ? (int)$_POST['bao_hiem_y_te_id'] : null;
+        $baoHiemCode = trim($_POST['bao_hiem_y_te'] ?? '');
+
+        // Mật khẩu mặc định cho bệnh nhân do lễ tân tạo
+        $defaultPassword = '1111';
 
         // Basic validation
-        if ($name === '' || $email === '' || $password === '' || $phone === '') {
-            $_SESSION['error'] = 'Vui lòng nhập đủ Tên, Email, Mật khẩu, Số điện thoại.';
+        if ($name === '' || $email === '' || $phone === '') {
+            $_SESSION['error'] = 'Vui lòng nhập đủ Tên, Email, Số điện thoại.';
             header('Location: ./reception_patient_create');
             exit();
         }
@@ -257,17 +445,27 @@ class ReceptionController
             }
 
             // Insert
-            $ok = $this->patientModel->create([
+            $createData = [
                 'ten' => $name,
                 'email' => $email,
-                'mat_khau' => $password,
+                'mat_khau' => $defaultPassword,
                 'so_dien_thoai' => $phoneNorm,
                 'phone_verified' => 1,
                 'ngay_sinh' => $dob,
                 'gioi_tinh' => $gender,
                 'dia_chi' => $address,
                 'cccd' => $cccd,
-            ]);
+            ];
+
+            // Nếu có thông tin BHYT từ CCCD, lưu vào bảng benh_nhan
+            if ($baoHiemId && $baoHiemId > 0) {
+                $createData['bao_hiem_y_te_id'] = $baoHiemId;
+            }
+            if ($baoHiemCode !== '') {
+                $createData['bao_hiem_y_te'] = $baoHiemCode;
+            }
+
+            $ok = $this->patientModel->create($createData);
             if ($ok) {
                 $_SESSION['success'] = 'Thêm bệnh nhân thành công!';
                 header('Location: ./reception_patient_create');
@@ -438,31 +636,70 @@ class ReceptionController
         $date = isset($_GET['ngay']) ? $_GET['ngay'] : date('Y-m-d');
         $status = isset($_GET['trang_thai']) ? $_GET['trang_thai'] : null;
 
+        // Phân trang
+        $page  = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $page  = max(1, $page);
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+        if ($limit <= 0) {
+            $limit = 10;
+        }
+        $offset = ($page - 1) * $limit;
+
         try {
             $pdo = $this->doctorModel->getConnection();
-            $sql = "SELECT t.*, bn.ten AS ten_benh_nhan, bs.ten AS ten_bac_si, lh.gio_hen AS thoi_gian_du_kien
-                    FROM phieu_boc_so t
+
+            $baseSql = "FROM phieu_boc_so t
                     JOIN benh_nhan bn ON bn.id = t.benh_nhan_id
                     JOIN bac_si bs ON bs.id = t.bac_si_id
                     LEFT JOIN lich_hen lh ON lh.id = t.lich_hen_id
                     WHERE t.ngay = :d";
             $params = [':d' => $date];
+
             if ($doctorId > 0) {
-                $sql .= " AND t.bac_si_id = :bs";
+                $baseSql .= " AND t.bac_si_id = :bs";
                 $params[':bs'] = $doctorId;
             }
             if (!empty($status)) {
-                $sql .= " AND t.trang_thai = :st";
+                $baseSql .= " AND t.trang_thai = :st";
                 $params[':st'] = $status;
             } else {
                 // Mặc định ẩn các phiếu đã bắt đầu khám khỏi giao diện lễ tân
-                $sql .= " AND t.trang_thai <> 'dang_kham'";
+                $baseSql .= " AND t.trang_thai <> 'dang_kham'";
             }
-            $sql .= " ORDER BY t.uu_tien DESC, t.so_thu_tu ASC";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
+
+            // Đếm tổng số phiếu
+            $countSql = "SELECT COUNT(*) " . $baseSql;
+            $stmtCount = $pdo->prepare($countSql);
+            $stmtCount->execute($params);
+            $total = (int)$stmtCount->fetchColumn();
+
+            // Lấy danh sách phiếu cho trang hiện tại
+            $dataSql = "SELECT t.*, bn.ten AS ten_benh_nhan, bs.ten AS ten_bac_si, lh.gio_hen AS thoi_gian_du_kien "
+                . $baseSql
+                . " ORDER BY t.uu_tien DESC, t.so_thu_tu ASC
+                        LIMIT :limit OFFSET :offset";
+
+            $stmt = $pdo->prepare($dataSql);
+            foreach ($params as $k => $v) {
+                $stmt->bindValue($k, $v);
+            }
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-            echo json_encode(['success' => true, 'data' => $rows]);
+
+            $totalPages = max(1, (int)ceil($total / $limit));
+
+            echo json_encode([
+                'success' => true,
+                'data' => $rows,
+                'pagination' => [
+                    'current_page' => $page,
+                    'per_page' => $limit,
+                    'total' => $total,
+                    'total_pages' => $totalPages,
+                ],
+            ]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Lỗi: ' . $e->getMessage()]);
@@ -561,6 +798,27 @@ class ReceptionController
         }
         echo json_encode(['success' => true, 'data' => $ticket]);
         exit();
+    }
+
+    /**
+     * Logic cửa sổ đăng ký lịch làm việc cho Lễ tân
+     * Giống với bác sĩ: chỉ được đăng ký/hoàn tất lịch cơ bản từ ngày 23 → 25 hằng tháng
+     */
+    private function isWithinReceptionRegistrationWindow(): bool
+    {
+        $dt = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        $day = (int)$dt->format('j');
+        return $day >= 23 && $day <= 25;
+    }
+
+    /**
+     * Kiểm tra hôm nay là Thứ 2 (theo timezone Việt Nam)
+     * Dùng để áp logic: chỉ cho phép lễ tân xóa ca trực vào Thứ 2, giống bác sĩ.
+     */
+    private function isMonday(): bool
+    {
+        $dt = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
+        return (int)$dt->format('N') === 1; // 1 = Monday
     }
 
     // ===== Helpers =====
@@ -807,12 +1065,19 @@ class ReceptionController
                 $paymentStatus = 'Đã thanh toán tiền mặt';
             }
 
-            // Cập nhật trạng thái thanh toán
+            // Lấy id_le_tan từ session (nếu là reception)
+            $idLeTan = null;
+            if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'letan') {
+                $idLeTan = $_SESSION['user_id'] ?? null;
+            }
+
+            // Cập nhật trạng thái thanh toán và id_le_tan
             $result = $this->bienLaiModel->updatePaymentStatus(
                 $receiptId,
                 $paymentStatus,
                 $paymentMethod,
-                $paymentNote
+                $paymentNote,
+                $idLeTan
             );
 
             if (!$result) {
@@ -910,12 +1175,19 @@ class ReceptionController
                 $receiptId = explode('_', $txnRef)[1] ?? null;
 
                 if ($receiptId) {
-                    // Update receipt status
+                    // Lấy id_le_tan từ session (nếu là reception)
+                    $idLeTan = null;
+                    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'letan') {
+                        $idLeTan = $_SESSION['user_id'] ?? null;
+                    }
+
+                    // Update receipt status và id_le_tan
                     $this->bienLaiModel->updatePaymentStatus(
                         $receiptId,
                         'Đã thanh toán chuyển khoản',
                         'Thanh toán VNPAY',
-                        'VNPAY Transaction: ' . $result['transaction_id']
+                        'VNPAY Transaction: ' . $result['transaction_id'],
+                        $idLeTan
                     );
                 }
 
@@ -968,6 +1240,223 @@ class ReceptionController
                 'success' => false,
                 'message' => 'Lỗi khi lấy danh sách biên lai'
             ]);
+        }
+    }
+
+    /**
+     * Trang chấm công cho lễ tân
+     */
+    public function attendance()
+    {
+        $this->auth->requireAuth('letan');
+
+        $page_title = 'Chấm công';
+
+        ob_start();
+        include 'Views/reception/attendance.php';
+        $content = ob_get_clean();
+
+        require_once 'Views/layouts/layout_helper.php';
+        renderLayout($content, $page_title);
+    }
+
+    /**
+     * API: Chấm công check-in/check-out
+     */
+    public function processAttendance()
+    {
+        $this->auth->requireAuth('letan');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $action = trim($input['action'] ?? ''); // 'check_in' hoặc 'check_out'
+        $faceEncoding = $input['face_encoding'] ?? null;
+        $imageData = $input['image_data'] ?? null;
+        $location = $input['location'] ?? null; // Địa điểm chấm công (GPS hoặc địa chỉ) - BẮT BUỘC
+
+        if (empty($action) || !in_array($action, ['check_in', 'check_out']) || empty($faceEncoding)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc!']);
+            exit();
+        }
+
+        // BẮT BUỘC: Kiểm tra location (GPS)
+        if (empty($location)) {
+            echo json_encode(['success' => false, 'message' => 'Vui lòng bật GPS và cho phép truy cập vị trí để chấm công!']);
+            exit();
+        }
+
+        // Validate format location (phải có dạng latitude,longitude)
+        if (!preg_match('/^-?\d+\.?\d*,-?\d+\.?\d*$/', $location)) {
+            echo json_encode(['success' => false, 'message' => 'Định dạng vị trí GPS không hợp lệ!']);
+            exit();
+        }
+
+        $userId = $_SESSION['user_id'] ?? null;
+        $userType = 'reception';
+
+        if (!$userId) {
+            echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập!']);
+            exit();
+        }
+
+        require_once 'Models/Attendance.php';
+        $attendanceModel = new Attendance();
+
+        // Validate ảnh có hợp lệ không (kiểm tra kích thước, format)
+        if ($imageData) {
+            // Kiểm tra base64 image data
+            if (strlen($imageData) < 100) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh không hợp lệ!']);
+                exit();
+            }
+
+            // Decode để kiểm tra kích thước ảnh
+            $imageDataDecoded = base64_decode(explode(',', $imageData)[1] ?? $imageData);
+            if ($imageDataDecoded === false || strlen($imageDataDecoded) < 1000) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh không hợp lệ hoặc quá nhỏ!']);
+                exit();
+            }
+
+            // Kiểm tra kích thước file (ảnh từ camera thường > 10KB)
+            if (strlen($imageDataDecoded) < 10000) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh không hợp lệ. Vui lòng chụp lại từ camera!']);
+                exit();
+            }
+
+            // Kiểm tra ảnh có chứa timestamp watermark không (bằng cách tìm pattern timestamp)
+            // Timestamp được vẽ ở góc dưới bên trái, nên ảnh phải có kích thước đủ lớn
+            // Nếu ảnh quá nhỏ hoặc không có watermark, có thể là ảnh upload
+            $imageInfo = @getimagesizefromstring($imageDataDecoded);
+            if ($imageInfo === false) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh không hợp lệ. Vui lòng chụp lại từ camera!']);
+                exit();
+            }
+
+            // Kiểm tra độ phân giải tối thiểu (ảnh từ camera thường có độ phân giải nhất định)
+            if ($imageInfo[0] < 320 || $imageInfo[1] < 240) {
+                echo json_encode(['success' => false, 'message' => 'Ảnh có độ phân giải quá thấp. Vui lòng chụp lại từ camera!']);
+                exit();
+            }
+        }
+
+        // Lưu ảnh nếu có
+        $imagePath = null;
+        if ($imageData) {
+            $imagePath = $this->saveAttendanceImage($imageData, $userId, $userType, $action);
+        }
+
+        // So sánh face encoding để xác nhận danh tính (so sánh trực tiếp với face encoding của user)
+        $faceEncodingJson = is_string($faceEncoding) ? $faceEncoding : json_encode($faceEncoding);
+        $comparison = $attendanceModel->compareFaceWithUser($faceEncodingJson, $userId, $userType);
+
+        if (!$comparison['match']) {
+            $baseMessage = $comparison['message'] ?? '';
+            if ($baseMessage === 'Chưa đăng ký khuôn mặt') {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Bạn chưa đăng ký nhận diện khuôn mặt. Vui lòng liên hệ quản trị viên để đăng ký trước khi chấm công.',
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không nhận diện được khuôn mặt hoặc không khớp với tài khoản! ' . $baseMessage,
+                    'distance' => $comparison['distance'] ?? null,
+                    'threshold' => $comparison['threshold'] ?? null,
+                    'debug' => $comparison
+                ]);
+            }
+            exit();
+        }
+
+        // Xử lý check-in hoặc check-out
+        if ($action === 'check_in') {
+            $result = $attendanceModel->checkIn($userId, $userType, $faceEncodingJson, $imagePath, $location);
+        } else {
+            $result = $attendanceModel->checkOut($userId, $userType, $faceEncodingJson, $imagePath, $location);
+        }
+
+        if ($result['success']) {
+            $result['confidence'] = $recognized['confidence'] ?? 1.0;
+        }
+
+        echo json_encode($result);
+        exit();
+    }
+
+    /**
+     * Lưu ảnh chấm công
+     */
+    private function saveAttendanceImage($imageData, $userId, $userType, $action)
+    {
+        try {
+            // Loại bỏ phần "data:image/png;base64," nếu có
+            if (strpos($imageData, ',') !== false) {
+                $imageData = explode(',', $imageData)[1];
+            }
+
+            $imageData = base64_decode($imageData);
+            if ($imageData === false) {
+                return null;
+            }
+
+            $uploadDir = __DIR__ . '/../uploads/attendance/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $fileName = $action . '_' . $userId . '_' . $userType . '_' . time() . '.jpg';
+            $filePath = $uploadDir . $fileName;
+
+            file_put_contents($filePath, $imageData);
+
+            return 'uploads/attendance/' . $fileName;
+        } catch (Exception $e) {
+            error_log("Error saving attendance image: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * API: Lấy trạng thái chấm công hôm nay
+     */
+    public function getTodayAttendance()
+    {
+        try {
+            $this->auth->requireAuth('letan');
+            header('Content-Type: application/json; charset=utf-8');
+
+            $userId = $_SESSION['user_id'] ?? null;
+            $userType = 'reception';
+
+            if (!$userId) {
+                echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập!']);
+                exit();
+            }
+
+            require_once 'Models/Attendance.php';
+            $attendanceModel = new Attendance();
+
+            $status = $attendanceModel->getTodayStatus($userId, $userType);
+
+            echo json_encode([
+                'success' => true,
+                'status' => $status ?: null
+            ]);
+            exit();
+        } catch (Exception $e) {
+            error_log("Error in getTodayAttendance: " . $e->getMessage());
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => false,
+                'message' => 'Lỗi khi lấy thông tin chấm công: ' . $e->getMessage()
+            ]);
+            exit();
         }
     }
 }

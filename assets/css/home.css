@@ -140,8 +140,8 @@ input[type="tel"]:focus {
 }
 
 .btn-main:hover {
-  background: #e12454;
-  border-color: #e12454;
+  background: #0a2357;
+  border-color: #0a2357;
   color: #fff;
 }
 
@@ -152,9 +152,9 @@ input[type="tel"]:focus {
 }
 
 .btn-main-2:hover {
-  background: #223a66;
+  background: #cc1b47;
   color: #fff;
-  border-color: #223a66;
+  border-color: #cc1b47;
 }
 
 .btn-solid-border {

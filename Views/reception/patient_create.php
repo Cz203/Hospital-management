@@ -5,18 +5,18 @@
                 <div class="card-body">
                     <h5 class="card-title">Thêm bệnh nhân</h5>
                     <?php if (isset($_SESSION['success'])): ?>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <?php echo $_SESSION['success'];
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <?php echo $_SESSION['success'];
                             unset($_SESSION['success']); ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                     <?php endif; ?>
                     <?php if (isset($_SESSION['error'])): ?>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <?php echo $_SESSION['error'];
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <?php echo $_SESSION['error'];
                             unset($_SESSION['error']); ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                     <?php endif; ?>
 
                     <form method="POST" action="./reception_patient_store" class="row g-3" id="patientCreateForm">
@@ -56,14 +56,6 @@
 
                         <div class="col-md-6">
                             <label class="form-label">
-                                <i class="fas fa-lock me-1"></i>Mật khẩu
-                                <span class="text-danger">*</span>
-                            </label>
-                            <input type="password" name="mat_khau" id="mat_khau" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">
                                 <i class="fas fa-phone me-1"></i>Số điện thoại
                                 <span class="text-danger">*</span>
                             </label>
@@ -97,6 +89,24 @@
                             <textarea name="dia_chi" id="dia_chi" class="form-control" rows="2"></textarea>
                         </div>
 
+                        <!-- Thông tin bảo hiểm y tế (tự động từ CCCD) -->
+                        <input type="hidden" name="bao_hiem_y_te_id" id="bao_hiem_y_te_id">
+                        <input type="hidden" name="bao_hiem_y_te" id="bao_hiem_y_te">
+
+                        <div class="col-12">
+                            <div class="alert alert-info d-none" id="bhyt-info-box">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-id-card-alt me-2"></i>
+                                    <div>
+                                        <div><strong>Mã BHYT:</strong> <span id="bhyt_ma"></span></div>
+                                        <div><strong>Trạng thái:</strong> <span id="bhyt_trang_thai"></span></div>
+                                        <div><strong>Hạn sử dụng:</strong> <span id="bhyt_han"></span></div>
+                                        <div><strong>Mức hưởng:</strong> <span id="bhyt_huong_muc"></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i> Lưu bệnh nhân
@@ -113,26 +123,11 @@
                     <h6 class="card-title">Gợi ý/Quy ước</h6>
                     <ul class="small mb-0">
                         <li>Nhập CCCD trước để tự động điền thông tin</li>
-                        <li>Email không được trùng nhau</li>
-                        <li>Số điện thoại lưu chuẩn: 84xxxxxxxxx (tự động chuẩn hóa khi lưu)</li>
-                        <li>Trường có dấu <span class="text-danger">*</span> là bắt buộc</li>
-                    </ul>
 
-                    <h6 class="card-title mt-3">CCCD mẫu để test</h6>
-                    <div class="small">
-                        <div class="mb-2">
-                            <strong>001234567890</strong><br>
-                            <small class="text-muted">Cao Dương Quốc Việt - 2003-03-22</small>
-                        </div>
-                        <div class="mb-2">
-                            <strong>002345678901</strong><br>
-                            <small class="text-muted">Trần Thị B - 1995-05-20</small>
-                        </div>
-                        <div class="mb-2">
-                            <strong>003456789012</strong><br>
-                            <small class="text-muted">Lê Văn C - 1988-12-10</small>
-                        </div>
-                    </div>
+                        <li>Mật khẩu mặc định cho bệnh nhân mới: <code>1111</code> (bệnh nhân nên đổi sau khi đăng nhập)
+                        </li>
+
+                    </ul>
                 </div>
             </div>
         </div>

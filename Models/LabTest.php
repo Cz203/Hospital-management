@@ -32,6 +32,7 @@ class LabTest
             $ngay = $data['ngay'] ?? '';
             $thang = $data['thang'] ?? '';
             $nam = $data['nam'] ?? '';
+            $assignedDoctorId = isset($data['bac_si_xet_nghiem_id']) ? (int)$data['bac_si_xet_nghiem_id'] : null;
 
             // Validation
             if (empty($examId) || empty($hoTen) || empty($yeuCau)) {
@@ -55,29 +56,48 @@ class LabTest
                     UPDATE {$this->table_name} 
                     SET so_ho_so = ?, ho_ten = ?, tuoi = ?, gioi_tinh = ?, doi_tuong = ?, 
                         so_the_bhyt = ?, phong_kham = ?, chan_doan = ?, yeu_cau = ?, 
-                        bac_si_kham = ?, thoi_gian_yeu_cau = NOW()
+                        bac_si_kham = ?, thoi_gian_yeu_cau = NOW(), bac_si_xet_nghiem_id = ?
                     WHERE id_phieu_kham_benh = ?
                 ");
                 $result = $stmt->execute([
-                    $soHoSo, $hoTen, $tuoi, $gioiTinh, $doiTuong, $soTheBhyt, 
-                    $phongKham, $chanDoan, $yeuCau, $bacSiKham, $examId
+                    $soHoSo,
+                    $hoTen,
+                    $tuoi,
+                    $gioiTinh,
+                    $doiTuong,
+                    $soTheBhyt,
+                    $phongKham,
+                    $chanDoan,
+                    $yeuCau,
+                    $bacSiKham,
+                    $assignedDoctorId,
+                    $examId
                 ]);
             } else {
                 // Tạo phiếu mới
                 $stmt = $this->db->prepare("
                     INSERT INTO {$this->table_name} 
                     (id_phieu_kham_benh, so_ho_so, ho_ten, tuoi, gioi_tinh, doi_tuong, 
-                     so_the_bhyt, phong_kham, chan_doan, yeu_cau, bac_si_kham, thoi_gian_yeu_cau)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                     so_the_bhyt, phong_kham, chan_doan, yeu_cau, bac_si_kham, thoi_gian_yeu_cau, bac_si_xet_nghiem_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)
                 ");
                 $result = $stmt->execute([
-                    $examId, $soHoSo, $hoTen, $tuoi, $gioiTinh, $doiTuong, 
-                    $soTheBhyt, $phongKham, $chanDoan, $yeuCau, $bacSiKham
+                    $examId,
+                    $soHoSo,
+                    $hoTen,
+                    $tuoi,
+                    $gioiTinh,
+                    $doiTuong,
+                    $soTheBhyt,
+                    $phongKham,
+                    $chanDoan,
+                    $yeuCau,
+                    $bacSiKham,
+                    $assignedDoctorId
                 ]);
             }
 
             return ['success' => true, 'message' => 'Lưu phiếu xét nghiệm thành công'];
-
         } catch (Exception $e) {
             error_log('Error saving lab form: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Lỗi hệ thống: ' . $e->getMessage()];
@@ -87,21 +107,22 @@ class LabTest
     /**
      * Kiểm tra yêu cầu xét nghiệm có hợp lệ không
      */
-    public function validateLabRequests($yeuCau) {
+    public function validateLabRequests($yeuCau)
+    {
         if (empty($yeuCau)) {
             return ['valid' => false, 'message' => 'Vui lòng nhập yêu cầu xét nghiệm'];
         }
 
         // Tách các yêu cầu theo dấu phẩy và loại bỏ khoảng trắng
-        $requests = array_filter(array_map('trim', explode(',', $yeuCau)), function($item) {
+        $requests = array_filter(array_map('trim', explode(',', $yeuCau)), function ($item) {
             return !empty($item);
         });
-        
+
         // Nếu không có yêu cầu hợp lệ sau khi filter
         if (empty($requests)) {
             return ['valid' => false, 'message' => 'Vui lòng nhập yêu cầu xét nghiệm'];
         }
-        
+
         $validRequests = [];
         $invalidRequests = [];
 
@@ -111,7 +132,7 @@ class LabTest
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
             $suggestions = $stmt->fetchAll(PDO::FETCH_COLUMN);
-            
+
             // Kiểm tra từng yêu cầu
             foreach ($requests as $request) {
                 $found = false;
@@ -126,21 +147,20 @@ class LabTest
                     $invalidRequests[] = $request;
                 }
             }
-            
+
             // Nếu có yêu cầu không hợp lệ
             if (!empty($invalidRequests)) {
                 $invalidList = implode(', ', $invalidRequests);
                 return [
-                    'valid' => false, 
+                    'valid' => false,
                     'message' => "Các yêu cầu sau không có trong danh sách dịch vụ: " . $invalidList
                 ];
             }
-            
+
             return [
-                'valid' => true, 
+                'valid' => true,
                 'validRequests' => $validRequests
             ];
-
         } catch (PDOException $e) {
             error_log("LabTest validateLabRequests error: " . $e->getMessage());
             return ['valid' => false, 'message' => 'Lỗi kiểm tra dịch vụ'];
@@ -169,7 +189,6 @@ class LabTest
             } else {
                 return ['success' => false, 'message' => 'Không tìm thấy phiếu xét nghiệm'];
             }
-
         } catch (Exception $e) {
             error_log('Error getting lab form data: ' . $e->getMessage());
             return ['success' => false, 'message' => 'Lỗi hệ thống'];
@@ -189,12 +208,9 @@ class LabTest
             ");
             $stmt->execute([$id]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
-
         } catch (Exception $e) {
             error_log('Error getting lab test by id: ' . $e->getMessage());
             return false;
         }
     }
-
 }
-?>

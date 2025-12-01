@@ -22,9 +22,9 @@ class PhieuYeuCauSieuAm {
         try {
             $sql = "INSERT INTO {$this->table} 
                     (id_phieu_kham_benh, so_ho_so, ho_ten, gioi_tinh, doi_tuong, 
-                     so_the_bhyt, phong_kham, chan_doan, yeu_cau, bac_si_kham, thoi_gian_yeu_cau, trang_thai) 
+                     so_the_bhyt, phong_kham, chan_doan, yeu_cau, bac_si_kham, thoi_gian_yeu_cau, trang_thai, bac_si_sieu_am_id) 
                     VALUES (:id_phieu_kham_benh, :so_ho_so, :ho_ten, :gioi_tinh, :doi_tuong, 
-                            :so_the_bhyt, :phong_kham, :chan_doan, :yeu_cau, :bac_si_kham, :thoi_gian_yeu_cau, :trang_thai)";
+                            :so_the_bhyt, :phong_kham, :chan_doan, :yeu_cau, :bac_si_kham, :thoi_gian_yeu_cau, :trang_thai, :bac_si_sieu_am_id)";
             
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
@@ -39,7 +39,8 @@ class PhieuYeuCauSieuAm {
                 ':yeu_cau' => $data['yeu_cau'],
                 ':bac_si_kham' => $data['bac_si_kham'],
                 ':thoi_gian_yeu_cau' => $data['thoi_gian_yeu_cau'],
-                ':trang_thai' => $data['trang_thai'] ?? 'Đã yêu cầu'
+                ':trang_thai' => $data['trang_thai'] ?? 'Đã yêu cầu',
+                ':bac_si_sieu_am_id' => $data['bac_si_sieu_am_id'] ?? null
             ]);
         } catch (PDOException $e) {
             error_log("PhieuYeuCauSieuAm save error: " . $e->getMessage());
@@ -65,7 +66,7 @@ class PhieuYeuCauSieuAm {
                     so_ho_so = :so_ho_so, ho_ten = :ho_ten, gioi_tinh = :gioi_tinh, 
                     doi_tuong = :doi_tuong, so_the_bhyt = :so_the_bhyt, phong_kham = :phong_kham, 
                     chan_doan = :chan_doan, yeu_cau = :yeu_cau, bac_si_kham = :bac_si_kham, 
-                    thoi_gian_yeu_cau = :thoi_gian_yeu_cau, trang_thai = :trang_thai
+                    thoi_gian_yeu_cau = :thoi_gian_yeu_cau, trang_thai = :trang_thai, bac_si_sieu_am_id = :bac_si_sieu_am_id
                     WHERE id = :id";
             
             $stmt = $this->db->prepare($sql);
@@ -81,7 +82,8 @@ class PhieuYeuCauSieuAm {
                 ':yeu_cau' => $data['yeu_cau'],
                 ':bac_si_kham' => $data['bac_si_kham'],
                 ':thoi_gian_yeu_cau' => $data['thoi_gian_yeu_cau'],
-                ':trang_thai' => $data['trang_thai'] ?? 'Đã yêu cầu'
+                ':trang_thai' => $data['trang_thai'] ?? 'Đã yêu cầu',
+                ':bac_si_sieu_am_id' => $data['bac_si_sieu_am_id'] ?? null
             ]);
         } catch (PDOException $e) {
             error_log("PhieuYeuCauSieuAm update error: " . $e->getMessage());
