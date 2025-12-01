@@ -48,6 +48,22 @@ class Reception extends User
     }
 
     /**
+     * Cập nhật thông tin lễ tân
+     */
+    public function update(int $id, array $data): bool
+    {
+        $sql = "UPDATE " . $this->table_name . " 
+                SET ten = :ten, email = :email, so_dien_thoai = :so_dien_thoai, ngay_cap_nhat = NOW()
+                WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':ten', $data['ten']);
+        $stmt->bindParam(':email', $data['email']);
+        $stmt->bindParam(':so_dien_thoai', $data['so_dien_thoai']);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
+    /**
      * Lấy danh sách tất cả lễ tân (cho Admin quản lý lịch làm việc)
      */
     public function getAll()
@@ -71,5 +87,34 @@ class Reception extends User
         $stmt->execute();
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
+    }
+    public function countAll(): int
+    {
+        $stmt = $this->conn->query("SELECT COUNT(*) AS c FROM " . $this->table_name);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($row['c'] ?? 0);
+    }
+
+    public function getPaginated(int $offset, int $limit): array
+    {
+        $sql = "SELECT id, ten, email, so_dien_thoai, ngay_tao, ngay_cap_nhat
+                FROM " . $this->table_name . "
+                ORDER BY ngay_tao DESC
+                LIMIT :limit OFFSET :offset";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Xóa lễ tân theo ID (dùng cho Admin)
+     */
+    public function deleteById(int $id): bool
+    {
+        $stmt = $this->conn->prepare("DELETE FROM " . $this->table_name . " WHERE id = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
     }
 }

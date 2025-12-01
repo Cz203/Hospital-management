@@ -259,6 +259,27 @@ switch ($action) {
         $adminController->cancelAppointment();
         break;
 
+    // Quản lý bệnh nhân & lễ tân (Admin)
+    case 'admin_create_patient':
+        $adminController->adminCreatePatient();
+        break;
+    case 'admin_update_patient':
+        $adminController->adminUpdatePatient();
+        break;
+    case 'admin_delete_patient':
+        $adminController->adminDeletePatient();
+        break;
+
+    case 'admin_create_reception':
+        $adminController->adminCreateReception();
+        break;
+    case 'admin_update_reception':
+        $adminController->adminUpdateReception();
+        break;
+    case 'admin_delete_reception':
+        $adminController->adminDeleteReception();
+        break;
+
     // ===== ADMIN FACE RECOGNITION =====
     case 'admin_face_registration':
         $adminController->faceRegistration(); // Trang đăng ký face recognition
@@ -936,12 +957,13 @@ switch ($action) {
                     header("Location: ./reception_dashboard");
                     exit();
                 default:
+                    // Không biết role, cho về trang chủ
                     header("Location: ./");
                     exit();
             }
         }
 
-        // Nếu không đăng nhập hoặc action không tồn tại, hiển thị trang chủ
-        include 'Views/home.php';
+        // Nếu không đăng nhập hoặc action không tồn tại, hiển thị trang 404 thân thiện
+        include 'Views/not_found.php';
         break;
 }

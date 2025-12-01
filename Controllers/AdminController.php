@@ -185,11 +185,125 @@ class AdminController
         $page_title = 'Danh sách Bệnh nhân';
 
         ob_start();
-        include 'Views/admin/patients_list.php';
+        include __DIR__ . '/../Views/admin/patients_list.php';
         $content = ob_get_clean();
 
         require_once 'Views/layouts/layout_helper.php';
         renderLayout($content, $page_title);
+    }
+
+    /**
+     * Thêm bệnh nhân (Admin)
+     */
+    public function adminCreatePatient()
+    {
+        $this->auth->requireAuth('admin');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./patients');
+            exit();
+        }
+
+        $name    = trim($_POST['ten'] ?? '');
+        $email   = trim($_POST['email'] ?? '');
+        $phone   = trim($_POST['so_dien_thoai'] ?? '');
+        $dob     = trim($_POST['ngay_sinh'] ?? '');
+        $gender  = trim($_POST['gioi_tinh'] ?? '');
+        $address = trim($_POST['dia_chi'] ?? '');
+        $cccd    = trim($_POST['cccd'] ?? '');
+        $password = $_POST['mat_khau'] ?? '1111';
+
+        if ($name === '' || $email === '' || $phone === '') {
+            $_SESSION['error'] = 'Vui lòng nhập đủ Tên, Email, Số điện thoại.';
+            header('Location: ./patients');
+            exit();
+        }
+
+        try {
+            $ok = $this->patientModel->create([
+                'ten'            => $name,
+                'email'          => $email,
+                'mat_khau'       => $password,
+                'so_dien_thoai'  => $phone,
+                'ngay_sinh'      => $dob,
+                'gioi_tinh'      => $gender,
+                'dia_chi'        => $address,
+                'cccd'           => $cccd,
+                'phone_verified' => 1,
+            ]);
+            $_SESSION['success'] = $ok ? 'Thêm bệnh nhân thành công!' : 'Không thể thêm bệnh nhân.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi: ' . $e->getMessage();
+        }
+
+        header('Location: ./patients');
+        exit();
+    }
+
+    /**
+     * Cập nhật bệnh nhân (Admin)
+     */
+    public function adminUpdatePatient()
+    {
+        $this->auth->requireAuth('admin');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./patients');
+            exit();
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Thiếu ID bệnh nhân.';
+            header('Location: ./patients');
+            exit();
+        }
+
+        $data = [
+            'ten'       => trim($_POST['ten'] ?? ''),
+            'email'     => trim($_POST['email'] ?? ''),
+            'ngay_sinh' => trim($_POST['ngay_sinh'] ?? ''),
+            'gioi_tinh' => trim($_POST['gioi_tinh'] ?? ''),
+            'dia_chi'   => trim($_POST['dia_chi'] ?? ''),
+            'cccd'      => trim($_POST['cccd'] ?? ''),
+        ];
+
+        try {
+            $ok = $this->patientModel->updateProfileWithEmail($id, $data);
+            $_SESSION['success'] = $ok ? 'Cập nhật bệnh nhân thành công!' : 'Không thể cập nhật bệnh nhân.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi: ' . $e->getMessage();
+        }
+
+        header('Location: ./patients');
+        exit();
+    }
+
+    /**
+     * Xóa bệnh nhân (Admin)
+     */
+    public function adminDeletePatient()
+    {
+        $this->auth->requireAuth('admin');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./patients');
+            exit();
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Thiếu ID bệnh nhân.';
+            header('Location: ./patients');
+            exit();
+        }
+
+        try {
+            $ok = method_exists($this->patientModel, 'deleteById') ? $this->patientModel->deleteById($id) : false;
+            $_SESSION['success'] = $ok ? 'Đã xóa bệnh nhân.' : 'Không thể xóa bệnh nhân.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi: ' . $e->getMessage();
+        }
+
+        header('Location: ./patients');
+        exit();
     }
 
     /**
@@ -215,11 +329,113 @@ class AdminController
         $page_title = 'Danh sách Lễ tân';
 
         ob_start();
-        include 'Views/admin/reception_list.php';
+        include __DIR__ . '/../Views/admin/reception_list.php';
         $content = ob_get_clean();
 
         require_once 'Views/layouts/layout_helper.php';
         renderLayout($content, $page_title);
+    }
+
+    /**
+     * Thêm lễ tân (Admin)
+     */
+    public function adminCreateReception()
+    {
+        $this->auth->requireAuth('admin');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./admin_reception_list');
+            exit();
+        }
+
+        $name  = trim($_POST['ten'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $phone = trim($_POST['so_dien_thoai'] ?? '');
+        $password = $_POST['mat_khau'] ?? '1111';
+
+        if ($name === '' || $email === '' || $phone === '') {
+            $_SESSION['error'] = 'Vui lòng nhập đủ Tên, Email, SĐT.';
+            header('Location: ./admin_reception_list');
+            exit();
+        }
+
+        try {
+            $ok = $this->receptionModel->create([
+                'ten'         => $name,
+                'email'       => $email,
+                'mat_khau'    => $password,
+                'so_dien_thoai' => $phone,
+            ]);
+            $_SESSION['success'] = $ok ? 'Thêm lễ tân thành công!' : 'Không thể thêm lễ tân.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi: ' . $e->getMessage();
+        }
+
+        header('Location: ./admin_reception_list');
+        exit();
+    }
+
+    /**
+     * Cập nhật lễ tân (Admin)
+     */
+    public function adminUpdateReception()
+    {
+        $this->auth->requireAuth('admin');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./admin_reception_list');
+            exit();
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Thiếu ID lễ tân.';
+            header('Location: ./admin_reception_list');
+            exit();
+        }
+
+        $data = [
+            'ten'          => trim($_POST['ten'] ?? ''),
+            'email'        => trim($_POST['email'] ?? ''),
+            'so_dien_thoai' => trim($_POST['so_dien_thoai'] ?? ''),
+        ];
+
+        try {
+            $ok = $this->receptionModel->update($id, $data);
+            $_SESSION['success'] = $ok ? 'Cập nhật lễ tân thành công!' : 'Không thể cập nhật lễ tân.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi: ' . $e->getMessage();
+        }
+
+        header('Location: ./admin_reception_list');
+        exit();
+    }
+
+    /**
+     * Xóa lễ tân (Admin)
+     */
+    public function adminDeleteReception()
+    {
+        $this->auth->requireAuth('admin');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            header('Location: ./admin_reception_list');
+            exit();
+        }
+
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            $_SESSION['error'] = 'Thiếu ID lễ tân.';
+            header('Location: ./admin_reception_list');
+            exit();
+        }
+
+        try {
+            $ok = method_exists($this->receptionModel, 'deleteById') ? $this->receptionModel->deleteById($id) : false;
+            $_SESSION['success'] = $ok ? 'Đã xóa lễ tân.' : 'Không thể xóa lễ tân.';
+        } catch (Exception $e) {
+            $_SESSION['error'] = 'Lỗi: ' . $e->getMessage();
+        }
+
+        header('Location: ./admin_reception_list');
+        exit();
     }
 
     public function adminUpdateDoctor()
@@ -742,6 +958,15 @@ class AdminController
             $stmt->execute([':month' => $currentMonth]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             $stats['total_revenue_month'] = (float)($result['total'] ?? 0);
+
+            // Tổng doanh thu (tất cả thời gian)
+            $stmt = $db->query("
+                SELECT COALESCE(SUM(tong_nguoi_benh), 0) AS total
+                FROM bien_lai_vien_phi
+                WHERE trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
+            ");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stats['total_revenue_all'] = (float)($result['total'] ?? 0);
 
             // Biên lai chưa thanh toán
             $stmt = $db->query("SELECT COUNT(*) as total FROM bien_lai_vien_phi WHERE trang_thai = 'Chưa thanh toán'");

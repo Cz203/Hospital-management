@@ -98,10 +98,9 @@ require_once __DIR__ . '/../layouts/layout_helper.php';
                         <i class="fas fa-coins"></i>
                     </div>
                     <div class="flex-grow-1">
-                        <div class="card-label">Doanh thu tháng này</div>
+                        <div class="card-label">Tổng doanh thu</div>
                         <div class="card-value">
-                            <?php echo number_format($stats['total_revenue_month'] ?? 0); ?> <span
-                                class="unit">VNĐ</span>
+                            <?php echo number_format($stats['total_revenue_all'] ?? 0); ?> <span class="unit">VNĐ</span>
                         </div>
                         <?php if (isset($stats['revenue_today']) && $stats['revenue_today'] > 0): ?>
                         <small class="text-muted">
