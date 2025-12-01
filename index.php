@@ -1,461 +1,947 @@
 <?php
+session_start();
 
-/**
- * Main entry point for the clinic management system
- * Handles routing based on action parameter
- */
+// Set timezone Việt Nam
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-// Start session
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
+// Load Composer autoloader để sử dụng Vonage SDK
+require_once 'vendor/autoload.php';
+
+// Load environment variables from .env (if present)
+try {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->safeLoad();
+} catch (Throwable $e) {
+    // ignore if dotenv not available
 }
 
-// Get action from URL (via .htaccess rewrite or query string)
-$action = $_GET['action'] ?? '';
-
-// If no action, redirect to home
-if (empty($action)) {
-    $action = 'home';
-}
-
-// Require necessary files
 require_once 'Controllers/AuthController.php';
-require_once 'Controllers/PatientController.php';
 require_once 'Controllers/DoctorController.php';
 require_once 'Controllers/AdminController.php';
-require_once 'Controllers/ReceptionController.php';
 require_once 'Controllers/AppointmentController.php';
-require_once 'Controllers/MedicalRecordController.php';
 require_once 'Controllers/PrescriptionController.php';
+require_once 'Controllers/PatientController.php';
+require_once 'Controllers/ReceptionController.php';
 require_once 'Controllers/ReceiptController.php';
+require_once 'Controllers/MedicalRecordController.php';
 require_once 'Controllers/PatientReceiptController.php';
 require_once 'Controllers/NotificationController.php';
-require_once 'Controllers/SMSController.php';
+// Khởi tạo Controllers
+$auth = new AuthController();
+$doctorController = new DoctorController();
+$adminController = new AdminController();
+$appointmentController = new AppointmentController();
+$prescriptionController = new PrescriptionController();
+$patientController = new PatientController();
+$receptionController = new ReceptionController();
+$medicalRecordController = new MedicalRecordController();
+$patientReceiptController = new PatientReceiptController();
+$notificationController = new NotificationController();
 
-// Route to appropriate controller method
-try {
-    switch ($action) {
-        // ========== AUTH ROUTES ==========
-        case 'login':
-        case 'login_patient':
-            $controller = new AuthController();
-            $controller->loginPatient();
-            break;
+// Khởi tạo ReceiptController
+require_once 'config/database.php';
+$database = new Database();
+$db = $database->getConnection();
+$receiptController = new ReceiptController($db);
 
-        case 'login_admin':
-            $controller = new AuthController();
-            $controller->loginAdmin();
-            break;
+// Lấy action từ URL - hỗ trợ cả URL đẹp và URL cũ
+$action = $_GET['action'] ?? 'home';
 
-        case 'login_doctor':
-            $controller = new AuthController();
-            $controller->loginDoctor();
-            break;
 
-        case 'login_reception':
-            $controller = new AuthController();
-            $controller->loginReception();
-            break;
+// Nếu không có action trong GET, thử lấy từ REQUEST_URI
 
-        case 'login_xquang':
-            $controller = new AuthController();
-            $controller->loginXrayDoctor();
-            break;
+// Routing
+switch ($action) {
+    // ===== AUTHENTICATION ROUTES =====
+    case 'login':
+        $auth->loginPatient(); // Đăng nhập bệnh nhân
+        break;
 
-        case 'login_sieuam':
-            $controller = new AuthController();
-            $controller->loginSieuAm();
-            break;
+    case 'login_admin':
+        $auth->loginAdmin(); // Đăng nhập admin
+        break;
 
-        case 'login_xetnghiem':
-            $controller = new AuthController();
-            $controller->loginXetnghiem();
-            break;
+    case 'login_doctor':
+        $auth->loginDoctor(); // Đăng nhập bác sĩ
+        break;
 
-        case 'register':
-        case 'signup':
-            $controller = new AuthController();
-            $controller->register();
-            break;
 
-        case 'logout':
-            $controller = new AuthController();
-            $controller->logout();
-            break;
+    case 'login_reception':
+        $auth->loginReception(); // Đăng nhập lễ tân
+        break;
+    case 'login_xquang':
+        $auth->loginXrayDoctor(); // Đăng nhập bác sĩ X-Quang (chuyên khoa 16)
+        break;
+    case 'login_xetnghiem':
+        $auth->loginXetnghiem(); // Đăng nhập bác sĩ Xét nghiệm (chuyên khoa 17)
+        break;
 
-        case 'change_password':
-            $controller = new AuthController();
-            $controller->changePassword();
-            break;
+    case 'login_sieuam':
+        $auth->loginSieuam(); // Đăng nhập bác sĩ Siêu âm (chuyên khoa 18)
 
-        // ========== HOME ROUTES ==========
-        case 'home':
-        case '':
-            // Include home view directly
-            include 'Views/home.php';
+        break;
+
+    case 'register':
+        $auth->register(); // Đăng ký tài khoản mới
+        break;
+
+    case 'verify_cccd':
+        // API xác thực CCCD giả lập
+        header('Content-Type: application/json');
+        require_once 'Services/CCCDService.php';
+        require_once 'config/database.php';
+
+        $cccd = trim($_POST['cccd'] ?? '');
+        $ten = trim($_POST['ten'] ?? '');
+        $ngaySinh = trim($_POST['ngay_sinh'] ?? '');
+
+        if (empty($cccd)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Vui lòng nhập số CCCD'
+            ]);
             exit();
-            break;
+        }
 
-        // ========== PATIENT ROUTES ==========
-        case 'patient_dashboard':
-            $auth = new AuthController();
-            $auth->requireAuth('patient');
-            include 'Views/patient/dashboard.php';
+        $database = new Database();
+        $db = $database->getConnection();
+        $cccdService = new CCCDService($db);
+
+        $result = $cccdService->verifyCCCD(
+            $cccd,
+            !empty($ten) ? $ten : null,
+            !empty($ngaySinh) ? $ngaySinh : null
+        );
+
+        echo json_encode($result);
+        exit();
+
+        // ===== SMS/OTP ROUTES =====
+    case 'send_otp':
+        require_once 'Controllers/SMSController.php';
+        $smsController = new SMSController();
+
+        // Nhận JSON data
+        $input = json_decode(file_get_contents('php://input'), true);
+        $phone_number = $input['phone_number'] ?? '';
+        $check_database = $input['check_database'] ?? false;
+        $for_registration = $input['for_registration'] ?? false;
+
+        if (empty($phone_number)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Số điện thoại không được để trống']);
             exit();
-            break;
+        }
 
-        case 'patient_profile':
-            $auth = new AuthController();
-            $auth->requireAuth('patient');
-            include 'Views/patient/profile.php';
+        $result = $smsController->sendOTP($phone_number, $check_database, $for_registration);
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+
+    case 'verify_otp':
+        require_once 'Controllers/SMSController.php';
+        $smsController = new SMSController();
+
+        // Nhận JSON data
+        $input = json_decode(file_get_contents('php://input'), true);
+        $phone_number = $input['phone_number'] ?? '';
+        $otp_code = $input['otp_code'] ?? '';
+
+        if (empty($phone_number) || empty($otp_code)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Số điện thoại và mã OTP không được để trống']);
             exit();
-            break;
-
-        case 'patient_update_profile':
-            $controller = new PatientController();
-            $controller->updateProfile();
-            break;
-
-        case 'patient_appointments':
-            $auth = new AuthController();
-            $auth->requireAuth('patient');
-            include 'Views/patient/appointments.php';
-            exit();
-            break;
-
-        case 'patient_medical_records':
-            $controller = new MedicalRecordController();
-            $controller->patientIndex();
-            break;
-
-        case 'patient_receipts':
-            $auth = new AuthController();
-            $auth->requireAuth('patient');
-            include 'Views/patient/receipts.php';
-            exit();
-            break;
-
-        // ========== DOCTOR ROUTES ==========
-        case 'doctor_dashboard':
-            $controller = new DoctorController();
-            $controller->dashboard();
-            break;
-
-        case 'doctor_schedule':
-        case 'doctor_manage_schedule':
-            $controller = new DoctorController();
-            $controller->manageSchedule();
-            break;
-
-        case 'doctor_today_appointments':
-            $controller = new DoctorController();
-            $controller->todayAppointments();
-            break;
-
-        case 'doctor_appointment_management':
-            $controller = new DoctorController();
-            $controller->appointmentManagement();
-            break;
-
-        case 'doctor_examination':
-            $controller = new DoctorController();
-            $controller->examination();
-            break;
-
-        case 'doctor_attendance':
-            $controller = new DoctorController();
-            $controller->attendance();
-            break;
-
-        case 'doctor_process_attendance':
-            $controller = new DoctorController();
-            $controller->processAttendance();
-            break;
-
-        case 'doctor_get_today_attendance':
-            $controller = new DoctorController();
-            $controller->getTodayAttendance();
-            break;
-
-        // Doctor API routes
-        case 'doctor_start_examination':
-            $controller = new DoctorController();
-            $controller->startExamination();
-            break;
-
-        case 'doctor_save_examination':
-            $controller = new DoctorController();
-            $controller->saveExaminationForm();
-            break;
-
-        case 'doctor_get_examination':
-            $controller = new DoctorController();
-            $controller->getExaminationForm();
-            break;
-
-        case 'doctor_print_examination':
-            $controller = new DoctorController();
-            $controller->printExaminationForm();
-            break;
-
-        case 'doctor_complete_examination':
-            $controller = new DoctorController();
-            $controller->completeExamination();
-            break;
-
-        case 'doctor_check_examination_completion':
-            $controller = new DoctorController();
-            $controller->checkExaminationCompletion();
-            break;
-
-        // ========== ADMIN ROUTES ==========
-        case 'admin_dashboard':
-            $controller = new AdminController();
-            $controller->dashboard();
-            break;
-
-        case 'admin_doctors_list':
-            $controller = new AdminController();
-            $controller->doctorsList();
-            break;
-
-        case 'admin_patients_list':
-            $controller = new AdminController();
-            $controller->patientsList();
-            break;
-
-        case 'admin_reception_list':
-            $controller = new AdminController();
-            $controller->receptionList();
-            break;
-
-        case 'admin_manage_doctor_schedules':
-            $controller = new AdminController();
-            $controller->manageDoctorSchedules();
-            break;
-
-        case 'admin_appointments':
-            $controller = new AdminController();
-            $controller->appointments();
-            break;
-
-        case 'admin_face_registration':
-            $controller = new AdminController();
-            $controller->faceRegistration();
-            break;
-
-        case 'admin_save_face_encoding':
-            $controller = new AdminController();
-            $controller->saveFaceEncoding();
-            break;
-
-        case 'admin_get_users':
-            $controller = new AdminController();
-            $controller->getUsers();
-            break;
-
-        case 'admin_get_user_info':
-            $controller = new AdminController();
-            $controller->getUserInfo();
-            break;
-
-        // ========== RECEPTION ROUTES ==========
-        case 'reception_dashboard':
-            $controller = new ReceptionController();
-            $controller->dashboard();
-            break;
-
-        case 'reception_doctor_schedules':
-            $controller = new ReceptionController();
-            $controller->doctorSchedules();
-            break;
-
-        case 'reception_schedule_management':
-            $controller = new ReceptionController();
-            $controller->scheduleManagement();
-            break;
-
-        case 'reception_attendance':
-            $controller = new ReceptionController();
-            $controller->attendance();
-            break;
-
-        case 'reception_process_attendance':
-            $controller = new ReceptionController();
-            $controller->processAttendance();
-            break;
-
-        case 'reception_get_today_attendance':
-            $controller = new ReceptionController();
-            $controller->getTodayAttendance();
-            break;
-
-        // ========== APPOINTMENT ROUTES ==========
-        case 'hospital_appointment':
-            $controller = new AppointmentController();
-            $controller->hospitalAppointment();
-            break;
-
-        case 'book_appointment':
-            $controller = new AppointmentController();
-            $controller->bookAppointment();
-            break;
-
-        // ========== API ROUTES (Doctor) ==========
-        case 'api_doctor_update_appointment_status':
-            $controller = new DoctorController();
-            $controller->updateAppointmentStatus();
-            break;
-
-        case 'api_doctor_add_schedule':
-            $controller = new DoctorController();
-            $controller->addSchedule();
-            break;
-
-        case 'api_doctor_update_schedule':
-            $controller = new DoctorController();
-            $controller->updateSchedule();
-            break;
-
-        case 'api_doctor_delete_schedule':
-            $controller = new DoctorController();
-            $controller->deleteSchedule();
-            break;
-
-        case 'api_doctor_get_schedule_info':
-            $controller = new DoctorController();
-            $controller->getScheduleInfo();
-            break;
-
-        case 'api_doctor_get_schedules_by_day':
-            $controller = new DoctorController();
-            $controller->getSchedulesByDay();
-            break;
-
-        case 'api_doctor_modify_schedule_for_date':
-            $controller = new DoctorController();
-            $controller->modifyScheduleForDate();
-            break;
-
-        case 'api_doctor_cancel_schedule_for_date':
-            $controller = new DoctorController();
-            $controller->cancelScheduleForDate();
-            break;
-
-        // ========== DEFAULT / 404 ==========
-        default:
-            // Try to find a matching controller method
-            // If not found, show 404 or redirect to home
-            http_response_code(404);
-            echo '<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Trang không tìm thấy</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f5f5f5;
         }
-        .error-container {
-            text-align: center;
-            padding: 40px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            font-size: 72px;
-            color: #dc3545;
-            margin: 0;
-        }
-        p {
-            font-size: 18px;
-            color: #666;
-            margin: 20px 0;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="error-container">
-        <h1>404</h1>
-        <p>Trang không tìm thấy</p>
-        <p><a href="./home">Quay về trang chủ</a></p>
-    </div>
-</body>
-</html>';
-            exit();
-    }
-} catch (Exception $e) {
-    // Log error
-    error_log("Routing error: " . $e->getMessage());
 
-    // Show error page
-    http_response_code(500);
-    echo '<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lỗi hệ thống</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f5f5f5;
+        $result = $smsController->verifyOTP($phone_number, $otp_code);
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+
+        // ===== PASSWORD MANAGEMENT ROUTES =====
+    case 'change_password':
+        $auth->changePassword(); // Đổi mật khẩu
+        break;
+
+    case 'reset_password':
+        $auth->resetPassword(); // Reset mật khẩu
+        break;
+
+    case 'logout':
+        $auth->logout(); // Đăng xuất
+        break;
+
+    // ===== ADMIN ROUTES =====
+    case 'admin_dashboard':
+        $adminController->dashboard(); // Trang chủ admin
+        break;
+
+    case 'get_revenue_stats':
+        $adminController->getRevenueStats(); // API: Lấy thống kê doanh thu theo filter
+        break;
+
+    case 'doctor_schedules':
+        $adminController->manageDoctorSchedules(); // Quản lý lịch làm việc bác sĩ
+        break;
+
+    case 'admin_reception_schedules':
+        $adminController->receptionSchedules(); // Quản lý lịch làm việc lễ tân
+        break;
+
+    case 'doctors_list':
+        $adminController->doctorsList(); // Danh sách bác sĩ (Admin)
+        break;
+    case 'admin_create_doctor':
+        $adminController->adminCreateDoctor(); // Thêm bác sĩ (Admin)
+        break;
+    case 'admin_update_doctor':
+        $adminController->adminUpdateDoctor(); // Cập nhật bác sĩ (Admin)
+        break;
+    case 'admin_delete_doctor':
+        $adminController->adminDeleteDoctor(); // Xóa bác sĩ (Admin)
+        break;
+
+    case 'patients':
+        $adminController->patientsList(); // Danh sách bệnh nhân (Admin)
+        break;
+
+    case 'reception_list':
+        $adminController->receptionList(); // Danh sách lễ tân (Admin)
+        break;
+
+    // ===== SPECIALTIES (ADMIN) =====
+    case 'specialties':
+        $adminController->specialties();
+        break;
+    case 'specialty_create':
+        $adminController->specialtyCreate();
+        break;
+    case 'specialty_update':
+        $adminController->specialtyUpdate();
+        break;
+    case 'specialty_delete':
+        $adminController->specialtyDelete();
+        break;
+
+    // ===== ADMIN SCHEDULE MANAGEMENT =====
+    case 'admin_add_schedule':
+        $adminController->adminAddSchedule();
+        break;
+    case 'admin_update_schedule':
+        $adminController->adminUpdateSchedule();
+        break;
+    case 'admin_delete_schedule':
+        $adminController->adminDeleteSchedule();
+        break;
+    case 'admin_get_schedule_info':
+        $adminController->adminGetScheduleInfo();
+        break;
+
+    // ADMIN RECEPTION SCHEDULE MANAGEMENT
+    case 'admin_add_reception_schedule':
+        $adminController->adminAddReceptionSchedule();
+        break;
+    case 'admin_update_reception_schedule':
+        $adminController->adminUpdateReceptionSchedule();
+        break;
+    case 'admin_delete_reception_schedule':
+        $adminController->adminDeleteReceptionSchedule();
+        break;
+    case 'admin_get_reception_schedule_info':
+        $adminController->adminGetReceptionScheduleInfo();
+        break;
+
+    // ===== ADMIN APPOINTMENT MANAGEMENT =====
+    case 'admin_appointments':
+        $adminController->appointments();
+        break;
+    case 'admin_cancel_appointment':
+        $adminController->cancelAppointment();
+        break;
+
+    // ===== ADMIN FACE RECOGNITION =====
+    case 'admin_face_registration':
+        $adminController->faceRegistration(); // Trang đăng ký face recognition
+        break;
+    case 'admin_save_face_encoding':
+        $adminController->saveFaceEncoding(); // API: Lưu face encoding
+        break;
+    case 'admin_get_users':
+        $adminController->getUsers(); // API: Lấy danh sách users
+        break;
+    case 'admin_get_user_info':
+        $adminController->getUserInfo(); // API: Lấy thông tin user
+        break;
+
+    // ===== DASHBOARD ROUTES =====
+    case 'doctor_dashboard':
+        $auth->requireAuth('doctor');
+        include 'Views/doctor/dashboard.php'; // Trang chủ bác sĩ
+        break;
+
+    case 'xray_dashboard':
+        $auth->requireAuth('xray_doctor');
+        include 'Views/doctor/xray_dashboard.php'; // Dashboard riêng cho bác sĩ X-Quang
+        break;
+    case 'xetnghiem_dashboard':
+        $auth->requireAuth('xetnghiem_doctor');
+        include 'Views/doctor/xetnghiem_dashboard.php'; // Dashboard riêng cho bác sĩ Xét nghiệm
+        break;
+
+    case 'sieuam_dashboard':
+        $auth->requireAuth('sieuam_doctor');
+        include 'Views/doctor/sieuam_dashboard.php'; // Dashboard riêng cho bác sĩ Siêu âm
+        break;
+
+    case 'patient_dashboard':
+        $auth->requireAuth('patient');
+        include 'Views/patient/dashboard.php'; // Trang chủ bệnh nhân
+        break;
+
+    case 'reception_dashboard':
+        $receptionController->dashboard(); // Trang chính lễ tân
+        break;
+
+    case 'reception_doctor_schedules':
+        $receptionController->doctorSchedules(); // Trang lịch làm việc bác sĩ (lễ tân)
+        break;
+
+    case 'reception_schedule_management':
+        $receptionController->scheduleManagement(); // Lịch làm việc lễ tân
+        break;
+
+    case 'reception_add_schedule':
+        $receptionController->addSchedule(); // Lưu ca trực lễ tân
+        break;
+
+    case 'reception_delete_schedule':
+        $receptionController->deleteSchedule(); // Xóa ca trực lễ tân
+        break;
+
+    case 'reception_queue':
+        $auth->requireAuth('letan');
+        include 'Views/reception/queue.php'; // Giao diện bốc số
+        break;
+
+
+    // ===== PATIENT ROUTES =====
+    case 'patient_medical_records':
+        $medicalRecordController->patientIndex(); // Hồ sơ bệnh án
+        break;
+    case 'get_patient_medical_records':
+        $medicalRecordController->getPatientRecords(); // API lấy danh sách hồ sơ bệnh án
+        break;
+    case 'patient_receipts':
+        $patientReceiptController->patientIndex(); // Biên lai viện phí (bệnh nhân)
+        break;
+    case 'get_patient_receipts':
+        $patientReceiptController->getPatientReceipts(); // API danh sách biên lai (bệnh nhân)
+        break;
+    case 'render_patient_receipt_detail':
+        $patientReceiptController->renderPatientReceiptDetail(); // Render chi tiết biên lai (modal bệnh nhân)
+        break;
+    case 'render_patient_medical_record_detail':
+        $medicalRecordController->renderPatientDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
+        break;
+
+    case 'home_visit_booking':
+        $auth->requireAuth('patient');
+        include 'Views/appointment/home_visit_booking.php'; // Đặt lịch khám tại nhà
+        break;
+    case 'consultation_booking':
+        $appointmentController->consultationBooking(); // Đặt lịch tư vấn trực tuyến
+        break;
+
+    // ===== SPECIALTIES PUBLIC PAGES =====
+    case 'doctors_by_specialty':
+        $doctorController->listBySpecialty();
+        break;
+    case 'specialties_all':
+        $doctorController->specialtiesAll();
+        break;
+
+    // ===== PROFILE ROUTES =====
+    case 'admin_profile':
+        $auth->requireAuth('admin');
+        include 'Views/admin/profile.php'; // Hồ sơ admin
+        break;
+
+    case 'doctor_profile':
+        $auth->requireAuth('doctor');
+        include 'Views/doctor/profile.php'; // Hồ sơ bác sĩ
+        break;
+
+    case 'patient_profile':
+        $auth->requireAuth('patient');
+        include 'Views/patient/profile.php'; // Hồ sơ bệnh nhân
+        break;
+
+    case 'patient_update_profile':
+        $patientController->updateProfile(); // Cập nhật hồ sơ bệnh nhân
+        break;
+
+    case 'patient_upload_avatar':
+        $patientController->uploadAvatar(); // Upload ảnh đại diện bệnh nhân
+        break;
+
+    // ===== DOCTOR TEAM ROUTES =====
+    case 'doctor_team':
+        include 'Views/doctor/doctor_team.php'; // Danh sách bác sĩ
+        break;
+
+    // ===== DOCTOR SCHEDULE MANAGEMENT ROUTES =====
+    case 'doctor_schedule_management':
+        $doctorController->manageSchedule(); // Quản lý lịch làm việc
+        break;
+
+    case 'doctor_today_appointments':
+        $doctorController->todayAppointments(); // Lịch hẹn hôm nay
+        break;
+
+    case 'doctor_appointment_management':
+        $doctorController->appointmentManagement(); // Quản lý lịch hẹn
+        break;
+
+    case 'update_appointment_status':
+        $doctorController->updateAppointmentStatus(); // Cập nhật trạng thái lịch hẹn
+        break;
+
+    case 'doctor_add_schedule':
+        $doctorController->addSchedule(); // Thêm lịch làm việc
+        break;
+
+    case 'doctor_update_schedule':
+        $doctorController->updateSchedule(); // Cập nhật lịch làm việc
+        break;
+
+    case 'doctor_delete_schedule':
+        $doctorController->deleteSchedule(); // Xóa lịch làm việc
+        break;
+
+    case 'doctor_get_schedule_info':
+        $doctorController->getScheduleInfo(); // Lấy thông tin lịch làm việc
+        break;
+
+    // ===== DOCTOR ATTENDANCE =====
+    case 'doctor_attendance':
+        $doctorController->attendance(); // Trang chấm công bác sĩ
+        break;
+    case 'doctor_process_attendance':
+        $doctorController->processAttendance(); // API: Xử lý chấm công
+        break;
+    case 'doctor_get_today_attendance':
+        $doctorController->getTodayAttendance(); // API: Lấy trạng thái chấm công hôm nay
+        break;
+
+    case 'doctor_get_schedules_by_day':
+        $doctorController->getSchedulesByDay(); // Lấy lịch làm việc theo ngày
+        break;
+
+    case 'doctor_modify_schedule_for_date':
+        $doctorController->modifyScheduleForDate(); // Chỉnh sửa lịch cho 1 ngày cụ thể
+        break;
+
+    case 'doctor_cancel_schedule_for_date':
+        $doctorController->cancelScheduleForDate(); // Hủy lịch cho 1 ngày cụ thể
+        break;
+
+
+    case 'doctor_examination':
+        $doctorController->examination(); // Khám bệnh - danh sách lịch hẹn hôm nay
+        break;
+    case 'start_examination':
+        $doctorController->startExamination(); // Bắt đầu khám bệnh
+        break;
+    case 'save_allergy_history':
+        $doctorController->saveAllergyHistory();
+        break;
+    case 'get_allergy_history':
+        $doctorController->getAllergyHistory();
+        break;
+    case 'save_examination_form':
+        $doctorController->saveExaminationForm();
+        break;
+    case 'get_examination_form':
+        $doctorController->getExaminationForm();
+        break;
+    case 'print_examination_form':
+        $doctorController->printExaminationForm();
+        break;
+    case 'complete_examination':
+        $doctorController->completeExamination(); // Hoàn thành khám bệnh
+        break;
+    case 'check_examination_completion':
+        $doctorController->checkExaminationCompletion(); // Kiểm tra điều kiện hoàn thành
+        break;
+
+    case 'doctor_medical_records':
+        $medicalRecordController->index(); // Hồ sơ bệnh án - tra cứu danh sách bệnh án
+        break;
+    case 'get_doctor_medical_records':
+        $medicalRecordController->getRecords(); // API lấy danh sách hồ sơ bệnh án
+        break;
+    case 'get_doctor_medical_record_detail':
+        $medicalRecordController->getDetail(); // API lấy chi tiết hồ sơ bệnh án (JSON)
+        break;
+
+    case 'render_doctor_medical_record_detail':
+        $medicalRecordController->renderDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
+        break;
+
+    case 'get_xray_suggestions':
+        $doctorController->getXraySuggestions(); // Lấy gợi ý X-Quang từ database
+        break;
+
+    case 'calculate_xray_price':
+        $doctorController->calculateXrayPrice(); // Tính giá tiền X-Quang
+        break;
+
+    case 'save_xray_form':
+        $doctorController->saveXrayForm(); // Lưu phiếu chụp X-Quang
+        break;
+
+    case 'print_xray_form':
+        $doctorController->printXrayForm(); // In phiếu chụp X-Quang
+        break;
+
+    case 'view_xray_form':
+        $doctorController->viewXrayForm(); // Xem chi tiết phiếu chụp X-Quang
+        break;
+
+    case 'get_xray_form_data':
+        $doctorController->getXrayFormData(); // Lấy dữ liệu phiếu chụp X-Quang
+        break;
+
+    case 'get_xray_form_by_exam_id':
+        $doctorController->getXrayFormByExamId(); // Lấy phiếu chụp X-Quang theo ID phiếu khám bệnh
+        break;
+
+    case 'get_patient_bhyt_status':
+        $doctorController->getPatientBhytStatus(); // Lấy trạng thái BHYT của bệnh nhân
+        break;
+
+    case 'get_xray_result_data':
+        $doctorController->getXrayResultData(); // Dữ liệu trả kết quả X-Quang
+        break;
+
+    case 'upload_xray_images':
+        $doctorController->uploadXrayImages(); // Upload ảnh X-Quang
+        break;
+
+    case 'save_xray_result':
+        $doctorController->saveXrayResult(); // Lưu kết quả X-Quang
+        break;
+
+    case 'print_xray_result':
+        $doctorController->printXrayResult(); // In kết quả X-Quang
+        break;
+
+    case 'complete_xray_result':
+        $doctorController->completeXrayResult(); // Hoàn thành kết quả X-Quang
+        break;
+
+    case 'get_saved_xray_result':
+        $doctorController->getSavedXrayResult(); // Lấy dữ liệu kết quả đã lưu
+        break;
+
+    case 'save_xray_images':
+        $doctorController->saveXrayImages(); // Lưu ảnh X-Quang vào database
+        break;
+
+    case 'get_saved_xray_images':
+        $doctorController->getSavedXrayImages(); // Lấy ảnh X-Quang đã lưu
+        break;
+
+    case 'get_xray_stats_today':
+        $doctorController->getXrayStatsToday(); // Thống kê dashboard hôm nay
+        break;
+
+    case 'get_requested_xray':
+        $doctorController->getRequestedXrayList(); // Danh sách phiếu chụp trạng thái Đã yêu cầu
+        break;
+
+    case 'get_xray_result_by_exam':
+        $doctorController->getXrayResultByExamIdForView(); // KQ X-Quang theo exam id
+        break;
+
+    case 'get_ultrasound_result_by_exam':
+        $doctorController->getUltrasoundResultByExamIdForView(); // KQ Siêu âm theo exam id
+        break;
+
+    case 'get_saved_ultrasound_images':
+        $doctorController->getSavedUltrasoundImages(); // Hình ảnh siêu âm đã lưu
+        break;
+
+    case 'get_ultrasound_suggestions':
+        $doctorController->getUltrasoundSuggestions(); // Gợi ý siêu âm
+        break;
+    case 'save_ultrasound_form':
+        $doctorController->saveUltrasoundForm(); // Lưu phiếu yêu cầu siêu âm
+        break;
+    case 'get_ultrasound_form_data':
+        $doctorController->getUltrasoundFormData(); // Lấy dữ liệu phiếu yêu cầu siêu âm
+        break;
+    case 'print_ultrasound_form':
+        $doctorController->printUltrasoundForm(); // In phiếu yêu cầu siêu âm
+        break;
+
+    case 'get_prescription_form_data':
+        $doctorController->getPrescriptionFormData(); // Lấy dữ liệu đơn thuốc theo exam ID
+        break;
+
+    case 'print_prescription_form':
+        $doctorController->printPrescriptionForm(); // In đơn thuốc
+        break;
+
+    case 'save_receipt':
+        $receiptController->saveReceipt(); // Lưu biên lai viện phí
+        break;
+
+    case 'print_receipt_form':
+        $receiptController->printReceiptForm(); // In biên lai viện phí
+        break;
+
+    case 'get_ultrasound_stats':
+        $doctorController->getUltrasoundStats(); // Lấy thống kê siêu âm
+        break;
+
+    case 'getReceiptData':
+        $doctorController->getReceiptData(); // Lấy dữ liệu yêu cầu cho biên lai
+        break;
+
+    case 'get_receipt_code':
+        $receiptController->getReceiptCode(); // Lấy mã biên lai
+        break;
+
+    case 'get_medications':
+        $doctorController->getMedications(); // Lấy danh sách thuốc
+        break;
+
+    case 'get_current_doctor':
+        $doctorController->getCurrentDoctor(); // Lấy thông tin bác sĩ hiện tại
+        break;
+
+    case 'get_dich_vu_kham':
+        $doctorController->getDichVuKham(); // Lấy đơn giá dịch vụ khám bệnh
+        break;
+
+    case 'check_lab_duplicate':
+        $doctorController->checkLabDuplicate(); // Kiểm tra trùng lặp yêu cầu xét nghiệm
+        break;
+
+    case 'get_ultrasound_requests':
+        $doctorController->getUltrasoundRequests(); // Lấy danh sách yêu cầu siêu âm
+        break;
+
+    case 'get_ultrasound_result':
+        $doctorController->getUltrasoundResult(); // Lấy kết quả siêu âm
+        break;
+
+    case 'save_ultrasound_result':
+        $doctorController->saveUltrasoundResult(); // Lưu kết quả siêu âm
+        break;
+
+    case 'save_sieu_am_result':
+        $doctorController->saveSieuAmResult(); // Lưu kết quả siêu âm với hình ảnh
+        break;
+
+    case 'upload_sieu_am_images':
+        $doctorController->uploadSieuAmImages(); // Upload hình ảnh siêu âm
+        break;
+
+    case 'get_sieu_am_images':
+        $doctorController->getSieuAmImages(); // Lấy hình ảnh siêu âm
+        break;
+
+    case 'get_sieu_am_result':
+        $doctorController->getSieuAmResult(); // Lấy kết quả siêu âm
+        break;
+
+    case 'delete_sieu_am_image':
+        $doctorController->deleteSieuAmImage(); // Xóa hình ảnh siêu âm
+        break;
+
+    case 'complete_sieu_am_result':
+        $doctorController->completeSieuAmResult(); // Hoàn thành phiếu siêu âm
+        break;
+
+    // ===== LAB ROUTES =====
+    case 'get_lab_suggestions':
+        $doctorController->getLabSuggestions(); // Gợi ý xét nghiệm
+        break;
+    case 'save_lab_form':
+        $doctorController->saveLabForm(); // Lưu phiếu yêu cầu xét nghiệm
+        break;
+    case 'get_lab_form_data':
+        $doctorController->getLabFormData(); // Lấy dữ liệu phiếu yêu cầu xét nghiệm
+        break;
+    case 'print_lab_form':
+        $doctorController->printLabForm(); // In phiếu yêu cầu xét nghiệm
+        break;
+    case 'get_lab_result_by_exam':
+        $doctorController->getLabResultByExam(); // Lấy kết quả xét nghiệm theo phiếu khám
+        break;
+    case 'get_xetnghiem_requests':
+        $doctorController->getXetnghiemRequests(); // Lấy danh sách yêu cầu xét nghiệm
+        break;
+    case 'get_lab_dashboard_stats':
+        $doctorController->getLabDashboardStats(); // Lấy thống kê dashboard xét nghiệm
+        break;
+    case 'get_xetnghiem_result':
+        $doctorController->getXetnghiemResult(); // Lấy kết quả xét nghiệm
+        break;
+    case 'get_xetnghiem_detail':
+        $doctorController->getXetnghiemDetail(); // Lấy chi tiết yêu cầu xét nghiệm
+        break;
+    case 'get_test_suggestions':
+        $doctorController->getTestSuggestions(); // Lấy gợi ý xét nghiệm
+        break;
+    case 'save_xetnghiem_result':
+        $doctorController->saveXetnghiemResult(); // Lưu kết quả xét nghiệm
+        break;
+    case 'print_xetnghiem_result':
+        $doctorController->printXetnghiemResult(); // In kết quả xét nghiệm
+        break;
+    case 'complete_xetnghiem_request':
+        $doctorController->completeXetnghiemRequest(); // Hoàn thành yêu cầu xét nghiệm
+        break;
+
+    case 'get_chi_so_xet_nghiem':
+        $doctorController->getChiSoXetNghiem(); // Lấy dữ liệu chỉ số xét nghiệm
+        break;
+
+    case 'sieuam_history':
+        include 'Views/doctor/sieuam_history.php'; // Lịch sử siêu âm
+        break;
+
+    case 'xetnghiem_history':
+        include 'Views/doctor/xetnghiem_history.php'; // Lịch sử xét nghiệm
+        break;
+
+    case 'get_sieuam_history':
+        $doctorController->getSieuamHistory(); // Lấy dữ liệu lịch sử siêu âm
+        break;
+
+    case 'get_xetnghiem_history':
+        $doctorController->getXetnghiemHistory(); // Lấy dữ liệu lịch sử xét nghiệm
+        break;
+
+    case 'get_xetnghiem_history_detail':
+        $doctorController->getXetnghiemHistoryDetail(); // Lấy chi tiết lịch sử xét nghiệm
+        break;
+
+    case 'get_sieuam_result_view':
+        $doctorController->getSieuamResultView(); // Lấy thông tin kết quả siêu âm để xem
+        break;
+
+
+    case 'get_sieuam_images':
+        $doctorController->getSieuAmImages(); // Lấy hình ảnh siêu âm
+        break;
+
+    case 'xray_history':
+        include 'Views/doctor/xray_history.php';
+        break;
+
+    case 'get_xray_history':
+        $doctorController->getXrayHistory();
+        break;
+
+    case 'get_xray_result_view':
+        $doctorController->getXrayResultView(); // JSON for read-only modal
+        break;
+
+    // ===== APPOINTMENT ROUTES =====
+    case 'hospital_appointment':
+        $appointmentController->hospitalAppointment(); // Đặt lịch khám tại bệnh viện
+        break;
+
+    case 'book_appointment':
+        $appointmentController->bookAppointment(); // Đặt lịch hẹn
+        break;
+
+    case 'cancel_appointment':
+        $appointmentController->cancelAppointment(); // Hủy lịch hẹn
+        break;
+
+    case 'get_doctors_by_specialty':
+        $appointmentController->getDoctorsBySpecialty(); // Lấy danh sách bác sĩ theo chuyên khoa (AJAX)
+        break;
+
+    case 'get_available_time_slots':
+        $appointmentController->getAvailableTimeSlots(); // Lấy khung giờ có sẵn (AJAX)
+        break;
+
+    case 'check_conflict':
+        $appointmentController->checkConflict(); // Kiểm tra xung đột (AJAX)
+        break;
+
+    case 'get_doctor_schedule':
+        $appointmentController->getDoctorSchedule(); // Lấy lịch làm việc bác sĩ (AJAX)
+        break;
+
+    case 'get_appointment_detail':
+        $appointmentController->getAppointmentDetail(); // JSON chi tiết lịch hẹn theo role
+        break;
+
+    case 'reception_find_patient':
+        $receptionController->findPatientByPhone(); // Tra cứu BN theo SĐT (AJAX)
+        break;
+
+    case 'reception_get_doctor_schedules':
+        $receptionController->getDoctorSchedules(); // API lấy lịch làm việc (lễ tân)
+        break;
+
+    case 'get_doctor_info':
+        $doctorController->getDoctorInfo(); // Lấy thông tin bác sĩ hiện tại
+        break;
+    case 'search_medications':
+        $doctorController->searchMedications(); // Tìm kiếm thuốc
+        break;
+
+    case 'search_medications_public':
+        // API công khai không cần authentication
+        require_once 'Controllers/DoctorController.php';
+        $controller = new DoctorController();
+        $controller->searchMedicationsPublic();
+        break;
+
+    case 'get_prescription_by_exam':
+        header('Content-Type: application/json');
+        $prescriptionController->getPrescriptionByExamId();
+        exit();
+
+        // ===== NOTIFICATIONS (DB) =====
+    case 'notifications':
+        // GET list notifications for current user
+        $notificationController->list();
+        break;
+    case 'notifications_mark_all_read':
+        // POST/GET mark all as read
+        $notificationController->markAllRead();
+        break;
+
+
+
+    case 'save_prescription':
+        header('Content-Type: application/json');
+        // Nhận JSON từ client
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $result = $prescriptionController->savePrescription($input);
+        echo json_encode($result);
+        exit();
+
+    case 'reception_complete_patient':
+        $receptionController->completePatientProfile(); // Bổ sung thông tin còn thiếu (AJAX)
+        break;
+
+    case 'reception_patient_create':
+        $receptionController->patientCreateForm(); // Form thêm bệnh nhân
+        break;
+
+    case 'reception_patient_store':
+        $receptionController->patientStore(); // Lưu bệnh nhân mới
+        break;
+
+    // ===== RECEPTION QUEUE (WALK-IN) =====
+    case 'reception_issue_ticket':
+        $receptionController->issueQueueTicket();
+        break;
+    case 'reception_queue_list':
+        $receptionController->queueList();
+        break;
+    case 'reception_queue_update':
+        $receptionController->queueUpdateStatus();
+        break;
+    case 'reception_queue_reassign':
+        $receptionController->queueReassign();
+        break;
+
+    // ===== RECEPTION PAYMENT =====
+    case 'reception_payment':
+        $receptionController->payment(); // Trang thanh toán biên lai
+        break;
+    case 'reception_get_unpaid_receipts':
+        $receptionController->getUnpaidReceipts(); // API lấy danh sách biên lai chưa thanh toán
+        break;
+    case 'reception_get_all_receipts':
+        $receptionController->getAllReceipts(); // API lấy tất cả biên lai (cho thống kê)
+        break;
+    case 'reception_search_receipts':
+        $receptionController->searchReceipts(); // API tìm kiếm biên lai
+        break;
+    case 'reception_get_receipt_details':
+        $receptionController->getReceiptDetails(); // API lấy chi tiết biên lai
+        break;
+    case 'reception_process_payment':
+        $receptionController->processPayment(); // API xử lý thanh toán
+        break;
+    case 'reception_create_vnpay_url':
+        $receptionController->createVNPayUrl(); // API tạo URL VNPAY
+        break;
+    case 'reception_vnpay_return':
+        $receptionController->vnpayReturn(); // Xử lý kết quả VNPAY
+        break;
+
+    // ===== RECEPTION ATTENDANCE =====
+    case 'reception_attendance':
+        $receptionController->attendance(); // Trang chấm công lễ tân
+        break;
+    case 'reception_process_attendance':
+        $receptionController->processAttendance(); // API: Xử lý chấm công
+        break;
+    case 'reception_get_today_attendance':
+        $receptionController->getTodayAttendance(); // API: Lấy trạng thái chấm công hôm nay
+        break;
+
+    case 'patient_appointments':
+        $appointmentController->patientAppointments(); // Lịch hẹn của bệnh nhân
+        break;
+
+    // ===== GENERAL ROUTES =====
+    case 'home':
+        include 'Views/home.php'; // Trang chủ
+        break;
+
+    case 'contact':
+        include 'Views/contact.php'; // Trang liên hệ
+        break;
+
+    // ===== DEFAULT ROUTE =====
+    default:
+        // Nếu action không tồn tại, kiểm tra nếu user đã đăng nhập thì redirect về dashboard tương ứng
+        if ($auth->isLoggedIn()) {
+            $role = $_SESSION['user_role'] ?? '';
+            if ($role === '') {
+                $ctx = $auth->resolveCurrentUserContext();
+                $role = $ctx['role'] ?? '';
+            }
+            switch ($role) {
+                case 'admin':
+                    header("Location: ./admin_dashboard");
+                    exit();
+                case 'doctor':
+                    header("Location: ./doctor_dashboard");
+                    exit();
+                case 'xray_doctor':
+                    header("Location: ./xray_dashboard");
+                    exit();
+                case 'sieuam_doctor':
+                    header("Location: ./sieuam_dashboard");
+                    exit();
+                case 'patient':
+                    header("Location: ./patient_dashboard");
+                    exit();
+                case 'letan':
+                    header("Location: ./reception_dashboard");
+                    exit();
+                default:
+                    header("Location: ./");
+                    exit();
+            }
         }
-        .error-container {
-            text-align: center;
-            padding: 40px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            font-size: 48px;
-            color: #dc3545;
-            margin: 0;
-        }
-        p {
-            font-size: 18px;
-            color: #666;
-            margin: 20px 0;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="error-container">
-        <h1>Lỗi hệ thống</h1>
-        <p>Đã xảy ra lỗi khi xử lý yêu cầu của bạn.</p>
-        <p><a href="./home">Quay về trang chủ</a></p>
-    </div>
-</body>
-</html>';
-    exit();
+
+        // Nếu không đăng nhập hoặc action không tồn tại, hiển thị trang chủ
+        include 'Views/home.php';
+        break;
 }
