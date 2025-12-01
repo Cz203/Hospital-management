@@ -84,7 +84,18 @@ INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen
 (51, 'GSTS Cường', 'Cuong@gmail.com', '$2y$10$KNTQBO3N/YQnSdptvUSwXOJaPXc5UKlkyPN//9Ci17ahxdnAsDQrS', '0913996110', 1, 'Tim mạch', '32424', 15, '2025-11-25 08:17:28', '2025-11-25 09:21:36', 'uploads/doctor_1764058648_8ec3caa3.png', NULL, NULL),
 (54, 'BS Siêu', 'sbxcvbxcb@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456788', 18, 'Siêu âm', '111', 20, '2025-10-10 19:52:54', '2025-11-27 08:38:47', NULL, NULL, NULL),
 (79, 'GSTS. bxcbxcvxcvbcxvb', 'vzxcv@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 6, 'Mắt', 'TM001', 15, '2025-08-12 09:06:03', '2025-11-25 09:21:47', 'uploads/bacsiviet.png', NULL, NULL),
-(80, 'Bác Sĩ X', 'xquang1231zxcvzxcv23@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 16, 'Chẩn đoán hình ảnh', 'XQ001', 10, '2025-09-26 07:16:15', '2025-11-27 08:38:02', NULL, NULL, NULL);
+(80, 'Bác Sĩ X', 'xquang1231zxcvzxcv23@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 16, 'Chẩn đoán hình ảnh', 'XQ001', 10, '2025-09-26 07:16:15', '2025-11-27 08:38:02', NULL, NULL, NULL),
+(81, 'BS Nội Tổng Quát', 'bsonoitongquat@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000001', 13, 'Nội tổng quát', 'NTQ001', 8, '2025-12-01 15:40:00', '2025-12-01 15:40:00', NULL, NULL, NULL),
+(82, 'BS Ngoại Tổng Quát', 'bsngoaitongquat@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000002', 9, 'Ngoại tổng quát', 'NGTQ001', 10, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(83, 'BS Nhi', 'bsnhi@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000003', 3, 'Nhi', 'NHI001', 7, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(84, 'BS Sản', 'bssan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000004', 4, 'Sản', 'SAN001', 9, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(85, 'BS Mắt', 'bsmat@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000005', 6, 'Mắt', 'MAT001', 6, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(86, 'BS Tai Mũi Họng', 'bstmh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000006', 7, 'Tai mũi họng', 'TMH001', 11, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(87, 'BS Da Liễu', 'bsdalieu@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000007', 5, 'Da liễu', 'DL001', 5, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(88, 'BS Nội Tim Mạch', 'bsnoitim@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000008', 1, 'Tim mạch', 'TM002', 12, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(89, 'BS Hô Hấp', 'bshohap@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000009', NULL, 'Hô hấp', 'HH001', 10, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(90, 'BS Thần Kinh', 'bsthankinh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000010', 2, 'Thần kinh', 'TK001', 13, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(91, 'BS Cơ Xương Khớp', 'bscxk@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000011', 9, 'Cơ xương khớp', 'CXK001', 9, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -175,7 +186,21 @@ CREATE TABLE `bien_lai_vien_phi` (
 --
 
 INSERT INTO `bien_lai_vien_phi` (`id`, `ma_bien_lai`, `id_phieu_kham_benh`, `id_le_tan`, `id_bac_si`, `tong_tien_co_ban`, `tong_quy_bhyt`, `tong_nguoi_benh`, `ngay_lap`, `nguoi_lap`, `trang_thai`, `ghi_chu`, `created_at`, `updated_at`) VALUES
-(16, 'BL202511271358', 40, 1, 1, 993000.00, 0.00, 993000.00, '2025-11-27 15:43:28', 'GSTS. Cao Việt', 'Đã thanh toán tiền mặt', 'Biên lai tự động tạo từ hệ thống', '2025-11-27 08:43:28', '2025-12-01 11:03:15');
+(16, 'BL202511271358', 40, 1, 1, 993000.00, 0.00, 993000.00, '2025-11-27 15:43:28', 'GSTS. Cao Việt', 'Đã thanh toán tiền mặt', 'Biên lai tự động tạo từ hệ thống', '2025-11-27 08:43:28', '2025-12-01 11:03:15'),
+(17, 'BL202511281245', 41, 1, 1, 1250000.00, 250000.00, 1000000.00, '2025-11-28 14:25:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Thanh toán đầy đủ', '2025-11-28 14:25:00', '2025-11-28 14:25:00'),
+(18, 'BL202511291530', 42, 2, 51, 850000.00, 0.00, 850000.00, '2025-11-29 15:30:00', 'Lễ tân B', 'Đã thanh toán chuyển khoản', 'Chuyển khoản qua ngân hàng', '2025-11-29 15:30:00', '2025-11-29 15:30:00'),
+(19, 'BL202511301020', 43, 1, 81, 2100000.00, 420000.00, 1680000.00, '2025-11-30 10:20:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám tổng quát và xét nghiệm', '2025-11-30 10:20:00', '2025-11-30 10:20:00'),
+(20, 'BL202512011145', 44, 2, 82, 1500000.00, 0.00, 1500000.00, '2025-12-01 11:45:00', 'Lễ tân B', 'Đã thanh toán chuyển khoản', 'Thanh toán qua ví điện tử', '2025-12-01 11:45:00', '2025-12-01 11:45:00'),
+(21, 'BL202512011620', 45, 1, 83, 950000.00, 190000.00, 760000.00, '2025-12-01 16:20:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám nhi khoa', '2025-12-01 16:20:00', '2025-12-01 16:20:00'),
+(22, 'BL202512021030', 46, 2, 84, 1800000.00, 0.00, 1800000.00, '2025-12-02 10:30:00', 'Lễ tân B', 'Đã thanh toán chuyển khoản', 'Khám sản phụ khoa', '2025-12-02 10:30:00', '2025-12-02 10:30:00'),
+(23, 'BL202512021415', 47, 1, 85, 750000.00, 150000.00, 600000.00, '2025-12-02 14:15:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám mắt', '2025-12-02 14:15:00', '2025-12-02 14:15:00'),
+(24, 'BL202512030910', 48, 2, 86, 1350000.00, 0.00, 1350000.00, '2025-12-03 09:10:00', 'Lễ tân B', 'Đã thanh toán chuyển khoản', 'Khám tai mũi họng', '2025-12-03 09:10:00', '2025-12-03 09:10:00'),
+(25, 'BL202512031130', 49, 1, 87, 1100000.00, 220000.00, 880000.00, '2025-12-03 11:30:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám da liễu', '2025-12-03 11:30:00', '2025-12-03 11:30:00'),
+(26, 'BL202512031445', 50, 2, 88, 1650000.00, 0.00, 1650000.00, '2025-12-03 14:45:00', 'Lễ tân B', 'Đã thanh toán chuyển khoản', 'Khám tim mạch', '2025-12-03 14:45:00', '2025-12-03 14:45:00'),
+(27, 'BL202512040830', 51, 1, 89, 1200000.00, 240000.00, 960000.00, '2025-12-04 08:30:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám hô hấp', '2025-12-04 08:30:00', '2025-12-04 08:30:00'),
+(28, 'BL202512041200', 52, 2, 90, 1400000.00, 0.00, 1400000.00, '2025-12-04 12:00:00', 'Lễ tân B', 'Đã thanh toán chuyển khoản', 'Khám thần kinh', '2025-12-04 12:00:00', '2025-12-04 12:00:00'),
+(29, 'BL202512041530', 53, 1, 91, 1750000.00, 350000.00, 1400000.00, '2025-12-04 15:30:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám cơ xương khớp', '2025-12-04 15:30:00', '2025-12-04 15:30:00'),
+(30, 'BL202512050945', 54, 2, 1, 1950000.00, 0.00, 1950000.00, '2025-12-05 09:45:00', 'Lễ tân B', 'Đã thanh toán chuyển khoản', 'Khám tim mạch và xét nghiệm', '2025-12-05 09:45:00', '2025-12-05 09:45:00');
 
 -- --------------------------------------------------------
 
@@ -563,6 +588,22 @@ CREATE TABLE `ho_so_benh_an` (
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Đang đổ dữ liệu cho bảng `ho_so_benh_an`
+--
+
+INSERT INTO `ho_so_benh_an` (`id`, `benh_nhan_id`, `bac_si_id`, `lich_hen_id`, `chan_doan`, `phac_do_dieu_tri`, `don_thuoc`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 44, 1, 1, 'Tăng huyết áp độ 1', 'Điều chỉnh chế độ ăn uống, giảm muối, tập thể dục đều đặn. Theo dõi huyết áp hàng ngày.', 'Amlodipine 5mg: 1 viên/ngày, uống sau ăn sáng. Hydrochlorothiazide 12.5mg: 1 viên/ngày, uống sau ăn sáng.', 'Bệnh nhân cần tái khám sau 2 tuần để đánh giá hiệu quả điều trị.', '2025-11-15 08:30:00', '2025-11-15 08:30:00'),
+(2, 57, 51, 2, 'Viêm phế quản cấp', 'Nghỉ ngơi, uống nhiều nước, tránh khói bụi. Sử dụng thuốc kháng sinh và giảm ho.', 'Amoxicillin 500mg: 1 viên x 3 lần/ngày, uống sau ăn. Dextromethorphan 15mg: 1 viên x 3 lần/ngày khi ho.', 'Bệnh nhân cần nghỉ ngơi tại nhà, tránh tiếp xúc với người khác để tránh lây lan.', '2025-11-18 09:15:00', '2025-11-18 09:15:00'),
+(3, 44, 81, 3, 'Đau dạ dày cấp', 'Ăn uống đúng giờ, tránh thức ăn cay nóng, rượu bia. Sử dụng thuốc giảm đau và bảo vệ niêm mạc dạ dày.', 'Omeprazole 20mg: 1 viên/ngày, uống trước ăn sáng. Sucralfate 1g: 1 gói x 2 lần/ngày, uống trước ăn 30 phút.', 'Bệnh nhân nên ăn nhẹ, chia nhỏ bữa ăn. Tái khám nếu đau kéo dài.', '2025-11-20 10:00:00', '2025-11-20 10:00:00'),
+(4, 57, 82, 4, 'Viêm ruột thừa cấp', 'Phẫu thuật cắt ruột thừa. Nghỉ ngơi sau phẫu thuật, chế độ ăn nhẹ.', 'Cefuroxime 500mg: 1 viên x 2 lần/ngày (sau phẫu thuật). Paracetamol 500mg: 1-2 viên khi đau.', 'Bệnh nhân đã được phẫu thuật thành công. Cần theo dõi vết mổ, tái khám sau 1 tuần.', '2025-11-22 14:30:00', '2025-11-22 14:30:00'),
+(5, 44, 83, 5, 'Sốt phát ban ở trẻ em', 'Hạ sốt, bù nước điện giải. Nghỉ ngơi, cách ly để tránh lây lan.', 'Paracetamol 250mg: 1 viên x 3-4 lần/ngày khi sốt trên 38.5°C. Oresol: pha 1 gói với 200ml nước, uống nhiều lần trong ngày.', 'Bệnh nhân cần được chăm sóc tại nhà, theo dõi nhiệt độ thường xuyên. Tái khám nếu sốt kéo dài.', '2025-11-25 08:45:00', '2025-11-25 08:45:00'),
+(6, 57, 84, 6, 'Thai kỳ 12 tuần - Khám thai định kỳ', 'Chế độ dinh dưỡng đầy đủ, bổ sung acid folic và sắt. Tránh vận động mạnh.', 'Acid Folic 400mcg: 1 viên/ngày. Sắt 60mg: 1 viên/ngày, uống sau ăn. Canxi 500mg: 1 viên/ngày.', 'Bà bầu cần tái khám sau 4 tuần. Siêu âm kiểm tra thai nhi theo lịch hẹn.', '2025-11-28 11:20:00', '2025-11-28 11:20:00'),
+(7, 44, 85, 7, 'Viêm kết mạc dị ứng', 'Rửa mắt bằng nước muối sinh lý, tránh dụi mắt. Sử dụng thuốc nhỏ mắt kháng histamine.', 'Naphazoline + Chlorpheniramine: nhỏ 1-2 giọt x 3-4 lần/ngày. Nước muối sinh lý 0.9%: rửa mắt 2-3 lần/ngày.', 'Bệnh nhân cần tránh tiếp xúc với dị nguyên gây dị ứng. Tái khám nếu triệu chứng không cải thiện.', '2025-12-01 09:00:00', '2025-12-01 09:00:00'),
+(8, 57, 86, 8, 'Viêm họng cấp', 'Nghỉ ngơi, uống nhiều nước ấm. Súc miệng bằng nước muối. Tránh thức ăn lạnh, cay.', 'Amoxicillin 500mg: 1 viên x 3 lần/ngày, uống sau ăn. Ibuprofen 400mg: 1 viên x 2 lần/ngày khi đau.', 'Bệnh nhân cần nghỉ ngơi, giữ ấm cổ họng. Tái khám nếu đau kéo dài quá 5 ngày.', '2025-12-02 10:30:00', '2025-12-02 10:30:00'),
+(9, 44, 87, 9, 'Viêm da dị ứng', 'Tránh tiếp xúc với chất gây dị ứng. Dưỡng ẩm da thường xuyên. Sử dụng thuốc bôi tại chỗ.', 'Hydrocortisone 1%: bôi 2 lần/ngày lên vùng da bị viêm. Cetirizine 10mg: 1 viên/ngày vào buổi tối.', 'Bệnh nhân cần tránh xà phòng, chất tẩy rửa mạnh. Tái khám sau 1 tuần để đánh giá tiến triển.', '2025-12-03 14:15:00', '2025-12-03 14:15:00'),
+(10, 57, 88, 10, 'Rối loạn nhịp tim', 'Nghỉ ngơi, tránh căng thẳng. Theo dõi nhịp tim thường xuyên. Hạn chế cà phê, rượu bia.', 'Metoprolol 25mg: 1 viên x 2 lần/ngày, uống sau ăn. Aspirin 100mg: 1 viên/ngày sau ăn sáng.', 'Bệnh nhân cần đo huyết áp và nhịp tim hàng ngày. Tái khám sau 2 tuần để đánh giá hiệu quả điều trị.', '2025-12-04 16:00:00', '2025-12-04 16:00:00');
+
 -- --------------------------------------------------------
 
 --
@@ -661,6 +702,36 @@ CREATE TABLE `lich_hen` (
   `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Đang đổ dữ liệu cho bảng `lich_hen`
+--
+
+INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 44, 1, '2025-11-15', '08:30:00', 'Khám định kỳ, kiểm tra huyết áp', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân đã khám và được chẩn đoán tăng huyết áp độ 1', '2025-11-14 10:00:00', '2025-11-15 08:30:00'),
+(2, 57, 51, '2025-11-18', '09:15:00', 'Ho, sốt, đau họng', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân có triệu chứng viêm phế quản cấp', '2025-11-17 14:30:00', '2025-11-18 09:15:00'),
+(3, 44, 81, '2025-11-20', '10:00:00', 'Đau bụng, buồn nôn', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân đau dạ dày cấp, cần điều trị ngay', '2025-11-19 16:00:00', '2025-11-20 10:00:00'),
+(4, 57, 82, '2025-11-22', '14:30:00', 'Đau bụng dữ dội vùng hố chậu phải', 'Tại viện', 'Phòng khám đa khoa ThinhViet', NULL, 'Hoàn thành', 'Bệnh nhân cần phẫu thuật cấp cứu viêm ruột thừa', '2025-11-22 08:00:00', '2025-11-22 14:30:00'),
+(5, 44, 83, '2025-11-25', '08:45:00', 'Trẻ sốt cao, phát ban', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Trẻ em cần được khám và điều trị sốt phát ban', '2025-11-24 09:00:00', '2025-11-25 08:45:00'),
+(6, 57, 84, '2025-11-28', '11:20:00', 'Khám thai định kỳ tuần 12', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bà bầu khám thai định kỳ, thai nhi phát triển bình thường', '2025-11-27 10:00:00', '2025-11-28 11:20:00'),
+(7, 44, 85, '2025-12-01', '09:00:00', 'Mắt đỏ, ngứa, chảy nước mắt', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân viêm kết mạc dị ứng, cần điều trị tại chỗ', '2025-11-30 15:00:00', '2025-12-01 09:00:00'),
+(8, 57, 86, '2025-12-02', '10:30:00', 'Đau họng, khó nuốt', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân viêm họng cấp, cần dùng kháng sinh', '2025-12-01 11:00:00', '2025-12-02 10:30:00'),
+(9, 44, 87, '2025-12-03', '14:15:00', 'Da nổi mẩn đỏ, ngứa', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân viêm da dị ứng, cần điều trị bằng thuốc bôi', '2025-12-02 16:00:00', '2025-12-03 14:15:00'),
+(10, 57, 88, '2025-12-04', '16:00:00', 'Tim đập nhanh, hồi hộp', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân rối loạn nhịp tim, cần theo dõi và điều trị', '2025-12-03 17:00:00', '2025-12-04 16:00:00'),
+(11, 44, 1, '2025-11-28', '14:00:00', 'Tái khám tim mạch', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân tái khám sau điều trị tăng huyết áp', '2025-11-27 10:00:00', '2025-11-28 14:25:00'),
+(12, 57, 51, '2025-11-29', '15:00:00', 'Khám sức khỏe tổng quát', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám sức khỏe định kỳ', '2025-11-28 16:00:00', '2025-11-29 15:30:00'),
+(13, 44, 81, '2025-11-30', '10:00:00', 'Khám nội tổng quát và xét nghiệm', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám nội tổng quát kèm xét nghiệm máu', '2025-11-29 11:00:00', '2025-11-30 10:20:00'),
+(14, 57, 82, '2025-12-01', '11:30:00', 'Khám ngoại tổng quát', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám ngoại khoa tổng quát', '2025-11-30 12:00:00', '2025-12-01 11:45:00'),
+(15, 44, 83, '2025-12-01', '16:00:00', 'Khám nhi khoa', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám nhi khoa cho trẻ em', '2025-11-30 17:00:00', '2025-12-01 16:20:00'),
+(16, 57, 84, '2025-12-02', '10:00:00', 'Khám sản phụ khoa', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám sản phụ khoa định kỳ', '2025-12-01 11:00:00', '2025-12-02 10:30:00'),
+(17, 44, 85, '2025-12-02', '14:00:00', 'Khám mắt', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám mắt định kỳ', '2025-12-01 15:00:00', '2025-12-02 14:15:00'),
+(18, 57, 86, '2025-12-03', '09:00:00', 'Khám tai mũi họng', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám tai mũi họng', '2025-12-02 10:00:00', '2025-12-03 09:10:00'),
+(19, 44, 87, '2025-12-03', '11:15:00', 'Khám da liễu', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám da liễu', '2025-12-02 12:00:00', '2025-12-03 11:30:00'),
+(20, 57, 88, '2025-12-03', '14:30:00', 'Khám tim mạch', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám tim mạch', '2025-12-02 15:00:00', '2025-12-03 14:45:00'),
+(21, 44, 89, '2025-12-04', '08:15:00', 'Khám hô hấp', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám hô hấp', '2025-12-03 09:00:00', '2025-12-04 08:30:00'),
+(22, 57, 90, '2025-12-04', '11:45:00', 'Khám thần kinh', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám thần kinh', '2025-12-03 12:00:00', '2025-12-04 12:00:00'),
+(23, 44, 91, '2025-12-04', '15:15:00', 'Khám cơ xương khớp', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám cơ xương khớp', '2025-12-03 16:00:00', '2025-12-04 15:30:00'),
+(24, 57, 1, '2025-12-05', '09:30:00', 'Khám tim mạch và xét nghiệm', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám tim mạch kèm xét nghiệm', '2025-12-04 10:00:00', '2025-12-05 09:45:00');
+
 -- --------------------------------------------------------
 
 --
@@ -700,7 +771,42 @@ INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`,
 (49, 50, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 08:24:25', '2025-12-01 08:24:25'),
 (50, 1, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 08:28:04', '2025-12-01 08:28:04'),
 (51, 51, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 12:07:38', '2025-12-01 12:07:38'),
-(52, 54, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 12:13:06', '2025-12-01 12:13:06');
+(52, 54, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 12:13:06', '2025-12-01 12:13:06'),
+(53, 79, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:00:00', '2025-12-01 15:00:00'),
+(54, 79, 'Thứ 5', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 15:05:00', '2025-12-01 15:05:00'),
+(55, 80, 'Thứ 3', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 15:10:00', '2025-12-01 15:10:00'),
+(56, 48, 'Thứ 4', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:15:00', '2025-12-01 15:15:00'),
+(57, 81, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(58, 81, 'Thứ 2', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(59, 81, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(60, 81, 'Thứ 3', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(61, 81, 'Thứ 4', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(62, 81, 'Thứ 4', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(63, 81, 'Thứ 5', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(64, 81, 'Thứ 5', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(65, 81, 'Thứ 6', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(66, 81, 'Thứ 6', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(67, 81, 'Thứ 7', '08:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(68, 82, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(69, 82, 'Thứ 4', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(70, 83, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(71, 83, 'Thứ 3', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(72, 84, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(73, 84, 'Thứ 5', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(74, 85, 'Thứ 2', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(75, 85, 'Thứ 6', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(76, 86, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(77, 86, 'Thứ 5', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(78, 87, 'Thứ 4', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(79, 87, 'Thứ 6', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(80, 88, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(81, 88, 'Thứ 4', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(82, 89, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(83, 89, 'Thứ 5', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(84, 90, 'Thứ 2', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(85, 90, 'Thứ 4', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(86, 91, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(87, 91, 'Thứ 5', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00');
 
 -- --------------------------------------------------------
 
@@ -729,7 +835,10 @@ INSERT INTO `lich_lam_viec_le_tan` (`id`, `letan_id`, `thu_trong_tuan`, `gio_bat
 (3, 1, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-28 13:03:44', '2025-11-28 13:03:44'),
 (4, 1, 'Chủ nhật', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-30 14:28:12', '2025-11-30 14:28:12'),
 (5, 1, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-30 14:30:39', '2025-11-30 14:30:39'),
-(6, 2, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-30 14:30:50', '2025-11-30 14:30:50');
+(6, 2, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-30 14:30:50', '2025-11-30 14:30:50'),
+(7, 1, 'Thứ 4', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:20:00', '2025-12-01 15:20:00'),
+(8, 2, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:25:00', '2025-12-01 15:25:00'),
+(9, 2, 'Thứ 6', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 15:30:00', '2025-12-01 15:30:00');
 
 -- --------------------------------------------------------
 
@@ -945,7 +1054,21 @@ CREATE TABLE `phieu_kham_benh` (
 --
 
 INSERT INTO `phieu_kham_benh` (`id`, `id_lich_hen`, `benh_nhan_id`, `bac_si_id`, `so_y_te`, `benh_vien`, `buong_kham`, `ho_ten`, `ngay_sinh`, `thang_sinh`, `nam_sinh`, `tuoi`, `gioi_tinh`, `nghe_nghiep`, `dan_toc`, `ngoai_kieu`, `noi_lam_viec`, `dia_chi`, `doi_tuong_bhyt`, `doi_tuong_thu_phi`, `doi_tuong_mien`, `doi_tuong_khac`, `bhyt_ngay`, `bhyt_thang`, `bhyt_nam`, `so_the_bhyt`, `dien_thoai_bao_tin`, `gio_kham`, `phut_kham`, `ngay_kham`, `thang_kham`, `nam_kham`, `chan_doan_gioi_thieu`, `qua_trinh_benh_li`, `tien_su_ban_than`, `tien_su_gia_dinh`, `kham_toan_than`, `mach`, `nhiet_do`, `huyet_ap_tam_thu`, `huyet_ap_tam_truong`, `nhip_tho`, `kham_cac_bo_phan`, `tom_tat_lam_sang`, `chan_doan_vao_vien`, `da_xu_li`, `khoa_dieu_tri`, `chu_y`, `ngay_ky`, `thang_ky`, `nam_ky`, `ten_bac_si`, `lich_hen`, `created_at`, `updated_at`) VALUES
-(40, NULL, 44, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913992110', NULL, NULL, 27, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Đau bụng ', '', '', '', 27, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-27 08:34:39', '2025-11-27 08:34:39');
+(40, NULL, 44, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913992110', NULL, NULL, 27, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Đau bụng ', '', '', '', 27, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-27 08:34:39', '2025-11-27 08:34:39'),
+(41, 11, 44, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 28, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Tái khám tim mạch', '', '', '', 28, 11, 2025, 'GSTS. Cao Việt', 11, '2025-11-28 14:25:00', '2025-11-28 14:25:00'),
+(42, 12, 57, 51, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'Cao Dương Quốc Việt', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 29, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám sức khỏe tổng quát', '', '', '', 29, 11, 2025, 'GSTS Cường', 12, '2025-11-29 15:30:00', '2025-11-29 15:30:00'),
+(43, 13, 44, 81, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Nội tổng quát', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 30, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám nội tổng quát và xét nghiệm', '', '', '', 30, 11, 2025, 'BS Nội Tổng Quát', 13, '2025-11-30 10:20:00', '2025-11-30 10:20:00'),
+(44, 14, 57, 82, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Ngoại tổng quát', 'Cao Dương Quốc Việt', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 1, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám ngoại tổng quát', '', '', '', 1, 12, 2025, 'BS Ngoại Tổng Quát', 14, '2025-12-01 11:45:00', '2025-12-01 11:45:00'),
+(45, 15, 44, 83, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Nhi', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 1, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám nhi khoa', '', '', '', 1, 12, 2025, 'BS Nhi', 15, '2025-12-01 16:20:00', '2025-12-01 16:20:00'),
+(46, 16, 57, 84, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Sản', 'Cao Dương Quốc Việt', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 2, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám sản phụ khoa', '', '', '', 2, 12, 2025, 'BS Sản', 16, '2025-12-02 10:30:00', '2025-12-02 10:30:00'),
+(47, 17, 44, 85, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Mắt', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 2, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám mắt', '', '', '', 2, 12, 2025, 'BS Mắt', 17, '2025-12-02 14:15:00', '2025-12-02 14:15:00'),
+(48, 18, 57, 86, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tai mũi họng', 'Cao Dương Quốc Việt', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 3, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám tai mũi họng', '', '', '', 3, 12, 2025, 'BS Tai Mũi Họng', 18, '2025-12-03 09:10:00', '2025-12-03 09:10:00'),
+(49, 19, 44, 87, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Da liễu', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 3, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám da liễu', '', '', '', 3, 12, 2025, 'BS Da Liễu', 19, '2025-12-03 11:30:00', '2025-12-03 11:30:00'),
+(50, 20, 57, 88, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'Cao Dương Quốc Việt', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 3, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám tim mạch', '', '', '', 3, 12, 2025, 'BS Nội Tim Mạch', 20, '2025-12-03 14:45:00', '2025-12-03 14:45:00'),
+(51, 21, 44, 89, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Hô hấp', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 4, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám hô hấp', '', '', '', 4, 12, 2025, 'BS Hô Hấp', 21, '2025-12-04 08:30:00', '2025-12-04 08:30:00'),
+(52, 22, 57, 90, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Thần kinh', 'Cao Dương Quốc Việt', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 4, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám thần kinh', '', '', '', 4, 12, 2025, 'BS Thần Kinh', 22, '2025-12-04 12:00:00', '2025-12-04 12:00:00'),
+(53, 23, 44, 91, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Cơ xương khớp', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 4, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám cơ xương khớp', '', '', '', 4, 12, 2025, 'BS Cơ Xương Khớp', 23, '2025-12-04 15:30:00', '2025-12-04 15:30:00'),
+(54, 24, 57, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'Cao Dương Quốc Việt', 22, 3, 2003, 22, 'Nam', '', '', '', '', 'An Giang', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913998110', NULL, NULL, 5, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám tim mạch và xét nghiệm', '', '', '', 5, 12, 2025, 'GSTS. Cao Việt', 24, '2025-12-05 09:45:00', '2025-12-05 09:45:00');
 
 -- --------------------------------------------------------
 
@@ -1706,7 +1829,7 @@ ALTER TABLE `benh_nhan`
 -- AUTO_INCREMENT cho bảng `bien_lai_vien_phi`
 --
 ALTER TABLE `bien_lai_vien_phi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT cho bảng `cccd_data`
@@ -1766,7 +1889,7 @@ ALTER TABLE `face_encodings`
 -- AUTO_INCREMENT cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT cho bảng `ket_qua_sieu_am`
@@ -1796,7 +1919,7 @@ ALTER TABLE `le_tan`
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=226;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec`
@@ -1838,7 +1961,7 @@ ALTER TABLE `phieu_chup_xquang`
 -- AUTO_INCREMENT cho bảng `phieu_kham_benh`
 --
 ALTER TABLE `phieu_kham_benh`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_tien_su_di_ung`
