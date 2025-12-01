@@ -13,6 +13,31 @@ document.addEventListener("DOMContentLoaded", function () {
   if (modalElement) {
     scheduleModal = new bootstrap.Modal(modalElement);
   }
+
+  // Auto-fill giờ bắt đầu / kết thúc theo loại ca (áp dụng cho cả thêm & sửa)
+  const loaiCaSelect = document.getElementById("loaiCa");
+  const gioBatDauInput = document.getElementById("gioBatDau");
+  const gioKetThucInput = document.getElementById("gioKetThuc");
+
+  if (loaiCaSelect && gioBatDauInput && gioKetThucInput) {
+    loaiCaSelect.addEventListener("change", function () {
+      switch (this.value) {
+        case "Ca sáng":
+          // Ca sáng: 07:00 - 11:30
+          gioBatDauInput.value = "07:00";
+          gioKetThucInput.value = "11:30";
+          break;
+        case "Ca chiều":
+          // Ca chiều: 13:00 - 21:00
+          gioBatDauInput.value = "13:00";
+          gioKetThucInput.value = "21:00";
+          break;
+        default:
+          // Không set gì nếu không chọn ca hợp lệ
+          break;
+      }
+    });
+  }
 });
 
 /**

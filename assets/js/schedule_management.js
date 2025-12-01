@@ -1,22 +1,21 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Auto-fill time based on shift type
+  // Auto-fill time based on shift type (chỉ còn Ca sáng, Ca chiều)
   document.getElementById("loai_ca").addEventListener("change", function () {
     const startTime = document.getElementById("gio_bat_dau");
     const endTime = document.getElementById("gio_ket_thuc");
 
     switch (this.value) {
       case "Ca sáng":
-        startTime.value = "06:00";
-        endTime.value = "12:00";
+        // Ca sáng: 07:00 - 11:30
+        startTime.value = "07:00";
+        endTime.value = "11:30";
         break;
       case "Ca chiều":
-        startTime.value = "12:00";
-        endTime.value = "18:00";
+        // Ca chiều: 13:00 - 21:00
+        startTime.value = "13:00";
+        endTime.value = "21:00";
         break;
-      case "Ca tối":
-        startTime.value = "18:00";
-        endTime.value = "23:59";
-        break;
+      // Đã bỏ ca tối
       // Bỏ ca đêm
     }
   });
@@ -188,7 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-  // Auto-fill time for edit modal
+  // Auto-fill time for edit modal (chỉ còn Ca sáng, Ca chiều)
   document
     .getElementById("edit_loai_ca")
     .addEventListener("change", function () {
@@ -197,17 +196,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
       switch (this.value) {
         case "Ca sáng":
-          startTime.value = "06:00";
-          endTime.value = "12:00";
+          // Ca sáng: 07:00 - 11:30
+          startTime.value = "07:00";
+          endTime.value = "11:30";
           break;
         case "Ca chiều":
-          startTime.value = "12:00";
-          endTime.value = "18:00";
+          // Ca chiều: 13:00 - 21:00
+          startTime.value = "13:00";
+          endTime.value = "21:00";
           break;
-        case "Ca tối":
-          startTime.value = "18:00";
-          endTime.value = "23:59";
-          break;
+        // Đã bỏ ca tối
         // Bỏ ca đêm
       }
     });

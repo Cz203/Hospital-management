@@ -42,8 +42,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const qbNext = document.getElementById("qbNext");
   const quickTimeSlots = document.getElementById("quickTimeSlots");
   const slotCountLabel = document.getElementById("slotCountLabel");
-  let qbWeekOffset = 0; // number of weeks from current week
-  const QB_WINDOW = 7; // show 7 days starting Monday
+  // Không dùng tuần nữa, chỉ hiển thị dải ngày liên tục từ hôm nay
+  // Giảm số ngày để tránh gọi quá nhiều request -> nhanh hơn
+  const MAX_QUICK_DAYS = 14; // số ngày tối đa hiển thị từ hôm nay
 
   // Initialize form
   function initializeForm() {
@@ -61,20 +62,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function renderQuickDays() {
     if (!quickDays) return;
+    // Setup layout: 1 hàng trượt ngang
     quickDays.innerHTML =
       "<div class='text-center text-muted py-3'><i class='icofont-spinner icofont-spin mr-2'></i>Đang tải...</div>";
+    quickDays.style.display = "flex";
+    quickDays.style.overflowX = "auto";
+    quickDays.style.whiteSpace = "nowrap";
+    quickDays.style.gap = "8px";
+    quickDays.style.paddingBottom = "6px";
 
-    const monday = computeMondayThisWeek();
-    const allowedEnd = computeAllowedWeeklyEnd();
-    const weekStart = new Date(monday);
-    weekStart.setDate(monday.getDate() + qbWeekOffset * 7);
+    // Bắt đầu từ hôm nay, hiển thị liên tục MAX_QUICK_DAYS ngày
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    // Collect all days to check
+    // Collect all days to check (from today forward)
     const daysToCheck = [];
-    for (let i = 0; i < QB_WINDOW; i++) {
-      const d = new Date(weekStart);
-      d.setDate(weekStart.getDate() + i);
-      if (d > allowedEnd) break;
+    for (let i = 0; i < MAX_QUICK_DAYS; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1).padStart(2, "0");
       const dd = String(d.getDate()).padStart(2, "0");
@@ -104,6 +109,12 @@ document.addEventListener("DOMContentLoaded", function () {
         btn.type = "button";
         btn.className = "quick-day-btn";
         btn.style.borderRadius = "12px";
+        btn.style.display = "inline-flex";
+        btn.style.flexDirection = "column";
+        btn.style.alignItems = "center";
+        btn.style.justifyContent = "center";
+        btn.style.minWidth = "80px";
+        btn.style.marginRight = "8px";
         btn.innerHTML = `
           <span class="day-name">${dow}</span>
           <span class="day-number">${dd}</span>
@@ -114,11 +125,11 @@ document.addEventListener("DOMContentLoaded", function () {
         btn.dataset.has = "1";
 
         // Check if today
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const todayCheck = new Date();
+        todayCheck.setHours(0, 0, 0, 0);
         const compareDate = new Date(d);
         compareDate.setHours(0, 0, 0, 0);
-        if (compareDate.getTime() === today.getTime()) {
+        if (compareDate.getTime() === todayCheck.getTime()) {
           btn.classList.add("today");
         }
 
@@ -132,56 +143,17 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Update nav button disabled states
+    // Không còn dùng điều hướng tuần, ẩn/disable nút prev/next nếu có
     if (qbPrev) {
-      qbPrev.disabled = qbWeekOffset === 0;
+      qbPrev.disabled = true;
+      qbPrev.style.display = "none";
+      qbPrev.onclick = null;
     }
     if (qbNext) {
-      const nextWeekStartForBtn = new Date(computeMondayThisWeek());
-      nextWeekStartForBtn.setDate(
-        nextWeekStartForBtn.getDate() + (qbWeekOffset + 1) * 7
-      );
-      qbNext.disabled = nextWeekStartForBtn > computeAllowedWeeklyEnd();
+      qbNext.disabled = true;
+      qbNext.style.display = "none";
+      qbNext.onclick = null;
     }
-    qbPrev.onclick = () => {
-      if (qbWeekOffset === 0) return;
-      qbWeekOffset = Math.max(0, qbWeekOffset - 1);
-      renderQuickDays();
-    };
-    qbNext.onclick = () => {
-      const nextWeekStart = new Date(computeMondayThisWeek());
-      nextWeekStart.setDate(nextWeekStart.getDate() + (qbWeekOffset + 1) * 7);
-      if (nextWeekStart > computeAllowedWeeklyEnd()) return;
-      qbWeekOffset += 1;
-      renderQuickDays();
-    };
-  }
-
-  function computeAllowedWeeklyEnd() {
-    const now = new Date();
-    // Normalize to Monday=1..Sunday=7
-    const dow = now.getDay(); // 0=Sun..6=Sat
-    const dowNorm = dow === 0 ? 7 : dow; // 1..7
-    // Monday of this week
-    const monday = computeMondayThisWeek();
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    if (dowNorm === 1) {
-      return sunday; // only this week on Monday
-    }
-    const nextSunday = new Date(sunday);
-    nextSunday.setDate(sunday.getDate() + 7);
-    return nextSunday; // this + next week for Tue..Sun
-  }
-
-  function computeMondayThisWeek() {
-    const now = new Date();
-    const dow = now.getDay(); // 0..6
-    const dowNorm = dow === 0 ? 7 : dow; // 1..7
-    const monday = new Date(now);
-    monday.setHours(0, 0, 0, 0);
-    monday.setDate(now.getDate() - (dowNorm - 1));
-    return monday;
   }
 
   function setSelectedDate(ymd) {

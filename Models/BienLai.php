@@ -1,30 +1,35 @@
 <?php
 require_once 'config/database.php';
 
-class BienLai {
+class BienLai
+{
     private $db;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->db = (new Database())->getConnection();
     }
-    
+
     /**
      * Lưu biên lai viện phí
      */
-    public function saveReceipt($data) {
+    public function saveReceipt($data)
+    {
         try {
             $this->db->beginTransaction();
-            
+
             // Lưu biên lai chính
             $sql = "INSERT INTO bien_lai_vien_phi 
-                    (ma_bien_lai, id_phieu_kham_benh, tong_tien_co_ban, tong_quy_bhyt, tong_nguoi_benh, 
+                    (ma_bien_lai, id_phieu_kham_benh, id_le_tan, id_bac_si, tong_tien_co_ban, tong_quy_bhyt, tong_nguoi_benh, 
                      ngay_lap, nguoi_lap, trang_thai, ghi_chu) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
                 $data['ma_bien_lai'],
                 $data['id_phieu_kham_benh'],
+                $data['id_le_tan'] ?? null,
+                $data['id_bac_si'] ?? null,
                 $data['tong_tien_co_ban'],
                 $data['tong_quy_bhyt'],
                 $data['tong_nguoi_benh'],
@@ -33,39 +38,39 @@ class BienLai {
                 $data['trang_thai'],
                 $data['ghi_chu']
             ]);
-            
+
             if (!$result) {
                 throw new Exception("Lỗi khi lưu biên lai chính");
             }
-            
+
             $bienLaiId = $this->db->lastInsertId();
-            
+
             // Lưu chi tiết biên lai
             if (!empty($data['chi_tiet'])) {
                 foreach ($data['chi_tiet'] as $chiTiet) {
                     $this->saveReceiptDetail($bienLaiId, $chiTiet);
                 }
             }
-            
+
             $this->db->commit();
             return $bienLaiId;
-            
         } catch (Exception $e) {
             $this->db->rollBack();
             error_log('Error saving receipt: ' . $e->getMessage());
             throw $e;
         }
     }
-    
+
     /**
      * Lưu chi tiết biên lai
      */
-    private function saveReceiptDetail($bienLaiId, $chiTiet) {
+    private function saveReceiptDetail($bienLaiId, $chiTiet)
+    {
         $sql = "INSERT INTO chi_tiet_bien_lai 
                 (id_bien_lai, loai_dich_vu, ten_dich_vu, so_luong, don_gia, thanh_tien, 
                  quy_bhyt, nguoi_benh, bao_hiem, ghi_chu) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $bienLaiId,
@@ -80,11 +85,12 @@ class BienLai {
             $chiTiet['ghi_chu']
         ]);
     }
-    
+
     /**
      * Lấy biên lai theo ID
      */
-    public function getById($id) {
+    public function getById($id)
+    {
         $sql = "SELECT bl.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.so_the_bhyt, 
                        pk.doi_tuong_bhyt, pk.benh_nhan_id, bn.id AS benh_nhan_id_thuc_te, bn.ma_benh_nhan, bs.ten as ten_bac_si
                 FROM bien_lai_vien_phi bl
@@ -92,16 +98,17 @@ class BienLai {
                 JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                 LEFT JOIN bac_si bs ON pk.bac_si_id = bs.id
                 WHERE bl.id = ?";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
     /**
      * Lấy biên lai theo mã biên lai
      */
-    public function getByMaBienLai($maBienLai) {
+    public function getByMaBienLai($maBienLai)
+    {
         $sql = "SELECT bl.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.so_the_bhyt, 
                        pk.doi_tuong_bhyt, bn.ma_benh_nhan, bs.ten as ten_bac_si
                 FROM bien_lai_vien_phi bl
@@ -109,26 +116,28 @@ class BienLai {
                 JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                 LEFT JOIN bac_si bs ON pk.bac_si_id = bs.id
                 WHERE bl.ma_bien_lai = ?";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$maBienLai]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
     /**
      * Lấy chi tiết biên lai
      */
-    public function getDetails($bienLaiId) {
+    public function getDetails($bienLaiId)
+    {
         $sql = "SELECT * FROM chi_tiet_bien_lai WHERE id_bien_lai = ? ORDER BY id";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$bienLaiId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
+
     /**
      * Kiểm tra biên lai đã tồn tại cho phiếu khám
      */
-    public function existsForExam($examId) {
+    public function existsForExam($examId)
+    {
         $sql = "SELECT COUNT(*) as count FROM bien_lai_vien_phi WHERE id_phieu_kham_benh = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$examId]);
@@ -139,7 +148,8 @@ class BienLai {
     /**
      * Lấy biên lai theo ID phiếu khám bệnh
      */
-    public function getByExamId($examId) {
+    public function getByExamId($examId)
+    {
         $sql = "SELECT * FROM bien_lai_vien_phi WHERE id_phieu_kham_benh = ?";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$examId]);
@@ -149,7 +159,8 @@ class BienLai {
     /**
      * Cập nhật biên lai viện phí
      */
-    public function updateReceipt($data) {
+    public function updateReceipt($data)
+    {
         $this->db->beginTransaction();
         try {
             // 1. Cập nhật biên lai chính
@@ -191,7 +202,8 @@ class BienLai {
     /**
      * Lấy danh sách biên lai chưa thanh toán
      */
-    public function getUnpaidReceipts($limit = 50, $offset = 0, $date = null) {
+    public function getUnpaidReceipts($limit = 50, $offset = 0, $date = null)
+    {
         $sql = "SELECT bl.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.so_the_bhyt, 
                        pk.doi_tuong_bhyt, bn.ma_benh_nhan, bs.ten as ten_bac_si,
                        lh.ngay_hen, lh.gio_hen
@@ -201,13 +213,13 @@ class BienLai {
                 LEFT JOIN bac_si bs ON pk.bac_si_id = bs.id
                 LEFT JOIN lich_hen lh ON pk.id_lich_hen = lh.id
                 WHERE bl.trang_thai = 'Chưa thanh toán'";
-        
+
         if ($date) {
             $sql .= " AND DATE(bl.created_at) = ?";
         }
-        
+
         $sql .= " ORDER BY bl.ngay_lap DESC LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-        
+
         $stmt = $this->db->prepare($sql);
         if ($date) {
             $stmt->execute([$date]);
@@ -220,7 +232,8 @@ class BienLai {
     /**
      * Đếm tổng số biên lai chưa thanh toán
      */
-    public function countUnpaidReceipts() {
+    public function countUnpaidReceipts()
+    {
         $sql = "SELECT COUNT(*) as total FROM bien_lai_vien_phi WHERE trang_thai = 'Chưa thanh toán'";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
@@ -231,7 +244,8 @@ class BienLai {
     /**
      * Lấy tất cả biên lai (cho thống kê)
      */
-    public function getAllReceipts($limit = 50, $offset = 0, $date = null) {
+    public function getAllReceipts($limit = 50, $offset = 0, $date = null)
+    {
         $sql = "SELECT bl.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.so_the_bhyt, 
                        pk.doi_tuong_bhyt, bn.ma_benh_nhan, bs.ten as ten_bac_si,
                        lh.ngay_hen, lh.gio_hen
@@ -240,13 +254,13 @@ class BienLai {
                 JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                 LEFT JOIN bac_si bs ON pk.bac_si_id = bs.id
                 LEFT JOIN lich_hen lh ON pk.id_lich_hen = lh.id";
-        
+
         if ($date) {
             $sql .= " WHERE DATE(bl.created_at) = ?";
         }
-        
+
         $sql .= " ORDER BY bl.ngay_lap DESC LIMIT " . (int)$limit . " OFFSET " . (int)$offset;
-        
+
         $stmt = $this->db->prepare($sql);
         if ($date) {
             $stmt->execute([$date]);
@@ -259,7 +273,8 @@ class BienLai {
     /**
      * Đếm tổng số biên lai
      */
-    public function countAllReceipts() {
+    public function countAllReceipts()
+    {
         $sql = "SELECT COUNT(*) as total FROM bien_lai_vien_phi";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
@@ -270,7 +285,8 @@ class BienLai {
     /**
      * Lấy danh sách biên lai theo bệnh nhân (patient portal)
      */
-    public function getReceiptsByPatient($patientId, $limit = 15, $offset = 0, $date = null, $code = null) {
+    public function getReceiptsByPatient($patientId, $limit = 15, $offset = 0, $date = null, $code = null)
+    {
         $params = [$patientId];
         $sql = "SELECT bl.*, 
                        lh.ngay_hen, lh.gio_hen,
@@ -299,7 +315,8 @@ class BienLai {
     /**
      * Đếm tổng số biên lai theo bệnh nhân (patient portal)
      */
-    public function countReceiptsByPatient($patientId, $date = null, $code = null) {
+    public function countReceiptsByPatient($patientId, $date = null, $code = null)
+    {
         $params = [$patientId];
         $sql = "SELECT COUNT(*) as total
                 FROM bien_lai_vien_phi bl
@@ -325,25 +342,37 @@ class BienLai {
     /**
      * Cập nhật trạng thái thanh toán
      */
-    public function updatePaymentStatus($id, $status, $paymentMethod = null, $paymentNote = null) {
-        // Simple update - only update trang_thai column which definitely exists
-        $sql = "UPDATE bien_lai_vien_phi SET trang_thai = ? WHERE id = ?";
-        
+    public function updatePaymentStatus($id, $status, $paymentMethod = null, $paymentNote = null, $idLeTan = null)
+    {
+        // Cập nhật trạng thái và id_le_tan (nếu có)
+        $sql = "UPDATE bien_lai_vien_phi SET trang_thai = ?";
+        $params = [$status];
+
+        // Nếu có id_le_tan, cập nhật luôn
+        if ($idLeTan !== null) {
+            $sql .= ", id_le_tan = ?";
+            $params[] = $idLeTan;
+        }
+
+        $sql .= " WHERE id = ?";
+        $params[] = $id;
+
         $stmt = $this->db->prepare($sql);
-        $result = $stmt->execute([$status, $id]);
-        
+        $result = $stmt->execute($params);
+
         // Log the payment details for reference (since we can't store them in DB)
         if ($paymentMethod && $paymentNote) {
-            error_log("Payment processed - Receipt ID: $id, Method: $paymentMethod, Note: $paymentNote, Status: $status");
+            error_log("Payment processed - Receipt ID: $id, Method: $paymentMethod, Note: $paymentNote, Status: $status, LeTan ID: " . ($idLeTan ?? 'N/A'));
         }
-        
+
         return $result;
     }
 
     /**
      * Tìm kiếm biên lai theo mã biên lai hoặc tên bệnh nhân
      */
-    public function searchReceipts($keyword, $status = 'Chưa thanh toán', $limit = 50, $date = null) {
+    public function searchReceipts($keyword, $status = 'Chưa thanh toán', $limit = 50, $date = null)
+    {
         $sql = "SELECT bl.*, pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.so_the_bhyt, 
                        pk.doi_tuong_bhyt, bn.ma_benh_nhan, bs.ten as ten_bac_si,
                        lh.ngay_hen, lh.gio_hen
@@ -354,23 +383,22 @@ class BienLai {
                 LEFT JOIN lich_hen lh ON pk.id_lich_hen = lh.id
                 WHERE bl.trang_thai = ? 
                 AND (bl.ma_bien_lai LIKE ? OR pk.ho_ten LIKE ? OR bn.ma_benh_nhan LIKE ?)";
-        
+
         if ($date) {
             $sql .= " AND DATE(bl.created_at) = ?";
         }
-        
+
         $sql .= " ORDER BY bl.ngay_lap DESC LIMIT " . (int)$limit;
-        
+
         $searchTerm = "%{$keyword}%";
         $stmt = $this->db->prepare($sql);
-        
+
         if ($date) {
             $stmt->execute([$status, $searchTerm, $searchTerm, $searchTerm, $date]);
         } else {
             $stmt->execute([$status, $searchTerm, $searchTerm, $searchTerm]);
         }
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-?>

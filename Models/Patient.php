@@ -59,14 +59,16 @@ class Patient extends User
         // Sinh mã bệnh nhân tự động
         $ma_benh_nhan = 'BN' . date('ymd') . rand(10, 99);
         $query = "INSERT INTO " . $this->table_name . " 
-                  (ma_benh_nhan, ten, email, mat_khau, so_dien_thoai, phone_verified, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao) 
-                  VALUES (:ma_benh_nhan, :ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, :ngay_sinh, :gioi_tinh, :dia_chi, :cccd, NOW())";
+                  (ma_benh_nhan, ten, email, mat_khau, so_dien_thoai, phone_verified, ngay_sinh, gioi_tinh, dia_chi, cccd, bao_hiem_y_te, bao_hiem_y_te_id, ngay_tao) 
+                  VALUES (:ma_benh_nhan, :ten, :email, :mat_khau, :so_dien_thoai, :phone_verified, :ngay_sinh, :gioi_tinh, :dia_chi, :cccd, :bao_hiem_y_te, :bao_hiem_y_te_id, NOW())";
 
         $stmt = $this->conn->prepare($query);
 
         $hashedPassword = $this->hashPassword($data['mat_khau']);
         $phone_verified = $data['phone_verified'] ?? 0;
         $cccd = $data['cccd'] ?? null;
+        $baoHiemCode = $data['bao_hiem_y_te'] ?? null;
+        $baoHiemId = isset($data['bao_hiem_y_te_id']) ? (int)$data['bao_hiem_y_te_id'] : null;
 
         $stmt->bindParam(":ma_benh_nhan", $ma_benh_nhan);
         $stmt->bindParam(":ten", $data['ten']);
@@ -78,6 +80,8 @@ class Patient extends User
         $stmt->bindParam(":gioi_tinh", $data['gioi_tinh']);
         $stmt->bindParam(":dia_chi", $data['dia_chi']);
         $stmt->bindParam(":cccd", $cccd);
+        $stmt->bindParam(":bao_hiem_y_te", $baoHiemCode);
+        $stmt->bindParam(":bao_hiem_y_te_id", $baoHiemId, PDO::PARAM_INT);
 
         return $stmt->execute();
     }
@@ -86,6 +90,32 @@ class Patient extends User
     {
         $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Đếm tổng số bệnh nhân (dùng cho phân trang admin)
+     */
+    public function countAll(): int
+    {
+        $stmt = $this->conn->prepare("SELECT COUNT(*) FROM " . $this->table_name);
+        $stmt->execute();
+        return (int)$stmt->fetchColumn();
+    }
+
+    /**
+     * Lấy danh sách bệnh nhân có phân trang (dùng cho admin)
+     */
+    public function getPaginated(int $offset, int $limit): array
+    {
+        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao
+                  FROM " . $this->table_name . "
+                  ORDER BY ngay_tao DESC
+                  LIMIT :limit OFFSET :offset";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -174,6 +204,16 @@ class Patient extends User
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":mat_khau", $hashedPassword);
         $stmt->bindParam(":id", $id);
+        return $stmt->execute();
+    }
+
+    /**
+     * Xóa bệnh nhân theo ID (dùng cho Admin)
+     */
+    public function deleteById(int $id): bool
+    {
+        $stmt = $this->conn->prepare("DELETE FROM " . $this->table_name . " WHERE id = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
 

@@ -2,3 +2,5 @@
 node_modules/
 vendor/
 
+uploads/attendance/
+uploads/face_samples/

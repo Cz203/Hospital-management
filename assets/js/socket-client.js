@@ -14,20 +14,13 @@ class SocketManager {
     this.isOnPatientAppointments = this.isOnPatientAppointments.bind(this);
     this.isOnDoctorExamination = this.isOnDoctorExamination.bind(this);
     this.isOnReceptionQueue = this.isOnReceptionQueue.bind(this);
-    // Notifications bridge
+    // Notifications bridge: display only if UI is ready; do not store client-side
     this.pushBell = (msg, type) => {
       try {
         if (typeof window.addNotification === "function") {
           window.addNotification(msg, type || "info");
-        } else {
-          // Queue until layout initializes notifications
-          window.__notifQueue = window.__notifQueue || [];
-          window.__notifQueue.push({ message: msg, type: type || "info" });
         }
-      } catch (_) {
-        window.__notifQueue = window.__notifQueue || [];
-        window.__notifQueue.push({ message: msg, type: type || "info" });
-      }
+      } catch (_) {}
     };
   }
 

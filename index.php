@@ -7,6 +7,14 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 // Load Composer autoloader để sử dụng Vonage SDK
 require_once 'vendor/autoload.php';
 
+// Load environment variables from .env (if present)
+try {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+    $dotenv->safeLoad();
+} catch (Throwable $e) {
+    // ignore if dotenv not available
+}
+
 require_once 'Controllers/AuthController.php';
 require_once 'Controllers/DoctorController.php';
 require_once 'Controllers/AdminController.php';
@@ -17,6 +25,7 @@ require_once 'Controllers/ReceptionController.php';
 require_once 'Controllers/ReceiptController.php';
 require_once 'Controllers/MedicalRecordController.php';
 require_once 'Controllers/PatientReceiptController.php';
+require_once 'Controllers/NotificationController.php';
 // Khởi tạo Controllers
 $auth = new AuthController();
 $doctorController = new DoctorController();
@@ -27,6 +36,7 @@ $patientController = new PatientController();
 $receptionController = new ReceptionController();
 $medicalRecordController = new MedicalRecordController();
 $patientReceiptController = new PatientReceiptController();
+$notificationController = new NotificationController();
 
 // Khởi tạo ReceiptController
 require_once 'config/database.php';
@@ -166,8 +176,16 @@ switch ($action) {
         $adminController->dashboard(); // Trang chủ admin
         break;
 
+    case 'get_revenue_stats':
+        $adminController->getRevenueStats(); // API: Lấy thống kê doanh thu theo filter
+        break;
+
     case 'doctor_schedules':
         $adminController->manageDoctorSchedules(); // Quản lý lịch làm việc bác sĩ
+        break;
+
+    case 'admin_reception_schedules':
+        $adminController->receptionSchedules(); // Quản lý lịch làm việc lễ tân
         break;
 
     case 'doctors_list':
@@ -181,6 +199,14 @@ switch ($action) {
         break;
     case 'admin_delete_doctor':
         $adminController->adminDeleteDoctor(); // Xóa bác sĩ (Admin)
+        break;
+
+    case 'patients':
+        $adminController->patientsList(); // Danh sách bệnh nhân (Admin)
+        break;
+
+    case 'reception_list':
+        $adminController->receptionList(); // Danh sách lễ tân (Admin)
         break;
 
     // ===== SPECIALTIES (ADMIN) =====
@@ -211,12 +237,61 @@ switch ($action) {
         $adminController->adminGetScheduleInfo();
         break;
 
+    // ADMIN RECEPTION SCHEDULE MANAGEMENT
+    case 'admin_add_reception_schedule':
+        $adminController->adminAddReceptionSchedule();
+        break;
+    case 'admin_update_reception_schedule':
+        $adminController->adminUpdateReceptionSchedule();
+        break;
+    case 'admin_delete_reception_schedule':
+        $adminController->adminDeleteReceptionSchedule();
+        break;
+    case 'admin_get_reception_schedule_info':
+        $adminController->adminGetReceptionScheduleInfo();
+        break;
+
     // ===== ADMIN APPOINTMENT MANAGEMENT =====
     case 'admin_appointments':
         $adminController->appointments();
         break;
     case 'admin_cancel_appointment':
         $adminController->cancelAppointment();
+        break;
+
+    // Quản lý bệnh nhân & lễ tân (Admin)
+    case 'admin_create_patient':
+        $adminController->adminCreatePatient();
+        break;
+    case 'admin_update_patient':
+        $adminController->adminUpdatePatient();
+        break;
+    case 'admin_delete_patient':
+        $adminController->adminDeletePatient();
+        break;
+
+    case 'admin_create_reception':
+        $adminController->adminCreateReception();
+        break;
+    case 'admin_update_reception':
+        $adminController->adminUpdateReception();
+        break;
+    case 'admin_delete_reception':
+        $adminController->adminDeleteReception();
+        break;
+
+    // ===== ADMIN FACE RECOGNITION =====
+    case 'admin_face_registration':
+        $adminController->faceRegistration(); // Trang đăng ký face recognition
+        break;
+    case 'admin_save_face_encoding':
+        $adminController->saveFaceEncoding(); // API: Lưu face encoding
+        break;
+    case 'admin_get_users':
+        $adminController->getUsers(); // API: Lấy danh sách users
+        break;
+    case 'admin_get_user_info':
+        $adminController->getUserInfo(); // API: Lấy thông tin user
         break;
 
     // ===== DASHBOARD ROUTES =====
@@ -250,6 +325,18 @@ switch ($action) {
 
     case 'reception_doctor_schedules':
         $receptionController->doctorSchedules(); // Trang lịch làm việc bác sĩ (lễ tân)
+        break;
+
+    case 'reception_schedule_management':
+        $receptionController->scheduleManagement(); // Lịch làm việc lễ tân
+        break;
+
+    case 'reception_add_schedule':
+        $receptionController->addSchedule(); // Lưu ca trực lễ tân
+        break;
+
+    case 'reception_delete_schedule':
+        $receptionController->deleteSchedule(); // Xóa ca trực lễ tân
         break;
 
     case 'reception_queue':
@@ -356,6 +443,17 @@ switch ($action) {
         $doctorController->getScheduleInfo(); // Lấy thông tin lịch làm việc
         break;
 
+    // ===== DOCTOR ATTENDANCE =====
+    case 'doctor_attendance':
+        $doctorController->attendance(); // Trang chấm công bác sĩ
+        break;
+    case 'doctor_process_attendance':
+        $doctorController->processAttendance(); // API: Xử lý chấm công
+        break;
+    case 'doctor_get_today_attendance':
+        $doctorController->getTodayAttendance(); // API: Lấy trạng thái chấm công hôm nay
+        break;
+
     case 'doctor_get_schedules_by_day':
         $doctorController->getSchedulesByDay(); // Lấy lịch làm việc theo ngày
         break;
@@ -406,7 +504,7 @@ switch ($action) {
     case 'get_doctor_medical_record_detail':
         $medicalRecordController->getDetail(); // API lấy chi tiết hồ sơ bệnh án (JSON)
         break;
-    
+
     case 'render_doctor_medical_record_detail':
         $medicalRecordController->renderDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
         break;
@@ -703,6 +801,10 @@ switch ($action) {
         $appointmentController->getDoctorSchedule(); // Lấy lịch làm việc bác sĩ (AJAX)
         break;
 
+    case 'get_appointment_detail':
+        $appointmentController->getAppointmentDetail(); // JSON chi tiết lịch hẹn theo role
+        break;
+
     case 'reception_find_patient':
         $receptionController->findPatientByPhone(); // Tra cứu BN theo SĐT (AJAX)
         break;
@@ -729,6 +831,16 @@ switch ($action) {
         header('Content-Type: application/json');
         $prescriptionController->getPrescriptionByExamId();
         exit();
+
+        // ===== NOTIFICATIONS (DB) =====
+    case 'notifications':
+        // GET list notifications for current user
+        $notificationController->list();
+        break;
+    case 'notifications_mark_all_read':
+        // POST/GET mark all as read
+        $notificationController->markAllRead();
+        break;
 
 
 
@@ -792,6 +904,17 @@ switch ($action) {
         $receptionController->vnpayReturn(); // Xử lý kết quả VNPAY
         break;
 
+    // ===== RECEPTION ATTENDANCE =====
+    case 'reception_attendance':
+        $receptionController->attendance(); // Trang chấm công lễ tân
+        break;
+    case 'reception_process_attendance':
+        $receptionController->processAttendance(); // API: Xử lý chấm công
+        break;
+    case 'reception_get_today_attendance':
+        $receptionController->getTodayAttendance(); // API: Lấy trạng thái chấm công hôm nay
+        break;
+
     case 'patient_appointments':
         $appointmentController->patientAppointments(); // Lịch hẹn của bệnh nhân
         break;
@@ -834,12 +957,13 @@ switch ($action) {
                     header("Location: ./reception_dashboard");
                     exit();
                 default:
+                    // Không biết role, cho về trang chủ
                     header("Location: ./");
                     exit();
             }
         }
 
-        // Nếu không đăng nhập hoặc action không tồn tại, hiển thị trang chủ
-        include 'Views/home.php';
+        // Nếu không đăng nhập hoặc action không tồn tại, hiển thị trang 404 thân thiện
+        include 'Views/not_found.php';
         break;
 }

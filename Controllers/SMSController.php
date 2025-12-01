@@ -1,4 +1,7 @@
 <?php
+// Load Composer autoload để sử dụng các thư viện từ vendor
+require_once __DIR__ . '/../vendor/autoload.php';
+
 require_once 'config/vonage.php';
 
 // Sử dụng Vonage SDK
