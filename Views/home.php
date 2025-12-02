@@ -216,8 +216,15 @@ createChat({
                     ?>
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="doctor-card-novena">
-                    <img src="<?php echo $doc['hinh_anh']; ?>" alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>"
-                        onerror="this.src='./assets/img/default-doctor.jpg'">
+                    <?php if (!empty($doc['hinh_anh'])): ?>
+                    <img src="<?php echo htmlspecialchars($doc['hinh_anh']); ?>"
+                        alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>">
+                    <?php else: ?>
+                    <div class="d-flex align-items-center justify-content-center"
+                        style="width:100%;height:220px;background:#f5f5f5;border-radius:8px;">
+                        <i class="icofont-doctor" style="font-size:64px;color:#999;"></i>
+                    </div>
+                    <?php endif; ?>
                     <h5><?php echo htmlspecialchars($doc['ten']); ?></h5>
                     <p class="specialty">
                         <i class="icofont-stethoscope"></i>

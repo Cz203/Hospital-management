@@ -162,10 +162,18 @@ class SocketManager {
         else serverUrl = devUrl || prodUrl || "http://localhost:3001";
       }
       console.log("[Socket] Connecting to:", serverUrl);
+      // If a JWT for socket auth was provided via meta tag, include it in the handshake auth
+      const metaToken = document.querySelector(
+        'meta[name="socket-auth-token"]'
+      );
+      const socketAuth = metaToken
+        ? { token: (metaToken.getAttribute("content") || "").trim() }
+        : {};
       this.socket = io(serverUrl, {
         transports: ["websocket", "polling"],
         timeout: 20000,
         forceNew: true,
+        auth: socketAuth,
       });
 
       this.setupEventListeners();

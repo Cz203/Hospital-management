@@ -38,15 +38,20 @@ class SocketService
             if ($payload === false) return;
 
             // Prefer cURL
+            $socketApiKey = $_ENV['SOCKET_API_KEY'] ?? getenv('SOCKET_API_KEY') ?? ($_ENV['API_KEY'] ?? getenv('API_KEY')) ?? '';
+            $authHeader = $socketApiKey ? 'Authorization: Bearer ' . $socketApiKey : '';
+
             if (function_exists('curl_init')) {
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $socketUrl);
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                $headers = [
                     'Content-Type: application/json',
                     'Content-Length: ' . strlen($payload)
-                ]);
+                ];
+                if ($authHeader) $headers[] = $authHeader;
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_TIMEOUT, 3);
                 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
@@ -60,10 +65,12 @@ class SocketService
             }
 
             // Fallback to file_get_contents
+            $headers = "Content-Type: application/json\r\n";
+            if ($authHeader) $headers .= $authHeader . "\r\n";
             $opts = [
                 'http' => [
                     'method' => 'POST',
-                    'header' => "Content-Type: application/json\r\n",
+                    'header' => $headers,
                     'content' => $payload,
                     'timeout' => 3,
                 ],
