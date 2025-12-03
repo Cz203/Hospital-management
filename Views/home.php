@@ -106,20 +106,20 @@ include 'Views/layouts/header.php';
 ?>
 <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
 <script type="module">
-import {
-    createChat
-} from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+    import {
+        createChat
+    } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
 
-createChat({
-    webhookUrl: <?php echo json_encode($_ENV['N8N_WEBHOOK_URL'] ?? getenv('N8N_WEBHOOK_URL') ?? ''); ?>,
-    title: 'Phòng khám đa khoa Thịnh Việt',
-    subtitle: 'Chúng tôi luôn sẵn sàng hỗ trợ.',
-    initialMessages: [
-        'Chào mừng bạn đã đến với website phòng khám đa khoa Thịnh Việt.',
-        'Tôi có thể giúp gì cho bạn?'
-    ],
-    inputPlaceholder: 'Nhập câu hỏi của bạn...'
-});
+    createChat({
+        webhookUrl: <?php echo json_encode($_ENV['N8N_WEBHOOK_URL'] ?? getenv('N8N_WEBHOOK_URL') ?? ''); ?>,
+        title: 'Phòng khám đa khoa Thịnh Việt',
+        subtitle: 'Chúng tôi luôn sẵn sàng hỗ trợ.',
+        initialMessages: [
+            'Chào mừng bạn đã đến với website phòng khám đa khoa Thịnh Việt.',
+            'Tôi có thể giúp gì cho bạn?'
+        ],
+        inputPlaceholder: 'Nhập câu hỏi của bạn...'
+    });
 </script>
 <!-- Hero Banner Section (Novena Style) -->
 <section class="banner">
@@ -209,34 +209,53 @@ createChat({
 
         <div class="row">
             <?php if (!empty($doctors)) : ?>
-            <?php $doctorsLimited = array_slice($doctors, 0, 6);
+                <?php $doctorsLimited = array_slice($doctors, 0, 6);
                 foreach ($doctorsLimited as $doc) : ?>
-            <?php
+                    <?php
                     $spec = $doc['chuyen_khoa'] ?? '';
                     ?>
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="doctor-card-novena">
-                    <img src="<?php echo $doc['hinh_anh']; ?>" alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>"
-                        onerror="this.src='./assets/img/default-doctor.jpg'">
-                    <h5><?php echo htmlspecialchars($doc['ten']); ?></h5>
-                    <p class="specialty">
-                        <i class="icofont-stethoscope"></i>
-                        Chuyên khoa <?php echo htmlspecialchars($spec ?: 'Đa khoa'); ?>
-                    </p>
-                    <p class="experience">
-                        <i class="icofont-clock-time"></i>
-                        <?php echo (int)($doc['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh nghiệm
-                    </p>
-                </div>
-            </div>
-            <?php endforeach; ?>
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="doctor-card-novena">
+                            <?php
+                            $imgSrc = null;
+                            if (!empty($doc['hinh_anh'])) {
+                                // Nếu giá trị đã là đường dẫn bắt đầu bằng uploads/ thì dùng trực tiếp
+                                if (strpos($doc['hinh_anh'], 'uploads/') === 0) {
+                                    $imgSrc = './' . $doc['hinh_anh'];
+                                } else {
+                                    // Nếu chỉ là tên file thì ghép với thư mục uploads/BS/
+                                    $imgSrc = './uploads/BS/' . $doc['hinh_anh'];
+                                }
+                            }
+                            ?>
+                            <?php if ($imgSrc): ?>
+                                <img src="<?php echo htmlspecialchars($imgSrc); ?>"
+                                    alt="Bác sĩ <?php echo htmlspecialchars($doc['ten']); ?>">
+                            <?php else: ?>
+                                <div class="d-flex align-items-center justify-content-center"
+                                    style="width:100%;height:220px;background:#f5f5f5;border-radius:8px;">
+                                    <i class="icofont-doctor" style="font-size:64px;color:#999;"></i>
+                                </div>
+                            <?php endif; ?>
+                            <h5><?php echo htmlspecialchars($doc['ten']); ?></h5>
+                            <p class="specialty">
+                                <i class="icofont-stethoscope"></i>
+                                Chuyên khoa <?php echo htmlspecialchars($spec ?: 'Đa khoa'); ?>
+                            </p>
+                            <p class="experience">
+                                <i class="icofont-clock-time"></i>
+                                <?php echo (int)($doc['so_nam_kinh_nghiem'] ?? 0); ?> năm kinh nghiệm
+                            </p>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
             <?php else : ?>
-            <div class="col-12">
-                <div class="text-center">
-                    <i class="icofont-doctor fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">Chưa có dữ liệu bác sĩ.</p>
+                <div class="col-12">
+                    <div class="text-center">
+                        <i class="icofont-doctor fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Chưa có dữ liệu bác sĩ.</p>
+                    </div>
                 </div>
-            </div>
             <?php endif; ?>
         </div>
 
@@ -284,21 +303,21 @@ createChat({
 
                 $desc = $sp['mo_ta'] ?? 'Dịch vụ chăm sóc sức khỏe chuyên nghiệp';
             ?>
-            <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
-                <a class="text-decoration-none"
-                    href="./doctors_by_specialty?slug=<?php echo urlencode($sp['slug'] ?? ''); ?>">
-                    <div class="service-item">
-                        <div class="icon d-flex align-items-center">
-                            <i class="<?php echo htmlspecialchars($iconClass); ?> text-lg"></i>
-                            <h4 class="mt-3 mb-3 ml-3"><?php echo htmlspecialchars($name); ?></h4>
-                        </div>
+                <div class="col-lg-4 col-md-6 col-sm-6 mb-4">
+                    <a class="text-decoration-none"
+                        href="./doctors_by_specialty?slug=<?php echo urlencode($sp['slug'] ?? ''); ?>">
+                        <div class="service-item">
+                            <div class="icon d-flex align-items-center">
+                                <i class="<?php echo htmlspecialchars($iconClass); ?> text-lg"></i>
+                                <h4 class="mt-3 mb-3 ml-3"><?php echo htmlspecialchars($name); ?></h4>
+                            </div>
 
-                        <div class="content">
-                            <p class="mb-4"><?php echo htmlspecialchars($desc); ?></p>
+                            <div class="content">
+                                <p class="mb-4"><?php echo htmlspecialchars($desc); ?></p>
+                            </div>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
             <?php endforeach; ?>
         </div>
 
@@ -389,274 +408,274 @@ createChat({
 </section>
 
 <style>
-/* Modern Stats Section */
-.stats-section-modern {
-    padding: 50px 0;
-    background: #f8f9fa;
-    position: relative;
-}
-
-.stat-card {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 40px 30px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    position: relative;
-    overflow: hidden;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 5px;
-    background: linear-gradient(90deg, transparent, currentColor, transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.stat-card:hover::before {
-    opacity: 1;
-}
-
-.stat-card:hover {
-    transform: translateY(-15px);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-}
-
-.stat-icon {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 25px;
-    position: relative;
-    transition: all 0.4s ease;
-}
-
-.stat-card:hover .stat-icon {
-    transform: scale(1.1) rotate(5deg);
-}
-
-.stat-icon i {
-    font-size: 3rem;
-    color: #ffffff;
-    z-index: 2;
-    position: relative;
-}
-
-.stat-icon::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: currentColor;
-    opacity: 0.1;
-    transform: scale(0);
-    transition: transform 0.4s ease;
-}
-
-.stat-card:hover .stat-icon::after {
-    transform: scale(1.5);
-}
-
-.stat-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.stat-number {
-    margin: 0 0 15px 0;
-    font-size: 3.5rem;
-    font-weight: 700;
-    line-height: 1.2;
-    display: block;
-    width: 100%;
-}
-
-.stat-number .count {
-    display: inline-block !important;
-    min-width: 80px;
-    text-align: center;
-    font-weight: 700;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
-
-.stat-number .plus-sign {
-    margin-left: 4px;
-    font-weight: 700;
-    display: inline-block;
-}
-
-.stat-label {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #6c757d;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* Color Themes */
-.stat-card-blue {
-    color: #223a66;
-}
-
-.stat-card-blue .stat-icon {
-    background: linear-gradient(135deg, #223a66 0%, #1e5f8e 100%);
-}
-
-.stat-card-blue .stat-number,
-.stat-card-blue .stat-number .count,
-.stat-card-blue .stat-number .plus-sign {
-    color: #223a66 !important;
-}
-
-.stat-card-green {
-    color: #28a745;
-}
-
-.stat-card-green .stat-icon {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-}
-
-.stat-card-green .stat-number,
-.stat-card-green .stat-number .count,
-.stat-card-green .stat-number .plus-sign {
-    color: #28a745 !important;
-}
-
-.stat-card-orange {
-    color: #fd7e14;
-}
-
-.stat-card-orange .stat-icon {
-    background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
-}
-
-.stat-card-orange .stat-number,
-.stat-card-orange .stat-number .count,
-.stat-card-orange .stat-number .plus-sign {
-    color: #fd7e14 !important;
-}
-
-.stat-card-red {
-    color: #e12454;
-}
-
-.stat-card-red .stat-icon {
-    background: linear-gradient(135deg, #e12454 0%, #c91e42 100%);
-}
-
-.stat-card-red .stat-number,
-.stat-card-red .stat-number .count,
-.stat-card-red .stat-number .plus-sign {
-    color: #e12454 !important;
-}
-
-/* Responsive */
-@media (max-width: 992px) {
-    .stats-section-modern {
-        padding: 80px 0;
-    }
-
-    .stat-card {
-        padding: 35px 25px;
-        margin-bottom: 30px;
-    }
-
-    .stat-icon {
-        width: 90px;
-        height: 90px;
-        margin-bottom: 20px;
-    }
-
-    .stat-icon i {
-        font-size: 2.5rem;
-    }
-
-    .stat-number {
-        font-size: 3rem;
-    }
-
-    .stat-label {
-        font-size: 1rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .stats-section-modern {
-        padding: 60px 0;
-    }
-
-    .stat-card {
-        padding: 30px 20px;
-        margin-bottom: 25px;
-    }
-
-    .stat-icon {
-        width: 80px;
-        height: 80px;
-        margin-bottom: 18px;
-    }
-
-    .stat-icon i {
-        font-size: 2.2rem;
-    }
-
-    .stat-number {
-        font-size: 2.5rem;
-    }
-
-    .stat-label {
-        font-size: 0.95rem;
-    }
-}
-
-@media (max-width: 576px) {
+    /* Modern Stats Section */
     .stats-section-modern {
         padding: 50px 0;
+        background: #f8f9fa;
+        position: relative;
     }
 
     .stat-card {
-        padding: 25px 15px;
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, transparent, currentColor, transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-15px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
     }
 
     .stat-icon {
-        width: 70px;
-        height: 70px;
-        margin-bottom: 15px;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 25px;
+        position: relative;
+        transition: all 0.4s ease;
+    }
+
+    .stat-card:hover .stat-icon {
+        transform: scale(1.1) rotate(5deg);
     }
 
     .stat-icon i {
-        font-size: 1.8rem;
+        font-size: 3rem;
+        color: #ffffff;
+        z-index: 2;
+        position: relative;
+    }
+
+    .stat-icon::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.1;
+        transform: scale(0);
+        transition: transform 0.4s ease;
+    }
+
+    .stat-card:hover .stat-icon::after {
+        transform: scale(1.5);
+    }
+
+    .stat-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
     .stat-number {
-        font-size: 2rem;
+        margin: 0 0 15px 0;
+        font-size: 3.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+        display: block;
+        width: 100%;
+    }
+
+    .stat-number .count {
+        display: inline-block !important;
+        min-width: 80px;
+        text-align: center;
+        font-weight: 700;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    .stat-number .plus-sign {
+        margin-left: 4px;
+        font-weight: 700;
+        display: inline-block;
     }
 
     .stat-label {
-        font-size: 0.85rem;
-        letter-spacing: 0.5px;
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
-}
+
+    /* Color Themes */
+    .stat-card-blue {
+        color: #223a66;
+    }
+
+    .stat-card-blue .stat-icon {
+        background: linear-gradient(135deg, #223a66 0%, #1e5f8e 100%);
+    }
+
+    .stat-card-blue .stat-number,
+    .stat-card-blue .stat-number .count,
+    .stat-card-blue .stat-number .plus-sign {
+        color: #223a66 !important;
+    }
+
+    .stat-card-green {
+        color: #28a745;
+    }
+
+    .stat-card-green .stat-icon {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .stat-card-green .stat-number,
+    .stat-card-green .stat-number .count,
+    .stat-card-green .stat-number .plus-sign {
+        color: #28a745 !important;
+    }
+
+    .stat-card-orange {
+        color: #fd7e14;
+    }
+
+    .stat-card-orange .stat-icon {
+        background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+    }
+
+    .stat-card-orange .stat-number,
+    .stat-card-orange .stat-number .count,
+    .stat-card-orange .stat-number .plus-sign {
+        color: #fd7e14 !important;
+    }
+
+    .stat-card-red {
+        color: #e12454;
+    }
+
+    .stat-card-red .stat-icon {
+        background: linear-gradient(135deg, #e12454 0%, #c91e42 100%);
+    }
+
+    .stat-card-red .stat-number,
+    .stat-card-red .stat-number .count,
+    .stat-card-red .stat-number .plus-sign {
+        color: #e12454 !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .stats-section-modern {
+            padding: 80px 0;
+        }
+
+        .stat-card {
+            padding: 35px 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-icon {
+            width: 90px;
+            height: 90px;
+            margin-bottom: 20px;
+        }
+
+        .stat-icon i {
+            font-size: 2.5rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .stats-section-modern {
+            padding: 60px 0;
+        }
+
+        .stat-card {
+            padding: 30px 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 18px;
+        }
+
+        .stat-icon i {
+            font-size: 2.2rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .stats-section-modern {
+            padding: 50px 0;
+        }
+
+        .stat-card {
+            padding: 25px 15px;
+        }
+
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon i {
+            font-size: 1.8rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+    }
 </style>
 <?php
 // Include footer

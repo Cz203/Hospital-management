@@ -87,7 +87,6 @@ class CCCDService
 
     /**
      * Verify CCCD với hệ thống (giả lập)
-     * Trong thực tế sẽ gọi API của Bộ Công an
      */
     public function verifyCCCD($cccd, $ten = null, $ngaySinh = null)
     {

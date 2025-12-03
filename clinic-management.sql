@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
--- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th12 01, 2025 lúc 03:19 PM
--- Phiên bản máy phục vụ: 10.4.32-MariaDB
--- Phiên bản PHP: 8.2.12
+-- Máy chủ: localhost:3306
+-- Thời gian đã tạo: Th12 03, 2025 lúc 07:26 PM
+-- Phiên bản máy phục vụ: 8.4.3
+-- Phiên bản PHP: 8.3.16
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -28,18 +28,18 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `attendance` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `user_type` enum('doctor','reception','admin') NOT NULL,
+  `id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `user_type` enum('doctor','reception','admin') COLLATE utf8mb4_general_ci NOT NULL,
   `check_in_time` datetime NOT NULL COMMENT 'Thời gian check in',
   `check_out_time` datetime DEFAULT NULL COMMENT 'Thời gian check out',
-  `check_in_image` varchar(500) DEFAULT NULL COMMENT 'Ảnh check in',
-  `check_out_image` varchar(500) DEFAULT NULL COMMENT 'Ảnh check out',
-  `status` enum('checked_in','checked_out') NOT NULL DEFAULT 'checked_in',
-  `location` varchar(255) DEFAULT NULL COMMENT 'Vị trí chấm công (nếu có GPS)',
-  `notes` text DEFAULT NULL,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `check_in_image` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Ảnh check in',
+  `check_out_image` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Ảnh check out',
+  `status` enum('checked_in','checked_out') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'checked_in',
+  `location` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Vị trí chấm công (nếu có GPS)',
+  `notes` text COLLATE utf8mb4_general_ci,
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Bảng lưu lịch sử chấm công';
 
 --
@@ -47,7 +47,8 @@ CREATE TABLE `attendance` (
 --
 
 INSERT INTO `attendance` (`id`, `user_id`, `user_type`, `check_in_time`, `check_out_time`, `check_in_image`, `check_out_image`, `status`, `location`, `notes`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(27, 1, 'doctor', '2025-12-01 20:24:05', '2025-12-01 20:24:33', 'uploads/attendance/check_in_1_doctor_1764595445.jpg', 'uploads/attendance/check_out_1_doctor_1764595473.jpg', 'checked_out', '10.7708416,106.6532864', NULL, '2025-12-01 13:24:05', '2025-12-01 13:24:33');
+(27, 1, 'doctor', '2025-12-01 20:24:05', '2025-12-01 20:24:33', 'uploads/attendance/check_in_1_doctor_1764595445.jpg', 'uploads/attendance/check_out_1_doctor_1764595473.jpg', 'checked_out', '10.7708416,106.6532864', NULL, '2025-12-01 13:24:05', '2025-12-01 13:24:33'),
+(28, 1, 'doctor', '2025-12-02 15:47:17', '2025-12-02 15:47:27', 'uploads/attendance/check_in_1_doctor_1764665237.jpg', 'uploads/attendance/check_out_1_doctor_1764665247.jpg', 'checked_out', '10.8382264,106.6639269', NULL, '2025-12-02 08:47:17', '2025-12-02 08:47:27');
 
 -- --------------------------------------------------------
 
@@ -56,19 +57,19 @@ INSERT INTO `attendance` (`id`, `user_id`, `user_type`, `check_in_time`, `check_
 --
 
 CREATE TABLE `bac_si` (
-  `id` int(11) NOT NULL,
-  `ten` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `mat_khau` varchar(255) NOT NULL,
-  `so_dien_thoai` varchar(20) DEFAULT NULL,
-  `chuyen_khoa_id` int(11) DEFAULT NULL,
-  `chuyen_khoa` varchar(100) DEFAULT NULL,
-  `so_giay_phep` varchar(50) DEFAULT NULL,
-  `so_nam_kinh_nghiem` int(11) DEFAULT 0,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `hinh_anh` varchar(255) DEFAULT NULL,
-  `face_encoding` text DEFAULT NULL COMMENT 'Face encoding dạng JSON array',
+  `id` int NOT NULL,
+  `ten` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `mat_khau` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `so_dien_thoai` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chuyen_khoa_id` int DEFAULT NULL,
+  `chuyen_khoa` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `so_giay_phep` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `so_nam_kinh_nghiem` int DEFAULT '0',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `hinh_anh` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `face_encoding` text COLLATE utf8mb4_general_ci COMMENT 'Face encoding dạng JSON array',
   `face_encoding_updated` timestamp NULL DEFAULT NULL COMMENT 'Thời gian cập nhật face encoding'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -77,14 +78,25 @@ CREATE TABLE `bac_si` (
 --
 
 INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen_khoa_id`, `chuyen_khoa`, `so_giay_phep`, `so_nam_kinh_nghiem`, `ngay_tao`, `ngay_cap_nhat`, `hinh_anh`, `face_encoding`, `face_encoding_updated`) VALUES
-(1, 'GSTS. Cao Việt', 'caoviet5.work@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901000001', 1, 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-11-30 18:03:05', 'uploads/bacsiviet.png', '[-0.07601147890090942,0.04285131394863129,0.0330003947019577,-0.030920017510652542,-0.05541194602847099,-0.030463581904768944,-0.06867717951536179,-0.14863263070583344,0.11326117813587189,-0.0687442347407341,0.2535318434238434,-0.0812157467007637,-0.1885138303041458,-0.09817866235971451,-0.033465318381786346,0.18109264969825745,-0.16397088766098022,-0.09474670141935349,-0.027329096570611,0.0023891350720077753,0.052822235971689224,-0.020670022815465927,0.06770724803209305,0.06796786934137344,-0.040821872651576996,-0.30762481689453125,-0.0602557435631752,-0.1470150649547577,0.08774369955062866,-0.007320757955312729,-0.1032639816403389,-0.021229704841971397,-0.2006690800189972,-0.049739379435777664,0.034901972860097885,0.03788072243332863,-0.03234971687197685,-0.05860277637839317,0.23114953935146332,-0.04536861181259155,-0.2602781355381012,0.013375943526625633,0.019588500261306763,0.17162220180034637,0.13199886679649353,0.10146795213222504,0.03898565471172333,-0.1677335500717163,0.12470827251672745,-0.13484223186969757,0.12174991518259048,0.13571269810199738,0.12183656543493271,0.006122695282101631,-0.040994200855493546,-0.1783781498670578,-0.019050223752856255,0.0995071530342102,-0.16577869653701782,0.03588615357875824,0.12375485152006149,0.0001463115040678531,-0.019367258995771408,-0.11966441571712494,0.2501276135444641,0.09709344804286957,-0.15539368987083435,-0.14503544569015503,0.13377557694911957,-0.13158389925956726,-0.021235797554254532,0.09062068909406662,-0.14775902032852173,-0.20610037446022034,-0.291559100151062,0.026880385354161263,0.37368151545524597,0.0802190974354744,-0.15892522037029266,-0.01378810778260231,-0.0663687214255333,0.0019610701128840446,0.11971966177225113,0.16789567470550537,-0.004058186896145344,0.023364173248410225,-0.028146924450993538,-0.059524763375520706,0.1858130246400833,-0.0964464470744133,-0.014770946465432644,0.1968466192483902,-0.0325026735663414,0.06413397192955017,-0.05766349658370018,0.05600044131278992,-0.04643435776233673,0.04686572402715683,-0.08649929612874985,0.034336283802986145,-0.03168117254972458,0.006505016703158617,0.03416209667921066,0.08977105468511581,-0.17053721845149994,0.08101426064968109,-0.007613485213369131,0.01659049652516842,0.04442965239286423,0.006446944549679756,-0.07407469302415848,-0.12652800977230072,0.10914327204227448,-0.22911636531352997,0.2079268991947174,0.1612170785665512,0.12101750075817108,0.12117667496204376,0.09391989558935165,0.11754591017961502,0.023744283244013786,-0.027930406853556633,-0.2547338902950287,-0.005666639655828476,0.12282443791627884,-0.03984567150473595,0.07117397338151932,0.023505249992012978]', '2025-11-30 18:03:05'),
+(1, 'GSTS. Cao Việt', 'caoviet5.work@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901000001', 1, 'Tim mạch', 'TM001', 15, '2025-08-12 09:06:03', '2025-12-02 10:01:22', 'uploads/BS/bacsiviet.png', '[-0.07601147890090942,0.04285131394863129,0.0330003947019577,-0.030920017510652542,-0.05541194602847099,-0.030463581904768944,-0.06867717951536179,-0.14863263070583344,0.11326117813587189,-0.0687442347407341,0.2535318434238434,-0.0812157467007637,-0.1885138303041458,-0.09817866235971451,-0.033465318381786346,0.18109264969825745,-0.16397088766098022,-0.09474670141935349,-0.027329096570611,0.0023891350720077753,0.052822235971689224,-0.020670022815465927,0.06770724803209305,0.06796786934137344,-0.040821872651576996,-0.30762481689453125,-0.0602557435631752,-0.1470150649547577,0.08774369955062866,-0.007320757955312729,-0.1032639816403389,-0.021229704841971397,-0.2006690800189972,-0.049739379435777664,0.034901972860097885,0.03788072243332863,-0.03234971687197685,-0.05860277637839317,0.23114953935146332,-0.04536861181259155,-0.2602781355381012,0.013375943526625633,0.019588500261306763,0.17162220180034637,0.13199886679649353,0.10146795213222504,0.03898565471172333,-0.1677335500717163,0.12470827251672745,-0.13484223186969757,0.12174991518259048,0.13571269810199738,0.12183656543493271,0.006122695282101631,-0.040994200855493546,-0.1783781498670578,-0.019050223752856255,0.0995071530342102,-0.16577869653701782,0.03588615357875824,0.12375485152006149,0.0001463115040678531,-0.019367258995771408,-0.11966441571712494,0.2501276135444641,0.09709344804286957,-0.15539368987083435,-0.14503544569015503,0.13377557694911957,-0.13158389925956726,-0.021235797554254532,0.09062068909406662,-0.14775902032852173,-0.20610037446022034,-0.291559100151062,0.026880385354161263,0.37368151545524597,0.0802190974354744,-0.15892522037029266,-0.01378810778260231,-0.0663687214255333,0.0019610701128840446,0.11971966177225113,0.16789567470550537,-0.004058186896145344,0.023364173248410225,-0.028146924450993538,-0.059524763375520706,0.1858130246400833,-0.0964464470744133,-0.014770946465432644,0.1968466192483902,-0.0325026735663414,0.06413397192955017,-0.05766349658370018,0.05600044131278992,-0.04643435776233673,0.04686572402715683,-0.08649929612874985,0.034336283802986145,-0.03168117254972458,0.006505016703158617,0.03416209667921066,0.08977105468511581,-0.17053721845149994,0.08101426064968109,-0.007613485213369131,0.01659049652516842,0.04442965239286423,0.006446944549679756,-0.07407469302415848,-0.12652800977230072,0.10914327204227448,-0.22911636531352997,0.2079268991947174,0.1612170785665512,0.12101750075817108,0.12117667496204376,0.09391989558935165,0.11754591017961502,0.023744283244013786,-0.027930406853556633,-0.2547338902950287,-0.005666639655828476,0.12282443791627884,-0.03984567150473595,0.07117397338151932,0.023505249992012978]', '2025-11-30 18:03:05'),
 (48, 'Bác Sĩ X-Quang', 'xquang@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 16, 'Chẩn đoán hình ảnh', 'XQ001', 10, '2025-09-26 07:16:15', '2025-11-27 08:38:02', NULL, NULL, NULL),
-(49, 'Xét nghiệm', 'untt1608@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 17, 'Xét nghiệm', NULL, 12, '2025-09-27 08:25:38', '2025-11-28 09:22:38', NULL, NULL, NULL),
-(50, 'BS Siêu Âm', 'sieuam@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 18, 'Siêu âm', '111', 20, '2025-10-10 19:52:54', '2025-11-27 08:38:47', NULL, NULL, NULL),
-(51, 'GSTS Cường', 'Cuong@gmail.com', '$2y$10$KNTQBO3N/YQnSdptvUSwXOJaPXc5UKlkyPN//9Ci17ahxdnAsDQrS', '0913996110', 1, 'Tim mạch', '32424', 15, '2025-11-25 08:17:28', '2025-11-25 09:21:36', 'uploads/doctor_1764058648_8ec3caa3.png', NULL, NULL),
+(49, 'Xét nghiệm', 'untt1608@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 17, 'Xét nghiệm', NULL, 12, '2025-09-27 08:25:38', '2025-12-02 19:07:21', 'uploads/BS/lovepik-professional-doctor-image-png-image_400996861_wh1200.png', NULL, NULL),
+(50, 'BS Siêu Âm', 'sieuam@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', 18, 'Siêu âm', '111', 20, '2025-10-10 19:52:54', '2025-12-02 19:07:04', 'uploads/BS/img-42.png', NULL, NULL),
+(51, 'GSTS Mai Hoa', 'Hoa@gmail.com', '$2y$10$KNTQBO3N/YQnSdptvUSwXOJaPXc5UKlkyPN//9Ci17ahxdnAsDQrS', '0913996110', 1, 'Tim mạch', '32424', 15, '2025-11-25 08:17:28', '2025-12-02 19:10:31', 'uploads/BS/Anh-profile-bac-si-min.jpg', NULL, NULL),
 (54, 'BS Siêu', 'sbxcvbxcb@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456788', 18, 'Siêu âm', '111', 20, '2025-10-10 19:52:54', '2025-11-27 08:38:47', NULL, NULL, NULL),
-(79, 'GSTS. bxcbxcvxcvbcxvb', 'vzxcv@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 6, 'Mắt', 'TM001', 15, '2025-08-12 09:06:03', '2025-11-25 09:21:47', 'uploads/bacsiviet.png', NULL, NULL),
-(80, 'Bác Sĩ X', 'xquang1231zxcvzxcv23@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 16, 'Chẩn đoán hình ảnh', 'XQ001', 10, '2025-09-26 07:16:15', '2025-11-27 08:38:02', NULL, NULL, NULL);
+(79, 'GSTS. bxcbxcvxcvbcxvb', 'vzxcv@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 6, 'Mắt', 'TM001', 15, '2025-08-12 09:06:03', '2025-12-02 19:06:15', 'uploads/BS/bacsiviet.png', NULL, NULL),
+(80, 'Bác Sĩ X', 'xquang1231zxcvzxcv23@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456780', 16, 'Chẩn đoán hình ảnh', 'XQ001', 10, '2025-09-26 07:16:15', '2025-12-02 19:06:21', 'uploads/BS/Anh-bac-si-nam-8-min.jpg', NULL, NULL),
+(81, 'BS Nội Tổng Quát', 'bsonoitongquat@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000001', 13, 'Nội tổng quát', 'NTQ001', 8, '2025-12-01 15:40:00', '2025-12-02 19:06:42', 'uploads/BS/bác sĩ hải.png', NULL, NULL),
+(82, 'BS Ngoại Tổng Quát', 'bsngoaitongquat@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000002', 9, 'Ngoại tổng quát', 'NGTQ001', 10, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(83, 'BS Nhi', 'bsnhi@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000003', 3, 'Nhi', 'NHI001', 7, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(84, 'BS Sản', 'bssan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000004', 4, 'Sản', 'SAN001', 9, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(85, 'BS Mắt', 'bsmat@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000005', 6, 'Mắt', 'MAT001', 6, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(86, 'BS Tai Mũi Họng', 'bstmh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000006', 7, 'Tai mũi họng', 'TMH001', 11, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(87, 'BS Da Liễu', 'bsdalieu@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000007', 5, 'Da liễu', 'DL001', 5, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(88, 'BS Nội Tim Mạch', 'bsnoitim@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000008', 1, 'Tim mạch', 'TM002', 12, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(89, 'BS Hô Hấp', 'bshohap@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000009', NULL, 'Hô hấp', 'HH001', 10, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(90, 'BS Thần Kinh', 'bsthankinh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000010', 2, 'Thần kinh', 'TK001', 13, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL),
+(91, 'BS Cơ Xương Khớp', 'bscxk@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0909000011', 9, 'Cơ xương khớp', 'CXK001', 9, '2025-12-01 16:00:00', '2025-12-01 16:00:00', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -93,17 +105,17 @@ INSERT INTO `bac_si` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `chuyen
 --
 
 CREATE TABLE `bao_hiem_y_te` (
-  `id` int(11) NOT NULL,
-  `ma_bao_hiem` varchar(20) DEFAULT NULL,
-  `loai_the` varchar(100) DEFAULT NULL,
-  `ten_chu_the` varchar(255) DEFAULT NULL,
+  `id` int NOT NULL,
+  `ma_bao_hiem` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `loai_the` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ten_chu_the` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `ngay_sinh` date DEFAULT NULL,
-  `gioi_tinh` enum('Nam','Nu','Khac') DEFAULT NULL,
+  `gioi_tinh` enum('Nam','nữ') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `ngay_bat_dau` date DEFAULT NULL,
   `ngay_het_han` date DEFAULT NULL,
-  `noi_cap` varchar(255) DEFAULT NULL,
-  `trang_thai` enum('Hieu luc','Het han','Tam dung') DEFAULT 'Hieu luc',
-  `huong_muc` decimal(5,2) DEFAULT 0.80 COMMENT 'Hướng mức giảm giá BHYT (ví dụ: 0.80 = 80%)'
+  `noi_cap` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `trang_thai` enum('Hieu luc','Het han','Tam dung') COLLATE utf8mb4_general_ci DEFAULT 'Hieu luc',
+  `huong_muc` decimal(5,2) DEFAULT '0.80' COMMENT 'Hướng mức giảm giá BHYT (ví dụ: 0.80 = 80%)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -111,7 +123,7 @@ CREATE TABLE `bao_hiem_y_te` (
 --
 
 INSERT INTO `bao_hiem_y_te` (`id`, `ma_bao_hiem`, `loai_the`, `ten_chu_the`, `ngay_sinh`, `gioi_tinh`, `ngay_bat_dau`, `ngay_het_han`, `noi_cap`, `trang_thai`, `huong_muc`) VALUES
-(16, '0791034567', 'BHYT', 'Hoàng Nguyễn Phương Trang', '2003-01-10', 'Nu', '2023-01-01', '2024-12-31', 'Bảo hiểm xã hội TP.HCM', 'Hieu luc', 0.50),
+(16, '0791034567', 'BHYT', 'Hoàng Nguyễn Phương Trang', '2003-01-10', 'nữ', '2023-01-01', '2024-12-31', 'Bảo hiểm xã hội TP.HCM', 'Hieu luc', 0.50),
 (17, '0791034568', 'BHYT', 'Cao Dương Quốc Việt', '2003-03-22', 'Nam', '2023-01-01', '2024-12-31', 'Bảo hiểm xã hội TP.HCM', 'Hieu luc', 0.70),
 (18, '0791034569', 'BHYT', 'Cao Viet', '2003-03-20', 'Nam', '2023-01-01', '2024-12-31', 'Bảo hiểm xã hội TP.HCM', 'Hieu luc', 0.50);
 
@@ -122,21 +134,21 @@ INSERT INTO `bao_hiem_y_te` (`id`, `ma_bao_hiem`, `loai_the`, `ten_chu_the`, `ng
 --
 
 CREATE TABLE `benh_nhan` (
-  `id` int(11) NOT NULL,
-  `ten` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `mat_khau` varchar(255) NOT NULL,
-  `so_dien_thoai` varchar(20) DEFAULT NULL,
-  `phone_verified` tinyint(1) NOT NULL DEFAULT 0,
-  `bao_hiem_y_te` varchar(50) DEFAULT NULL,
-  `bao_hiem_y_te_id` int(11) DEFAULT NULL,
+  `id` int NOT NULL,
+  `ten` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `mat_khau` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `so_dien_thoai` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `phone_verified` tinyint(1) NOT NULL DEFAULT '0',
+  `bao_hiem_y_te` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `bao_hiem_y_te_id` int DEFAULT NULL,
   `ngay_sinh` date DEFAULT NULL,
-  `gioi_tinh` enum('Nam','Nữ','Khác') DEFAULT NULL,
-  `dia_chi` text DEFAULT NULL,
-  `cccd` varchar(12) DEFAULT NULL COMMENT 'Căn cước công dân (12 số)',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `ma_benh_nhan` varchar(20) DEFAULT NULL
+  `gioi_tinh` enum('Nam','Nữ','Khác') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `dia_chi` text COLLATE utf8mb4_general_ci,
+  `cccd` varchar(12) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Căn cước công dân (12 số)',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `ma_benh_nhan` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -144,8 +156,64 @@ CREATE TABLE `benh_nhan` (
 --
 
 INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `phone_verified`, `bao_hiem_y_te`, `bao_hiem_y_te_id`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `cccd`, `ngay_tao`, `ngay_cap_nhat`, `ma_benh_nhan`) VALUES
-(44, 'Lê Văn C', 'viet@gmail.com', '$2y$10$AgUQWduL/nIsAiFPVlbejOTtrmCdSwyN967rVW/JLJ/9UtZHSmo9.', '84913992110', 1, NULL, NULL, '1988-12-10', '', 'Đà Nẵng', '003456789012', '2025-11-25 08:06:45', '2025-11-25 08:06:45', 'BN25112548'),
-(57, 'Cao Dương Quốc Việt', 'caoduongvietquoc1@gmail.com', '$2y$10$SuK4Qlgu3tXEezpf45Sywe1LJ4F.fzg9vmnKzNP0YDBVn57Qw44ii', '84913998110', 1, '0791034568', 17, '2003-03-22', 'Nam', 'An Giang', '001234567890', '2025-12-01 14:18:06', '2025-12-01 14:18:06', 'BN25120142');
+(44, 'Lê Văn C', 'viet@gmail.com', '$2y$10$AgUQWduL/nIsAiFPVlbejOTtrmCdSwyN967rVW/JLJ/9UtZHSmo9.', '84913992110', 1, NULL, NULL, '1988-12-10', 'Nữ', 'Đà Nẵng', '003456789012', '2025-11-25 08:06:45', '2025-12-02 16:24:04', 'BN25112548'),
+(58, 'Cao Dương Quốc Việt', 'caoduongvietquoc1@gmail.com', '$2y$10$KYRIaOkedJ1JnVGc8/7iDu/27k3TmhQAi.osH5ZseEBTxfQcRWQiu', '84913998110', 1, '0791034568', 17, '2003-03-22', 'Nam', 'An Giang', '001234567890', '2025-12-02 16:45:50', '2025-12-02 16:45:50', 'BN25120289'),
+(59, 'Trần Văn Nam', 'tranvannam@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0923456789', 1, NULL, NULL, '1985-08-22', 'Nam', '456 Đường Nguyễn Huệ, Quận 1, TP.HCM', '001234567892', '2024-12-18 07:30:00', '2024-12-18 07:30:00', 'BN24121802'),
+(60, 'Phạm Thị Lan', 'phamthilan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0934567890', 1, NULL, NULL, '1992-11-10', 'Nữ', '789 Đường Điện Biên Phủ, Quận Bình Thạnh, TP.HCM', '001234567893', '2024-12-20 03:15:00', '2024-12-20 03:15:00', 'BN24122003'),
+(61, 'Lê Văn Đức', 'levanduc@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0945678901', 1, NULL, NULL, '1987-03-25', 'Nam', '321 Đường Võ Văn Tần, Quận 3, TP.HCM', '001234567894', '2025-01-05 01:45:00', '2025-01-05 01:45:00', 'BN25010504'),
+(62, 'Hoàng Thị Mai', 'hoangthimai@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0956789012', 1, NULL, NULL, '1995-07-18', 'Nữ', '654 Đường Cách Mạng Tháng 8, Quận 10, TP.HCM', '001234567895', '2025-01-10 04:20:00', '2025-01-10 04:20:00', 'BN25011005'),
+(63, 'Võ Văn Tuấn', 'vovantuan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0967890123', 1, NULL, NULL, '1989-12-05', 'Nam', '987 Đường Lý Thường Kiệt, Quận 11, TP.HCM', '001234567896', '2025-01-15 08:30:00', '2025-01-15 08:30:00', 'BN25011506'),
+(64, 'Đặng Thị Hương', 'dangthihuong@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0978901234', 1, NULL, NULL, '1993-04-20', 'Nữ', '147 Đường Trường Chinh, Quận 12, TP.HCM', '001234567897', '2025-01-20 02:10:00', '2025-01-20 02:10:00', 'BN25012007'),
+(65, 'Bùi Văn Hùng', 'buivanhung@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0989012345', 1, NULL, NULL, '1986-09-14', 'Nam', '258 Đường Nguyễn Trãi, Quận 5, TP.HCM', '001234567898', '2025-01-25 06:45:00', '2025-01-25 06:45:00', 'BN25012508'),
+(66, 'Ngô Thị Thảo', 'ngothithao@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0990123456', 1, NULL, NULL, '1994-06-30', 'Nữ', '369 Đường Hùng Vương, Quận 5, TP.HCM', '001234567899', '2025-02-02 03:00:00', '2025-02-02 03:00:00', 'BN25020209'),
+(67, 'Đỗ Văn Long', 'dovanlong@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901234567', 1, NULL, NULL, '1984-01-08', 'Nam', '741 Đường Lạc Long Quân, Quận 11, TP.HCM', '001234567900', '2025-02-08 07:20:00', '2025-02-08 07:20:00', 'BN25020810'),
+(68, 'Lý Thị Nga', 'lythinga@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0912345678', 1, NULL, NULL, '1991-10-12', 'Nữ', '852 Đường Tân Hương, Quận Tân Phú, TP.HCM', '001234567901', '2025-02-12 01:30:00', '2025-02-12 01:30:00', 'BN25021211'),
+(69, 'Phan Văn Minh', 'phanvanminh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0923456789', 1, NULL, NULL, '1988-02-28', 'Nam', '963 Đường Lê Đức Thọ, Quận Gò Vấp, TP.HCM', '001234567902', '2025-02-18 04:15:00', '2025-02-18 04:15:00', 'BN25021812'),
+(70, 'Vũ Thị Linh', 'vuthilinh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0934567890', 1, NULL, NULL, '1996-05-25', 'Nữ', '159 Đường Quang Trung, Quận Gò Vấp, TP.HCM', '001234567903', '2025-02-22 09:40:00', '2025-02-22 09:40:00', 'BN25022213'),
+(71, 'Hồ Văn An', 'hovanan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0945678901', 1, NULL, NULL, '1983-07-17', 'Nam', '357 Đường Nguyễn Oanh, Quận Gò Vấp, TP.HCM', '001234567904', '2025-02-28 02:25:00', '2025-02-28 02:25:00', 'BN25022814'),
+(72, 'Dương Thị Hạnh', 'duongthihanh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0956789012', 1, NULL, NULL, '1990-12-03', 'Nữ', '468 Đường Phan Văn Trị, Quận Bình Thạnh, TP.HCM', '001234567905', '2025-03-05 05:50:00', '2025-03-05 05:50:00', 'BN25030515'),
+(73, 'Nguyễn Văn Bình', 'nguyenvanbinh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0967890123', 1, NULL, NULL, '1985-04-19', 'Nam', '579 Đường Xô Viết Nghệ Tĩnh, Quận Bình Thạnh, TP.HCM', '001234567906', '2025-03-10 01:15:00', '2025-03-10 01:15:00', 'BN25031016'),
+(74, 'Trịnh Thị Loan', 'trinhthiloan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0978901234', 1, NULL, NULL, '1992-08-11', 'Nữ', '680 Đường Đinh Tiên Hoàng, Quận Bình Thạnh, TP.HCM', '001234567907', '2025-03-15 07:35:00', '2025-03-15 07:35:00', 'BN25031517'),
+(75, 'Lương Văn Thành', 'luongvanthanh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0989012345', 1, NULL, NULL, '1987-11-26', 'Nam', '791 Đường Nguyễn Văn Đậu, Quận Bình Thạnh, TP.HCM', '001234567908', '2025-03-20 03:20:00', '2025-03-20 03:20:00', 'BN25032018'),
+(76, 'Chu Thị Hồng', 'chuthihong@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0990123456', 1, NULL, NULL, '1994-03-09', 'Nữ', '802 Đường Nguyễn Gia Trí, Quận Bình Thạnh, TP.HCM', '001234567909', '2025-03-25 08:55:00', '2025-03-25 08:55:00', 'BN25032519'),
+(77, 'Tạ Văn Sơn', 'tavanson@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901234567', 1, NULL, NULL, '1986-06-22', 'Nam', '913 Đường Bạch Đằng, Quận Bình Thạnh, TP.HCM', '001234567910', '2025-03-30 04:10:00', '2025-03-30 04:10:00', 'BN25033020'),
+(78, 'Đinh Thị Yến', 'dinhthiyen@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0912345678', 1, NULL, NULL, '1991-09-15', 'Nữ', '124 Đường Nguyễn Thái Sơn, Quận Gò Vấp, TP.HCM', '001234567911', '2025-04-05 02:40:00', '2025-04-05 02:40:00', 'BN25040521'),
+(79, 'Vương Văn Dũng', 'vuongvandung@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0923456789', 1, NULL, NULL, '1984-12-07', 'Nam', '235 Đường Nguyễn Kiệm, Quận Phú Nhuận, TP.HCM', '001234567912', '2025-04-10 06:25:00', '2025-04-10 06:25:00', 'BN25041022'),
+(80, 'Bạch Thị Trang', 'bachthitrang@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0934567890', 1, NULL, NULL, '1995-01-31', 'Nữ', '346 Đường Hoàng Văn Thụ, Quận Phú Nhuận, TP.HCM', '001234567913', '2025-04-15 01:50:00', '2025-04-15 01:50:00', 'BN25041523'),
+(81, 'Lâm Văn Khánh', 'lamvankhanh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0945678901', 1, NULL, NULL, '1989-05-13', 'Nam', '457 Đường Phan Đăng Lưu, Quận Phú Nhuận, TP.HCM', '001234567914', '2025-04-20 07:15:00', '2025-04-20 07:15:00', 'BN25042024'),
+(82, 'Tôn Thị Vân', 'tonthivan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0956789012', 1, NULL, NULL, '1993-08-24', 'Nữ', '568 Đường Nguyễn Văn Trỗi, Quận Phú Nhuận, TP.HCM', '001234567915', '2025-04-25 03:30:00', '2025-04-25 03:30:00', 'BN25042525'),
+(83, 'Mai Văn Hải', 'maivanhai@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0967890123', 1, NULL, NULL, '1988-02-16', 'Nam', '679 Đường Trần Hưng Đạo, Quận 1, TP.HCM', '001234567916', '2025-05-02 05:45:00', '2025-05-02 05:45:00', 'BN25050226'),
+(84, 'Hà Thị Phương', 'hathiphuong@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0978901234', 1, NULL, NULL, '1990-07-29', 'Nữ', '780 Đường Pasteur, Quận 1, TP.HCM', '001234567917', '2025-05-08 02:20:00', '2025-05-08 02:20:00', 'BN25050827'),
+(85, 'Quách Văn Tài', 'quachvantai@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0989012345', 1, NULL, NULL, '1985-10-04', 'Nam', '891 Đường Nam Kỳ Khởi Nghĩa, Quận 3, TP.HCM', '001234567918', '2025-05-12 08:10:00', '2025-05-12 08:10:00', 'BN25051228'),
+(86, 'Lưu Thị Dung', 'luuthidung@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0990123456', 1, NULL, NULL, '1992-04-18', 'Nữ', '902 Đường Lê Văn Sỹ, Quận Phú Nhuận, TP.HCM', '001234567919', '2025-05-18 04:35:00', '2025-05-18 04:35:00', 'BN25051829'),
+(87, 'Thạch Văn Lâm', 'thachvanlam@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901234567', 1, NULL, NULL, '1987-01-21', 'Nam', '103 Đường Nguyễn Thị Minh Khai, Quận 3, TP.HCM', '001234567920', '2025-05-22 01:55:00', '2025-05-22 01:55:00', 'BN25052230'),
+(88, 'Sơn Thị Hoa', 'sonthihoa@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0912345678', 1, NULL, NULL, '1994-11-08', 'Nữ', '214 Đường Võ Thị Sáu, Quận 3, TP.HCM', '001234567921', '2025-05-28 07:20:00', '2025-05-28 07:20:00', 'BN25052831'),
+(89, 'Kiều Văn Đạt', 'kieuvandat@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0923456789', 1, NULL, NULL, '1986-03-12', 'Nam', '325 Đường Điện Biên Phủ, Quận Bình Thạnh, TP.HCM', '001234567922', '2025-06-03 03:15:00', '2025-06-03 03:15:00', 'BN25060332'),
+(90, 'Đỗ Thị Quỳnh', 'dothiquynh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0934567890', 1, NULL, NULL, '1991-06-25', 'Nữ', '436 Đường Lê Đức Thọ, Quận Gò Vấp, TP.HCM', '001234567923', '2025-06-08 05:40:00', '2025-06-08 05:40:00', 'BN25060833'),
+(91, 'Nguyễn Văn Tuấn', 'nguyenvantuan2@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0945678901', 1, NULL, NULL, '1988-09-19', 'Nam', '547 Đường Quang Trung, Quận Gò Vấp, TP.HCM', '001234567924', '2025-06-15 02:30:00', '2025-06-15 02:30:00', 'BN25061534'),
+(92, 'Trần Thị Nhung', 'tranthinhung@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0956789012', 1, NULL, NULL, '1995-12-02', 'Nữ', '658 Đường Nguyễn Oanh, Quận Gò Vấp, TP.HCM', '001234567925', '2025-06-20 08:50:00', '2025-06-20 08:50:00', 'BN25062035'),
+(93, 'Phạm Văn Huy', 'phamvanhuy@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0967890123', 1, NULL, NULL, '1984-04-14', 'Nam', '769 Đường Phan Văn Trị, Quận Bình Thạnh, TP.HCM', '001234567926', '2025-06-25 04:05:00', '2025-06-25 04:05:00', 'BN25062536'),
+(94, 'Lê Thị Thúy', 'lethithuy@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0978901234', 1, NULL, NULL, '1993-07-27', 'Nữ', '870 Đường Xô Viết Nghệ Tĩnh, Quận Bình Thạnh, TP.HCM', '001234567927', '2025-07-02 01:25:00', '2025-07-02 01:25:00', 'BN25070237'),
+(95, 'Hoàng Văn Cường', 'hoangvancuong@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0989012345', 1, NULL, NULL, '1989-10-09', 'Nam', '981 Đường Đinh Tiên Hoàng, Quận Bình Thạnh, TP.HCM', '001234567928', '2025-07-08 06:40:00', '2025-07-08 06:40:00', 'BN25070838'),
+(96, 'Võ Thị Bích', 'vothibich@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0990123456', 1, NULL, NULL, '1990-01-23', 'Nữ', '092 Đường Nguyễn Gia Trí, Quận Bình Thạnh, TP.HCM', '001234567929', '2025-07-12 03:55:00', '2025-07-12 03:55:00', 'BN25071239'),
+(97, 'Đặng Văn Thắng', 'dangvanthang@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901234567', 1, NULL, NULL, '1985-05-06', 'Nam', '103 Đường Bạch Đằng, Quận Bình Thạnh, TP.HCM', '001234567930', '2025-07-18 07:10:00', '2025-07-18 07:10:00', 'BN25071840'),
+(98, 'Bùi Thị Hạnh', 'buithihanh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0912345678', 1, NULL, NULL, '1992-08-19', 'Nữ', '214 Đường Nguyễn Thái Sơn, Quận Gò Vấp, TP.HCM', '001234567931', '2025-07-22 02:30:00', '2025-07-22 02:30:00', 'BN25072241'),
+(99, 'Ngô Văn Sơn', 'ngovanson@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0923456789', 1, NULL, NULL, '1987-11-01', 'Nam', '325 Đường Nguyễn Kiệm, Quận Phú Nhuận, TP.HCM', '001234567932', '2025-07-28 05:45:00', '2025-07-28 05:45:00', 'BN25072842'),
+(100, 'Lý Thị Hương', 'lythihuong@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0934567890', 1, NULL, NULL, '1994-02-14', 'Nữ', '436 Đường Hoàng Văn Thụ, Quận Phú Nhuận, TP.HCM', '001234567933', '2025-08-05 01:20:00', '2025-08-05 01:20:00', 'BN25080543'),
+(101, 'Phan Văn Đức', 'phanvanduc@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0945678901', 1, NULL, NULL, '1986-05-28', 'Nam', '547 Đường Phan Đăng Lưu, Quận Phú Nhuận, TP.HCM', '001234567934', '2025-08-10 08:35:00', '2025-08-10 08:35:00', 'BN25081044'),
+(102, 'Vũ Thị Lan', 'vuthilan@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0956789012', 1, NULL, NULL, '1991-09-11', 'Nữ', '658 Đường Nguyễn Văn Trỗi, Quận Phú Nhuận, TP.HCM', '001234567935', '2025-08-15 04:50:00', '2025-08-15 04:50:00', 'BN25081545'),
+(103, 'Hồ Văn Tùng', 'hovantung@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0967890123', 1, NULL, NULL, '1988-12-24', 'Nam', '769 Đường Trần Hưng Đạo, Quận 1, TP.HCM', '001234567936', '2025-08-20 02:15:00', '2025-08-20 02:15:00', 'BN25082046'),
+(104, 'Dương Thị Mai', 'duongthimai@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0978901234', 1, NULL, NULL, '1995-03-07', 'Nữ', '870 Đường Pasteur, Quận 1, TP.HCM', '001234567937', '2025-08-25 07:25:00', '2025-08-25 07:25:00', 'BN25082547'),
+(105, 'Nguyễn Văn Hải', 'nguyenvanhai@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0989012345', 1, NULL, NULL, '1984-06-20', 'Nam', '981 Đường Nam Kỳ Khởi Nghĩa, Quận 3, TP.HCM', '001234567938', '2025-09-02 03:40:00', '2025-09-02 03:40:00', 'BN25090248'),
+(106, 'Trịnh Thị Hoa', 'trinhthihoa@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0990123456', 1, NULL, NULL, '1993-10-03', 'Nữ', '092 Đường Lê Văn Sỹ, Quận Phú Nhuận, TP.HCM', '001234567939', '2025-09-08 01:55:00', '2025-09-08 01:55:00', 'BN25090849'),
+(107, 'Lương Văn Thắng', 'luongvanthang@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0901234567', 1, NULL, NULL, '1987-01-16', 'Nam', '103 Đường Nguyễn Thị Minh Khai, Quận 3, TP.HCM', '001234567940', '2025-09-12 06:20:00', '2025-09-12 06:20:00', 'BN25091250'),
+(108, 'Chu Thị Nga', 'chuthinga@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0912345678', 1, NULL, NULL, '1994-04-29', 'Nữ', '214 Đường Võ Thị Sáu, Quận 3, TP.HCM', '001234567941', '2025-09-18 04:35:00', '2025-09-18 04:35:00', 'BN25091851'),
+(109, 'Tạ Văn Đạt', 'tavandat@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0923456789', 1, NULL, NULL, '1986-08-12', 'Nam', '325 Đường Điện Biên Phủ, Quận Bình Thạnh, TP.HCM', '001234567942', '2025-09-22 02:50:00', '2025-09-22 02:50:00', 'BN25092252'),
+(110, 'Đinh Thị Quỳnh', 'dinhthiquynh@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0934567890', 1, NULL, NULL, '1991-11-25', 'Nữ', '436 Đường Lê Đức Thọ, Quận Gò Vấp, TP.HCM', '001234567943', '2025-09-28 08:05:00', '2025-09-28 08:05:00', 'BN25092853'),
+(111, 'Vương Thị Trang', 'vuongthitrang@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0945678901', 1, NULL, NULL, '1988-02-08', 'Nữ', '547 Đường Quang Trung, Quận Gò Vấp, TP.HCM', '001234567944', '2025-10-05 05:20:00', '2025-10-05 05:20:00', 'BN25100554'),
+(112, 'Bạch Văn Cường', 'bachvancuong@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0956789012', 1, NULL, NULL, '1995-05-21', 'Nam', '658 Đường Nguyễn Oanh, Quận Gò Vấp, TP.HCM', '001234567945', '2025-10-10 03:35:00', '2025-10-10 03:35:00', 'BN25101055'),
+(113, 'Lâm Văn Huy', 'lamvanhuy@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0967890123', 1, NULL, NULL, '1989-09-04', 'Nam', '769 Đường Phan Văn Trị, Quận Bình Thạnh, TP.HCM', '001234567946', '2025-10-15 01:50:00', '2025-10-15 01:50:00', 'BN25101556'),
+(114, 'Tôn Thị Thúy', 'tonthithuy@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0978901234', 1, NULL, NULL, '1992-12-17', 'Nữ', '870 Đường Xô Viết Nghệ Tĩnh, Quận Bình Thạnh, TP.HCM', '001234567947', '2025-10-20 07:10:00', '2025-10-20 07:10:00', 'BN25102057');
 
 -- --------------------------------------------------------
 
@@ -154,20 +222,20 @@ INSERT INTO `benh_nhan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `pho
 --
 
 CREATE TABLE `bien_lai_vien_phi` (
-  `id` int(11) NOT NULL,
-  `ma_bien_lai` varchar(50) NOT NULL,
-  `id_phieu_kham_benh` int(11) NOT NULL,
-  `id_le_tan` int(11) DEFAULT NULL COMMENT 'ID lễ tân lập biên lai',
-  `id_bac_si` int(11) DEFAULT NULL COMMENT 'ID bác sĩ khám bệnh',
-  `tong_tien_co_ban` decimal(15,2) DEFAULT 0.00,
-  `tong_quy_bhyt` decimal(15,2) DEFAULT 0.00,
-  `tong_nguoi_benh` decimal(15,2) DEFAULT 0.00,
+  `id` int NOT NULL,
+  `ma_bien_lai` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `id_phieu_kham_benh` int NOT NULL,
+  `id_le_tan` int DEFAULT NULL COMMENT 'ID lễ tân lập biên lai',
+  `id_bac_si` int DEFAULT NULL COMMENT 'ID bác sĩ khám bệnh',
+  `tong_tien_co_ban` decimal(15,2) DEFAULT '0.00',
+  `tong_quy_bhyt` decimal(15,2) DEFAULT '0.00',
+  `tong_nguoi_benh` decimal(15,2) DEFAULT '0.00',
   `ngay_lap` datetime NOT NULL,
-  `nguoi_lap` varchar(100) DEFAULT NULL,
-  `trang_thai` enum('Chưa thanh toán','Đã thanh toán tiền mặt','Đã thanh toán chuyển khoản','Hủy') DEFAULT 'Chưa thanh toán',
-  `ghi_chu` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `nguoi_lap` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `trang_thai` enum('Chưa thanh toán','Đã thanh toán tiền mặt','Đã thanh toán chuyển khoản','Hủy') COLLATE utf8mb4_unicode_ci DEFAULT 'Chưa thanh toán',
+  `ghi_chu` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -175,7 +243,14 @@ CREATE TABLE `bien_lai_vien_phi` (
 --
 
 INSERT INTO `bien_lai_vien_phi` (`id`, `ma_bien_lai`, `id_phieu_kham_benh`, `id_le_tan`, `id_bac_si`, `tong_tien_co_ban`, `tong_quy_bhyt`, `tong_nguoi_benh`, `ngay_lap`, `nguoi_lap`, `trang_thai`, `ghi_chu`, `created_at`, `updated_at`) VALUES
-(16, 'BL202511271358', 40, 1, 1, 993000.00, 0.00, 993000.00, '2025-11-27 15:43:28', 'GSTS. Cao Việt', 'Đã thanh toán tiền mặt', 'Biên lai tự động tạo từ hệ thống', '2025-11-27 08:43:28', '2025-12-01 11:03:15');
+(16, 'BL202511271358', 40, 1, 1, 993000.00, 0.00, 993000.00, '2025-11-27 15:43:28', 'GSTS. Cao Việt', 'Đã thanh toán tiền mặt', 'Biên lai tự động tạo từ hệ thống', '2025-11-27 08:43:28', '2025-12-01 11:03:15'),
+(17, 'BL202511281245', 41, 1, 1, 1250000.00, 250000.00, 1000000.00, '2025-11-28 14:25:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Thanh toán đầy đủ', '2025-11-28 14:25:00', '2025-11-28 14:25:00'),
+(19, 'BL202511301020', 43, 1, 81, 2100000.00, 420000.00, 1680000.00, '2025-11-30 10:20:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám tổng quát và xét nghiệm', '2025-11-30 10:20:00', '2025-11-30 10:20:00'),
+(21, 'BL202512011620', 45, 1, 83, 950000.00, 190000.00, 760000.00, '2025-12-01 16:20:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám nhi khoa', '2025-12-01 16:20:00', '2025-12-01 16:20:00'),
+(23, 'BL202512021415', 47, 1, 85, 750000.00, 150000.00, 600000.00, '2025-12-02 14:15:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám mắt', '2025-12-02 14:15:00', '2025-12-02 14:15:00'),
+(25, 'BL202512031130', 49, 1, 87, 1100000.00, 220000.00, 880000.00, '2025-12-03 11:30:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám da liễu', '2025-12-03 11:30:00', '2025-12-03 11:30:00'),
+(27, 'BL202512040830', 51, 1, 89, 1200000.00, 240000.00, 960000.00, '2025-12-04 08:30:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám hô hấp', '2025-12-04 08:30:00', '2025-12-04 08:30:00'),
+(29, 'BL202512041530', 53, 1, 91, 1750000.00, 350000.00, 1400000.00, '2025-12-04 15:30:00', 'Lễ tân A', 'Đã thanh toán tiền mặt', 'Khám cơ xương khớp', '2025-12-04 15:30:00', '2025-12-04 15:30:00');
 
 -- --------------------------------------------------------
 
@@ -184,17 +259,17 @@ INSERT INTO `bien_lai_vien_phi` (`id`, `ma_bien_lai`, `id_phieu_kham_benh`, `id_
 --
 
 CREATE TABLE `cccd_data` (
-  `id` int(11) NOT NULL,
-  `cccd` varchar(12) NOT NULL COMMENT 'Số CCCD (12 số)',
-  `ten` varchar(255) NOT NULL COMMENT 'Họ và tên',
+  `id` int NOT NULL,
+  `cccd` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Số CCCD (12 số)',
+  `ten` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Họ và tên',
   `ngay_sinh` date NOT NULL COMMENT 'Ngày sinh',
-  `gioi_tinh` enum('Nam','Nữ') NOT NULL COMMENT 'Giới tính',
-  `dia_chi` varchar(255) DEFAULT NULL COMMENT 'Địa chỉ thường trú',
+  `gioi_tinh` enum('Nam','Nữ') COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Giới tính',
+  `dia_chi` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Địa chỉ thường trú',
   `ngay_cap` date DEFAULT NULL COMMENT 'Ngày cấp CCCD',
-  `noi_cap` varchar(255) DEFAULT NULL COMMENT 'Nơi cấp CCCD',
-  `trang_thai` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Trạng thái (1: Active, 0: Inactive)',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `noi_cap` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Nơi cấp CCCD',
+  `trang_thai` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Trạng thái (1: Active, 0: Inactive)',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng dữ liệu CCCD giả lập';
 
 --
@@ -213,18 +288,18 @@ INSERT INTO `cccd_data` (`id`, `cccd`, `ten`, `ngay_sinh`, `gioi_tinh`, `dia_chi
 --
 
 CREATE TABLE `cham_cong` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL COMMENT 'ID của bác sĩ hoặc lễ tân',
-  `user_type` enum('doctor','reception') NOT NULL COMMENT 'Loại người dùng: bác sĩ hoặc lễ tân',
+  `id` int NOT NULL,
+  `user_id` int NOT NULL COMMENT 'ID của bác sĩ hoặc lễ tân',
+  `user_type` enum('doctor','reception') COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Loại người dùng: bác sĩ hoặc lễ tân',
   `ngay_cham` date NOT NULL COMMENT 'Ngày chấm công',
   `gio_vao` time DEFAULT NULL COMMENT 'Giờ vào làm',
   `gio_ra` time DEFAULT NULL COMMENT 'Giờ ra về',
-  `trang_thai` enum('check_in','check_out','completed') DEFAULT 'check_in' COMMENT 'Trạng thái: đã vào, đã ra, hoàn thành',
-  `ghi_chu` text DEFAULT NULL COMMENT 'Ghi chú (nếu có)',
-  `face_id_data` text DEFAULT NULL COMMENT 'Dữ liệu face recognition (embedding hoặc face ID)',
-  `dia_diem` varchar(255) DEFAULT NULL COMMENT 'Địa điểm chấm công (GPS location hoặc địa chỉ)',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `trang_thai` enum('check_in','check_out','completed') COLLATE utf8mb4_general_ci DEFAULT 'check_in' COMMENT 'Trạng thái: đã vào, đã ra, hoàn thành',
+  `ghi_chu` text COLLATE utf8mb4_general_ci COMMENT 'Ghi chú (nếu có)',
+  `face_id_data` text COLLATE utf8mb4_general_ci COMMENT 'Dữ liệu face recognition (embedding hoặc face ID)',
+  `dia_diem` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Địa điểm chấm công (GPS location hoặc địa chỉ)',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Bảng chấm công bằng face recognition';
 
 --
@@ -234,7 +309,8 @@ CREATE TABLE `cham_cong` (
 INSERT INTO `cham_cong` (`id`, `user_id`, `user_type`, `ngay_cham`, `gio_vao`, `gio_ra`, `trang_thai`, `ghi_chu`, `face_id_data`, `dia_diem`, `ngay_tao`, `ngay_cap_nhat`) VALUES
 (21, 1, 'doctor', '2025-12-01', '20:24:05', '20:24:33', 'completed', NULL, '{\"recognized_user_id\":1,\"confidence\":1,\"recognized_at\":\"2025-12-01 20:24:05\"}', '10.7708416,106.6532864', '2025-12-01 08:02:25', '2025-12-01 13:24:33'),
 (22, 1, 'reception', '2025-12-01', '15:03:51', '18:05:05', 'completed', NULL, '{\"recognized_user_id\":1,\"confidence\":1,\"recognized_at\":\"2025-12-01 15:03:51\"}', '10.8381969,106.6639266', '2025-12-01 08:03:51', '2025-12-01 11:05:05'),
-(23, 2, 'reception', '2025-12-01', '19:41:07', '19:41:25', 'completed', NULL, '{\"recognized_user_id\":2,\"confidence\":1,\"recognized_at\":\"2025-12-01 19:41:07\"}', '10.7708416,106.6532864', '2025-12-01 12:32:41', '2025-12-01 12:41:25');
+(23, 2, 'reception', '2025-12-01', '19:41:07', '19:41:25', 'completed', NULL, '{\"recognized_user_id\":2,\"confidence\":1,\"recognized_at\":\"2025-12-01 19:41:07\"}', '10.7708416,106.6532864', '2025-12-01 12:32:41', '2025-12-01 12:41:25'),
+(27, 1, 'doctor', '2025-12-02', '15:47:17', '15:47:27', 'completed', NULL, '{\"recognized_user_id\":1,\"confidence\":1,\"recognized_at\":\"2025-12-02 15:47:17\"}', '10.8382264,106.6639269', '2025-12-02 08:47:17', '2025-12-02 08:47:27');
 
 -- --------------------------------------------------------
 
@@ -243,17 +319,17 @@ INSERT INTO `cham_cong` (`id`, `user_id`, `user_type`, `ngay_cham`, `gio_vao`, `
 --
 
 CREATE TABLE `chi_so_xet_nghiem` (
-  `id` int(11) NOT NULL,
-  `xet_nghiem` varchar(255) NOT NULL COMMENT 'Tên xét nghiệm',
-  `gia_tri_tham_chieu` text DEFAULT NULL COMMENT 'Giá trị tham chiếu',
-  `don_vi` varchar(50) DEFAULT NULL COMMENT 'Đơn vị đo',
+  `id` int NOT NULL,
+  `xet_nghiem` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên xét nghiệm',
+  `gia_tri_tham_chieu` text COLLATE utf8mb4_unicode_ci COMMENT 'Giá trị tham chiếu',
+  `don_vi` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Đơn vị đo',
   `chi_so_tu` float DEFAULT NULL COMMENT 'Chỉ số từ (ngưỡng dưới)',
   `chi_so_den` float DEFAULT NULL COMMENT 'Chỉ số đến (ngưỡng trên)',
-  `may_qtkt` varchar(100) DEFAULT NULL COMMENT 'Máy/Quy trình kỹ thuật',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `loai_form` enum('mau_toan_phan','mau_nuoc_tieu','other') DEFAULT 'other' COMMENT 'Loại form xét nghiệm',
-  `thu_tu` int(11) DEFAULT 0 COMMENT 'Thứ tự hiển thị trong form'
+  `may_qtkt` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Máy/Quy trình kỹ thuật',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `loai_form` enum('mau_toan_phan','mau_nuoc_tieu','other') COLLATE utf8mb4_unicode_ci DEFAULT 'other' COMMENT 'Loại form xét nghiệm',
+  `thu_tu` int DEFAULT '0' COMMENT 'Thứ tự hiển thị trong form'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng chỉ số xét nghiệm';
 
 --
@@ -315,18 +391,18 @@ INSERT INTO `chi_so_xet_nghiem` (`id`, `xet_nghiem`, `gia_tri_tham_chieu`, `don_
 --
 
 CREATE TABLE `chi_tiet_bien_lai` (
-  `id` int(11) NOT NULL,
-  `id_bien_lai` int(11) NOT NULL,
-  `loai_dich_vu` enum('Kham benh','Xet nghiem','Sieu am','X-Quang','Thuoc') NOT NULL,
-  `ten_dich_vu` varchar(200) NOT NULL,
-  `so_luong` int(11) DEFAULT 1,
+  `id` int NOT NULL,
+  `id_bien_lai` int NOT NULL,
+  `loai_dich_vu` enum('Kham benh','Xet nghiem','Sieu am','X-Quang','Thuoc') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ten_dich_vu` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `so_luong` int DEFAULT '1',
   `don_gia` decimal(15,2) NOT NULL,
   `thanh_tien` decimal(15,2) NOT NULL,
-  `quy_bhyt` decimal(15,2) DEFAULT 0.00,
-  `nguoi_benh` decimal(15,2) DEFAULT 0.00,
-  `bao_hiem` tinyint(1) DEFAULT 0,
-  `ghi_chu` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `quy_bhyt` decimal(15,2) DEFAULT '0.00',
+  `nguoi_benh` decimal(15,2) DEFAULT '0.00',
+  `bao_hiem` tinyint(1) DEFAULT '0',
+  `ghi_chu` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -349,28 +425,28 @@ INSERT INTO `chi_tiet_bien_lai` (`id`, `id_bien_lai`, `loai_dich_vu`, `ten_dich_
 --
 
 CREATE TABLE `chi_tiet_don_thuoc` (
-  `MaChiTiet` int(11) NOT NULL,
-  `MaDonThuoc` varchar(20) NOT NULL COMMENT 'FK -> don_thuoc.MaDonThuoc',
-  `MaThuoc` varchar(10) NOT NULL COMMENT 'FK -> thuoc.MaThuoc',
-  `TenThuoc` varchar(100) DEFAULT NULL,
-  `HoatChat` varchar(100) DEFAULT NULL,
-  `DonViTinh` varchar(20) DEFAULT NULL,
-  `SoLuong` int(11) NOT NULL DEFAULT 1,
-  `LieuDung` varchar(255) DEFAULT NULL,
-  `GhiChu` varchar(255) DEFAULT NULL,
-  `NgayTao` datetime NOT NULL DEFAULT current_timestamp(),
-  `NgayCapNhat` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `so_ngay` int(11) NOT NULL DEFAULT 1 COMMENT 'Số ngày uống',
-  `ghi_chu_cach_dung` varchar(255) DEFAULT NULL COMMENT 'Ghi chú cách dùng chi tiết',
-  `vien_sang` decimal(6,2) NOT NULL DEFAULT 0.00 COMMENT 'Số viên buổi sáng',
-  `vien_trua` decimal(6,2) NOT NULL DEFAULT 0.00 COMMENT 'Số viên buổi trưa',
-  `vien_chieu` decimal(6,2) NOT NULL DEFAULT 0.00 COMMENT 'Số viên buổi chiều',
-  `vien_toi` decimal(6,2) NOT NULL DEFAULT 0.00 COMMENT 'Số viên buổi tối',
-  `sang_bua` enum('none','before','after') NOT NULL DEFAULT 'none' COMMENT 'Bữa ăn buổi sáng',
-  `trua_bua` enum('none','before','after') NOT NULL DEFAULT 'none' COMMENT 'Bữa ăn buổi trưa',
-  `chieu_bua` enum('none','before','after') NOT NULL DEFAULT 'none' COMMENT 'Bữa ăn buổi chiều',
-  `toi_bua` enum('none','before','after') NOT NULL DEFAULT 'none' COMMENT 'Bữa ăn buổi tối',
-  `so_luong_tinh` int(11) GENERATED ALWAYS AS (greatest(1,round(`so_ngay` * (`vien_sang` + `vien_trua` + `vien_chieu` + `vien_toi`),0))) STORED COMMENT 'SL tự tính = so_ngay * (tổng viên/ngày), tối thiểu 1'
+  `MaChiTiet` int NOT NULL,
+  `MaDonThuoc` varchar(20) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'FK -> don_thuoc.MaDonThuoc',
+  `MaThuoc` varchar(10) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'FK -> thuoc.MaThuoc',
+  `TenThuoc` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `HoatChat` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `DonViTinh` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `SoLuong` int NOT NULL DEFAULT '1',
+  `LieuDung` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `GhiChu` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `NgayTao` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `NgayCapNhat` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `so_ngay` int NOT NULL DEFAULT '1' COMMENT 'Số ngày uống',
+  `ghi_chu_cach_dung` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Ghi chú cách dùng chi tiết',
+  `vien_sang` decimal(6,2) NOT NULL DEFAULT '0.00' COMMENT 'Số viên buổi sáng',
+  `vien_trua` decimal(6,2) NOT NULL DEFAULT '0.00' COMMENT 'Số viên buổi trưa',
+  `vien_chieu` decimal(6,2) NOT NULL DEFAULT '0.00' COMMENT 'Số viên buổi chiều',
+  `vien_toi` decimal(6,2) NOT NULL DEFAULT '0.00' COMMENT 'Số viên buổi tối',
+  `sang_bua` enum('none','before','after') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'none' COMMENT 'Bữa ăn buổi sáng',
+  `trua_bua` enum('none','before','after') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'none' COMMENT 'Bữa ăn buổi trưa',
+  `chieu_bua` enum('none','before','after') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'none' COMMENT 'Bữa ăn buổi chiều',
+  `toi_bua` enum('none','before','after') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'none' COMMENT 'Bữa ăn buổi tối',
+  `so_luong_tinh` int GENERATED ALWAYS AS (greatest(1,round((`so_ngay` * (((`vien_sang` + `vien_trua`) + `vien_chieu`) + `vien_toi`)),0))) STORED COMMENT 'SL tự tính = so_ngay * (tổng viên/ngày), tối thiểu 1'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -389,16 +465,16 @@ INSERT INTO `chi_tiet_don_thuoc` (`MaChiTiet`, `MaDonThuoc`, `MaThuoc`, `TenThuo
 --
 
 CREATE TABLE `chi_tiet_ket_qua_xet_nghiem` (
-  `id` int(11) NOT NULL,
-  `id_phieu_tra_ket_qua` int(11) NOT NULL COMMENT 'ID phiếu trả kết quả',
-  `stt` int(11) NOT NULL COMMENT 'Số thứ tự',
-  `ten_xet_nghiem` varchar(255) NOT NULL COMMENT 'Tên xét nghiệm',
-  `gia_tri_tham_chieu` text DEFAULT NULL COMMENT 'Giá trị tham chiếu',
-  `ket_qua` text NOT NULL COMMENT 'Kết quả xét nghiệm',
-  `don_vi` varchar(50) DEFAULT NULL COMMENT 'Đơn vị đo',
-  `may_qtkt` varchar(100) DEFAULT NULL COMMENT 'Máy/Quy trình kỹ thuật',
-  `ghi_chu` text DEFAULT NULL COMMENT 'Ghi chú riêng cho từng xét nghiệm',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `id_phieu_tra_ket_qua` int NOT NULL COMMENT 'ID phiếu trả kết quả',
+  `stt` int NOT NULL COMMENT 'Số thứ tự',
+  `ten_xet_nghiem` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên xét nghiệm',
+  `gia_tri_tham_chieu` text COLLATE utf8mb4_unicode_ci COMMENT 'Giá trị tham chiếu',
+  `ket_qua` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Kết quả xét nghiệm',
+  `don_vi` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Đơn vị đo',
+  `may_qtkt` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Máy/Quy trình kỹ thuật',
+  `ghi_chu` text COLLATE utf8mb4_unicode_ci COMMENT 'Ghi chú riêng cho từng xét nghiệm',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng chi tiết kết quả xét nghiệm';
 
 --
@@ -436,15 +512,15 @@ INSERT INTO `chi_tiet_ket_qua_xet_nghiem` (`id`, `id_phieu_tra_ket_qua`, `stt`, 
 --
 
 CREATE TABLE `chuyen_khoa` (
-  `id` int(11) NOT NULL,
-  `ten` varchar(100) NOT NULL,
-  `slug` varchar(120) DEFAULT NULL,
-  `mo_ta` text DEFAULT NULL,
-  `icon` varchar(100) DEFAULT NULL,
-  `thu_tu` int(11) DEFAULT 0,
-  `trang_thai` enum('active','inactive') DEFAULT 'active',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `ten` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `slug` varchar(120) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `mo_ta` text COLLATE utf8mb4_general_ci,
+  `icon` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `thu_tu` int DEFAULT '0',
+  `trang_thai` enum('active','inactive') COLLATE utf8mb4_general_ci DEFAULT 'active',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -477,13 +553,13 @@ INSERT INTO `chuyen_khoa` (`id`, `ten`, `slug`, `mo_ta`, `icon`, `thu_tu`, `tran
 --
 
 CREATE TABLE `dich_vu_kham` (
-  `id` int(11) NOT NULL,
-  `ten_dich_vu` varchar(255) NOT NULL COMMENT 'Tên dịch vụ khám bệnh',
-  `don_gia` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Đơn giá dịch vụ (VND)',
-  `mo_ta` text DEFAULT NULL COMMENT 'Mô tả chi tiết dịch vụ',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `giam_phan_tram_bhyt` decimal(3,2) DEFAULT 0.80 COMMENT 'Phần trăm BHYT chi trả (ví dụ: 0.8 = 80%, 0.7 = 70%)'
+  `id` int NOT NULL,
+  `ten_dich_vu` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên dịch vụ khám bệnh',
+  `don_gia` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT 'Đơn giá dịch vụ (VND)',
+  `mo_ta` text COLLATE utf8mb4_unicode_ci COMMENT 'Mô tả chi tiết dịch vụ',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `giam_phan_tram_bhyt` decimal(3,2) DEFAULT '0.80' COMMENT 'Phần trăm BHYT chi trả (ví dụ: 0.8 = 80%, 0.7 = 70%)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng quản lý dịch vụ khám bệnh và đơn giá';
 
 --
@@ -500,15 +576,15 @@ INSERT INTO `dich_vu_kham` (`id`, `ten_dich_vu`, `don_gia`, `mo_ta`, `created_at
 --
 
 CREATE TABLE `don_thuoc` (
-  `MaDonThuoc` varchar(20) NOT NULL COMMENT 'Prescription code',
-  `MaBenhNhan` int(11) NOT NULL COMMENT 'FK -> benh_nhan.id',
-  `MaBacSi` int(11) NOT NULL COMMENT 'FK -> bac_si.id',
-  `id_phieu_kham_benh` int(11) NOT NULL COMMENT 'FK -> phieu_kham_benh.id',
+  `MaDonThuoc` varchar(20) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Prescription code',
+  `MaBenhNhan` int NOT NULL COMMENT 'FK -> benh_nhan.id',
+  `MaBacSi` int NOT NULL COMMENT 'FK -> bac_si.id',
+  `id_phieu_kham_benh` int NOT NULL COMMENT 'FK -> phieu_kham_benh.id',
   `NgayKe` date NOT NULL,
-  `ChanDoan` varchar(255) DEFAULT NULL,
-  `GhiChu` varchar(255) DEFAULT NULL,
-  `TrangThai` varchar(20) DEFAULT 'nhap' COMMENT 'nhap/hoan_tat/huy',
-  `NgayTao` datetime NOT NULL DEFAULT current_timestamp()
+  `ChanDoan` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `GhiChu` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `TrangThai` varchar(20) COLLATE utf8mb4_general_ci DEFAULT 'nhap' COMMENT 'nhap/hoan_tat/huy',
+  `NgayTao` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -525,14 +601,14 @@ INSERT INTO `don_thuoc` (`MaDonThuoc`, `MaBenhNhan`, `MaBacSi`, `id_phieu_kham_b
 --
 
 CREATE TABLE `face_encodings` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL COMMENT 'ID của nhân viên (bác sĩ, lễ tân, admin)',
-  `user_type` enum('doctor','reception','admin') NOT NULL COMMENT 'Loại nhân viên',
-  `face_encoding` text NOT NULL COMMENT 'Face encoding dạng JSON array',
-  `sample_image_path` varchar(500) DEFAULT NULL COMMENT 'Đường dẫn ảnh mẫu',
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `user_id` int NOT NULL COMMENT 'ID của nhân viên (bác sĩ, lễ tân, admin)',
+  `user_type` enum('doctor','reception','admin') COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Loại nhân viên',
+  `face_encoding` text COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Face encoding dạng JSON array',
+  `sample_image_path` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'Đường dẫn ảnh mẫu',
+  `is_active` tinyint(1) NOT NULL DEFAULT '1',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Bảng lưu face encodings của nhân viên';
 
 --
@@ -551,17 +627,28 @@ INSERT INTO `face_encodings` (`id`, `user_id`, `user_type`, `face_encoding`, `sa
 --
 
 CREATE TABLE `ho_so_benh_an` (
-  `id` int(11) NOT NULL,
-  `benh_nhan_id` int(11) NOT NULL,
-  `bac_si_id` int(11) NOT NULL,
-  `lich_hen_id` int(11) DEFAULT NULL,
-  `chan_doan` text DEFAULT NULL,
-  `phac_do_dieu_tri` text DEFAULT NULL,
-  `don_thuoc` text DEFAULT NULL,
-  `ghi_chu` text DEFAULT NULL,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `benh_nhan_id` int NOT NULL,
+  `bac_si_id` int NOT NULL,
+  `lich_hen_id` int DEFAULT NULL,
+  `chan_doan` text COLLATE utf8mb4_general_ci,
+  `phac_do_dieu_tri` text COLLATE utf8mb4_general_ci,
+  `don_thuoc` text COLLATE utf8mb4_general_ci,
+  `ghi_chu` text COLLATE utf8mb4_general_ci,
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `ho_so_benh_an`
+--
+
+INSERT INTO `ho_so_benh_an` (`id`, `benh_nhan_id`, `bac_si_id`, `lich_hen_id`, `chan_doan`, `phac_do_dieu_tri`, `don_thuoc`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 44, 1, 1, 'Tăng huyết áp độ 1', 'Điều chỉnh chế độ ăn uống, giảm muối, tập thể dục đều đặn. Theo dõi huyết áp hàng ngày.', 'Amlodipine 5mg: 1 viên/ngày, uống sau ăn sáng. Hydrochlorothiazide 12.5mg: 1 viên/ngày, uống sau ăn sáng.', 'Bệnh nhân cần tái khám sau 2 tuần để đánh giá hiệu quả điều trị.', '2025-11-15 08:30:00', '2025-11-15 08:30:00'),
+(3, 44, 81, 3, 'Đau dạ dày cấp', 'Ăn uống đúng giờ, tránh thức ăn cay nóng, rượu bia. Sử dụng thuốc giảm đau và bảo vệ niêm mạc dạ dày.', 'Omeprazole 20mg: 1 viên/ngày, uống trước ăn sáng. Sucralfate 1g: 1 gói x 2 lần/ngày, uống trước ăn 30 phút.', 'Bệnh nhân nên ăn nhẹ, chia nhỏ bữa ăn. Tái khám nếu đau kéo dài.', '2025-11-20 10:00:00', '2025-11-20 10:00:00'),
+(5, 44, 83, 5, 'Sốt phát ban ở trẻ em', 'Hạ sốt, bù nước điện giải. Nghỉ ngơi, cách ly để tránh lây lan.', 'Paracetamol 250mg: 1 viên x 3-4 lần/ngày khi sốt trên 38.5°C. Oresol: pha 1 gói với 200ml nước, uống nhiều lần trong ngày.', 'Bệnh nhân cần được chăm sóc tại nhà, theo dõi nhiệt độ thường xuyên. Tái khám nếu sốt kéo dài.', '2025-11-25 08:45:00', '2025-11-25 08:45:00'),
+(7, 44, 85, 7, 'Viêm kết mạc dị ứng', 'Rửa mắt bằng nước muối sinh lý, tránh dụi mắt. Sử dụng thuốc nhỏ mắt kháng histamine.', 'Naphazoline + Chlorpheniramine: nhỏ 1-2 giọt x 3-4 lần/ngày. Nước muối sinh lý 0.9%: rửa mắt 2-3 lần/ngày.', 'Bệnh nhân cần tránh tiếp xúc với dị nguyên gây dị ứng. Tái khám nếu triệu chứng không cải thiện.', '2025-12-01 09:00:00', '2025-12-01 09:00:00'),
+(9, 44, 87, 9, 'Viêm da dị ứng', 'Tránh tiếp xúc với chất gây dị ứng. Dưỡng ẩm da thường xuyên. Sử dụng thuốc bôi tại chỗ.', 'Hydrocortisone 1%: bôi 2 lần/ngày lên vùng da bị viêm. Cetirizine 10mg: 1 viên/ngày vào buổi tối.', 'Bệnh nhân cần tránh xà phòng, chất tẩy rửa mạnh. Tái khám sau 1 tuần để đánh giá tiến triển.', '2025-12-03 14:15:00', '2025-12-03 14:15:00');
 
 -- --------------------------------------------------------
 
@@ -570,13 +657,13 @@ CREATE TABLE `ho_so_benh_an` (
 --
 
 CREATE TABLE `ket_qua_sieu_am` (
-  `id` int(11) NOT NULL,
-  `id_phieu_yeu_cau_sieu_am` int(11) NOT NULL,
-  `ket_qua_khao_sat` text DEFAULT NULL,
-  `ket_luan` text DEFAULT NULL,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `bac_si_sieu_am` varchar(255) DEFAULT NULL COMMENT 'Tên bác sĩ siêu âm thực hiện và trả kết quả'
+  `id` int NOT NULL,
+  `id_phieu_yeu_cau_sieu_am` int NOT NULL,
+  `ket_qua_khao_sat` text COLLATE utf8mb4_unicode_ci,
+  `ket_luan` text COLLATE utf8mb4_unicode_ci,
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `bac_si_sieu_am` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Tên bác sĩ siêu âm thực hiện và trả kết quả'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -586,15 +673,15 @@ CREATE TABLE `ket_qua_sieu_am` (
 --
 
 CREATE TABLE `ket_qua_xquang` (
-  `id` int(11) NOT NULL,
-  `id_phieu_chup_xquang` int(11) NOT NULL,
-  `chuan_doan` text DEFAULT NULL,
-  `noi_dung` text DEFAULT NULL,
-  `ket_luan` text DEFAULT NULL,
-  `bac_si_xquang` varchar(255) DEFAULT NULL,
+  `id` int NOT NULL,
+  `id_phieu_chup_xquang` int NOT NULL,
+  `chuan_doan` text COLLATE utf8mb4_unicode_ci,
+  `noi_dung` text COLLATE utf8mb4_unicode_ci,
+  `ket_luan` text COLLATE utf8mb4_unicode_ci,
+  `bac_si_xquang` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ngay_doc` datetime DEFAULT NULL,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -604,13 +691,13 @@ CREATE TABLE `ket_qua_xquang` (
 --
 
 CREATE TABLE `ket_qua_xquang_hinh_anh` (
-  `id` int(11) NOT NULL,
-  `ket_qua_id` int(11) NOT NULL,
-  `file_path` varchar(500) NOT NULL,
-  `file_name` varchar(255) DEFAULT NULL,
-  `mime_type` varchar(100) DEFAULT NULL,
-  `file_size` int(11) DEFAULT NULL,
-  `ngay_tai` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `ket_qua_id` int NOT NULL,
+  `file_path` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mime_type` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `file_size` int DEFAULT NULL,
+  `ngay_tai` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -620,24 +707,25 @@ CREATE TABLE `ket_qua_xquang_hinh_anh` (
 --
 
 CREATE TABLE `le_tan` (
-  `id` int(11) NOT NULL,
-  `ten` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `mat_khau` varchar(255) NOT NULL,
-  `so_dien_thoai` varchar(20) DEFAULT NULL,
-  `face_encoding` text DEFAULT NULL COMMENT 'Face encoding dạng JSON array',
+  `id` int NOT NULL,
+  `ten` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `mat_khau` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `so_dien_thoai` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `face_encoding` text COLLATE utf8mb4_general_ci COMMENT 'Face encoding dạng JSON array',
   `face_encoding_updated` timestamp NULL DEFAULT NULL COMMENT 'Thời gian cập nhật face encoding',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `gioi_tinh` enum('Nam','Nữ') COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `le_tan`
 --
 
-INSERT INTO `le_tan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `face_encoding`, `face_encoding_updated`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(1, 'Lễ tân A\r\n', '', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', '[-0.06573474407196045,0.03764227405190468,0.057527586817741394,-0.07707465440034866,-0.11871064454317093,-0.010823025368154049,-0.02180519513785839,-0.11183173954486847,0.18018323183059692,-0.13357461988925934,0.24601903557777405,-0.07038712501525879,-0.19851765036582947,-0.030368227511644363,-0.008051705546677113,0.1534537971019745,-0.11838994920253754,-0.12378708273172379,-0.05542649328708649,-0.007045237813144922,-0.03083757311105728,-0.037622224539518356,0.04749597981572151,0.11376872658729553,-0.11832111328840256,-0.42543062567710876,-0.09991279244422913,-0.11489100009202957,-0.0021050579380244017,-0.04067635163664818,-0.0711786225438118,0.12506283819675446,-0.16585634648799896,-0.0232862439006567,0.03121650591492653,0.1718120276927948,-0.06937795132398605,-0.11234833300113678,0.18779054284095764,0.016915233805775642,-0.2613721787929535,0.017473649233579636,0.0707792267203331,0.24170248210430145,0.1106293573975563,0.029672931879758835,0.059409961104393005,-0.06450410932302475,0.13400697708129883,-0.19998705387115479,0.06549756228923798,0.13298961520195007,0.08191142976284027,0.05148254707455635,0.11899321526288986,-0.13552714884281158,0.07977843284606934,0.0769856795668602,-0.193703293800354,-0.01206957083195448,0.007090601604431868,-0.004906844347715378,0.04752223193645477,-0.07827597111463547,0.2606968581676483,0.16759911179542542,-0.090041883289814,-0.07362598925828934,0.14149659872055054,-0.1765335649251938,-0.049215178936719894,0.06316667050123215,-0.13149160146713257,-0.21352484822273254,-0.24791991710662842,0.014744344167411327,0.43069174885749817,0.18664467334747314,-0.14859862625598907,0.0782569870352745,-0.05190836638212204,-0.11115580797195435,0.08614616841077805,0.16838803887367249,-0.036773305386304855,0.0934930369257927,-0.06212441623210907,-0.0033806476276367903,0.24263936281204224,-0.024328045547008514,0.01695985160768032,0.2569752037525177,-0.005153202917426825,0.03779717907309532,0.03354061022400856,-0.01853351481258869,-0.11236885190010071,0.008325321599841118,-0.14803116023540497,-0.03465036675333977,-0.019427450373768806,-0.0616227462887764,-0.0309919323772192,0.03420470654964447,-0.2909732758998871,0.10098601132631302,0.014041723683476448,-0.051605790853500366,0.011785256676375866,0.047284748405218124,-0.08153553307056427,-0.06673174351453781,0.12190534174442291,-0.32261306047439575,0.1466260701417923,0.1617739051580429,0.054585933685302734,0.17512251436710358,0.09556174278259277,0.03113998845219612,0.04022065922617912,-0.0918903797864914,-0.12977954745292664,-0.05651572719216347,0.09357494115829468,-0.032869234681129456,0.032089486718177795,0.028893334791064262]', '2025-12-01 07:57:49', '2025-10-20 21:03:32', '2025-12-01 07:57:49'),
-(2, 'Lễ tân B', '', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456788', '[-0.07421183586120605,0.10847935825586319,0.03042883798480034,0.0057934424839913845,-0.12765613198280334,-0.021581074222922325,-0.06385383754968643,-0.16481515765190125,0.11937118321657181,-0.10368290543556213,0.2392388880252838,-0.01569356396794319,-0.20597754418849945,-0.09275756031274796,-0.02096877619624138,0.16265016794204712,-0.1800794005393982,-0.1037922129034996,-0.12394064664840698,-0.017977464944124222,0.0013908237451687455,-0.025975696742534637,0.08833276480436325,-0.018514927476644516,-0.0515383780002594,-0.3147708773612976,-0.09379073232412338,-0.099897101521492,0.07608654350042343,-0.0038776712026447058,-0.050774697214365005,-0.06995781511068344,-0.20605970919132233,-0.12538106739521027,0.03277894854545593,0.029317982494831085,-0.10129344463348389,-0.024529915302991867,0.24293652176856995,-0.09993738681077957,-0.24041612446308136,0.0164132472127676,0.06753876060247421,0.1530575007200241,0.17487069964408875,0.0974615290760994,0.028178047388792038,-0.15519575774669647,0.1310105323791504,-0.14062847197055817,0.0697542056441307,0.14608323574066162,0.14574195444583893,0.04679444059729576,0.017824385315179825,-0.1065361499786377,0.025769516825675964,0.16464877128601074,-0.12756390869617462,-0.026555867865681648,0.1483277827501297,-0.03996707499027252,0.017385229468345642,-0.04805106669664383,0.2412516325712204,0.056397322565317154,-0.09468041360378265,-0.12763407826423645,0.14781731367111206,-0.1294717937707901,-0.02201174758374691,0.05805955454707146,-0.09150303900241852,-0.18083637952804565,-0.29839539527893066,-0.02530994825065136,0.45640310645103455,0.10830990225076675,-0.11536508798599243,-0.02888314425945282,-0.09626256674528122,-0.04119109734892845,0.09886284917593002,0.08418743312358856,-0.07092112302780151,-0.01818014308810234,-0.08033958077430725,-0.00833126064389944,0.19525626301765442,-0.08474717289209366,0.024193430319428444,0.17386794090270996,0.03667457774281502,0.0749899297952652,-0.0018403304275125265,0.025884874165058136,-0.10231854766607285,0.033586908131837845,-0.11302351206541061,0.037544675171375275,-0.03568637743592262,-0.01441853865981102,0.0700380951166153,0.07373946905136108,-0.10203836858272552,0.10668199509382248,-0.0065654730424284935,0.043260496109724045,0.010395332239568233,5.874782436876558e-5,-0.05568213015794754,-0.10931438952684402,0.11814197897911072,-0.19356779754161835,0.177547425031662,0.13199959695339203,-0.0099312299862504,0.12407581508159637,0.1216992437839508,0.12038958072662354,-0.03910667076706886,-0.0206928551197052,-0.24287649989128113,-0.04048304632306099,0.07743740826845169,-0.05091628432273865,0.13946494460105896,0.03874862194061279]', '2025-12-01 12:32:15', '2025-10-20 21:03:32', '2025-12-01 12:32:15');
+INSERT INTO `le_tan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `face_encoding`, `face_encoding_updated`, `ngay_tao`, `ngay_cap_nhat`, `gioi_tinh`) VALUES
+(1, 'Lễ tân A', 'letanA@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456789', '[-0.06573474407196045,0.03764227405190468,0.057527586817741394,-0.07707465440034866,-0.11871064454317093,-0.010823025368154049,-0.02180519513785839,-0.11183173954486847,0.18018323183059692,-0.13357461988925934,0.24601903557777405,-0.07038712501525879,-0.19851765036582947,-0.030368227511644363,-0.008051705546677113,0.1534537971019745,-0.11838994920253754,-0.12378708273172379,-0.05542649328708649,-0.007045237813144922,-0.03083757311105728,-0.037622224539518356,0.04749597981572151,0.11376872658729553,-0.11832111328840256,-0.42543062567710876,-0.09991279244422913,-0.11489100009202957,-0.0021050579380244017,-0.04067635163664818,-0.0711786225438118,0.12506283819675446,-0.16585634648799896,-0.0232862439006567,0.03121650591492653,0.1718120276927948,-0.06937795132398605,-0.11234833300113678,0.18779054284095764,0.016915233805775642,-0.2613721787929535,0.017473649233579636,0.0707792267203331,0.24170248210430145,0.1106293573975563,0.029672931879758835,0.059409961104393005,-0.06450410932302475,0.13400697708129883,-0.19998705387115479,0.06549756228923798,0.13298961520195007,0.08191142976284027,0.05148254707455635,0.11899321526288986,-0.13552714884281158,0.07977843284606934,0.0769856795668602,-0.193703293800354,-0.01206957083195448,0.007090601604431868,-0.004906844347715378,0.04752223193645477,-0.07827597111463547,0.2606968581676483,0.16759911179542542,-0.090041883289814,-0.07362598925828934,0.14149659872055054,-0.1765335649251938,-0.049215178936719894,0.06316667050123215,-0.13149160146713257,-0.21352484822273254,-0.24791991710662842,0.014744344167411327,0.43069174885749817,0.18664467334747314,-0.14859862625598907,0.0782569870352745,-0.05190836638212204,-0.11115580797195435,0.08614616841077805,0.16838803887367249,-0.036773305386304855,0.0934930369257927,-0.06212441623210907,-0.0033806476276367903,0.24263936281204224,-0.024328045547008514,0.01695985160768032,0.2569752037525177,-0.005153202917426825,0.03779717907309532,0.03354061022400856,-0.01853351481258869,-0.11236885190010071,0.008325321599841118,-0.14803116023540497,-0.03465036675333977,-0.019427450373768806,-0.0616227462887764,-0.0309919323772192,0.03420470654964447,-0.2909732758998871,0.10098601132631302,0.014041723683476448,-0.051605790853500366,0.011785256676375866,0.047284748405218124,-0.08153553307056427,-0.06673174351453781,0.12190534174442291,-0.32261306047439575,0.1466260701417923,0.1617739051580429,0.054585933685302734,0.17512251436710358,0.09556174278259277,0.03113998845219612,0.04022065922617912,-0.0918903797864914,-0.12977954745292664,-0.05651572719216347,0.09357494115829468,-0.032869234681129456,0.032089486718177795,0.028893334791064262]', '2025-12-01 07:57:49', '2025-10-20 21:03:32', '2025-12-02 16:24:37', 'Nữ'),
+(2, 'Lễ tân B', 'thaibinhhhtb24111@gmail.com', '$2y$10$6GgJ61STU3mG2zkFGZ4Eo.XeBivScR/N9wmFNVbLuFuGYcZs7ujPa', '0123456788', '[-0.07421183586120605,0.10847935825586319,0.03042883798480034,0.0057934424839913845,-0.12765613198280334,-0.021581074222922325,-0.06385383754968643,-0.16481515765190125,0.11937118321657181,-0.10368290543556213,0.2392388880252838,-0.01569356396794319,-0.20597754418849945,-0.09275756031274796,-0.02096877619624138,0.16265016794204712,-0.1800794005393982,-0.1037922129034996,-0.12394064664840698,-0.017977464944124222,0.0013908237451687455,-0.025975696742534637,0.08833276480436325,-0.018514927476644516,-0.0515383780002594,-0.3147708773612976,-0.09379073232412338,-0.099897101521492,0.07608654350042343,-0.0038776712026447058,-0.050774697214365005,-0.06995781511068344,-0.20605970919132233,-0.12538106739521027,0.03277894854545593,0.029317982494831085,-0.10129344463348389,-0.024529915302991867,0.24293652176856995,-0.09993738681077957,-0.24041612446308136,0.0164132472127676,0.06753876060247421,0.1530575007200241,0.17487069964408875,0.0974615290760994,0.028178047388792038,-0.15519575774669647,0.1310105323791504,-0.14062847197055817,0.0697542056441307,0.14608323574066162,0.14574195444583893,0.04679444059729576,0.017824385315179825,-0.1065361499786377,0.025769516825675964,0.16464877128601074,-0.12756390869617462,-0.026555867865681648,0.1483277827501297,-0.03996707499027252,0.017385229468345642,-0.04805106669664383,0.2412516325712204,0.056397322565317154,-0.09468041360378265,-0.12763407826423645,0.14781731367111206,-0.1294717937707901,-0.02201174758374691,0.05805955454707146,-0.09150303900241852,-0.18083637952804565,-0.29839539527893066,-0.02530994825065136,0.45640310645103455,0.10830990225076675,-0.11536508798599243,-0.02888314425945282,-0.09626256674528122,-0.04119109734892845,0.09886284917593002,0.08418743312358856,-0.07092112302780151,-0.01818014308810234,-0.08033958077430725,-0.00833126064389944,0.19525626301765442,-0.08474717289209366,0.024193430319428444,0.17386794090270996,0.03667457774281502,0.0749899297952652,-0.0018403304275125265,0.025884874165058136,-0.10231854766607285,0.033586908131837845,-0.11302351206541061,0.037544675171375275,-0.03568637743592262,-0.01441853865981102,0.0700380951166153,0.07373946905136108,-0.10203836858272552,0.10668199509382248,-0.0065654730424284935,0.043260496109724045,0.010395332239568233,5.874782436876558e-5,-0.05568213015794754,-0.10931438952684402,0.11814197897911072,-0.19356779754161835,0.177547425031662,0.13199959695339203,-0.0099312299862504,0.12407581508159637,0.1216992437839508,0.12038958072662354,-0.03910667076706886,-0.0206928551197052,-0.24287649989128113,-0.04048304632306099,0.07743740826845169,-0.05091628432273865,0.13946494460105896,0.03874862194061279]', '2025-12-01 12:32:15', '2025-10-20 21:03:32', '2025-12-02 16:25:44', 'Nam');
 
 -- --------------------------------------------------------
 
@@ -646,20 +734,38 @@ INSERT INTO `le_tan` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, `face_e
 --
 
 CREATE TABLE `lich_hen` (
-  `id` int(11) NOT NULL,
-  `benh_nhan_id` int(11) NOT NULL,
-  `bac_si_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `benh_nhan_id` int NOT NULL,
+  `bac_si_id` int NOT NULL,
   `ngay_hen` date NOT NULL,
   `gio_hen` time NOT NULL,
-  `ly_do` text DEFAULT NULL,
-  `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà','Tại viện') NOT NULL DEFAULT 'Trực tiếp',
-  `dia_chi_kham` varchar(255) DEFAULT NULL,
-  `link_tu_van` varchar(255) DEFAULT NULL,
-  `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Đang khám','Hoàn thành','Đã khám xong','hủy') DEFAULT 'Chờ xác nhận',
-  `ghi_chu` text DEFAULT NULL,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `ly_do` text COLLATE utf8mb4_general_ci,
+  `loai_lich` enum('Tư vấn','Trực tiếp','Tại nhà','Tại viện') COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'Trực tiếp',
+  `dia_chi_kham` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `link_tu_van` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `trang_thai` enum('Chờ xác nhận','Đã xác nhận','Đang khám','Hoàn thành','Đã khám xong','hủy') COLLATE utf8mb4_general_ci DEFAULT 'Chờ xác nhận',
+  `ghi_chu` text COLLATE utf8mb4_general_ci,
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `lich_hen`
+--
+
+INSERT INTO `lich_hen` (`id`, `benh_nhan_id`, `bac_si_id`, `ngay_hen`, `gio_hen`, `ly_do`, `loai_lich`, `dia_chi_kham`, `link_tu_van`, `trang_thai`, `ghi_chu`, `ngay_tao`, `ngay_cap_nhat`) VALUES
+(1, 44, 1, '2025-11-15', '08:30:00', 'Khám định kỳ, kiểm tra huyết áp', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân đã khám và được chẩn đoán tăng huyết áp độ 1', '2025-11-14 10:00:00', '2025-11-15 08:30:00'),
+(3, 44, 81, '2025-11-20', '10:00:00', 'Đau bụng, buồn nôn', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân đau dạ dày cấp, cần điều trị ngay', '2025-11-19 16:00:00', '2025-11-20 10:00:00'),
+(5, 44, 83, '2025-11-25', '08:45:00', 'Trẻ sốt cao, phát ban', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Trẻ em cần được khám và điều trị sốt phát ban', '2025-11-24 09:00:00', '2025-11-25 08:45:00'),
+(7, 44, 85, '2025-12-01', '09:00:00', 'Mắt đỏ, ngứa, chảy nước mắt', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân viêm kết mạc dị ứng, cần điều trị tại chỗ', '2025-11-30 15:00:00', '2025-12-01 09:00:00'),
+(9, 44, 87, '2025-12-03', '14:15:00', 'Da nổi mẩn đỏ, ngứa', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân viêm da dị ứng, cần điều trị bằng thuốc bôi', '2025-12-02 16:00:00', '2025-12-03 14:15:00'),
+(11, 44, 1, '2025-11-28', '14:00:00', 'Tái khám tim mạch', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Bệnh nhân tái khám sau điều trị tăng huyết áp', '2025-11-27 10:00:00', '2025-11-28 14:25:00'),
+(13, 44, 81, '2025-11-30', '10:00:00', 'Khám nội tổng quát và xét nghiệm', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám nội tổng quát kèm xét nghiệm máu', '2025-11-29 11:00:00', '2025-11-30 10:20:00'),
+(15, 44, 83, '2025-12-01', '16:00:00', 'Khám nhi khoa', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám nhi khoa cho trẻ em', '2025-11-30 17:00:00', '2025-12-01 16:20:00'),
+(17, 44, 85, '2025-12-02', '14:00:00', 'Khám mắt', 'Trực tiếp', NULL, NULL, 'Hoàn thành', 'Khám mắt định kỳ', '2025-12-01 15:00:00', '2025-12-02 14:15:00'),
+(19, 44, 87, '2025-12-03', '11:15:00', 'Khám da liễu', 'Trực tiếp', NULL, NULL, 'hủy', 'Khám da liễu', '2025-12-02 12:00:00', '2025-12-02 18:45:34'),
+(21, 44, 89, '2025-12-04', '08:15:00', 'Khám hô hấp', 'Trực tiếp', NULL, NULL, 'hủy', 'Khám hô hấp', '2025-12-03 09:00:00', '2025-12-02 18:45:37'),
+(23, 44, 91, '2025-12-04', '15:15:00', 'Khám cơ xương khớp', 'Trực tiếp', NULL, NULL, 'hủy', 'Khám cơ xương khớp', '2025-12-03 16:00:00', '2025-12-02 18:45:39');
 
 -- --------------------------------------------------------
 
@@ -668,16 +774,16 @@ CREATE TABLE `lich_hen` (
 --
 
 CREATE TABLE `lich_lam_viec` (
-  `id` int(11) NOT NULL,
-  `bac_si_id` int(11) NOT NULL,
-  `thu_trong_tuan` enum('Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật') NOT NULL,
+  `id` int NOT NULL,
+  `bac_si_id` int NOT NULL,
+  `thu_trong_tuan` enum('Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật') COLLATE utf8mb4_general_ci NOT NULL,
   `gio_bat_dau` time NOT NULL,
   `gio_ket_thuc` time NOT NULL,
-  `loai_ca` enum('Ca sáng','Ca chiều','Ca tối') NOT NULL,
-  `ghi_chu` text DEFAULT NULL,
-  `trang_thai` enum('active','inactive') DEFAULT 'active',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `loai_ca` enum('Ca sáng','Ca chiều','Ca tối') COLLATE utf8mb4_general_ci NOT NULL,
+  `ghi_chu` text COLLATE utf8mb4_general_ci,
+  `trang_thai` enum('active','inactive') COLLATE utf8mb4_general_ci DEFAULT 'active',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -700,7 +806,42 @@ INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`,
 (49, 50, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 08:24:25', '2025-12-01 08:24:25'),
 (50, 1, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 08:28:04', '2025-12-01 08:28:04'),
 (51, 51, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 12:07:38', '2025-12-01 12:07:38'),
-(52, 54, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 12:13:06', '2025-12-01 12:13:06');
+(52, 54, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 12:13:06', '2025-12-01 12:13:06'),
+(53, 79, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:00:00', '2025-12-01 15:00:00'),
+(54, 79, 'Thứ 5', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 15:05:00', '2025-12-01 15:05:00'),
+(55, 80, 'Thứ 3', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-12-01 15:10:00', '2025-12-01 15:10:00'),
+(56, 48, 'Thứ 4', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:15:00', '2025-12-01 15:15:00'),
+(57, 81, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(58, 81, 'Thứ 2', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(59, 81, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(60, 81, 'Thứ 3', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(61, 81, 'Thứ 4', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(62, 81, 'Thứ 4', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(63, 81, 'Thứ 5', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(64, 81, 'Thứ 5', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(65, 81, 'Thứ 6', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(66, 81, 'Thứ 6', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(67, 81, 'Thứ 7', '08:00:00', '12:00:00', 'Ca sáng', '', 'active', '2025-12-01 15:45:00', '2025-12-01 15:45:00'),
+(68, 82, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(69, 82, 'Thứ 4', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(70, 83, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(71, 83, 'Thứ 3', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(72, 84, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(73, 84, 'Thứ 5', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(74, 85, 'Thứ 2', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(75, 85, 'Thứ 6', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(76, 86, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(77, 86, 'Thứ 5', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(78, 87, 'Thứ 4', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(79, 87, 'Thứ 6', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(80, 88, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(81, 88, 'Thứ 4', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(82, 89, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(83, 89, 'Thứ 5', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(84, 90, 'Thứ 2', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(85, 90, 'Thứ 4', '13:00:00', '17:30:00', 'Ca chiều', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(86, 91, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00'),
+(87, 91, 'Thứ 5', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-12-01 16:10:00', '2025-12-01 16:10:00');
 
 -- --------------------------------------------------------
 
@@ -709,27 +850,17 @@ INSERT INTO `lich_lam_viec` (`id`, `bac_si_id`, `thu_trong_tuan`, `gio_bat_dau`,
 --
 
 CREATE TABLE `lich_lam_viec_le_tan` (
-  `id` int(11) NOT NULL,
-  `letan_id` int(11) NOT NULL,
-  `thu_trong_tuan` enum('Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật') NOT NULL,
+  `id` int NOT NULL,
+  `letan_id` int NOT NULL,
+  `thu_trong_tuan` enum('Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật') COLLATE utf8mb4_general_ci NOT NULL,
   `gio_bat_dau` time NOT NULL,
   `gio_ket_thuc` time NOT NULL,
-  `loai_ca` enum('Ca sáng','Ca chiều') NOT NULL,
-  `ghi_chu` text DEFAULT NULL,
-  `trang_thai` enum('active','inactive') DEFAULT 'active',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `loai_ca` enum('Ca sáng','Ca chiều') COLLATE utf8mb4_general_ci NOT NULL,
+  `ghi_chu` text COLLATE utf8mb4_general_ci,
+  `trang_thai` enum('active','inactive') COLLATE utf8mb4_general_ci DEFAULT 'active',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Đang đổ dữ liệu cho bảng `lich_lam_viec_le_tan`
---
-
-INSERT INTO `lich_lam_viec_le_tan` (`id`, `letan_id`, `thu_trong_tuan`, `gio_bat_dau`, `gio_ket_thuc`, `loai_ca`, `ghi_chu`, `trang_thai`, `ngay_tao`, `ngay_cap_nhat`) VALUES
-(3, 1, 'Thứ 3', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-28 13:03:44', '2025-11-28 13:03:44'),
-(4, 1, 'Chủ nhật', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-30 14:28:12', '2025-11-30 14:28:12'),
-(5, 1, 'Thứ 2', '07:00:00', '11:30:00', 'Ca sáng', '', 'active', '2025-11-30 14:30:39', '2025-11-30 14:30:39'),
-(6, 2, 'Thứ 2', '13:00:00', '21:00:00', 'Ca chiều', '', 'active', '2025-11-30 14:30:50', '2025-11-30 14:30:50');
 
 -- --------------------------------------------------------
 
@@ -738,16 +869,16 @@ INSERT INTO `lich_lam_viec_le_tan` (`id`, `letan_id`, `thu_trong_tuan`, `gio_bat
 --
 
 CREATE TABLE `lich_lam_viec_le_tan_ngoai_le` (
-  `id` int(11) NOT NULL,
-  `letan_id` int(11) NOT NULL,
-  `schedule_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `letan_id` int NOT NULL,
+  `schedule_id` int NOT NULL,
   `ngay` date NOT NULL,
-  `action` enum('cancel','modify') NOT NULL,
+  `action` enum('cancel','modify') COLLATE utf8mb4_general_ci NOT NULL,
   `gio_bat_dau` time DEFAULT NULL,
   `gio_ket_thuc` time DEFAULT NULL,
-  `loai_ca` varchar(50) DEFAULT NULL,
-  `ghi_chu` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `loai_ca` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ghi_chu` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -757,16 +888,16 @@ CREATE TABLE `lich_lam_viec_le_tan_ngoai_le` (
 --
 
 CREATE TABLE `lich_lam_viec_ngoai_le` (
-  `id` int(11) NOT NULL,
-  `bac_si_id` int(11) NOT NULL,
-  `schedule_id` int(11) NOT NULL,
+  `id` int NOT NULL,
+  `bac_si_id` int NOT NULL,
+  `schedule_id` int NOT NULL,
   `ngay` date NOT NULL,
-  `action` enum('cancel','modify') NOT NULL,
+  `action` enum('cancel','modify') COLLATE utf8mb4_general_ci NOT NULL,
   `gio_bat_dau` time DEFAULT NULL,
   `gio_ket_thuc` time DEFAULT NULL,
-  `loai_ca` varchar(50) DEFAULT NULL,
-  `ghi_chu` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `loai_ca` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ghi_chu` text COLLATE utf8mb4_general_ci,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -821,21 +952,21 @@ INSERT INTO `lich_lam_viec_ngoai_le` (`id`, `bac_si_id`, `schedule_id`, `ngay`, 
 --
 
 CREATE TABLE `phieu_boc_so` (
-  `id` int(11) NOT NULL,
+  `id` int NOT NULL,
   `ngay` date NOT NULL,
-  `so_thu_tu` int(11) NOT NULL,
-  `benh_nhan_id` int(11) NOT NULL,
-  `bac_si_id` int(11) NOT NULL,
-  `lich_hen_id` int(11) DEFAULT NULL,
-  `trang_thai` enum('cho','dang_goi','dang_kham','bo_lo','xong','huy') DEFAULT 'cho',
-  `uu_tien` tinyint(4) DEFAULT 0,
-  `quay` varchar(50) DEFAULT NULL,
-  `ghi_chu` text DEFAULT NULL,
+  `so_thu_tu` int NOT NULL,
+  `benh_nhan_id` int NOT NULL,
+  `bac_si_id` int NOT NULL,
+  `lich_hen_id` int DEFAULT NULL,
+  `trang_thai` enum('cho','dang_goi','dang_kham','bo_lo','xong','huy') COLLATE utf8mb4_general_ci DEFAULT 'cho',
+  `uu_tien` tinyint DEFAULT '0',
+  `quay` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ghi_chu` text COLLATE utf8mb4_general_ci,
   `thoi_gian_goi` datetime DEFAULT NULL,
   `thoi_gian_bat_dau` datetime DEFAULT NULL,
   `thoi_gian_ket_thuc` datetime DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -863,17 +994,17 @@ INSERT INTO `phieu_boc_so` (`id`, `ngay`, `so_thu_tu`, `benh_nhan_id`, `bac_si_i
 --
 
 CREATE TABLE `phieu_chup_xquang` (
-  `id` int(11) NOT NULL,
-  `id_phieu_kham_benh` int(11) NOT NULL,
-  `so_dien_thoai` varchar(20) DEFAULT '0777871608',
-  `quan` varchar(100) DEFAULT 'Gò Vấp',
-  `yeu_cau_chup` text NOT NULL,
-  `bac_si_kham` varchar(255) NOT NULL,
+  `id` int NOT NULL,
+  `id_phieu_kham_benh` int NOT NULL,
+  `so_dien_thoai` varchar(20) COLLATE utf8mb4_general_ci DEFAULT '0777871608',
+  `quan` varchar(100) COLLATE utf8mb4_general_ci DEFAULT 'Gò Vấp',
+  `yeu_cau_chup` text COLLATE utf8mb4_general_ci NOT NULL,
+  `bac_si_kham` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
   `trang_thai` enum('Đã yêu cầu','Hoàn thành') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Đã yêu cầu',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `chan_doan_vao_vien` text DEFAULT NULL COMMENT 'Chuẩn đoán nhập vào',
-  `bac_si_xquang_id` int(11) DEFAULT NULL
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `chan_doan_vao_vien` text COLLATE utf8mb4_general_ci COMMENT 'Chuẩn đoán nhập vào',
+  `bac_si_xquang_id` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -883,61 +1014,61 @@ CREATE TABLE `phieu_chup_xquang` (
 --
 
 CREATE TABLE `phieu_kham_benh` (
-  `id` int(11) NOT NULL,
-  `id_lich_hen` int(11) DEFAULT NULL COMMENT 'ID lịch hẹn khám bệnh',
-  `benh_nhan_id` int(11) NOT NULL,
-  `bac_si_id` int(11) NOT NULL,
-  `so_y_te` varchar(255) DEFAULT NULL,
-  `benh_vien` varchar(255) DEFAULT NULL,
-  `buong_kham` varchar(100) DEFAULT NULL,
-  `ho_ten` varchar(255) DEFAULT NULL,
-  `ngay_sinh` tinyint(3) UNSIGNED DEFAULT NULL,
-  `thang_sinh` tinyint(3) UNSIGNED DEFAULT NULL,
-  `nam_sinh` smallint(5) UNSIGNED DEFAULT NULL,
-  `tuoi` tinyint(3) UNSIGNED DEFAULT NULL,
-  `gioi_tinh` enum('Nam','Nu','Khac') DEFAULT NULL,
-  `nghe_nghiep` varchar(255) DEFAULT NULL,
-  `dan_toc` varchar(100) DEFAULT NULL,
-  `ngoai_kieu` varchar(100) DEFAULT NULL,
-  `noi_lam_viec` varchar(255) DEFAULT NULL,
-  `dia_chi` varchar(500) DEFAULT NULL,
-  `doi_tuong_bhyt` tinyint(1) NOT NULL DEFAULT 0,
-  `doi_tuong_thu_phi` tinyint(1) NOT NULL DEFAULT 0,
-  `doi_tuong_mien` tinyint(1) NOT NULL DEFAULT 0,
-  `doi_tuong_khac` tinyint(1) NOT NULL DEFAULT 0,
-  `bhyt_ngay` tinyint(3) UNSIGNED DEFAULT NULL,
-  `bhyt_thang` tinyint(3) UNSIGNED DEFAULT NULL,
-  `bhyt_nam` smallint(5) UNSIGNED DEFAULT NULL,
-  `so_the_bhyt` varchar(50) DEFAULT NULL,
-  `dien_thoai_bao_tin` varchar(50) DEFAULT NULL,
-  `gio_kham` tinyint(3) UNSIGNED DEFAULT NULL,
-  `phut_kham` tinyint(3) UNSIGNED DEFAULT NULL,
-  `ngay_kham` tinyint(3) UNSIGNED DEFAULT NULL,
-  `thang_kham` tinyint(3) UNSIGNED DEFAULT NULL,
-  `nam_kham` smallint(5) UNSIGNED DEFAULT NULL,
-  `chan_doan_gioi_thieu` varchar(500) DEFAULT NULL,
-  `qua_trinh_benh_li` text DEFAULT NULL,
-  `tien_su_ban_than` text DEFAULT NULL,
-  `tien_su_gia_dinh` text DEFAULT NULL,
-  `kham_toan_than` text DEFAULT NULL,
-  `mach` smallint(6) DEFAULT NULL,
+  `id` int NOT NULL,
+  `id_lich_hen` int DEFAULT NULL COMMENT 'ID lịch hẹn khám bệnh',
+  `benh_nhan_id` int NOT NULL,
+  `bac_si_id` int NOT NULL,
+  `so_y_te` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `benh_vien` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `buong_kham` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ho_ten` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ngay_sinh` tinyint UNSIGNED DEFAULT NULL,
+  `thang_sinh` tinyint UNSIGNED DEFAULT NULL,
+  `nam_sinh` smallint UNSIGNED DEFAULT NULL,
+  `tuoi` tinyint UNSIGNED DEFAULT NULL,
+  `gioi_tinh` enum('Nam','Nữ') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `nghe_nghiep` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `dan_toc` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ngoai_kieu` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `noi_lam_viec` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `dia_chi` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `doi_tuong_bhyt` tinyint(1) NOT NULL DEFAULT '0',
+  `doi_tuong_thu_phi` tinyint(1) NOT NULL DEFAULT '0',
+  `doi_tuong_mien` tinyint(1) NOT NULL DEFAULT '0',
+  `doi_tuong_khac` tinyint(1) NOT NULL DEFAULT '0',
+  `bhyt_ngay` tinyint UNSIGNED DEFAULT NULL,
+  `bhyt_thang` tinyint UNSIGNED DEFAULT NULL,
+  `bhyt_nam` smallint UNSIGNED DEFAULT NULL,
+  `so_the_bhyt` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `dien_thoai_bao_tin` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `gio_kham` tinyint UNSIGNED DEFAULT NULL,
+  `phut_kham` tinyint UNSIGNED DEFAULT NULL,
+  `ngay_kham` tinyint UNSIGNED DEFAULT NULL,
+  `thang_kham` tinyint UNSIGNED DEFAULT NULL,
+  `nam_kham` smallint UNSIGNED DEFAULT NULL,
+  `chan_doan_gioi_thieu` varchar(500) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `qua_trinh_benh_li` text COLLATE utf8mb4_general_ci,
+  `tien_su_ban_than` text COLLATE utf8mb4_general_ci,
+  `tien_su_gia_dinh` text COLLATE utf8mb4_general_ci,
+  `kham_toan_than` text COLLATE utf8mb4_general_ci,
+  `mach` smallint DEFAULT NULL,
   `nhiet_do` decimal(4,1) DEFAULT NULL,
-  `huyet_ap_tam_thu` smallint(6) DEFAULT NULL,
-  `huyet_ap_tam_truong` smallint(6) DEFAULT NULL,
-  `nhip_tho` smallint(6) DEFAULT NULL,
-  `kham_cac_bo_phan` text DEFAULT NULL,
-  `tom_tat_lam_sang` text DEFAULT NULL,
-  `chan_doan_vao_vien` text DEFAULT NULL,
-  `da_xu_li` text DEFAULT NULL,
-  `khoa_dieu_tri` varchar(255) DEFAULT NULL,
-  `chu_y` varchar(255) DEFAULT NULL,
-  `ngay_ky` tinyint(3) UNSIGNED DEFAULT NULL,
-  `thang_ky` tinyint(3) UNSIGNED DEFAULT NULL,
-  `nam_ky` smallint(5) UNSIGNED DEFAULT NULL,
-  `ten_bac_si` varchar(255) DEFAULT NULL,
-  `lich_hen` int(11) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `huyet_ap_tam_thu` smallint DEFAULT NULL,
+  `huyet_ap_tam_truong` smallint DEFAULT NULL,
+  `nhip_tho` smallint DEFAULT NULL,
+  `kham_cac_bo_phan` text COLLATE utf8mb4_general_ci,
+  `tom_tat_lam_sang` text COLLATE utf8mb4_general_ci,
+  `chan_doan_vao_vien` text COLLATE utf8mb4_general_ci,
+  `da_xu_li` text COLLATE utf8mb4_general_ci,
+  `khoa_dieu_tri` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `chu_y` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `ngay_ky` tinyint UNSIGNED DEFAULT NULL,
+  `thang_ky` tinyint UNSIGNED DEFAULT NULL,
+  `nam_ky` smallint UNSIGNED DEFAULT NULL,
+  `ten_bac_si` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `lich_hen` int DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -945,7 +1076,14 @@ CREATE TABLE `phieu_kham_benh` (
 --
 
 INSERT INTO `phieu_kham_benh` (`id`, `id_lich_hen`, `benh_nhan_id`, `bac_si_id`, `so_y_te`, `benh_vien`, `buong_kham`, `ho_ten`, `ngay_sinh`, `thang_sinh`, `nam_sinh`, `tuoi`, `gioi_tinh`, `nghe_nghiep`, `dan_toc`, `ngoai_kieu`, `noi_lam_viec`, `dia_chi`, `doi_tuong_bhyt`, `doi_tuong_thu_phi`, `doi_tuong_mien`, `doi_tuong_khac`, `bhyt_ngay`, `bhyt_thang`, `bhyt_nam`, `so_the_bhyt`, `dien_thoai_bao_tin`, `gio_kham`, `phut_kham`, `ngay_kham`, `thang_kham`, `nam_kham`, `chan_doan_gioi_thieu`, `qua_trinh_benh_li`, `tien_su_ban_than`, `tien_su_gia_dinh`, `kham_toan_than`, `mach`, `nhiet_do`, `huyet_ap_tam_thu`, `huyet_ap_tam_truong`, `nhip_tho`, `kham_cac_bo_phan`, `tom_tat_lam_sang`, `chan_doan_vao_vien`, `da_xu_li`, `khoa_dieu_tri`, `chu_y`, `ngay_ky`, `thang_ky`, `nam_ky`, `ten_bac_si`, `lich_hen`, `created_at`, `updated_at`) VALUES
-(40, NULL, 44, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913992110', NULL, NULL, 27, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Đau bụng ', '', '', '', 27, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-27 08:34:39', '2025-11-27 08:34:39');
+(40, NULL, 44, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 0, 1, 0, 0, NULL, NULL, NULL, '', '84913992110', NULL, NULL, 27, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Đau bụng ', '', '', '', 27, 11, 2025, 'GSTS. Cao Việt', NULL, '2025-11-27 08:34:39', '2025-11-27 08:34:39'),
+(41, 11, 44, 1, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Tim mạch', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 28, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Tái khám tim mạch', '', '', '', 28, 11, 2025, 'GSTS. Cao Việt', 11, '2025-11-28 14:25:00', '2025-11-28 14:25:00'),
+(43, 13, 44, 81, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Nội tổng quát', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 30, 11, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám nội tổng quát và xét nghiệm', '', '', '', 30, 11, 2025, 'BS Nội Tổng Quát', 13, '2025-11-30 10:20:00', '2025-11-30 10:20:00'),
+(45, 15, 44, 83, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Nhi', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 1, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám nhi khoa', '', '', '', 1, 12, 2025, 'BS Nhi', 15, '2025-12-01 16:20:00', '2025-12-01 16:20:00'),
+(47, 17, 44, 85, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Mắt', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 2, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám mắt', '', '', '', 2, 12, 2025, 'BS Mắt', 17, '2025-12-02 14:15:00', '2025-12-02 14:15:00'),
+(49, 19, 44, 87, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Da liễu', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 3, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám da liễu', '', '', '', 3, 12, 2025, 'BS Da Liễu', 19, '2025-12-03 11:30:00', '2025-12-03 11:30:00'),
+(51, 21, 44, 89, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Hô hấp', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 4, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám hô hấp', '', '', '', 4, 12, 2025, 'BS Hô Hấp', 21, '2025-12-04 08:30:00', '2025-12-04 08:30:00'),
+(53, 23, 44, 91, 'Thành Phố Hồ Chí Minh', 'Thịnh Việt', 'Cơ xương khớp', 'LÊ VĂN C', 10, 12, 1988, 36, 'Nam', '', '', '', '', 'Đà Nẵng', 1, 0, 0, 0, NULL, NULL, NULL, '0791034568', '84913992110', NULL, NULL, 4, 12, 2025, NULL, '', '', '', '', NULL, NULL, NULL, NULL, NULL, '', '', 'Khám cơ xương khớp', '', '', '', 4, 12, 2025, 'BS Cơ Xương Khớp', 23, '2025-12-04 15:30:00', '2025-12-04 15:30:00');
 
 -- --------------------------------------------------------
 
@@ -954,33 +1092,33 @@ INSERT INTO `phieu_kham_benh` (`id`, `id_lich_hen`, `benh_nhan_id`, `bac_si_id`,
 --
 
 CREATE TABLE `phieu_tien_su_di_ung` (
-  `id` int(11) NOT NULL,
-  `benh_nhan_id` int(11) NOT NULL,
-  `thuoc_hoac_di_nguyen` text DEFAULT NULL,
-  `so_lan_thuoc` varchar(50) DEFAULT NULL,
-  `khong_thuoc` tinyint(1) NOT NULL DEFAULT 0,
-  `ghi_chu_thuoc` text DEFAULT NULL,
-  `con_trung` text DEFAULT NULL,
-  `so_lan_con_trung` varchar(50) DEFAULT NULL,
-  `khong_con_trung` tinyint(1) NOT NULL DEFAULT 0,
-  `ghi_chu_con_trung` text DEFAULT NULL,
-  `thuc_pham` text DEFAULT NULL,
-  `so_lan_thuc_pham` varchar(50) DEFAULT NULL,
-  `khong_thuc_pham` tinyint(1) NOT NULL DEFAULT 0,
-  `ghi_chu_thuc_pham` text DEFAULT NULL,
-  `tac_nhan_khac` text DEFAULT NULL,
-  `so_lan_tac_nhan_khac` varchar(50) DEFAULT NULL,
-  `khong_tac_nhan_khac` tinyint(1) NOT NULL DEFAULT 0,
-  `ghi_chu_tac_nhan_khac` text DEFAULT NULL,
-  `tien_su_ca_nhan` text DEFAULT NULL,
-  `so_lan_tien_su_ca_nhan` varchar(50) DEFAULT NULL,
-  `khong_tien_su_ca_nhan` tinyint(1) NOT NULL DEFAULT 0,
-  `ghi_chu_tien_su_ca_nhan` text DEFAULT NULL,
-  `tien_su_gia_dinh` text DEFAULT NULL,
-  `so_lan_tien_su_gia_dinh` varchar(50) DEFAULT NULL,
-  `khong_tien_su_gia_dinh` tinyint(1) NOT NULL DEFAULT 0,
-  `ghi_chu_tien_su_gia_dinh` text DEFAULT NULL,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `benh_nhan_id` int NOT NULL,
+  `thuoc_hoac_di_nguyen` text COLLATE utf8mb4_general_ci,
+  `so_lan_thuoc` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `khong_thuoc` tinyint(1) NOT NULL DEFAULT '0',
+  `ghi_chu_thuoc` text COLLATE utf8mb4_general_ci,
+  `con_trung` text COLLATE utf8mb4_general_ci,
+  `so_lan_con_trung` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `khong_con_trung` tinyint(1) NOT NULL DEFAULT '0',
+  `ghi_chu_con_trung` text COLLATE utf8mb4_general_ci,
+  `thuc_pham` text COLLATE utf8mb4_general_ci,
+  `so_lan_thuc_pham` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `khong_thuc_pham` tinyint(1) NOT NULL DEFAULT '0',
+  `ghi_chu_thuc_pham` text COLLATE utf8mb4_general_ci,
+  `tac_nhan_khac` text COLLATE utf8mb4_general_ci,
+  `so_lan_tac_nhan_khac` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `khong_tac_nhan_khac` tinyint(1) NOT NULL DEFAULT '0',
+  `ghi_chu_tac_nhan_khac` text COLLATE utf8mb4_general_ci,
+  `tien_su_ca_nhan` text COLLATE utf8mb4_general_ci,
+  `so_lan_tien_su_ca_nhan` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `khong_tien_su_ca_nhan` tinyint(1) NOT NULL DEFAULT '0',
+  `ghi_chu_tien_su_ca_nhan` text COLLATE utf8mb4_general_ci,
+  `tien_su_gia_dinh` text COLLATE utf8mb4_general_ci,
+  `so_lan_tien_su_gia_dinh` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `khong_tien_su_gia_dinh` tinyint(1) NOT NULL DEFAULT '0',
+  `ghi_chu_tien_su_gia_dinh` text COLLATE utf8mb4_general_ci,
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -990,25 +1128,25 @@ CREATE TABLE `phieu_tien_su_di_ung` (
 --
 
 CREATE TABLE `phieu_tra_ket_qua_xet_nghiem` (
-  `id` int(11) NOT NULL,
-  `id_phieu_yeu_cau` int(11) NOT NULL COMMENT 'ID phiếu yêu cầu xét nghiệm',
-  `id_benh_nhan` int(11) NOT NULL COMMENT 'ID bệnh nhân',
-  `ma_benh_nhan` varchar(50) NOT NULL COMMENT 'Mã bệnh nhân',
-  `ho_ten` varchar(255) NOT NULL COMMENT 'Họ tên bệnh nhân',
-  `tuoi` tinyint(3) UNSIGNED NOT NULL COMMENT 'Tuổi',
-  `gioi_tinh` varchar(10) NOT NULL COMMENT 'Giới tính',
-  `dia_chi` text DEFAULT NULL COMMENT 'Địa chỉ',
-  `chan_doan_so_bo` text DEFAULT NULL COMMENT 'Chẩn đoán sơ bộ',
-  `tinh_trang_mau` varchar(100) DEFAULT NULL COMMENT 'Tình trạng mẫu',
-  `vi_tri_lay_mau` varchar(255) DEFAULT NULL COMMENT 'Vị trí lấy mẫu',
-  `bac_si_yeu_cau` varchar(255) DEFAULT NULL COMMENT 'Bác sĩ yêu cầu',
-  `bac_si_xet_nghiem` varchar(255) NOT NULL COMMENT 'Bác sĩ xét nghiệm',
+  `id` int NOT NULL,
+  `id_phieu_yeu_cau` int NOT NULL COMMENT 'ID phiếu yêu cầu xét nghiệm',
+  `id_benh_nhan` int NOT NULL COMMENT 'ID bệnh nhân',
+  `ma_benh_nhan` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Mã bệnh nhân',
+  `ho_ten` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Họ tên bệnh nhân',
+  `tuoi` tinyint UNSIGNED NOT NULL COMMENT 'Tuổi',
+  `gioi_tinh` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Giới tính',
+  `dia_chi` text COLLATE utf8mb4_unicode_ci COMMENT 'Địa chỉ',
+  `chan_doan_so_bo` text COLLATE utf8mb4_unicode_ci COMMENT 'Chẩn đoán sơ bộ',
+  `tinh_trang_mau` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Tình trạng mẫu',
+  `vi_tri_lay_mau` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Vị trí lấy mẫu',
+  `bac_si_yeu_cau` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Bác sĩ yêu cầu',
+  `bac_si_xet_nghiem` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Bác sĩ xét nghiệm',
   `ngay_dang_ky` datetime NOT NULL COMMENT 'Ngày đăng ký',
   `ngay_tra_ket_qua` date NOT NULL COMMENT 'Ngày trả kết quả',
-  `trang_thai` enum('Đã trả kết quả','Đã in','Đã gửi') NOT NULL DEFAULT 'Đã trả kết quả',
-  `ghi_chu` text DEFAULT NULL COMMENT 'Ghi chú thêm',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `trang_thai` enum('Đã trả kết quả','Đã in','Đã gửi') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Đã trả kết quả',
+  `ghi_chu` text COLLATE utf8mb4_unicode_ci COMMENT 'Ghi chú thêm',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng lưu phiếu trả kết quả xét nghiệm';
 
 --
@@ -1025,22 +1163,22 @@ INSERT INTO `phieu_tra_ket_qua_xet_nghiem` (`id`, `id_phieu_yeu_cau`, `id_benh_n
 --
 
 CREATE TABLE `phieu_yeu_cau_sieu_am` (
-  `id` int(11) NOT NULL,
-  `id_phieu_kham_benh` int(11) NOT NULL COMMENT 'FK -> phieu_kham_benh.id',
-  `so_ho_so` varchar(100) DEFAULT NULL COMMENT 'Mã bệnh nhân (ma_benh_nhan)',
-  `ho_ten` varchar(255) DEFAULT NULL,
-  `gioi_tinh` varchar(10) DEFAULT NULL,
-  `doi_tuong` varchar(50) DEFAULT NULL COMMENT 'BHYT / Thu phí',
-  `so_the_bhyt` varchar(50) DEFAULT NULL,
-  `phong_kham` varchar(255) DEFAULT NULL,
-  `chan_doan` varchar(500) DEFAULT NULL,
-  `yeu_cau` text DEFAULT NULL COMMENT 'Yêu cầu siêu âm (có thể nhiều mục, ngăn cách bằng dấu phẩy)',
-  `bac_si_kham` varchar(255) DEFAULT NULL,
+  `id` int NOT NULL,
+  `id_phieu_kham_benh` int NOT NULL COMMENT 'FK -> phieu_kham_benh.id',
+  `so_ho_so` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Mã bệnh nhân (ma_benh_nhan)',
+  `ho_ten` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `gioi_tinh` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `doi_tuong` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'BHYT / Thu phí',
+  `so_the_bhyt` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `phong_kham` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `chan_doan` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `yeu_cau` text COLLATE utf8mb4_unicode_ci COMMENT 'Yêu cầu siêu âm (có thể nhiều mục, ngăn cách bằng dấu phẩy)',
+  `bac_si_kham` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `thoi_gian_yeu_cau` datetime DEFAULT NULL,
-  `bac_si_sieu_am_id` int(11) DEFAULT NULL,
-  `trang_thai` enum('Đã yêu cầu','Hoàn thành') NOT NULL DEFAULT 'Đã yêu cầu',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `bac_si_sieu_am_id` int DEFAULT NULL,
+  `trang_thai` enum('Đã yêu cầu','Hoàn thành') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Đã yêu cầu',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Phiếu yêu cầu siêu âm';
 
 -- --------------------------------------------------------
@@ -1050,23 +1188,23 @@ CREATE TABLE `phieu_yeu_cau_sieu_am` (
 --
 
 CREATE TABLE `phieu_yeu_cau_xet_nghiem` (
-  `id` int(11) NOT NULL,
-  `id_phieu_kham_benh` int(11) DEFAULT NULL,
-  `so_ho_so` varchar(100) DEFAULT NULL,
-  `ho_ten` varchar(255) DEFAULT NULL,
-  `tuoi` tinyint(3) UNSIGNED DEFAULT NULL,
-  `gioi_tinh` varchar(10) DEFAULT NULL,
-  `doi_tuong` varchar(50) DEFAULT NULL COMMENT 'BHYT / Thu phí',
-  `so_the_bhyt` varchar(50) DEFAULT NULL,
-  `phong_kham` varchar(255) DEFAULT NULL,
-  `chan_doan` varchar(500) DEFAULT NULL,
-  `yeu_cau` text DEFAULT NULL COMMENT 'Yêu cầu xét nghiệm (có thể nhiều mục, ngăn cách bằng dấu phẩy)',
-  `bac_si_kham` varchar(255) DEFAULT NULL,
+  `id` int NOT NULL,
+  `id_phieu_kham_benh` int DEFAULT NULL,
+  `so_ho_so` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ho_ten` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tuoi` tinyint UNSIGNED DEFAULT NULL,
+  `gioi_tinh` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `doi_tuong` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'BHYT / Thu phí',
+  `so_the_bhyt` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `phong_kham` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `chan_doan` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `yeu_cau` text COLLATE utf8mb4_unicode_ci COMMENT 'Yêu cầu xét nghiệm (có thể nhiều mục, ngăn cách bằng dấu phẩy)',
+  `bac_si_kham` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `thoi_gian_yeu_cau` datetime DEFAULT NULL,
-  `bac_si_xet_nghiem_id` int(11) DEFAULT NULL,
-  `trang_thai` enum('Đã yêu cầu','Hoàn thành') NOT NULL DEFAULT 'Đã yêu cầu',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `bac_si_xet_nghiem_id` int DEFAULT NULL,
+  `trang_thai` enum('Đã yêu cầu','Hoàn thành') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Đã yêu cầu',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -1083,15 +1221,15 @@ INSERT INTO `phieu_yeu_cau_xet_nghiem` (`id`, `id_phieu_kham_benh`, `so_ho_so`, 
 --
 
 CREATE TABLE `quan_tri_vien` (
-  `id` int(11) NOT NULL,
-  `ten` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `mat_khau` varchar(255) NOT NULL,
-  `so_dien_thoai` varchar(20) DEFAULT NULL,
-  `face_encoding` text DEFAULT NULL COMMENT 'Face encoding dạng JSON array',
+  `id` int NOT NULL,
+  `ten` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `mat_khau` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `so_dien_thoai` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `face_encoding` text COLLATE utf8mb4_general_ci COMMENT 'Face encoding dạng JSON array',
   `face_encoding_updated` timestamp NULL DEFAULT NULL COMMENT 'Thời gian cập nhật face encoding',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -1108,15 +1246,15 @@ INSERT INTO `quan_tri_vien` (`id`, `ten`, `email`, `mat_khau`, `so_dien_thoai`, 
 --
 
 CREATE TABLE `sieuam_suggestions` (
-  `id` int(11) NOT NULL,
-  `ten_goi_y` varchar(255) NOT NULL COMMENT 'Tên gợi ý Siêu âm',
-  `gia_tien` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Giá tiền (VNĐ)',
-  `mo_ta` text DEFAULT NULL,
-  `loai_chup` enum('Ổ bụng','Sản phụ khoa','Tim mạch','Mạch máu','Tuyến - đầu cổ','Cơ xương khớp','Khác') NOT NULL DEFAULT 'Khác',
-  `trang_thai` tinyint(1) NOT NULL DEFAULT 1,
-  `thu_tu` int(11) DEFAULT 0,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `ten_goi_y` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên gợi ý Siêu âm',
+  `gia_tien` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT 'Giá tiền (VNĐ)',
+  `mo_ta` text COLLATE utf8mb4_unicode_ci,
+  `loai_chup` enum('Ổ bụng','Sản phụ khoa','Tim mạch','Mạch máu','Tuyến - đầu cổ','Cơ xương khớp','Khác') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Khác',
+  `trang_thai` tinyint(1) NOT NULL DEFAULT '1',
+  `thu_tu` int DEFAULT '0',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng gợi ý Siêu âm';
 
 --
@@ -1167,13 +1305,13 @@ INSERT INTO `sieuam_suggestions` (`id`, `ten_goi_y`, `gia_tien`, `mo_ta`, `loai_
 --
 
 CREATE TABLE `sieu_am_hinh_anh` (
-  `id` int(11) NOT NULL,
-  `id_ket_qua_sieu_am` int(11) NOT NULL,
-  `ten_file` varchar(255) NOT NULL,
-  `duong_dan` varchar(500) NOT NULL,
-  `kich_thuoc` int(11) DEFAULT NULL COMMENT 'Kích thước file tính bằng bytes',
-  `loai_file` varchar(50) DEFAULT NULL COMMENT 'image/jpeg, image/png, etc.',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp()
+  `id` int NOT NULL,
+  `id_ket_qua_sieu_am` int NOT NULL,
+  `ten_file` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `duong_dan` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `kich_thuoc` int DEFAULT NULL COMMENT 'Kích thước file tính bằng bytes',
+  `loai_file` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'image/jpeg, image/png, etc.',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1183,17 +1321,17 @@ CREATE TABLE `sieu_am_hinh_anh` (
 --
 
 CREATE TABLE `thong_bao` (
-  `id` int(11) NOT NULL,
-  `doi_tuong` enum('bac_si','benh_nhan','quan_tri_vien') NOT NULL,
-  `bac_si_id` int(11) DEFAULT NULL,
-  `benh_nhan_id` int(11) DEFAULT NULL,
-  `quan_tri_vien_id` int(11) DEFAULT NULL,
-  `loai` varchar(50) NOT NULL DEFAULT 'info',
-  `noi_dung` text NOT NULL,
-  `du_lieu_kem_theo` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`du_lieu_kem_theo`)),
-  `da_doc` tinyint(1) NOT NULL DEFAULT 0,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `id` int NOT NULL,
+  `doi_tuong` enum('bac_si','benh_nhan','quan_tri_vien') COLLATE utf8mb4_general_ci NOT NULL,
+  `bac_si_id` int DEFAULT NULL,
+  `benh_nhan_id` int DEFAULT NULL,
+  `quan_tri_vien_id` int DEFAULT NULL,
+  `loai` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'info',
+  `noi_dung` text COLLATE utf8mb4_general_ci NOT NULL,
+  `du_lieu_kem_theo` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin,
+  `da_doc` tinyint(1) NOT NULL DEFAULT '0',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ;
 
 --
 -- Đang đổ dữ liệu cho bảng `thong_bao`
@@ -1221,7 +1359,8 @@ INSERT INTO `thong_bao` (`id`, `doi_tuong`, `bac_si_id`, `benh_nhan_id`, `quan_t
 (44, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 29-11-2025 lúc 07:00', '{\"doctorId\":\"1\",\"patientId\":45,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-11-29\",\"appointmentTime\":\"07:00\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 29-11-2025 lúc 07:00\",\"timestamp\":\"2025-11-29 01:09:34\"}', 1, '2025-11-28 18:09:36'),
 (48, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 05-12-2025 lúc 07:00', '{\"doctorId\":\"1\",\"patientId\":45,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-12-05\",\"appointmentTime\":\"07:00\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 05-12-2025 lúc 07:00\",\"timestamp\":\"2025-12-01 15:17:47\"}', 1, '2025-12-01 08:17:49'),
 (51, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 01-12-2025 lúc 15:30', '{\"doctorId\":\"1\",\"patientId\":45,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-12-01\",\"appointmentTime\":\"15:30\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 01-12-2025 lúc 15:30\",\"timestamp\":\"2025-12-01 15:28:36\"}', 1, '2025-12-01 08:28:38'),
-(53, 'bac_si', 1, NULL, NULL, 'warning', 'Bệnh nhân Cao Dương Quốc Việt đã hủy lịch hẹn vào 2025-12-01 lúc 19:30:00', '{\"appointmentId\":225,\"patientId\":46,\"doctorId\":1,\"patientName\":\"Cao Dương Quốc Việt\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-12-01\",\"appointmentTime\":\"19:30:00\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã hủy lịch hẹn vào 2025-12-01 lúc 19:30:00\",\"timestamp\":\"2025-12-01 20:03:16\"}', 0, '2025-12-01 13:03:16');
+(53, 'bac_si', 1, NULL, NULL, 'warning', 'Bệnh nhân Cao Dương Quốc Việt đã hủy lịch hẹn vào 2025-12-01 lúc 19:30:00', '{\"appointmentId\":225,\"patientId\":46,\"doctorId\":1,\"patientName\":\"Cao Dương Quốc Việt\",\"doctorName\":\"GSTS. Cao Việt\",\"appointmentDate\":\"2025-12-01\",\"appointmentTime\":\"19:30:00\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã hủy lịch hẹn vào 2025-12-01 lúc 19:30:00\",\"timestamp\":\"2025-12-01 20:03:16\"}', 1, '2025-12-01 13:03:16'),
+(54, 'bac_si', 1, NULL, NULL, 'info', 'Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 05-12-2025 lúc 07:00', '{\"doctorId\":\"1\",\"patientId\":57,\"patientName\":\"Cao Dương Quốc Việt\",\"appointmentDate\":\"2025-12-05\",\"appointmentTime\":\"07:00\",\"message\":\"Bệnh nhân Cao Dương Quốc Việt đã đặt lịch hẹn vào 05-12-2025 lúc 07:00\",\"timestamp\":\"2025-12-02 15:19:11\"}', 1, '2025-12-02 08:19:11');
 
 -- --------------------------------------------------------
 
@@ -1230,27 +1369,27 @@ INSERT INTO `thong_bao` (`id`, `doi_tuong`, `bac_si_id`, `benh_nhan_id`, `quan_t
 --
 
 CREATE TABLE `thuoc` (
-  `MaThuoc` varchar(10) NOT NULL,
-  `TenThuoc` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  `HoatChatChinh` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-  `DangBaoChe` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-  `DonViTinh` varchar(20) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-  `HamLuong` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-  `ChiDinh` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-  `ChongChiDinh` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-  `LieuDung` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-  `DonGia` decimal(10,2) DEFAULT NULL CHECK (`DonGia` >= 0),
-  `SoLuongTon` int(11) DEFAULT 0 CHECK (`SoLuongTon` >= 0),
+  `MaThuoc` varchar(10) COLLATE utf8mb4_general_ci NOT NULL,
+  `TenThuoc` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL,
+  `HoatChatChinh` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `DangBaoChe` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `DonViTinh` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `HamLuong` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `ChiDinh` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `ChongChiDinh` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `LieuDung` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `DonGia` decimal(10,2) DEFAULT NULL,
+  `SoLuongTon` int DEFAULT '0',
   `NgaySanXuat` date DEFAULT NULL,
   `HanSuDung` date DEFAULT NULL,
-  `NhaSanXuat` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
-  `NuocSanXuat` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `NhaSanXuat` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `NuocSanXuat` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `BaoHiem` bit(1) DEFAULT b'0',
-  `GhiChu` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `GhiChu` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `TrangThai` bit(1) DEFAULT b'1',
-  `NgayTao` datetime DEFAULT current_timestamp(),
-  `NgayCapNhat` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `NgayTao` datetime DEFAULT CURRENT_TIMESTAMP,
+  `NgayCapNhat` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ;
 
 --
 -- Đang đổ dữ liệu cho bảng `thuoc`
@@ -1270,15 +1409,15 @@ INSERT INTO `thuoc` (`MaThuoc`, `TenThuoc`, `HoatChatChinh`, `DangBaoChe`, `DonV
 --
 
 CREATE TABLE `xet_nghiem_suggestions` (
-  `id` int(11) NOT NULL,
-  `ten_goi_y` varchar(255) NOT NULL COMMENT 'Tên gợi ý xét nghiệm',
-  `gia_tien` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Giá tiền (VNĐ)',
-  `mo_ta` text DEFAULT NULL,
-  `loai_xet_nghiem` enum('Huyết học','Sinh hóa','Vi sinh','Miễn dịch','Nội tiết','Khác') NOT NULL DEFAULT 'Khác',
-  `trang_thai` tinyint(1) NOT NULL DEFAULT 1,
-  `thu_tu` int(11) DEFAULT 0,
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `ten_goi_y` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên gợi ý xét nghiệm',
+  `gia_tien` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT 'Giá tiền (VNĐ)',
+  `mo_ta` text COLLATE utf8mb4_unicode_ci,
+  `loai_xet_nghiem` enum('Huyết học','Sinh hóa','Vi sinh','Miễn dịch','Nội tiết','Khác') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Khác',
+  `trang_thai` tinyint(1) NOT NULL DEFAULT '1',
+  `thu_tu` int DEFAULT '0',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng gợi ý xét nghiệm';
 
 --
@@ -1296,15 +1435,15 @@ INSERT INTO `xet_nghiem_suggestions` (`id`, `ten_goi_y`, `gia_tien`, `mo_ta`, `l
 --
 
 CREATE TABLE `xray_suggestions` (
-  `id` int(11) NOT NULL,
-  `ten_goi_y` varchar(255) NOT NULL COMMENT 'Tên gợi ý X-Quang',
-  `gia_tien` decimal(10,2) NOT NULL DEFAULT 0.00 COMMENT 'Giá tiền (VNĐ)',
-  `mo_ta` text DEFAULT NULL COMMENT 'Mô tả chi tiết',
-  `loai_chup` enum('Xương','Ngực','Cột sống','Khớp','Sọ mặt','Khác') NOT NULL DEFAULT 'Khác' COMMENT 'Loại chụp',
-  `trang_thai` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1: Hoạt động, 0: Tạm dừng',
-  `thu_tu` int(11) DEFAULT 0 COMMENT 'Thứ tự hiển thị',
-  `ngay_tao` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ngay_cap_nhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `id` int NOT NULL,
+  `ten_goi_y` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Tên gợi ý X-Quang',
+  `gia_tien` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT 'Giá tiền (VNĐ)',
+  `mo_ta` text COLLATE utf8mb4_unicode_ci COMMENT 'Mô tả chi tiết',
+  `loai_chup` enum('Xương','Ngực','Cột sống','Khớp','Sọ mặt','Khác') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Khác' COMMENT 'Loại chụp',
+  `trang_thai` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1: Hoạt động, 0: Tạm dừng',
+  `thu_tu` int DEFAULT '0' COMMENT 'Thứ tự hiển thị',
+  `ngay_tao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ngay_cap_nhat` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Bảng gợi ý X-Quang';
 
 --
@@ -1682,267 +1821,267 @@ ALTER TABLE `xray_suggestions`
 -- AUTO_INCREMENT cho bảng `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT cho bảng `bac_si`
 --
 ALTER TABLE `bac_si`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=92;
 
 --
 -- AUTO_INCREMENT cho bảng `bao_hiem_y_te`
 --
 ALTER TABLE `bao_hiem_y_te`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115;
 
 --
 -- AUTO_INCREMENT cho bảng `bien_lai_vien_phi`
 --
 ALTER TABLE `bien_lai_vien_phi`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT cho bảng `cccd_data`
 --
 ALTER TABLE `cccd_data`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT cho bảng `cham_cong`
 --
 ALTER TABLE `cham_cong`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT cho bảng `chi_so_xet_nghiem`
 --
 ALTER TABLE `chi_so_xet_nghiem`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
 
 --
 -- AUTO_INCREMENT cho bảng `chi_tiet_bien_lai`
 --
 ALTER TABLE `chi_tiet_bien_lai`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=156;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=156;
 
 --
 -- AUTO_INCREMENT cho bảng `chi_tiet_don_thuoc`
 --
 ALTER TABLE `chi_tiet_don_thuoc`
-  MODIFY `MaChiTiet` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
+  MODIFY `MaChiTiet` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 
 --
 -- AUTO_INCREMENT cho bảng `chi_tiet_ket_qua_xet_nghiem`
 --
 ALTER TABLE `chi_tiet_ket_qua_xet_nghiem`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=215;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=215;
 
 --
 -- AUTO_INCREMENT cho bảng `chuyen_khoa`
 --
 ALTER TABLE `chuyen_khoa`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT cho bảng `dich_vu_kham`
 --
 ALTER TABLE `dich_vu_kham`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT cho bảng `face_encodings`
 --
 ALTER TABLE `face_encodings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT cho bảng `ket_qua_sieu_am`
 --
 ALTER TABLE `ket_qua_sieu_am`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT cho bảng `ket_qua_xquang`
 --
 ALTER TABLE `ket_qua_xquang`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT cho bảng `ket_qua_xquang_hinh_anh`
 --
 ALTER TABLE `ket_qua_xquang_hinh_anh`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT cho bảng `le_tan`
 --
 ALTER TABLE `le_tan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=226;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=88;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec_le_tan`
 --
 ALTER TABLE `lich_lam_viec_le_tan`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec_le_tan_ngoai_le`
 --
 ALTER TABLE `lich_lam_viec_le_tan_ngoai_le`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT cho bảng `lich_lam_viec_ngoai_le`
 --
 ALTER TABLE `lich_lam_viec_ngoai_le`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_boc_so`
 --
 ALTER TABLE `phieu_boc_so`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_chup_xquang`
 --
 ALTER TABLE `phieu_chup_xquang`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_kham_benh`
 --
 ALTER TABLE `phieu_kham_benh`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_tien_su_di_ung`
 --
 ALTER TABLE `phieu_tien_su_di_ung`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_tra_ket_qua_xet_nghiem`
 --
 ALTER TABLE `phieu_tra_ket_qua_xet_nghiem`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_yeu_cau_sieu_am`
 --
 ALTER TABLE `phieu_yeu_cau_sieu_am`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT cho bảng `phieu_yeu_cau_xet_nghiem`
 --
 ALTER TABLE `phieu_yeu_cau_xet_nghiem`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT cho bảng `quan_tri_vien`
 --
 ALTER TABLE `quan_tri_vien`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT cho bảng `sieuam_suggestions`
 --
 ALTER TABLE `sieuam_suggestions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT cho bảng `sieu_am_hinh_anh`
 --
 ALTER TABLE `sieu_am_hinh_anh`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT cho bảng `thong_bao`
 --
 ALTER TABLE `thong_bao`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT cho bảng `xet_nghiem_suggestions`
 --
 ALTER TABLE `xet_nghiem_suggestions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT cho bảng `xray_suggestions`
 --
 ALTER TABLE `xray_suggestions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
--- Các ràng buộc cho các bảng đã đổ
+-- Ràng buộc đối với các bảng kết xuất
 --
 
 --
--- Các ràng buộc cho bảng `bac_si`
+-- Ràng buộc cho bảng `bac_si`
 --
 ALTER TABLE `bac_si`
   ADD CONSTRAINT `fk_bac_si_chuyen_khoa` FOREIGN KEY (`chuyen_khoa_id`) REFERENCES `chuyen_khoa` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `benh_nhan`
+-- Ràng buộc cho bảng `benh_nhan`
 --
 ALTER TABLE `benh_nhan`
   ADD CONSTRAINT `fk_benh_nhan_bao_hiem_y_te` FOREIGN KEY (`bao_hiem_y_te_id`) REFERENCES `bao_hiem_y_te` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `bien_lai_vien_phi`
+-- Ràng buộc cho bảng `bien_lai_vien_phi`
 --
 ALTER TABLE `bien_lai_vien_phi`
   ADD CONSTRAINT `fk_bien_lai_phieu_kham` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `chi_tiet_bien_lai`
+-- Ràng buộc cho bảng `chi_tiet_bien_lai`
 --
 ALTER TABLE `chi_tiet_bien_lai`
   ADD CONSTRAINT `fk_chi_tiet_bien_lai` FOREIGN KEY (`id_bien_lai`) REFERENCES `bien_lai_vien_phi` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `chi_tiet_don_thuoc`
+-- Ràng buộc cho bảng `chi_tiet_don_thuoc`
 --
 ALTER TABLE `chi_tiet_don_thuoc`
   ADD CONSTRAINT `fk_ctdt_donthuoc` FOREIGN KEY (`MaDonThuoc`) REFERENCES `don_thuoc` (`MaDonThuoc`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_ctdt_thuoc` FOREIGN KEY (`MaThuoc`) REFERENCES `thuoc` (`MaThuoc`) ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `chi_tiet_ket_qua_xet_nghiem`
+-- Ràng buộc cho bảng `chi_tiet_ket_qua_xet_nghiem`
 --
 ALTER TABLE `chi_tiet_ket_qua_xet_nghiem`
   ADD CONSTRAINT `chi_tiet_ket_qua_xet_nghiem_ibfk_1` FOREIGN KEY (`id_phieu_tra_ket_qua`) REFERENCES `phieu_tra_ket_qua_xet_nghiem` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `don_thuoc`
+-- Ràng buộc cho bảng `don_thuoc`
 --
 ALTER TABLE `don_thuoc`
   ADD CONSTRAINT `fk_dt_bacsi` FOREIGN KEY (`MaBacSi`) REFERENCES `bac_si` (`id`) ON UPDATE CASCADE,
@@ -1950,7 +2089,7 @@ ALTER TABLE `don_thuoc`
   ADD CONSTRAINT `fk_dt_phieukham` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `ho_so_benh_an`
+-- Ràng buộc cho bảng `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
   ADD CONSTRAINT `ho_so_benh_an_ibfk_1` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE,
@@ -1958,56 +2097,56 @@ ALTER TABLE `ho_so_benh_an`
   ADD CONSTRAINT `ho_so_benh_an_ibfk_3` FOREIGN KEY (`lich_hen_id`) REFERENCES `lich_hen` (`id`) ON DELETE SET NULL;
 
 --
--- Các ràng buộc cho bảng `ket_qua_sieu_am`
+-- Ràng buộc cho bảng `ket_qua_sieu_am`
 --
 ALTER TABLE `ket_qua_sieu_am`
   ADD CONSTRAINT `fk_ket_qua_sieu_am_phieu` FOREIGN KEY (`id_phieu_yeu_cau_sieu_am`) REFERENCES `phieu_yeu_cau_sieu_am` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `ket_qua_xquang`
+-- Ràng buộc cho bảng `ket_qua_xquang`
 --
 ALTER TABLE `ket_qua_xquang`
   ADD CONSTRAINT `fk_kqxq_px` FOREIGN KEY (`id_phieu_chup_xquang`) REFERENCES `phieu_chup_xquang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `ket_qua_xquang_hinh_anh`
+-- Ràng buộc cho bảng `ket_qua_xquang_hinh_anh`
 --
 ALTER TABLE `ket_qua_xquang_hinh_anh`
   ADD CONSTRAINT `fk_kqxq_img_kq` FOREIGN KEY (`ket_qua_id`) REFERENCES `ket_qua_xquang` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `lich_hen`
+-- Ràng buộc cho bảng `lich_hen`
 --
 ALTER TABLE `lich_hen`
   ADD CONSTRAINT `lich_hen_ibfk_1` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `lich_hen_ibfk_2` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `lich_lam_viec`
+-- Ràng buộc cho bảng `lich_lam_viec`
 --
 ALTER TABLE `lich_lam_viec`
   ADD CONSTRAINT `lich_lam_viec_ibfk_1` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `lich_lam_viec_le_tan`
+-- Ràng buộc cho bảng `lich_lam_viec_le_tan`
 --
 ALTER TABLE `lich_lam_viec_le_tan`
   ADD CONSTRAINT `fk_lich_lam_viec_le_tan_letan` FOREIGN KEY (`letan_id`) REFERENCES `le_tan` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `lich_lam_viec_le_tan_ngoai_le`
+-- Ràng buộc cho bảng `lich_lam_viec_le_tan_ngoai_le`
 --
 ALTER TABLE `lich_lam_viec_le_tan_ngoai_le`
   ADD CONSTRAINT `fk_lich_lam_viec_le_tan_ngoai_le_letan` FOREIGN KEY (`letan_id`) REFERENCES `le_tan` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_chup_xquang`
+-- Ràng buộc cho bảng `phieu_chup_xquang`
 --
 ALTER TABLE `phieu_chup_xquang`
   ADD CONSTRAINT `phieu_chup_xquang_ibfk_1` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_kham_benh`
+-- Ràng buộc cho bảng `phieu_kham_benh`
 --
 ALTER TABLE `phieu_kham_benh`
   ADD CONSTRAINT `fk_phieu_kham_benh_lich_hen` FOREIGN KEY (`id_lich_hen`) REFERENCES `lich_hen` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
@@ -2016,38 +2155,38 @@ ALTER TABLE `phieu_kham_benh`
   ADD CONSTRAINT `fk_pkb_lich_hen` FOREIGN KEY (`lich_hen`) REFERENCES `lich_hen` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_tien_su_di_ung`
+-- Ràng buộc cho bảng `phieu_tien_su_di_ung`
 --
 ALTER TABLE `phieu_tien_su_di_ung`
   ADD CONSTRAINT `fk_ptsd_benh_nhan` FOREIGN KEY (`benh_nhan_id`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_tra_ket_qua_xet_nghiem`
+-- Ràng buộc cho bảng `phieu_tra_ket_qua_xet_nghiem`
 --
 ALTER TABLE `phieu_tra_ket_qua_xet_nghiem`
   ADD CONSTRAINT `phieu_tra_ket_qua_xet_nghiem_ibfk_1` FOREIGN KEY (`id_phieu_yeu_cau`) REFERENCES `phieu_yeu_cau_xet_nghiem` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `phieu_tra_ket_qua_xet_nghiem_ibfk_2` FOREIGN KEY (`id_benh_nhan`) REFERENCES `benh_nhan` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_yeu_cau_sieu_am`
+-- Ràng buộc cho bảng `phieu_yeu_cau_sieu_am`
 --
 ALTER TABLE `phieu_yeu_cau_sieu_am`
   ADD CONSTRAINT `fk_pycsa_exam` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `phieu_yeu_cau_xet_nghiem`
+-- Ràng buộc cho bảng `phieu_yeu_cau_xet_nghiem`
 --
 ALTER TABLE `phieu_yeu_cau_xet_nghiem`
   ADD CONSTRAINT `fk_xn_phieu_kham` FOREIGN KEY (`id_phieu_kham_benh`) REFERENCES `phieu_kham_benh` (`id`) ON DELETE CASCADE;
 
 --
--- Các ràng buộc cho bảng `sieu_am_hinh_anh`
+-- Ràng buộc cho bảng `sieu_am_hinh_anh`
 --
 ALTER TABLE `sieu_am_hinh_anh`
   ADD CONSTRAINT `fk_sieu_am_hinh_anh_ket_qua` FOREIGN KEY (`id_ket_qua_sieu_am`) REFERENCES `ket_qua_sieu_am` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Các ràng buộc cho bảng `thong_bao`
+-- Ràng buộc cho bảng `thong_bao`
 --
 ALTER TABLE `thong_bao`
   ADD CONSTRAINT `fk_tb_bac_si` FOREIGN KEY (`bac_si_id`) REFERENCES `bac_si` (`id`) ON DELETE CASCADE,

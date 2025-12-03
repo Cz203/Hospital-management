@@ -982,4 +982,71 @@ class AuthController
         }
         exit();
     }
+
+    /**
+     * Refresh JWT token cho socket (tạo token mới từ session hiện tại)
+     */
+    public function refreshSocketToken()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        // Kiểm tra user đã đăng nhập
+        if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Chưa đăng nhập']);
+            exit();
+        }
+
+        try {
+            require_once __DIR__ . '/../Views/layouts/layout_helper.php';
+            $ctx = function_exists('getCurrentUserContext') ? getCurrentUserContext() : ['id' => null, 'role' => '', 'name' => ''];
+            $userId = $ctx['id'] ?? '';
+            $userRole = $ctx['role'] ?? '';
+            $userName = $ctx['name'] ?? '';
+
+            if (!$userId || !$userRole) {
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Không có thông tin người dùng']);
+                exit();
+            }
+
+            // Load JWT library
+            if (!class_exists('Firebase\JWT\JWT')) {
+                require_once __DIR__ . '/../vendor/autoload.php';
+            }
+
+            // Đọc secret từ .env
+            $secret = $_ENV['SOCKET_JWT_SECRET'] ?? getenv('SOCKET_JWT_SECRET');
+            if (!$secret) {
+                $secret = $_ENV['API_SECRET'] ?? getenv('API_SECRET') ?: '';
+            }
+
+            if ($secret === '') {
+                http_response_code(500);
+                echo json_encode(['success' => false, 'message' => 'Server misconfigured']);
+                exit();
+            }
+
+            $now = time();
+            $payload = [
+                'sub'  => (string)$userId,
+                'role' => (string)$userRole,
+                'name' => (string)$userName,
+                'iat'  => $now,
+                'exp'  => $now + 3600, // 1 giờ
+            ];
+            $socketJwt = \Firebase\JWT\JWT::encode($payload, $secret, 'HS256');
+
+            echo json_encode([
+                'success' => true,
+                'token' => $socketJwt,
+                'expires_in' => 3600
+            ]);
+        } catch (Throwable $e) {
+            error_log("Error refreshing socket token: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+        exit();
+    }
 }
