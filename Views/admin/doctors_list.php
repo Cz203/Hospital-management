@@ -59,8 +59,18 @@
                                     <td>
                                         <div class="rounded-circle overflow-hidden d-flex align-items-center justify-content-center bg-light"
                                             style="width:40px;height:40px;">
-                                            <?php if (!empty($doc['hinh_anh'])): ?>
-                                                <img src="<?php echo htmlspecialchars($doc['hinh_anh']); ?>" alt="avatar"
+                                            <?php
+                                            $imgSrc = null;
+                                            if (!empty($doc['hinh_anh'])) {
+                                                if (strpos($doc['hinh_anh'], 'uploads/') === 0) {
+                                                    $imgSrc = './' . $doc['hinh_anh'];
+                                                } else {
+                                                    $imgSrc = './uploads/BS/' . $doc['hinh_anh'];
+                                                }
+                                            }
+                                            ?>
+                                            <?php if ($imgSrc): ?>
+                                                <img src="<?php echo htmlspecialchars($imgSrc); ?>" alt="avatar"
                                                     style="width:40px;height:40px;object-fit:cover;">
                                             <?php else: ?>
                                                 <i class="fas fa-user-md text-secondary"></i>

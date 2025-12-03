@@ -2,6 +2,13 @@
    NOVENA CUSTOM OVERRIDES FOR THINHVIET HOSPITAL
    ======================================== */
 
+/* Logo size adjustment */
+.navbar-brand img {
+  max-height: 50px !important;
+  width: auto !important;
+  object-fit: contain;
+}
+
 /* Fix dropdown position for notifications */
 #notif-badge {
   font-size: 0.7rem;

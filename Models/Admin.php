@@ -131,6 +131,16 @@ class Admin extends User
     }
 
     /**
+     * Lấy tổng số lễ tân
+     */
+    public function getTotalReceptions()
+    {
+        $stmt = $this->getConnection()->query("SELECT COUNT(*) as total FROM le_tan");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($result['total'] ?? 0);
+    }
+
+    /**
      * Lấy số bệnh nhân mới hôm nay
      */
     public function getNewPatientsToday($today)

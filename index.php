@@ -171,6 +171,10 @@ switch ($action) {
         $auth->logout(); // Đăng xuất
         break;
 
+    case 'refresh_socket_token':
+        $auth->refreshSocketToken(); // API: Refresh JWT token cho socket
+        break;
+
     // ===== ADMIN ROUTES =====
     case 'admin_dashboard':
         $adminController->dashboard(); // Trang chủ admin
@@ -186,6 +190,14 @@ switch ($action) {
 
     case 'get_patient_stats':
         $adminController->getPatientStatsByFilter(); // API: Lấy thống kê số lượng bệnh nhân theo filter
+        break;
+
+    case 'get_appointment_status_stats':
+        $adminController->getAppointmentStatusStats(); // API: Lấy tỷ lệ trạng thái lịch hẹn (biểu đồ tròn)
+        break;
+
+    case 'get_specialty_stats':
+        $adminController->getSpecialtyStats(); // API: Lấy top chuyên khoa được đặt lịch nhiều nhất (biểu đồ tròn)
         break;
 
     case 'doctor_schedules':

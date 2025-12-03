@@ -103,8 +103,8 @@ include 'Views/layouts/header.php';
                     if (strpos($doc['hinh_anh'], 'uploads/') === 0) {
                         $imgSrc = './' . $doc['hinh_anh'];
                     } else {
-                        // Nếu chỉ có tên file thì thêm đường dẫn uploads/
-                        $imgSrc = './uploads/' . $doc['hinh_anh'];
+                        // Nếu chỉ có tên file thì thêm đường dẫn uploads/BS/
+                        $imgSrc = './uploads/BS/' . $doc['hinh_anh'];
                     }
 
                     // Kiểm tra file có tồn tại không

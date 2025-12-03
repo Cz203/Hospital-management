@@ -37,13 +37,28 @@ class Reception extends User
 
     public function create($data)
     {
-        $query = "INSERT INTO " . $this->table_name . " (ten, email, mat_khau, so_dien_thoai, ngay_tao) VALUES (:ten, :email, :mat_khau, :so_dien_thoai, NOW())";
+        $fields = ['ten', 'email', 'mat_khau', 'so_dien_thoai'];
+        $values = [':ten', ':email', ':mat_khau', ':so_dien_thoai'];
+
+        // Thêm gioi_tinh nếu có trong data
+        if (isset($data['gioi_tinh']) && $data['gioi_tinh'] !== '') {
+            $fields[] = 'gioi_tinh';
+            $values[] = ':gioi_tinh';
+        }
+
+        $query = "INSERT INTO " . $this->table_name . " (" . implode(', ', $fields) . ", ngay_tao) VALUES (" . implode(', ', $values) . ", NOW())";
         $stmt = $this->conn->prepare($query);
         $hashed = $this->hashPassword($data['mat_khau']);
         $stmt->bindParam(':ten', $data['ten']);
         $stmt->bindParam(':email', $data['email']);
         $stmt->bindParam(':mat_khau', $hashed);
         $stmt->bindParam(':so_dien_thoai', $data['so_dien_thoai']);
+
+        // Bind gioi_tinh nếu có
+        if (isset($data['gioi_tinh']) && $data['gioi_tinh'] !== '') {
+            $stmt->bindParam(':gioi_tinh', $data['gioi_tinh']);
+        }
+
         return $stmt->execute();
     }
 
@@ -53,12 +68,25 @@ class Reception extends User
     public function update(int $id, array $data): bool
     {
         $sql = "UPDATE " . $this->table_name . " 
-                SET ten = :ten, email = :email, so_dien_thoai = :so_dien_thoai, ngay_cap_nhat = NOW()
-                WHERE id = :id";
+                SET ten = :ten, email = :email, so_dien_thoai = :so_dien_thoai";
+
+        // Thêm gioi_tinh nếu có trong data
+        if (isset($data['gioi_tinh'])) {
+            $sql .= ", gioi_tinh = :gioi_tinh";
+        }
+
+        $sql .= ", ngay_cap_nhat = NOW() WHERE id = :id";
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':ten', $data['ten']);
         $stmt->bindParam(':email', $data['email']);
         $stmt->bindParam(':so_dien_thoai', $data['so_dien_thoai']);
+
+        // Bind gioi_tinh nếu có
+        if (isset($data['gioi_tinh'])) {
+            $stmt->bindParam(':gioi_tinh', $data['gioi_tinh']);
+        }
+
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();
     }
@@ -68,7 +96,7 @@ class Reception extends User
      */
     public function getAll()
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_tao, ngay_cap_nhat 
+        $query = "SELECT id, ten, email, so_dien_thoai, gioi_tinh, ngay_tao, ngay_cap_nhat 
         FROM " . $this->table_name . " 
         ORDER BY ten ASC";
         $stmt = $this->conn->prepare($query);
@@ -97,7 +125,7 @@ class Reception extends User
 
     public function getPaginated(int $offset, int $limit): array
     {
-        $sql = "SELECT id, ten, email, so_dien_thoai, ngay_tao, ngay_cap_nhat
+        $sql = "SELECT id, ten, email, so_dien_thoai, gioi_tinh, ngay_tao, ngay_cap_nhat
                 FROM " . $this->table_name . "
                 ORDER BY ngay_tao DESC
                 LIMIT :limit OFFSET :offset";

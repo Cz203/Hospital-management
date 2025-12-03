@@ -117,7 +117,7 @@
         <nav class="navbar navbar-expand-lg navigation" id="navbar">
             <div class="container">
                 <a class="navbar-brand" href="./home">
-                    <img src="./assets/img/novena-logo.png" alt="ThinhViet Hospital" class="img-fluid">
+                    <img src="./assets/img/unnamed.jpg" alt="ThinhViet Hospital" class="img-fluid">
                 </a>
 
                 <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarmain"

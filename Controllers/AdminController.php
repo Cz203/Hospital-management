@@ -258,12 +258,13 @@ class AdminController
         }
 
         $data = [
-            'ten'       => trim($_POST['ten'] ?? ''),
-            'email'     => trim($_POST['email'] ?? ''),
-            'ngay_sinh' => trim($_POST['ngay_sinh'] ?? ''),
-            'gioi_tinh' => trim($_POST['gioi_tinh'] ?? ''),
-            'dia_chi'   => trim($_POST['dia_chi'] ?? ''),
-            'cccd'      => trim($_POST['cccd'] ?? ''),
+            'ten'           => trim($_POST['ten'] ?? ''),
+            'email'         => trim($_POST['email'] ?? ''),
+            'so_dien_thoai' => trim($_POST['so_dien_thoai'] ?? ''),
+            'ngay_sinh'     => trim($_POST['ngay_sinh'] ?? ''),
+            'gioi_tinh'     => trim($_POST['gioi_tinh'] ?? ''),
+            'dia_chi'       => trim($_POST['dia_chi'] ?? ''),
+            'cccd'          => trim($_POST['cccd'] ?? ''),
         ];
 
         try {
@@ -351,6 +352,7 @@ class AdminController
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['so_dien_thoai'] ?? '');
         $password = $_POST['mat_khau'] ?? '1111';
+        $gioiTinh = trim($_POST['gioi_tinh'] ?? '');
 
         if ($name === '' || $email === '' || $phone === '') {
             $_SESSION['error'] = 'Vui lòng nhập đủ Tên, Email, SĐT.';
@@ -359,12 +361,19 @@ class AdminController
         }
 
         try {
-            $ok = $this->receptionModel->create([
+            $createData = [
                 'ten'         => $name,
                 'email'       => $email,
                 'mat_khau'    => $password,
                 'so_dien_thoai' => $phone,
-            ]);
+            ];
+
+            // Thêm gioi_tinh nếu có
+            if ($gioiTinh !== '') {
+                $createData['gioi_tinh'] = $gioiTinh;
+            }
+
+            $ok = $this->receptionModel->create($createData);
             $_SESSION['success'] = $ok ? 'Thêm lễ tân thành công!' : 'Không thể thêm lễ tân.';
         } catch (Exception $e) {
             $_SESSION['error'] = 'Lỗi: ' . $e->getMessage();
@@ -397,6 +406,11 @@ class AdminController
             'email'        => trim($_POST['email'] ?? ''),
             'so_dien_thoai' => trim($_POST['so_dien_thoai'] ?? ''),
         ];
+
+        // Thêm gioi_tinh nếu có trong POST
+        if (isset($_POST['gioi_tinh']) && $_POST['gioi_tinh'] !== '') {
+            $data['gioi_tinh'] = trim($_POST['gioi_tinh']);
+        }
 
         try {
             $ok = $this->receptionModel->update($id, $data);
@@ -842,6 +856,7 @@ class AdminController
         $stats = [
             'total_doctors' => 0,
             'total_patients' => 0,
+            'total_receptions' => 0,
             'total_appointments' => 0,
             'total_appointments_today' => 0,
             'total_revenue_month' => 0,
@@ -882,6 +897,9 @@ class AdminController
 
             // Tổng số bệnh nhân
             $stats['total_patients'] = $this->adminModel->getTotalPatients();
+
+            // Tổng số lễ tân
+            $stats['total_receptions'] = $this->adminModel->getTotalReceptions();
 
             // Bệnh nhân mới hôm nay
             $stats['new_patients_today'] = $this->adminModel->getNewPatientsToday($today);
@@ -1262,6 +1280,145 @@ class AdminController
             echo json_encode(['success' => true, 'data' => $data]);
         } catch (Exception $e) {
             error_log("Error getting patient stats: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy thống kê tỷ lệ trạng thái lịch hẹn (cho biểu đồ tròn)
+     * Chỉ lấy 2 trạng thái: Hoàn thành và Hủy
+     * Có filter theo ngày/tuần/tháng/năm
+     */
+    public function getAppointmentStatusStats()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->auth->requireAuth('admin');
+
+        $filter = $_GET['filter'] ?? 'all'; // day, week, month, year, all
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        try {
+            // Xây dựng WHERE clause dựa trên filter
+            $whereClause = "WHERE trang_thai IN ('Hoàn thành', 'hủy')";
+
+            switch ($filter) {
+                case 'day':
+                    $whereClause .= " AND ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+                    break;
+                case 'week':
+                    $whereClause .= " AND ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)";
+                    break;
+                case 'month':
+                    $whereClause .= " AND ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)";
+                    break;
+                case 'year':
+                    $whereClause .= " AND ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)";
+                    break;
+                case 'all':
+                default:
+                    // Không thêm điều kiện thời gian
+                    break;
+            }
+
+            $stmt = $db->prepare("
+                SELECT 
+                    CASE 
+                        WHEN trang_thai = 'Hoàn thành' THEN 'Hoàn thành'
+                        WHEN trang_thai = 'hủy' THEN 'Đã hủy'
+                        ELSE NULL
+                    END as trang_thai,
+                    COUNT(*) as count
+                FROM lich_hen
+                " . $whereClause . "
+                GROUP BY trang_thai
+                ORDER BY count DESC
+            ");
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $data = [];
+            foreach ($results as $row) {
+                if ($row['trang_thai']) {
+                    $data[] = [
+                        'label' => $row['trang_thai'],
+                        'value' => (int)$row['count']
+                    ];
+                }
+            }
+
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            error_log("Error getting appointment status stats: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy thống kê top chuyên khoa được đặt lịch nhiều nhất (cho biểu đồ tròn)
+     * Có filter theo ngày/tuần/tháng/năm
+     */
+    public function getSpecialtyStats()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->auth->requireAuth('admin');
+
+        $filter = $_GET['filter'] ?? 'all'; // day, week, month, year, all
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        try {
+            // Xây dựng WHERE clause dựa trên filter
+            $whereClause = "WHERE bs.chuyen_khoa IS NOT NULL AND bs.chuyen_khoa != ''";
+
+            switch ($filter) {
+                case 'day':
+                    $whereClause .= " AND lh.ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+                    break;
+                case 'week':
+                    $whereClause .= " AND lh.ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)";
+                    break;
+                case 'month':
+                    $whereClause .= " AND lh.ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)";
+                    break;
+                case 'year':
+                    $whereClause .= " AND lh.ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)";
+                    break;
+                case 'all':
+                default:
+                    // Không thêm điều kiện thời gian
+                    break;
+            }
+
+            $stmt = $db->prepare("
+                SELECT 
+                    bs.chuyen_khoa,
+                    COUNT(*) as count
+                FROM lich_hen lh
+                JOIN bac_si bs ON lh.bac_si_id = bs.id
+                " . $whereClause . "
+                GROUP BY bs.chuyen_khoa
+                ORDER BY count DESC
+                LIMIT 7
+            ");
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $data = [];
+            foreach ($results as $row) {
+                $data[] = [
+                    'label' => $row['chuyen_khoa'],
+                    'value' => (int)$row['count']
+                ];
+            }
+
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            error_log("Error getting specialty stats: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }

@@ -162,9 +162,9 @@ class Patient extends User
     public function updateProfileWithEmail($id, $data)
     {
         $query = "UPDATE " . $this->table_name . " 
-                  SET ten = :ten, email = :email, ngay_sinh = :ngay_sinh, 
-                      gioi_tinh = :gioi_tinh, dia_chi = :dia_chi, nhom_mau = :nhom_mau, 
-                      ngay_cap_nhat = NOW()
+                  SET ten = :ten, email = :email, so_dien_thoai = :so_dien_thoai, 
+                      ngay_sinh = :ngay_sinh, gioi_tinh = :gioi_tinh, dia_chi = :dia_chi, 
+                      cccd = :cccd, ngay_cap_nhat = NOW()
                   WHERE id = :id";
 
         $stmt = $this->conn->prepare($query);
@@ -172,6 +172,7 @@ class Patient extends User
         $stmt->bindParam(":id", $id);
         $stmt->bindParam(":ten", $data['ten']);
         $stmt->bindParam(":email", $data['email']);
+        $stmt->bindParam(":so_dien_thoai", $data['so_dien_thoai']);
         $stmt->bindParam(":ngay_sinh", $data['ngay_sinh']);
         $stmt->bindParam(":gioi_tinh", $data['gioi_tinh']);
         $stmt->bindParam(":dia_chi", $data['dia_chi']);
