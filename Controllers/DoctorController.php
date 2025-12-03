@@ -1444,7 +1444,7 @@ class DoctorController
                 'thang_sinh' => $toInt($_POST['thang_sinh'] ?? null, 1, 12),
                 'nam_sinh' => $toInt($_POST['nam_sinh'] ?? null, 1900, 2100),
                 'tuoi' => $toInt($_POST['tuoi'] ?? null, 0, 150),
-                'gioi_tinh' => $_POST['gioi_tinh'] ?? null,
+                'gioi_tinh' => ($_POST['gioi_tinh'] ?? null) === 'Nu' ? 'Nữ' : ($_POST['gioi_tinh'] ?? null), // Convert 'Nu' to 'Nữ' for compatibility
                 'nghe_nghiep' => $_POST['nghe_nghiep'] ?? null,
                 'dan_toc' => $_POST['dan_toc'] ?? null,
                 'ngoai_kieu' => $_POST['ngoai_kieu'] ?? null,

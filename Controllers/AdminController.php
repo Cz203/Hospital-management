@@ -258,12 +258,13 @@ class AdminController
         }
 
         $data = [
-            'ten'       => trim($_POST['ten'] ?? ''),
-            'email'     => trim($_POST['email'] ?? ''),
-            'ngay_sinh' => trim($_POST['ngay_sinh'] ?? ''),
-            'gioi_tinh' => trim($_POST['gioi_tinh'] ?? ''),
-            'dia_chi'   => trim($_POST['dia_chi'] ?? ''),
-            'cccd'      => trim($_POST['cccd'] ?? ''),
+            'ten'           => trim($_POST['ten'] ?? ''),
+            'email'         => trim($_POST['email'] ?? ''),
+            'so_dien_thoai' => trim($_POST['so_dien_thoai'] ?? ''),
+            'ngay_sinh'     => trim($_POST['ngay_sinh'] ?? ''),
+            'gioi_tinh'     => trim($_POST['gioi_tinh'] ?? ''),
+            'dia_chi'       => trim($_POST['dia_chi'] ?? ''),
+            'cccd'          => trim($_POST['cccd'] ?? ''),
         ];
 
         try {
@@ -351,6 +352,7 @@ class AdminController
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['so_dien_thoai'] ?? '');
         $password = $_POST['mat_khau'] ?? '1111';
+        $gioiTinh = trim($_POST['gioi_tinh'] ?? '');
 
         if ($name === '' || $email === '' || $phone === '') {
             $_SESSION['error'] = 'Vui lòng nhập đủ Tên, Email, SĐT.';
@@ -359,12 +361,19 @@ class AdminController
         }
 
         try {
-            $ok = $this->receptionModel->create([
+            $createData = [
                 'ten'         => $name,
                 'email'       => $email,
                 'mat_khau'    => $password,
                 'so_dien_thoai' => $phone,
-            ]);
+            ];
+
+            // Thêm gioi_tinh nếu có
+            if ($gioiTinh !== '') {
+                $createData['gioi_tinh'] = $gioiTinh;
+            }
+
+            $ok = $this->receptionModel->create($createData);
             $_SESSION['success'] = $ok ? 'Thêm lễ tân thành công!' : 'Không thể thêm lễ tân.';
         } catch (Exception $e) {
             $_SESSION['error'] = 'Lỗi: ' . $e->getMessage();
@@ -397,6 +406,11 @@ class AdminController
             'email'        => trim($_POST['email'] ?? ''),
             'so_dien_thoai' => trim($_POST['so_dien_thoai'] ?? ''),
         ];
+
+        // Thêm gioi_tinh nếu có trong POST
+        if (isset($_POST['gioi_tinh']) && $_POST['gioi_tinh'] !== '') {
+            $data['gioi_tinh'] = trim($_POST['gioi_tinh']);
+        }
 
         try {
             $ok = $this->receptionModel->update($id, $data);
@@ -839,13 +853,11 @@ class AdminController
      */
     private function getDashboardStats()
     {
-        require_once 'config/database.php';
-        $database = new Database();
-        $db = $database->getConnection();
-
         $stats = [
             'total_doctors' => 0,
             'total_patients' => 0,
+            'total_receptions' => 0,
+            'total_appointments' => 0,
             'total_appointments_today' => 0,
             'total_revenue_month' => 0,
             'appointments_by_month' => [],
@@ -881,187 +893,74 @@ class AdminController
             $weekEnd = date('Y-m-d', strtotime('sunday this week'));
 
             // Tổng số bác sĩ
-            $stmt = $db->query("SELECT COUNT(*) as total FROM bac_si");
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['total_doctors'] = (int)($result['total'] ?? 0);
+            $stats['total_doctors'] = $this->adminModel->getTotalDoctors();
 
             // Tổng số bệnh nhân
-            $stmt = $db->query("SELECT COUNT(*) as total FROM benh_nhan");
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['total_patients'] = (int)($result['total'] ?? 0);
+            $stats['total_patients'] = $this->adminModel->getTotalPatients();
+
+            // Tổng số lễ tân
+            $stats['total_receptions'] = $this->adminModel->getTotalReceptions();
 
             // Bệnh nhân mới hôm nay
-            $stmt = $db->prepare("SELECT COUNT(*) as total FROM benh_nhan WHERE DATE(ngay_tao) = :today");
-            $stmt->execute([':today' => $today]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['new_patients_today'] = (int)($result['total'] ?? 0);
+            $stats['new_patients_today'] = $this->adminModel->getNewPatientsToday($today);
+
+            // Tổng số lịch hẹn (tất cả thời gian)
+            $stats['total_appointments'] = $this->adminModel->getTotalAppointments();
 
             // Lịch hẹn hôm nay
-            $stmt = $db->prepare("SELECT COUNT(*) as total FROM lich_hen WHERE ngay_hen = :today");
-            $stmt->execute([':today' => $today]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['total_appointments_today'] = (int)($result['total'] ?? 0);
+            $stats['total_appointments_today'] = $this->adminModel->getTotalAppointmentsToday($today);
 
             // Lịch hẹn theo trạng thái hôm nay
-            $stmt = $db->prepare("
-                SELECT 
-                    SUM(CASE WHEN trang_thai = 'Chờ xác nhận' THEN 1 ELSE 0 END) as pending,
-                    SUM(CASE WHEN trang_thai = 'Đã xác nhận' THEN 1 ELSE 0 END) as confirmed,
-                    SUM(CASE WHEN trang_thai = 'Đang khám' THEN 1 ELSE 0 END) as examining,
-                    SUM(CASE WHEN trang_thai = 'Hoàn thành' THEN 1 ELSE 0 END) as completed,
-                    SUM(CASE WHEN trang_thai = 'hủy' THEN 1 ELSE 0 END) as cancelled
-                FROM lich_hen 
-                WHERE ngay_hen = :today
-            ");
-            $stmt->execute([':today' => $today]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['appointments_status'] = [
-                'pending' => (int)($result['pending'] ?? 0),
-                'confirmed' => (int)($result['confirmed'] ?? 0),
-                'examining' => (int)($result['examining'] ?? 0),
-                'completed' => (int)($result['completed'] ?? 0),
-                'cancelled' => (int)($result['cancelled'] ?? 0)
-            ];
+            $stats['appointments_status'] = $this->adminModel->getAppointmentsStatusToday($today);
             $stats['pending_appointments'] = $stats['appointments_status']['pending'];
             $stats['examining_patients'] = $stats['appointments_status']['examining'];
             $stats['completed_exams_today'] = $stats['appointments_status']['completed'];
 
             // Doanh thu hôm nay
-            $stmt = $db->prepare("
-                SELECT COALESCE(SUM(tong_nguoi_benh), 0) as total 
-                FROM bien_lai_vien_phi 
-                WHERE DATE(ngay_lap) = :today 
-                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
-            ");
-            $stmt->execute([':today' => $today]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['revenue_today'] = (float)($result['total'] ?? 0);
+            $stats['revenue_today'] = $this->adminModel->getRevenueToday($today);
 
             // Doanh thu tuần này
-            $stmt = $db->prepare("
-                SELECT COALESCE(SUM(tong_nguoi_benh), 0) as total 
-                FROM bien_lai_vien_phi 
-                WHERE DATE(ngay_lap) BETWEEN :week_start AND :week_end
-                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
-            ");
-            $stmt->execute([':week_start' => $weekStart, ':week_end' => $weekEnd]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['revenue_week'] = (float)($result['total'] ?? 0);
+            $stats['revenue_week'] = $this->adminModel->getRevenueWeek($weekStart, $weekEnd);
 
             // Doanh thu tháng này
-            $stmt = $db->prepare("
-                SELECT COALESCE(SUM(tong_nguoi_benh), 0) as total 
-                FROM bien_lai_vien_phi 
-                WHERE DATE_FORMAT(ngay_lap, '%Y-%m') = :month 
-                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
-            ");
-            $stmt->execute([':month' => $currentMonth]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['total_revenue_month'] = (float)($result['total'] ?? 0);
+            $stats['total_revenue_month'] = $this->adminModel->getRevenueMonth($currentMonth);
 
             // Tổng doanh thu (tất cả thời gian)
-            $stmt = $db->query("
-                SELECT COALESCE(SUM(tong_nguoi_benh), 0) AS total
-                FROM bien_lai_vien_phi
-                WHERE trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
-            ");
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['total_revenue_all'] = (float)($result['total'] ?? 0);
+            $stats['total_revenue_all'] = $this->adminModel->getTotalRevenueAll();
 
             // Biên lai chưa thanh toán
-            $stmt = $db->query("SELECT COUNT(*) as total FROM bien_lai_vien_phi WHERE trang_thai = 'Chưa thanh toán'");
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['unpaid_receipts'] = (int)($result['total'] ?? 0);
+            $stats['unpaid_receipts'] = $this->adminModel->getUnpaidReceipts();
 
             // Tỷ lệ BHYT (tính từ biên lai tháng này)
-            $stmt = $db->prepare("
-                SELECT 
-                    COALESCE(SUM(tong_quy_bhyt), 0) as bhyt_total,
-                    COALESCE(SUM(tong_tien_co_ban), 0) as total_base
-                FROM bien_lai_vien_phi 
-                WHERE DATE_FORMAT(ngay_lap, '%Y-%m') = :month 
-                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
-            ");
-            $stmt->execute([':month' => $currentMonth]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $bhytTotal = (float)($result['bhyt_total'] ?? 0);
-            $totalBase = (float)($result['total_base'] ?? 0);
-            $stats['bhyt_ratio'] = $totalBase > 0 ? round(($bhytTotal / $totalBase) * 100, 1) : 0;
+            $stats['bhyt_ratio'] = $this->adminModel->getBhytRatio($currentMonth);
 
             // X-Quang hôm nay
-            $stmt = $db->prepare("SELECT COUNT(*) as total FROM phieu_chup_xquang WHERE DATE(ngay_tao) = :today");
-            $stmt->execute([':today' => $today]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['xray_today'] = (int)($result['total'] ?? 0);
+            $stats['xray_today'] = $this->adminModel->getXrayToday($today);
 
             // Siêu âm hôm nay
-            $stmt = $db->prepare("SELECT COUNT(*) as total FROM phieu_yeu_cau_sieu_am WHERE DATE(ngay_tao) = :today");
-            $stmt->execute([':today' => $today]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['ultrasound_today'] = (int)($result['total'] ?? 0);
+            $stats['ultrasound_today'] = $this->adminModel->getUltrasoundToday($today);
 
             // Xét nghiệm hôm nay
-            $stmt = $db->prepare("SELECT COUNT(*) as total FROM phieu_yeu_cau_xet_nghiem WHERE DATE(ngay_tao) = :today");
-            $stmt->execute([':today' => $today]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['lab_today'] = (int)($result['total'] ?? 0);
+            $stats['lab_today'] = $this->adminModel->getLabToday($today);
 
             // Đơn thuốc hôm nay
-            $stmt = $db->prepare("SELECT COUNT(*) as total FROM don_thuoc WHERE DATE(NgayKe) = :today");
-            $stmt->execute([':today' => $today]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['prescriptions_today'] = (int)($result['total'] ?? 0);
+            $stats['prescriptions_today'] = $this->adminModel->getPrescriptionsToday($today);
 
             // Bác sĩ đang trực (có lịch làm việc hôm nay)
             $dayOfWeek = date('N'); // 1=Monday, 7=Sunday
             $dayNames = ['', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
             $currentDayName = $dayNames[$dayOfWeek] ?? 'Thứ 2';
 
-            $stmt = $db->prepare("
-                SELECT COUNT(DISTINCT bs.id) as total
-                FROM bac_si bs
-                INNER JOIN lich_lam_viec llv ON bs.id = llv.bac_si_id
-                WHERE llv.trang_thai = 'active'
-                AND llv.thu_trong_tuan = :day_name
-            ");
-            $stmt->execute([':day_name' => $currentDayName]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['on_duty_doctors'] = (int)($result['total'] ?? 0);
+            $stats['on_duty_doctors'] = $this->adminModel->getOnDutyDoctors($currentDayName);
 
             // Lễ tân đang trực
-            $stmt = $db->prepare("
-                SELECT COUNT(DISTINCT lt.id) as total
-                FROM le_tan lt
-                INNER JOIN lich_lam_viec_le_tan llt ON lt.id = llt.letan_id
-                WHERE llt.trang_thai = 'active'
-                AND llt.thu_trong_tuan = :day_name
-            ");
-            $stmt->execute([':day_name' => $currentDayName]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            $stats['on_duty_receptions'] = (int)($result['total'] ?? 0);
+            $stats['on_duty_receptions'] = $this->adminModel->getOnDutyReceptions($currentDayName);
 
             // Lịch hẹn theo tháng (12 tháng gần nhất)
-            $stmt = $db->prepare("
-                SELECT DATE_FORMAT(ngay_hen, '%Y-%m') as ym, COUNT(*) as c
-                FROM lich_hen
-                WHERE ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-                GROUP BY DATE_FORMAT(ngay_hen, '%Y-%m')
-                ORDER BY ym ASC
-            ");
-            $stmt->execute();
-            $stats['appointments_by_month'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stats['appointments_by_month'] = $this->adminModel->getAppointmentsByMonth();
 
             // Doanh thu theo tháng (12 tháng gần nhất)
-            $stmt = $db->prepare("
-                SELECT DATE_FORMAT(ngay_lap, '%Y-%m') as ym, COALESCE(SUM(tong_nguoi_benh), 0) as s
-                FROM bien_lai_vien_phi
-                WHERE ngay_lap >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-                AND trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')
-                GROUP BY DATE_FORMAT(ngay_lap, '%Y-%m')
-                ORDER BY ym ASC
-            ");
-            $stmt->execute();
-            $stats['revenue_by_month'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stats['revenue_by_month'] = $this->adminModel->getRevenueByMonth();
         } catch (Exception $e) {
             error_log("Error getting dashboard stats: " . $e->getMessage());
         }
@@ -1173,6 +1072,353 @@ class AdminController
             echo json_encode(['success' => true, 'data' => $data]);
         } catch (Exception $e) {
             error_log("Error getting revenue stats: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * API: Lấy dữ liệu lịch hẹn theo filter (ngày/tuần/tháng/năm)
+     */
+    public function getAppointmentStatsByFilter()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->auth->requireAuth('admin');
+
+        $filter = $_GET['filter'] ?? 'month'; // day, week, month, year
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        try {
+            $data = [];
+
+            switch ($filter) {
+                case 'day':
+                    // 30 ngày gần nhất
+                    $stmt = $db->prepare("
+                        SELECT DATE(ngay_hen) as label, COUNT(*) as value
+                        FROM lich_hen
+                        WHERE ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                        GROUP BY DATE(ngay_hen)
+                        ORDER BY label ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $data[] = [
+                            'label' => date('d/m', strtotime($row['label'])),
+                            'value' => (int)$row['value']
+                        ];
+                    }
+                    break;
+
+                case 'week':
+                    // 12 tuần gần nhất
+                    $stmt = $db->prepare("
+                        SELECT YEARWEEK(ngay_hen, 1) as yw, COUNT(*) as value
+                        FROM lich_hen
+                        WHERE ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
+                        GROUP BY YEARWEEK(ngay_hen, 1)
+                        ORDER BY yw ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $year = substr($row['yw'], 0, 4);
+                        $week = substr($row['yw'], 4);
+                        $data[] = [
+                            'label' => "Tuần $week/$year",
+                            'value' => (int)$row['value']
+                        ];
+                    }
+                    break;
+
+                case 'month':
+                    // 12 tháng gần nhất
+                    $stmt = $db->prepare("
+                        SELECT DATE_FORMAT(ngay_hen, '%Y-%m') as ym, COUNT(*) as value
+                        FROM lich_hen
+                        WHERE ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                        GROUP BY DATE_FORMAT(ngay_hen, '%Y-%m')
+                        ORDER BY ym ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $data[] = [
+                            'label' => date('m/Y', strtotime($row['ym'] . '-01')),
+                            'value' => (int)$row['value']
+                        ];
+                    }
+                    break;
+
+                case 'year':
+                    // 5 năm gần nhất
+                    $stmt = $db->prepare("
+                        SELECT YEAR(ngay_hen) as y, COUNT(*) as value
+                        FROM lich_hen
+                        WHERE ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)
+                        GROUP BY YEAR(ngay_hen)
+                        ORDER BY y ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $data[] = [
+                            'label' => $row['y'],
+                            'value' => (int)$row['value']
+                        ];
+                    }
+                    break;
+            }
+
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            error_log("Error getting appointment stats: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * API: Lấy dữ liệu số lượng bệnh nhân theo filter (ngày/tuần/tháng/năm)
+     */
+    public function getPatientStatsByFilter()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->auth->requireAuth('admin');
+
+        $filter = $_GET['filter'] ?? 'month'; // day, week, month, year
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        try {
+            $data = [];
+
+            switch ($filter) {
+                case 'day':
+                    // 30 ngày gần nhất - đếm số bệnh nhân mới mỗi ngày
+                    $stmt = $db->prepare("
+                        SELECT DATE(ngay_tao) as label, COUNT(*) as value
+                        FROM benh_nhan
+                        WHERE ngay_tao >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+                        GROUP BY DATE(ngay_tao)
+                        ORDER BY label ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $data[] = [
+                            'label' => date('d/m', strtotime($row['label'])),
+                            'value' => (int)$row['value']
+                        ];
+                    }
+                    break;
+
+                case 'week':
+                    // 12 tuần gần nhất - đếm số bệnh nhân mới mỗi tuần
+                    $stmt = $db->prepare("
+                        SELECT YEARWEEK(ngay_tao, 1) as yw, COUNT(*) as value
+                        FROM benh_nhan
+                        WHERE ngay_tao >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
+                        GROUP BY YEARWEEK(ngay_tao, 1)
+                        ORDER BY yw ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $year = substr($row['yw'], 0, 4);
+                        $week = substr($row['yw'], 4);
+                        $data[] = [
+                            'label' => "Tuần $week/$year",
+                            'value' => (int)$row['value']
+                        ];
+                    }
+                    break;
+
+                case 'month':
+                    // 12 tháng gần nhất - đếm số bệnh nhân mới mỗi tháng
+                    $stmt = $db->prepare("
+                        SELECT DATE_FORMAT(ngay_tao, '%Y-%m') as ym, COUNT(*) as value
+                        FROM benh_nhan
+                        WHERE ngay_tao >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+                        GROUP BY DATE_FORMAT(ngay_tao, '%Y-%m')
+                        ORDER BY ym ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $data[] = [
+                            'label' => date('m/Y', strtotime($row['ym'] . '-01')),
+                            'value' => (int)$row['value']
+                        ];
+                    }
+                    break;
+
+                case 'year':
+                    // 5 năm gần nhất - đếm số bệnh nhân mới mỗi năm
+                    $stmt = $db->prepare("
+                        SELECT YEAR(ngay_tao) as y, COUNT(*) as value
+                        FROM benh_nhan
+                        WHERE ngay_tao >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)
+                        GROUP BY YEAR(ngay_tao)
+                        ORDER BY y ASC
+                    ");
+                    $stmt->execute();
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($results as $row) {
+                        $data[] = [
+                            'label' => $row['y'],
+                            'value' => (int)$row['value']
+                        ];
+                    }
+                    break;
+            }
+
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            error_log("Error getting patient stats: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy thống kê tỷ lệ trạng thái lịch hẹn (cho biểu đồ tròn)
+     * Chỉ lấy 2 trạng thái: Hoàn thành và Hủy
+     * Có filter theo ngày/tuần/tháng/năm
+     */
+    public function getAppointmentStatusStats()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->auth->requireAuth('admin');
+
+        $filter = $_GET['filter'] ?? 'all'; // day, week, month, year, all
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        try {
+            // Xây dựng WHERE clause dựa trên filter
+            $whereClause = "WHERE trang_thai IN ('Hoàn thành', 'hủy')";
+
+            switch ($filter) {
+                case 'day':
+                    $whereClause .= " AND ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+                    break;
+                case 'week':
+                    $whereClause .= " AND ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)";
+                    break;
+                case 'month':
+                    $whereClause .= " AND ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)";
+                    break;
+                case 'year':
+                    $whereClause .= " AND ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)";
+                    break;
+                case 'all':
+                default:
+                    // Không thêm điều kiện thời gian
+                    break;
+            }
+
+            $stmt = $db->prepare("
+                SELECT 
+                    CASE 
+                        WHEN trang_thai = 'Hoàn thành' THEN 'Hoàn thành'
+                        WHEN trang_thai = 'hủy' THEN 'Đã hủy'
+                        ELSE NULL
+                    END as trang_thai,
+                    COUNT(*) as count
+                FROM lich_hen
+                " . $whereClause . "
+                GROUP BY trang_thai
+                ORDER BY count DESC
+            ");
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $data = [];
+            foreach ($results as $row) {
+                if ($row['trang_thai']) {
+                    $data[] = [
+                        'label' => $row['trang_thai'],
+                        'value' => (int)$row['count']
+                    ];
+                }
+            }
+
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            error_log("Error getting appointment status stats: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
+        }
+    }
+
+    /**
+     * Lấy thống kê top chuyên khoa được đặt lịch nhiều nhất (cho biểu đồ tròn)
+     * Có filter theo ngày/tuần/tháng/năm
+     */
+    public function getSpecialtyStats()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $this->auth->requireAuth('admin');
+
+        $filter = $_GET['filter'] ?? 'all'; // day, week, month, year, all
+
+        require_once 'config/database.php';
+        $database = new Database();
+        $db = $database->getConnection();
+
+        try {
+            // Xây dựng WHERE clause dựa trên filter
+            $whereClause = "WHERE bs.chuyen_khoa IS NOT NULL AND bs.chuyen_khoa != ''";
+
+            switch ($filter) {
+                case 'day':
+                    $whereClause .= " AND lh.ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+                    break;
+                case 'week':
+                    $whereClause .= " AND lh.ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)";
+                    break;
+                case 'month':
+                    $whereClause .= " AND lh.ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)";
+                    break;
+                case 'year':
+                    $whereClause .= " AND lh.ngay_hen >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)";
+                    break;
+                case 'all':
+                default:
+                    // Không thêm điều kiện thời gian
+                    break;
+            }
+
+            $stmt = $db->prepare("
+                SELECT 
+                    bs.chuyen_khoa,
+                    COUNT(*) as count
+                FROM lich_hen lh
+                JOIN bac_si bs ON lh.bac_si_id = bs.id
+                " . $whereClause . "
+                GROUP BY bs.chuyen_khoa
+                ORDER BY count DESC
+                LIMIT 7
+            ");
+            $stmt->execute();
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $data = [];
+            foreach ($results as $row) {
+                $data[] = [
+                    'label' => $row['chuyen_khoa'],
+                    'value' => (int)$row['count']
+                ];
+            }
+
+            echo json_encode(['success' => true, 'data' => $data]);
+        } catch (Exception $e) {
+            error_log("Error getting specialty stats: " . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Lỗi hệ thống']);
         }
     }

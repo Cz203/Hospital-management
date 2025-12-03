@@ -57,10 +57,24 @@
                             <?php foreach ($doctors as $doc): ?>
                                 <tr class="doctor-row">
                                     <td>
-                                        <div class="rounded-circle overflow-hidden" style="width:40px;height:40px;">
-                                            <img src="<?php echo htmlspecialchars($doc['hinh_anh'] ?? ''); ?>"
-                                                onerror="this.src='./assets/img/default-doctor.jpg'" alt="avatar"
-                                                style="width:40px;height:40px;object-fit:cover;">
+                                        <div class="rounded-circle overflow-hidden d-flex align-items-center justify-content-center bg-light"
+                                            style="width:40px;height:40px;">
+                                            <?php
+                                            $imgSrc = null;
+                                            if (!empty($doc['hinh_anh'])) {
+                                                if (strpos($doc['hinh_anh'], 'uploads/') === 0) {
+                                                    $imgSrc = './' . $doc['hinh_anh'];
+                                                } else {
+                                                    $imgSrc = './uploads/BS/' . $doc['hinh_anh'];
+                                                }
+                                            }
+                                            ?>
+                                            <?php if ($imgSrc): ?>
+                                                <img src="<?php echo htmlspecialchars($imgSrc); ?>" alt="avatar"
+                                                    style="width:40px;height:40px;object-fit:cover;">
+                                            <?php else: ?>
+                                                <i class="fas fa-user-md text-secondary"></i>
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                     <td>

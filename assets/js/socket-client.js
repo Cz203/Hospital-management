@@ -10,6 +10,7 @@ class SocketManager {
     this.userRole = null;
     this.userName = null;
     this._queueReloadTimer = null;
+    this._tokenRefreshTimer = null; // Timer để refresh token
     // Page detection helpers
     this.isOnPatientAppointments = this.isOnPatientAppointments.bind(this);
     this.isOnDoctorExamination = this.isOnDoctorExamination.bind(this);
@@ -162,10 +163,18 @@ class SocketManager {
         else serverUrl = devUrl || prodUrl || "http://localhost:3001";
       }
       console.log("[Socket] Connecting to:", serverUrl);
+      // If a JWT for socket auth was provided via meta tag, include it in the handshake auth
+      const metaToken = document.querySelector(
+        'meta[name="socket-auth-token"]'
+      );
+      const socketAuth = metaToken
+        ? { token: (metaToken.getAttribute("content") || "").trim() }
+        : {};
       this.socket = io(serverUrl, {
         transports: ["websocket", "polling"],
         timeout: 20000,
         forceNew: true,
+        auth: socketAuth,
       });
 
       this.setupEventListeners();
@@ -184,6 +193,8 @@ class SocketManager {
       this.isConnected = true;
       this.reconnectAttempts = 0;
       this.showConnectionStatus("connected");
+      // Bắt đầu schedule refresh token sau khi connect thành công
+      this.scheduleTokenRefresh();
     });
 
     this.socket.on("disconnect", (reason) => {
@@ -652,6 +663,135 @@ class SocketManager {
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
+    }
+    // Clear token refresh timer
+    if (this._tokenRefreshTimer) {
+      clearTimeout(this._tokenRefreshTimer);
+      this._tokenRefreshTimer = null;
+    }
+  }
+
+  // Decode JWT token để lấy thông tin exp (expiration time)
+  decodeJWT(token) {
+    try {
+      if (!token) return null;
+      const parts = token.split(".");
+      if (parts.length !== 3) return null;
+      const payload = JSON.parse(atob(parts[1]));
+      return payload;
+    } catch (e) {
+      console.error("[Socket] Error decoding JWT:", e);
+      return null;
+    }
+  }
+
+  // Refresh JWT token từ server
+  async refreshToken() {
+    try {
+      const response = await fetch("./?action=refresh_socket_token", {
+        method: "GET",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to refresh token");
+      }
+
+      const data = await response.json();
+      if (data.success && data.token) {
+        // Cập nhật meta tag với token mới
+        let metaToken = document.querySelector(
+          'meta[name="socket-auth-token"]'
+        );
+        if (!metaToken) {
+          metaToken = document.createElement("meta");
+          metaToken.setAttribute("name", "socket-auth-token");
+          document.head.appendChild(metaToken);
+        }
+        metaToken.setAttribute("content", data.token);
+
+        console.log("[Socket] Token refreshed successfully");
+
+        // Reconnect với token mới nếu đang connected
+        if (this.isConnected && this.socket) {
+          this.socket.disconnect();
+          setTimeout(() => {
+            this.connect();
+          }, 500);
+        }
+
+        // Schedule refresh tiếp theo
+        this.scheduleTokenRefresh();
+        return true;
+      } else {
+        throw new Error(data.message || "Failed to refresh token");
+      }
+    } catch (error) {
+      console.error("[Socket] Error refreshing token:", error);
+      return false;
+    }
+  }
+
+  // Schedule token refresh trước khi hết hạn (5 phút trước khi expire)
+  scheduleTokenRefresh() {
+    // Clear timer cũ nếu có
+    if (this._tokenRefreshTimer) {
+      clearTimeout(this._tokenRefreshTimer);
+      this._tokenRefreshTimer = null;
+    }
+
+    try {
+      const metaToken = document.querySelector(
+        'meta[name="socket-auth-token"]'
+      );
+      if (!metaToken) {
+        console.log("[Socket] No token found, skipping refresh schedule");
+        return;
+      }
+
+      const token = metaToken.getAttribute("content");
+      if (!token) {
+        console.log("[Socket] Empty token, skipping refresh schedule");
+        return;
+      }
+
+      const payload = this.decodeJWT(token);
+      if (!payload || !payload.exp) {
+        console.log(
+          "[Socket] Cannot decode token or no exp, skipping refresh schedule"
+        );
+        return;
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      const exp = payload.exp;
+      const timeUntilExpiry = exp - now;
+
+      // Refresh 5 phút trước khi hết hạn (300 giây)
+      const refreshTime = Math.max(0, (timeUntilExpiry - 300) * 1000);
+
+      if (refreshTime <= 0) {
+        // Token sắp hết hạn hoặc đã hết hạn, refresh ngay
+        console.log("[Socket] Token expiring soon, refreshing immediately");
+        this.refreshToken();
+        return;
+      }
+
+      console.log(
+        `[Socket] Token refresh scheduled in ${Math.floor(
+          refreshTime / 1000
+        )} seconds`
+      );
+
+      this._tokenRefreshTimer = setTimeout(() => {
+        console.log("[Socket] Scheduled token refresh triggered");
+        this.refreshToken();
+      }, refreshTime);
+    } catch (error) {
+      console.error("[Socket] Error scheduling token refresh:", error);
     }
   }
 }

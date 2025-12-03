@@ -171,6 +171,10 @@ switch ($action) {
         $auth->logout(); // Đăng xuất
         break;
 
+    case 'refresh_socket_token':
+        $auth->refreshSocketToken(); // API: Refresh JWT token cho socket
+        break;
+
     // ===== ADMIN ROUTES =====
     case 'admin_dashboard':
         $adminController->dashboard(); // Trang chủ admin
@@ -178,6 +182,22 @@ switch ($action) {
 
     case 'get_revenue_stats':
         $adminController->getRevenueStats(); // API: Lấy thống kê doanh thu theo filter
+        break;
+
+    case 'get_appointment_stats':
+        $adminController->getAppointmentStatsByFilter(); // API: Lấy thống kê lịch hẹn theo filter
+        break;
+
+    case 'get_patient_stats':
+        $adminController->getPatientStatsByFilter(); // API: Lấy thống kê số lượng bệnh nhân theo filter
+        break;
+
+    case 'get_appointment_status_stats':
+        $adminController->getAppointmentStatusStats(); // API: Lấy tỷ lệ trạng thái lịch hẹn (biểu đồ tròn)
+        break;
+
+    case 'get_specialty_stats':
+        $adminController->getSpecialtyStats(); // API: Lấy top chuyên khoa được đặt lịch nhiều nhất (biểu đồ tròn)
         break;
 
     case 'doctor_schedules':
@@ -930,40 +950,8 @@ switch ($action) {
 
     // ===== DEFAULT ROUTE =====
     default:
-        // Nếu action không tồn tại, kiểm tra nếu user đã đăng nhập thì redirect về dashboard tương ứng
-        if ($auth->isLoggedIn()) {
-            $role = $_SESSION['user_role'] ?? '';
-            if ($role === '') {
-                $ctx = $auth->resolveCurrentUserContext();
-                $role = $ctx['role'] ?? '';
-            }
-            switch ($role) {
-                case 'admin':
-                    header("Location: ./admin_dashboard");
-                    exit();
-                case 'doctor':
-                    header("Location: ./doctor_dashboard");
-                    exit();
-                case 'xray_doctor':
-                    header("Location: ./xray_dashboard");
-                    exit();
-                case 'sieuam_doctor':
-                    header("Location: ./sieuam_dashboard");
-                    exit();
-                case 'patient':
-                    header("Location: ./patient_dashboard");
-                    exit();
-                case 'letan':
-                    header("Location: ./reception_dashboard");
-                    exit();
-                default:
-                    // Không biết role, cho về trang chủ
-                    header("Location: ./");
-                    exit();
-            }
-        }
-
-        // Nếu không đăng nhập hoặc action không tồn tại, hiển thị trang 404 thân thiện
+        // Mọi action không tồn tại đều trả về trang 404, không tự động redirect về dashboard
+        http_response_code(404);
         include 'Views/not_found.php';
         break;
 }
