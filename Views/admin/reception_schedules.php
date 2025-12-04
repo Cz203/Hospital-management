@@ -85,7 +85,7 @@
                             <option value="">Tất cả lễ tân</option>
                             <?php foreach ($receptions as $rec): ?>
                             <option value="<?php echo (int)$rec['id']; ?>">
-                                <?php echo htmlspecialchars($rec['ten']); ?> -
+                                <?php echo htmlspecialchars($rec['ten'] ?? ''); ?> -
                                 <?php echo htmlspecialchars($rec['email'] ?? ''); ?>
                             </option>
                             <?php endforeach; ?>
@@ -143,13 +143,43 @@
                         data-reception-id="<?php echo (int)$recData['reception']['id']; ?>">
                         <div class="doctor-info">
                             <div class="doctor-avatar">
-                                <?php echo strtoupper(substr($recData['reception']['ten'], 0, 1)); ?>
+                                <?php echo strtoupper(substr($recData['reception']['ten'] ?? 'L', 0, 1)); ?>
                             </div>
                             <div class="doctor-details">
-                                <h6 class="doctor-name"><?php echo htmlspecialchars($recData['reception']['ten']); ?>
+                                <h6 class="doctor-name">
+                                    <?php echo htmlspecialchars($recData['reception']['ten'] ?? ''); ?>
                                 </h6>
                                 <small class="doctor-specialty">
-                                    <?php echo htmlspecialchars($recData['reception']['email'] ?? ''); ?>
+                                    <?php
+                                                // Hiển thị trạng thái truy cập
+                                                $status = $recData['reception']['trang_thai_truy_cap'] ?? 'active';
+                                                $statusClass = '';
+                                                $statusText = '';
+
+                                                switch ($status) {
+                                                    case 'active':
+                                                        $statusClass = 'success';
+                                                        $statusText = 'Hoạt động';
+                                                        break;
+                                                    case 'inactive':
+                                                        $statusClass = 'secondary';
+                                                        $statusText = 'Không hoạt động';
+                                                        break;
+                                                    case 'blocked':
+                                                        $statusClass = 'danger';
+                                                        $statusText = 'Bị chặn';
+                                                        break;
+                                                    case 'suspended':
+                                                        $statusClass = 'warning';
+                                                        $statusText = 'Tạm khóa';
+                                                        break;
+                                                    default:
+                                                        $statusClass = 'success';
+                                                        $statusText = 'Hoạt động';
+                                                }
+                                                ?>
+                                    <span
+                                        class="badge bg-<?php echo $statusClass; ?> badge-sm"><?php echo $statusText; ?></span>
                                 </small>
                             </div>
                             <button class="btn btn-sm btn-success"
@@ -176,7 +206,7 @@
                                         <?php if (!empty($schedule['ghi_chu'])): ?>
                                         <div class="schedule-note">
                                             <i class="fas fa-sticky-note me-1"></i>
-                                            <?php echo htmlspecialchars($schedule['ghi_chu']); ?>
+                                            <?php echo htmlspecialchars($schedule['ghi_chu'] ?? ''); ?>
                                         </div>
                                         <?php endif; ?>
                                     </div>
@@ -227,7 +257,7 @@
                             <option value="">-- Chọn lễ tân --</option>
                             <?php foreach ($receptions as $rec): ?>
                             <option value="<?php echo (int)$rec['id']; ?>">
-                                <?php echo htmlspecialchars($rec['ten']); ?> -
+                                <?php echo htmlspecialchars($rec['ten'] ?? ''); ?> -
                                 <?php echo htmlspecialchars($rec['email'] ?? ''); ?>
                             </option>
                             <?php endforeach; ?>

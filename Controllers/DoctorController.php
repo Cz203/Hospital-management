@@ -1290,6 +1290,17 @@ class DoctorController
                     require_once 'Models/QueueTicket.php';
                     $qt = new QueueTicket();
                     $qt->updateStatusByAppointmentId((int)$appointmentId, 'dang_kham');
+
+                    // Lấy thông tin queue ticket để emit đầy đủ
+                    $today = date('Y-m-d');
+                    $pdo = $this->doctorModel->getConnection();
+                    $stmt = $pdo->prepare("SELECT t.id, t.bac_si_id, bs.chuyen_khoa_id 
+                                           FROM phieu_boc_so t 
+                                           JOIN bac_si bs ON bs.id = t.bac_si_id 
+                                           WHERE t.lich_hen_id = :aid AND t.ngay = :d LIMIT 1");
+                    $stmt->execute([':aid' => $appointmentId, ':d' => $today]);
+                    $queueTicket = $stmt->fetch(PDO::FETCH_ASSOC);
+
                     // Emit realtime để lễ tân và bác sĩ cập nhật giao diện
                     require_once 'Services/SocketService.php';
                     SocketService::emit('appointment_update', [
@@ -1298,6 +1309,19 @@ class DoctorController
                         'queueStatus' => 'dang_kham',
                         'timestamp' => date('Y-m-d H:i:s')
                     ]);
+
+                    // Emit queue_update cho reception queue page
+                    if ($queueTicket) {
+                        SocketService::emit('queue_update', [
+                            'queueId' => (int)$queueTicket['id'],
+                            'appointmentId' => (int)$appointmentId,
+                            'doctorId' => $doctorId,
+                            'specialtyId' => isset($queueTicket['chuyen_khoa_id']) ? (int)$queueTicket['chuyen_khoa_id'] : null,
+                            'queueStatus' => 'dang_kham',
+                            'action' => 'status_changed',
+                            'timestamp' => date('Y-m-d H:i:s')
+                        ]);
+                    }
                 } catch (Exception $e) {
                 }
                 if (!empty($_POST['ajax'])) {

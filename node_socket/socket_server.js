@@ -102,6 +102,19 @@ const schemas = {
     required: ["doctorId"],
     additionalProperties: true,
   },
+  queue_update: {
+    type: "object",
+    properties: {
+      queueId: { type: ["string", "number"] },
+      appointmentId: { type: ["string", "number"] },
+      doctorId: { type: ["string", "number"] },
+      specialtyId: { type: ["string", "number"] },
+      queueStatus: { type: "string" },
+      action: { type: "string" },
+    },
+    required: ["queueId"],
+    additionalProperties: true,
+  },
 };
 
 // Precompile validators
@@ -196,6 +209,14 @@ app.post("/emit", (req, res) => {
       io.to("all_doctors").emit("appointment_update", data);
       io.to("all_receptionists").emit("appointment_update", data);
       console.log(`Appointment update sent to doctor ${data.doctorId}`, data);
+    } else if (event === "queue_update" && data) {
+      // Broadcast queue_update to all receptionists
+      io.to("all_receptionists").emit("queue_update", data);
+      // Also emit to specific doctor if doctorId is provided
+      if (data.doctorId) {
+        io.to(`doctor_${data.doctorId}`).emit("queue_update", data);
+      }
+      console.log(`Queue update emitted`, data);
     } else {
       io.emit(event, data);
     }
@@ -229,25 +250,25 @@ io.use((socket, next) => {
       // Không có token => từ chối kết nối
       return next(new Error("Unauthorized: missing token"));
     }
-      if (!SOCKET_JWT_SECRET) {
+    if (!SOCKET_JWT_SECRET) {
       console.warn("No SOCKET_JWT_SECRET configured; cannot verify JWT");
       return next(new Error("Server misconfigured"));
-      }
+    }
 
-      try {
-        const payload = jwt.verify(token, SOCKET_JWT_SECRET);
-        // expected claims: sub/userId/id, role, name
+    try {
+      const payload = jwt.verify(token, SOCKET_JWT_SECRET);
+      // expected claims: sub/userId/id, role, name
       socket.userId = String(payload.sub || payload.userId || payload.id || "");
       socket.role = payload.role || payload.r || "";
       socket.userName = payload.name || payload.username || "";
-        socket.authFromJwt = true;
-        return next();
-      } catch (err) {
+      socket.authFromJwt = true;
+      return next();
+    } catch (err) {
       console.warn(
         "JWT verification failed for socket handshake:",
         err && err.message
       );
-        // fail the connection explicitly
+      // fail the connection explicitly
       return next(new Error("Unauthorized"));
     }
   } catch (e) {

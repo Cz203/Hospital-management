@@ -79,6 +79,26 @@
     .notif-item.clicked {
         background-color: rgba(32, 201, 151, 0.12);
     }
+
+    /* Make header sticky - đi theo khi cuộn */
+    header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    /* Ẩn header khi cuộn xuống */
+    header.header-hidden {
+        transform: translateY(-100%);
+    }
+
+    .navigation,
+    #navbar {
+        position: relative !important;
+    }
     </style>
 </head>
 
@@ -180,12 +200,14 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
                                 <li>
-                                    <a class="dropdown-item" href="./<?php echo $ctx['role']; ?>_dashboard">
+                                    <a class="dropdown-item"
+                                        href="./<?php echo ($ctx['role'] === 'letan') ? 'reception' : $ctx['role']; ?>_dashboard">
                                         <i class="icofont-dashboard-web mr-2"></i>Dashboard
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="./<?php echo $ctx['role']; ?>_profile">
+                                    <a class="dropdown-item"
+                                        href="./<?php echo ($ctx['role'] === 'letan') ? 'reception' : $ctx['role']; ?>_profile">
                                         <i class="icofont-user mr-2"></i>Hồ sơ
                                     </a>
                                 </li>
@@ -363,5 +385,35 @@
             }
             // no client-side queue
         } catch (e) {}
+    })();
+
+    // Auto-hide header khi cuộn xuống, hiện lại khi cuộn lên
+    (function() {
+        var header = document.querySelector('header');
+        var lastScrollTop = 0;
+        var scrollTimeout;
+        var isScrolling = false;
+
+        if (!header) return;
+
+        window.addEventListener('scroll', function() {
+            var currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+            // Clear timeout cũ
+            clearTimeout(scrollTimeout);
+
+            // Nếu đang cuộn xuống và đã cuộn quá 100px
+            if (currentScroll > lastScrollTop && currentScroll > 100) {
+                // Cuộn xuống - ẩn header sau 300ms giữ yên
+                scrollTimeout = setTimeout(function() {
+                    header.classList.add('header-hidden');
+                }, 300);
+            } else {
+                // Cuộn lên - hiện header ngay lập tức
+                header.classList.remove('header-hidden');
+            }
+
+            lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+        }, false);
     })();
     </script>

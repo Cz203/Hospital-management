@@ -494,6 +494,14 @@ function loadTodayStatus() {
 
                 html +=
                     `<p><strong>Trạng thái:</strong> <span class="badge bg-${status.status === 'checked_out' ? 'success' : 'warning'}">${status.status === 'checked_out' ? 'Đã check-out' : 'Đã check-in'}</span></p>`;
+
+                // Hiển thị trạng thái trễ
+                if (status.is_late !== undefined && status.is_late !== null) {
+                    const isLate = parseInt(status.is_late) === 1;
+                    html +=
+                        `<p><strong>Trạng thái chấm công:</strong> <span class="badge bg-${isLate ? 'danger' : 'success'}">${isLate ? 'Trễ làm' : 'Không trễ'}</span></p>`;
+                }
+
                 html += '</div>';
 
                 // Cập nhật nút

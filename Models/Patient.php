@@ -88,7 +88,19 @@ class Patient extends User
 
     public function getAll()
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao FROM " . $this->table_name;
+        // Kiểm tra xem trường trang_thai_truy_cap có tồn tại không
+        $checkColumn = $this->conn->query("SHOW COLUMNS FROM " . $this->table_name . " LIKE 'trang_thai_truy_cap'");
+        $hasAccessStatus = $checkColumn->rowCount() > 0;
+
+        if ($hasAccessStatus) {
+            $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao, 
+                     COALESCE(trang_thai_truy_cap, 'active') as trang_thai_truy_cap 
+                     FROM " . $this->table_name;
+        } else {
+            $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao, 
+                     'active' as trang_thai_truy_cap 
+                     FROM " . $this->table_name;
+        }
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -109,10 +121,23 @@ class Patient extends User
      */
     public function getPaginated(int $offset, int $limit): array
     {
-        $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao
-                  FROM " . $this->table_name . "
-                  ORDER BY ngay_tao DESC
-                  LIMIT :limit OFFSET :offset";
+        // Kiểm tra xem trường trang_thai_truy_cap có tồn tại không
+        $checkColumn = $this->conn->query("SHOW COLUMNS FROM " . $this->table_name . " LIKE 'trang_thai_truy_cap'");
+        $hasAccessStatus = $checkColumn->rowCount() > 0;
+
+        if ($hasAccessStatus) {
+            $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao,
+                     COALESCE(trang_thai_truy_cap, 'active') as trang_thai_truy_cap
+                     FROM " . $this->table_name . "
+                     ORDER BY ngay_tao DESC
+                     LIMIT :limit OFFSET :offset";
+        } else {
+            $query = "SELECT id, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, ngay_tao,
+                     'active' as trang_thai_truy_cap
+                     FROM " . $this->table_name . "
+                     ORDER BY ngay_tao DESC
+                     LIMIT :limit OFFSET :offset";
+        }
         $stmt = $this->conn->prepare($query);
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);

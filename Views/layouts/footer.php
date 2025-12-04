@@ -6,7 +6,7 @@
             <div class="col-lg-4 mr-auto col-sm-6">
                 <div class="widget mb-5 mb-lg-0">
                     <div class="logo mb-4">
-                        <img src="./assets/img/novena-logo.png" alt="ThinhViet Hospital" class="img-fluid">
+                        <img src="./assets/img/unnamed.jpg" alt="ThinhViet Hospital" class="img-fluid">
                     </div>
                     <p>Hệ thống quản lý bệnh viện hiện đại với đội ngũ bác sĩ chuyên môn cao,
                         trang thiết bị tiên tiến và dịch vụ chăm sóc tận tâm.</p>
@@ -135,16 +135,16 @@
 
 <!-- Additional JS for specific pages -->
 <?php if (isset($additional_js)): ?>
-    <?php foreach ($additional_js as $js): ?>
-        <script src="<?php echo $js; ?>"></script>
-    <?php endforeach; ?>
+<?php foreach ($additional_js as $js): ?>
+<script src="<?php echo $js; ?>"></script>
+<?php endforeach; ?>
 <?php endif; ?>
 
 <!-- Page specific scripts -->
 <?php if (isset($page_scripts)): ?>
-    <script>
-        <?php echo $page_scripts; ?>
-    </script>
+<script>
+<?php echo $page_scripts; ?>
+</script>
 <?php endif; ?>
 
 </body>

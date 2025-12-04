@@ -216,6 +216,14 @@ class Attendance
 
     /**
      * Chấm công check-in
+     * Áp dụng cho cả bác sĩ (doctor) và lễ tân (reception)
+     * 
+     * @param int $userId ID của user
+     * @param string $userType Loại user: 'doctor' hoặc 'reception'
+     * @param string $faceEncoding Face encoding JSON
+     * @param string|null $imagePath Đường dẫn ảnh check-in
+     * @param string|null $location Vị trí GPS
+     * @return array Kết quả check-in
      */
     public function checkIn($userId, $userType, $faceEncoding, $imagePath = null, $location = null)
     {
@@ -238,18 +246,58 @@ class Attendance
                 ];
             }
 
+            // Tính trễ dựa trên ca làm việc (áp dụng cho cả bác sĩ và lễ tân)
+            // Ca 1: 7h - 11h30 (check-in sau 7h10 = trễ)
+            // Ca 2: 13h - 21h (check-in sau 13h10 = trễ)
+            $checkInTime = date('H:i:s');
+            $checkInHour = (int)date('H');
+            $checkInMinute = (int)date('i');
+            $isLate = 0; // 0 = không trễ, 1 = trễ
+            $shiftName = '';
+            $lateMessage = '';
+
+            // Xác định ca và tính trễ (áp dụng cho cả doctor và reception)
+            if ($checkInHour >= 7 && $checkInHour < 13) {
+                // Ca 1: 7h - 11h30
+                $shiftName = 'Ca 1 (7h - 11h30)';
+                // Trễ nếu sau 7h10
+                if ($checkInHour > 7 || ($checkInHour == 7 && $checkInMinute > 10)) {
+                    $isLate = 1;
+                    $minutesLate = ($checkInHour - 7) * 60 + ($checkInMinute - 10);
+                    $lateMessage = "Bạn đã check-in trễ {$minutesLate} phút so với giờ quy định (7h10).";
+                } else {
+                    $lateMessage = "Bạn đã check-in đúng giờ hoặc sớm.";
+                }
+            } elseif ($checkInHour >= 13 && $checkInHour < 21) {
+                // Ca 2: 13h - 21h
+                $shiftName = 'Ca 2 (13h - 21h)';
+                // Trễ nếu sau 13h10
+                if ($checkInHour > 13 || ($checkInHour == 13 && $checkInMinute > 10)) {
+                    $isLate = 1;
+                    $minutesLate = ($checkInHour - 13) * 60 + ($checkInMinute - 10);
+                    $lateMessage = "Bạn đã check-in trễ {$minutesLate} phút so với giờ quy định (13h10).";
+                } else {
+                    $lateMessage = "Bạn đã check-in đúng giờ hoặc sớm.";
+                }
+            } else {
+                // Ngoài ca
+                $shiftName = 'Ngoài ca làm việc';
+                $lateMessage = "Bạn check-in ngoài giờ ca làm việc.";
+            }
+
             // Lưu vào bảng attendance
             $sql = "INSERT INTO attendance (user_id, user_type, check_in_time, check_in_image, status, location, ngay_tao) 
                     VALUES (?, ?, ?, ?, 'checked_in', ?, NOW())";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$userId, $userType, $now, $imagePath, $location]);
 
-            // Lưu vào bảng cham_cong
-            $chamCongSql = "INSERT INTO cham_cong (user_id, user_type, ngay_cham, gio_vao, trang_thai, face_id_data, dia_diem, ngay_tao) 
-                           VALUES (?, ?, ?, ?, 'check_in', ?, ?, NOW())
+            // Lưu vào bảng cham_cong (bao gồm trạng thái trễ)
+            $chamCongSql = "INSERT INTO cham_cong (user_id, user_type, ngay_cham, gio_vao, trang_thai, tre, face_id_data, dia_diem, ngay_tao) 
+                           VALUES (?, ?, ?, ?, 'check_in', ?, ?, ?, NOW())
                            ON DUPLICATE KEY UPDATE 
                            gio_vao = VALUES(gio_vao), 
                            trang_thai = 'check_in',
+                           tre = VALUES(tre),
                            face_id_data = VALUES(face_id_data),
                            dia_diem = VALUES(dia_diem),
                            ngay_cap_nhat = NOW()";
@@ -259,12 +307,27 @@ class Attendance
                 'recognized_at' => $now
             ]);
             $chamCongStmt = $this->db->prepare($chamCongSql);
-            $chamCongStmt->execute([$userId, $userType, $today, date('H:i:s'), $faceIdData, $location]);
+            $chamCongStmt->execute([$userId, $userType, $today, $checkInTime, $isLate, $faceIdData, $location]);
+
+            // Tạo thông báo chi tiết
+            $message = 'Check-in thành công!';
+            if ($isLate) {
+                $message .= ' ⚠️ ' . $lateMessage;
+            } else {
+                $message .= ' ✅ ' . $lateMessage;
+            }
+            if (!empty($shiftName)) {
+                $message .= ' [' . $shiftName . ']';
+            }
 
             return [
                 'success' => true,
-                'message' => 'Check-in thành công!',
-                'check_in_time' => $now
+                'message' => $message,
+                'check_in_time' => $now,
+                'check_in_time_formatted' => $checkInTime,
+                'is_late' => $isLate,
+                'shift' => $shiftName,
+                'late_message' => $lateMessage
             ];
         } catch (Exception $e) {
             error_log("Error checking in: " . $e->getMessage());
@@ -351,15 +414,19 @@ class Attendance
     }
 
     /**
-     * Lấy trạng thái chấm công hôm nay
+     * Lấy trạng thái chấm công hôm nay (bao gồm thông tin trễ)
      */
     public function getTodayStatus($userId, $userType)
     {
         try {
             $today = date('Y-m-d');
-            $sql = "SELECT * FROM attendance 
-                    WHERE user_id = ? AND user_type = ? AND DATE(check_in_time) = ? 
-                    ORDER BY check_in_time DESC LIMIT 1";
+            $sql = "SELECT a.*, cc.tre as is_late 
+                    FROM attendance a
+                    LEFT JOIN cham_cong cc ON a.user_id = cc.user_id 
+                        AND a.user_type = cc.user_type 
+                        AND DATE(a.check_in_time) = cc.ngay_cham
+                    WHERE a.user_id = ? AND a.user_type = ? AND DATE(a.check_in_time) = ? 
+                    ORDER BY a.check_in_time DESC LIMIT 1";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$userId, $userType, $today]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
