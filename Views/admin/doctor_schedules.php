@@ -85,8 +85,8 @@
                             <option value="">Tất cả bác sĩ</option>
                             <?php foreach ($doctors as $doctor): ?>
                             <option value="<?php echo $doctor['id']; ?>">
-                                <?php echo htmlspecialchars($doctor['ten']); ?> -
-                                <?php echo htmlspecialchars($doctor['chuyen_khoa']); ?>
+                                <?php echo htmlspecialchars($doctor['ten'] ?? ''); ?> -
+                                <?php echo htmlspecialchars($doctor['chuyen_khoa'] ?? ''); ?>
                             </option>
                             <?php endforeach; ?>
                         </select>
@@ -144,18 +144,19 @@
                         <div class="doctor-info">
                             <div class="doctor-avatar">
                                 <?php if (!empty($doctorData['doctor']['hinh_anh']) && file_exists($doctorData['doctor']['hinh_anh'])): ?>
-                                <img src="<?php echo htmlspecialchars($doctorData['doctor']['hinh_anh']); ?>"
-                                    alt="<?php echo htmlspecialchars($doctorData['doctor']['ten']); ?>"
+                                <img src="<?php echo htmlspecialchars($doctorData['doctor']['hinh_anh'] ?? ''); ?>"
+                                    alt="<?php echo htmlspecialchars($doctorData['doctor']['ten'] ?? ''); ?>"
                                     class="avatar-image">
                                 <?php else: ?>
                                 <?php echo strtoupper(substr($doctorData['doctor']['ten'], 0, 1)); ?>
                                 <?php endif; ?>
                             </div>
                             <div class="doctor-details">
-                                <h6 class="doctor-name"><?php echo htmlspecialchars($doctorData['doctor']['ten']); ?>
+                                <h6 class="doctor-name">
+                                    <?php echo htmlspecialchars($doctorData['doctor']['ten'] ?? ''); ?>
                                 </h6>
                                 <small
-                                    class="doctor-specialty"><?php echo htmlspecialchars($doctorData['doctor']['chuyen_khoa']); ?></small>
+                                    class="doctor-specialty"><?php echo htmlspecialchars($doctorData['doctor']['chuyen_khoa'] ?? ''); ?></small>
                             </div>
                             <button class="btn btn-sm btn-success"
                                 onclick="showAddScheduleModal(<?php echo $doctorData['doctor']['id']; ?>, '<?php echo $day; ?>')">
@@ -181,7 +182,7 @@
                                         <?php if (!empty($schedule['ghi_chu'])): ?>
                                         <div class="schedule-note">
                                             <i class="fas fa-sticky-note me-1"></i>
-                                            <?php echo htmlspecialchars($schedule['ghi_chu']); ?>
+                                            <?php echo htmlspecialchars($schedule['ghi_chu'] ?? ''); ?>
                                         </div>
                                         <?php endif; ?>
                                     </div>
@@ -231,8 +232,8 @@
                             <option value="">-- Chọn bác sĩ --</option>
                             <?php foreach ($doctors as $doctor): ?>
                             <option value="<?php echo $doctor['id']; ?>">
-                                <?php echo htmlspecialchars($doctor['ten']); ?> -
-                                <?php echo htmlspecialchars($doctor['chuyen_khoa']); ?>
+                                <?php echo htmlspecialchars($doctor['ten'] ?? ''); ?> -
+                                <?php echo htmlspecialchars($doctor['chuyen_khoa'] ?? ''); ?>
                             </option>
                             <?php endforeach; ?>
                         </select>

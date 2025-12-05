@@ -35,6 +35,15 @@ class AdminController
         // Lấy thống kê tổng quan
         $stats = $this->getDashboardStats();
 
+        // Lấy danh sách lễ tân với lịch trực hôm nay
+        $receptionsWithSchedule = $this->getReceptionsWithTodaySchedule();
+
+        // Lấy danh sách bác sĩ với trạng thái truy cập
+        $doctorsWithAccessStatus = $this->getDoctorsWithAccessStatus();
+
+        // Lấy danh sách bệnh nhân với trạng thái truy cập
+        $patientsWithAccessStatus = $this->getPatientsWithAccessStatus();
+
         $page_title = 'Dashboard Admin';
 
         // Start output buffering để lấy content
@@ -867,6 +876,8 @@ class AdminController
             'examining_patients' => 0,
             'pending_appointments' => 0,
             'unpaid_receipts' => 0,
+            'paid_receipts' => 0,
+            'total_tickets' => 0,
             'xray_today' => 0,
             'ultrasound_today' => 0,
             'lab_today' => 0,
@@ -875,6 +886,7 @@ class AdminController
             'revenue_week' => 0,
             'bhyt_ratio' => 0,
             'on_duty_doctors' => 0,
+            'on_duty_doctors_shifts' => ['Ca sáng' => 0, 'Ca chiều' => 0],
             'on_duty_receptions' => 0,
             'completed_exams_today' => 0,
             'appointments_status' => [
@@ -931,6 +943,12 @@ class AdminController
             // Biên lai chưa thanh toán
             $stats['unpaid_receipts'] = $this->adminModel->getUnpaidReceipts();
 
+            // Biên lai đã thanh toán
+            $stats['paid_receipts'] = $this->adminModel->getPaidReceipts();
+
+            // Tổng số lần bốc số
+            $stats['total_tickets'] = $this->adminModel->getTotalTickets();
+
             // Tỷ lệ BHYT (tính từ biên lai tháng này)
             $stats['bhyt_ratio'] = $this->adminModel->getBhytRatio($currentMonth);
 
@@ -953,6 +971,9 @@ class AdminController
 
             $stats['on_duty_doctors'] = $this->adminModel->getOnDutyDoctors($currentDayName);
 
+            // Bác sĩ đang trực theo ca (sáng/chiều)
+            $stats['on_duty_doctors_shifts'] = $this->adminModel->getOnDutyDoctorsByShift($currentDayName);
+
             // Lễ tân đang trực
             $stats['on_duty_receptions'] = $this->adminModel->getOnDutyReceptions($currentDayName);
 
@@ -966,6 +987,149 @@ class AdminController
         }
 
         return $stats;
+    }
+
+    /**
+     * Lấy danh sách tất cả lễ tân với lịch trực hôm nay
+     */
+    private function getReceptionsWithTodaySchedule()
+    {
+        try {
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            // Lấy thứ trong tuần hôm nay
+            $dayOfWeek = date('N'); // 1=Monday, 7=Sunday
+            $dayNames = ['', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'Chủ nhật'];
+            $currentDayName = $dayNames[$dayOfWeek] ?? 'Thứ 2';
+
+            // Kiểm tra xem trường trang_thai_truy_cap có tồn tại không
+            $checkColumn = $db->query("SHOW COLUMNS FROM le_tan LIKE 'trang_thai_truy_cap'");
+            $hasAccessStatus = $checkColumn->rowCount() > 0;
+
+            // Lấy tất cả lễ tân với trạng thái truy cập
+            if ($hasAccessStatus) {
+                $sql = "SELECT id, ten, email, so_dien_thoai, gioi_tinh, ngay_tao, ngay_cap_nhat,
+                        COALESCE(trang_thai_truy_cap, 'active') as trang_thai_truy_cap
+                        FROM le_tan 
+                        ORDER BY ten ASC";
+            } else {
+                $sql = "SELECT id, ten, email, so_dien_thoai, gioi_tinh, ngay_tao, ngay_cap_nhat,
+                        'active' as trang_thai_truy_cap
+                        FROM le_tan 
+                        ORDER BY ten ASC";
+            }
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $receptions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Lấy lịch trực hôm nay cho từng lễ tân
+            $result = [];
+            foreach ($receptions as $reception) {
+                $sql = "SELECT * FROM lich_lam_viec_le_tan 
+                        WHERE letan_id = :id 
+                        AND thu_trong_tuan = :day 
+                        AND trang_thai = 'active'
+                        ORDER BY gio_bat_dau";
+                $stmt = $db->prepare($sql);
+                $stmt->bindParam(':id', $reception['id'], PDO::PARAM_INT);
+                $stmt->bindParam(':day', $currentDayName);
+                $stmt->execute();
+                $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                $result[] = [
+                    'reception' => $reception,
+                    'schedules' => $schedules
+                ];
+            }
+
+            return $result;
+        } catch (Exception $e) {
+            error_log("Error getting receptions with today schedule: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Lấy danh sách tất cả bác sĩ với trạng thái truy cập
+     */
+    private function getDoctorsWithAccessStatus()
+    {
+        try {
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            // Lấy tất cả bác sĩ với trạng thái truy cập
+            // Kiểm tra xem trường trang_thai_truy_cap có tồn tại không
+            $sql = "SHOW COLUMNS FROM bac_si LIKE 'trang_thai_truy_cap'";
+            $stmt = $db->query($sql);
+            $columnExists = $stmt->rowCount() > 0;
+
+            if ($columnExists) {
+                // Nếu có trường trang_thai_truy_cap, lấy kèm theo
+                $sql = "SELECT id, ten, email, so_dien_thoai, chuyen_khoa, 
+                        COALESCE(trang_thai_truy_cap, 'active') as trang_thai_truy_cap
+                        FROM bac_si 
+                        ORDER BY ten ASC";
+            } else {
+                // Nếu chưa có trường, mặc định là 'active'
+                $sql = "SELECT id, ten, email, so_dien_thoai, chuyen_khoa, 
+                        'active' as trang_thai_truy_cap
+                        FROM bac_si 
+                        ORDER BY ten ASC";
+            }
+
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $doctors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $doctors;
+        } catch (Exception $e) {
+            error_log("Error getting doctors with access status: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Lấy danh sách bệnh nhân với trạng thái truy cập
+     */
+    private function getPatientsWithAccessStatus()
+    {
+        try {
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            // Kiểm tra xem trường trang_thai_truy_cap có tồn tại không
+            $sql = "SHOW COLUMNS FROM benh_nhan LIKE 'trang_thai_truy_cap'";
+            $stmt = $db->query($sql);
+            $columnExists = $stmt->rowCount() > 0;
+
+            if ($columnExists) {
+                // Nếu có trường trang_thai_truy_cap, lấy kèm theo
+                $sql = "SELECT id, ten, email, so_dien_thoai, 
+                        COALESCE(trang_thai_truy_cap, 'active') as trang_thai_truy_cap
+                        FROM benh_nhan 
+                        ORDER BY ten ASC";
+            } else {
+                // Nếu chưa có trường, mặc định là 'active'
+                $sql = "SELECT id, ten, email, so_dien_thoai, 
+                        'active' as trang_thai_truy_cap
+                        FROM benh_nhan 
+                        ORDER BY ten ASC";
+            }
+
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+            $patients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $patients;
+        } catch (Exception $e) {
+            error_log("Error getting patients with access status: " . $e->getMessage());
+            return [];
+        }
     }
 
     /**
@@ -1742,15 +1906,34 @@ class AdminController
     {
         $this->auth->requireAuth('admin');
 
-        // Lấy danh sách lễ tân
+        // Lấy danh sách lễ tân với trạng thái truy cập
         require_once 'Models/Reception.php';
         $receptionModel = new Reception();
-        $receptions = $receptionModel->getAll();
 
         // Lấy lịch làm việc lễ tân và thống kê
         require_once 'config/database.php';
         $database = new Database();
         $db = $database->getConnection();
+
+        // Kiểm tra xem trường trang_thai_truy_cap có tồn tại không
+        $checkColumn = $db->query("SHOW COLUMNS FROM le_tan LIKE 'trang_thai_truy_cap'");
+        $hasAccessStatus = $checkColumn->rowCount() > 0;
+
+        // Lấy danh sách lễ tân với trạng thái truy cập
+        if ($hasAccessStatus) {
+            $sql = "SELECT id, ten, email, so_dien_thoai, gioi_tinh, ngay_tao, ngay_cap_nhat,
+                    COALESCE(trang_thai_truy_cap, 'active') as trang_thai_truy_cap
+                    FROM le_tan 
+                    ORDER BY ten ASC";
+        } else {
+            $sql = "SELECT id, ten, email, so_dien_thoai, gioi_tinh, ngay_tao, ngay_cap_nhat,
+                    'active' as trang_thai_truy_cap
+                    FROM le_tan 
+                    ORDER BY ten ASC";
+        }
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+        $receptions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $allSchedules = [];
         $scheduleStats = [
@@ -2215,6 +2398,68 @@ class AdminController
                 'message' => 'Không tìm thấy người dùng!'
             ]);
         }
+        exit();
+    }
+
+    /**
+     * API: Lấy danh sách người đã đăng ký khuôn mặt
+     */
+    public function getRegisteredFaces()
+    {
+        $this->auth->requireAuth('admin');
+        header('Content-Type: application/json; charset=utf-8');
+
+        $userType = $_GET['type'] ?? null; // 'doctor' hoặc 'reception' hoặc null (tất cả)
+
+        require_once 'Models/Attendance.php';
+        $attendanceModel = new Attendance();
+
+        $faces = $attendanceModel->getRegisteredFaces($userType);
+
+        echo json_encode([
+            'success' => true,
+            'faces' => $faces
+        ]);
+        exit();
+    }
+
+    /**
+     * API: Xóa face encoding (sau khi verify bằng face recognition)
+     */
+    public function deleteFaceEncoding()
+    {
+        $this->auth->requireAuth('admin');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $userId = (int)($input['user_id'] ?? 0);
+        $userType = trim($input['user_type'] ?? '');
+        $faceEncoding = $input['face_encoding'] ?? null;
+
+        if ($userId <= 0 || empty($userType) || empty($faceEncoding)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc!']);
+            exit();
+        }
+
+        if (!in_array($userType, ['doctor', 'reception', 'admin'])) {
+            echo json_encode(['success' => false, 'message' => 'Loại người dùng không hợp lệ!']);
+            exit();
+        }
+
+        require_once 'Models/Attendance.php';
+        $attendanceModel = new Attendance();
+
+        $faceEncodingJson = is_string($faceEncoding) ? $faceEncoding : json_encode($faceEncoding);
+
+        $result = $attendanceModel->deleteFaceEncoding($userId, $userType, $faceEncodingJson);
+
+        echo json_encode($result);
         exit();
     }
 

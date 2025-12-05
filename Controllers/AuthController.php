@@ -43,6 +43,50 @@ class AuthController
         $_SESSION['last_activity'] = time();
         // Store minimal state: id + role for routing/authorization; avoid PII (name/email)
         $_SESSION['user_role'] = is_string($role) ? $role : '';
+
+        // Cập nhật trạng thái truy cập thành 'active' khi đăng nhập
+        $this->updateUserAccessStatus($user['id'] ?? null, $role, 'active');
+    }
+
+    /**
+     * Cập nhật trạng thái truy cập của user
+     */
+    private function updateUserAccessStatus($userId, $userType, $status)
+    {
+        if (!$userId) return;
+
+        try {
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+
+            // Kiểm tra xem trường trang_thai_truy_cap có tồn tại không
+            $tableName = null;
+            if (in_array($userType, ['doctor', 'xray_doctor', 'sieuam_doctor', 'xetnghiem_doctor'])) {
+                $tableName = 'bac_si';
+            } elseif ($userType === 'letan') {
+                $tableName = 'le_tan';
+            } elseif ($userType === 'admin') {
+                $tableName = 'quan_tri_vien';
+            } elseif ($userType === 'patient') {
+                $tableName = 'benh_nhan';
+            }
+
+            if (!$tableName) return;
+
+            // Kiểm tra xem trường có tồn tại không
+            $checkColumn = $db->query("SHOW COLUMNS FROM {$tableName} LIKE 'trang_thai_truy_cap'");
+            if ($checkColumn->rowCount() === 0) return;
+
+            // Cập nhật trạng thái
+            $sql = "UPDATE {$tableName} SET trang_thai_truy_cap = :status, ngay_cap_nhat = NOW() WHERE id = :id";
+            $stmt = $db->prepare($sql);
+            $stmt->bindParam(':status', $status);
+            $stmt->bindParam(':id', $userId, PDO::PARAM_INT);
+            $stmt->execute();
+        } catch (Exception $e) {
+            error_log("Error updating user access status: " . $e->getMessage());
+        }
     }
 
     // ===== Common Login Logic =====
@@ -99,6 +143,18 @@ class AuthController
                 }
 
                 $this->setUserSessionSafe($user, $role);
+                // If a post-login redirect was stored (e.g. booking flow), honor it for patients
+                if ($role === 'patient' && !empty($_SESSION['after_login']) && is_string($_SESSION['after_login'])) {
+                    $after = $_SESSION['after_login'];
+                    // Basic safety: do not allow full absolute URLs to avoid open redirect
+                    if (strpos($after, 'http://') === false && strpos($after, 'https://') === false) {
+                        unset($_SESSION['after_login']);
+                        header("Location: " . $after);
+                        exit();
+                    }
+                    // if unsafe, fall back to default redirect
+                    unset($_SESSION['after_login']);
+                }
                 header("Location: ./{$redirectPath}");
                 exit();
             }
@@ -497,6 +553,9 @@ class AuthController
                     $_SESSION['chuyen_khoa_ten'] = $doctor['chuyen_khoa_ten'];
                     $_SESSION['last_activity'] = time();
 
+                    // Cập nhật trạng thái truy cập thành active
+                    $this->updateUserAccessStatus($doctor['id'], 'xetnghiem_doctor', 'active');
+
                     header("Location: ./xetnghiem_dashboard");
                     exit();
                 }
@@ -734,8 +793,14 @@ class AuthController
 
     public function logout()
     {
-        // Lưu lại role hiện tại trước khi clear session
+        // Lưu lại role và user_id hiện tại trước khi clear session
         $role = $_SESSION['user_role'] ?? '';
+        $userId = $_SESSION['user_id'] ?? null;
+
+        // Cập nhật trạng thái truy cập thành 'inactive' khi logout (chỉ cho bác sĩ)
+        if ($userId && in_array($role, ['doctor', 'xray_doctor', 'sieuam_doctor', 'xetnghiem_doctor'])) {
+            $this->updateUserAccessStatus($userId, $role, 'inactive');
+        }
 
         // Clear only our keys to avoid nuking unrelated PHP session data
         unset(
@@ -785,6 +850,12 @@ class AuthController
     public function requireAuth($role = null)
     {
         if (!$this->isLoggedIn()) {
+            // Preserve requested URI so we can redirect back after successful login
+            // Store only the request URI (path + query) to avoid open-redirect to external hosts
+            $requestUri = $_SERVER['REQUEST_URI'] ?? null;
+            if ($requestUri) {
+                $_SESSION['after_login'] = $requestUri;
+            }
             header("Location: ./login");
             exit();
         }

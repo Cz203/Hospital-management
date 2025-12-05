@@ -589,7 +589,7 @@ class ReceptionController
         $qt = new QueueTicket();
         $ticket = $qt->issueTicket($patientId, $doctorId, (int)$appointmentId, $priority, $counter);
 
-        // Emit realtime for doctor appointment list
+        // Emit realtime for doctor appointment list and queue update
         try {
             // Lấy tên bệnh nhân phục vụ thông báo
             $patientName = '';
@@ -598,6 +598,8 @@ class ReceptionController
                 if ($p && !empty($p['ten'])) $patientName = $p['ten'];
             }
             require_once 'Services/SocketService.php';
+
+            // Emit for doctor
             SocketService::emit('new_appointment', [
                 'doctorId' => $doctorId,
                 'patientName' => $patientName,
@@ -606,12 +608,24 @@ class ReceptionController
                 'appointmentTime' => date('H:i'),
                 'appointmentId' => (int)$appointmentId,
             ]);
-            // generic update broadcast (fallback)
+
+            // Generic update broadcast for doctor
             SocketService::emit('appointment_update', [
                 'doctorId' => $doctorId,
                 'appointmentId' => (int)$appointmentId,
                 'patientName' => $patientName,
                 'message' => 'Bạn vừa có một lịch mới: ' . ($patientName ?: 'Bệnh nhân'),
+            ]);
+
+            // Emit queue_update for reception queue page
+            SocketService::emit('queue_update', [
+                'queueId' => $ticket['id'],
+                'appointmentId' => (int)$appointmentId,
+                'doctorId' => $doctorId,
+                'specialtyId' => $specialtyId,
+                'queueStatus' => 'cho',
+                'action' => 'new_ticket',
+                'timestamp' => date('Y-m-d H:i:s')
             ]);
         } catch (Exception $e) {
             // ignore realtime errors
@@ -652,8 +666,16 @@ class ReceptionController
                     JOIN benh_nhan bn ON bn.id = t.benh_nhan_id
                     JOIN bac_si bs ON bs.id = t.bac_si_id
                     LEFT JOIN lich_hen lh ON lh.id = t.lich_hen_id
+                    LEFT JOIN chuyen_khoa ck ON ck.id = bs.chuyen_khoa_id
                     WHERE t.ngay = :d";
             $params = [':d' => $date];
+
+            // Filter theo chuyên khoa nếu có
+            $specialtyId = isset($_GET['chuyen_khoa_id']) ? (int)$_GET['chuyen_khoa_id'] : 0;
+            if ($specialtyId > 0) {
+                $baseSql .= " AND bs.chuyen_khoa_id = :ck";
+                $params[':ck'] = $specialtyId;
+            }
 
             if ($doctorId > 0) {
                 $baseSql .= " AND t.bac_si_id = :bs";
@@ -674,7 +696,9 @@ class ReceptionController
             $total = (int)$stmtCount->fetchColumn();
 
             // Lấy danh sách phiếu cho trang hiện tại
-            $dataSql = "SELECT t.*, bn.ten AS ten_benh_nhan, bs.ten AS ten_bac_si, lh.gio_hen AS thoi_gian_du_kien "
+            $dataSql = "SELECT t.*, bn.ten AS ten_benh_nhan, bs.ten AS ten_bac_si, 
+                        bs.chuyen_khoa_id, ck.ten AS ten_chuyen_khoa,
+                        lh.gio_hen AS thoi_gian_du_kien "
                 . $baseSql
                 . " ORDER BY t.uu_tien DESC, t.so_thu_tu ASC
                         LIMIT :limit OFFSET :offset";

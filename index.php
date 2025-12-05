@@ -313,6 +313,12 @@ switch ($action) {
     case 'admin_get_user_info':
         $adminController->getUserInfo(); // API: Lấy thông tin user
         break;
+    case 'admin_get_registered_faces':
+        $adminController->getRegisteredFaces(); // API: Lấy danh sách người đã đăng ký khuôn mặt
+        break;
+    case 'admin_delete_face_encoding':
+        $adminController->deleteFaceEncoding(); // API: Xóa face encoding (sau khi verify)
+        break;
 
     // ===== DASHBOARD ROUTES =====
     case 'doctor_dashboard':
