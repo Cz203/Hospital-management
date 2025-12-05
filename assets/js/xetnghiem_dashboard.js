@@ -126,6 +126,11 @@ function viewXetnghiemDetail(id) {
                 
                 // Set date
                 const date = new Date(result.ngay_cap_nhat || result.ngay_tao || Date.now());
+                const timeStr = date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                const timeInput = document.getElementById("xn_order_time");
+                if (timeInput) {
+                    timeInput.value = timeStr;
+                }
                 document.getElementById("xn_day").value = date.getDate().toString().padStart(2, "0");
                 document.getElementById("xn_month").value = (date.getMonth() + 1).toString().padStart(2, "0");
                 document.getElementById("xn_year").value = date.getFullYear();

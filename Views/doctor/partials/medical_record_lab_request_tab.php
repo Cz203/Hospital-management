@@ -24,7 +24,7 @@
                         <input type="text" class="form-control" value="0777871608" readonly>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Quận/Huyện</label>
+                        <label class="form-label fw-bold">Quận</label>
                         <input type="text" class="form-control" value="Gò Vấp" readonly>
                     </div>
                 </div>

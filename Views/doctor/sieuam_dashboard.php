@@ -159,7 +159,7 @@ $content .= '
             <input type="text" class="form-control" id="vs_phone" readonly>
           </div>
           <div class="col-md-2">
-            <label class="form-label fw-bold">Quận/Huyện</label>
+            <label class="form-label fw-bold">Quận</label>
             <input type="text" class="form-control" id="vs_quan" readonly>
           </div>
         </div>
@@ -189,6 +189,11 @@ $content .= '
             <label class="form-label fw-bold">Số thẻ BHYT</label>
             <input type="text" class="form-control" id="vs_insurance_number" readonly>
           </div>
+        </div>
+
+        <div class="mt-3">
+          <label class="form-label fw-bold">Giờ chỉ định:</label>
+          <input type="text" class="form-control" id="vs_order_time" readonly>
         </div>
 
         <div class="mt-3">
@@ -464,6 +469,9 @@ renderLayout($content, 'Siêu âm Dashboard - Hệ thống Quản lý Bệnh vi�
 
                     // Set date
                     const date = new Date(result.ngay_cap_nhat || result.ngay_tao || Date.now());
+                    const timeStr = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    const vsOrderTime = document.getElementById('vs_order_time');
+                    if (vsOrderTime) vsOrderTime.value = timeStr;
                     document.getElementById('vs_day').value = date.getDate().toString().padStart(2, '0');
                     document.getElementById('vs_month').value = (date.getMonth() + 1).toString().padStart(2, '0');
                     document.getElementById('vs_year').value = date.getFullYear();

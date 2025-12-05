@@ -98,9 +98,12 @@
                                 <div class="card-body">
                                     <input type="hidden" name="id_phieu_kham_benh" id="ultrasound_examination_id">
 
-                                    <div class="text-center mb-3">
-                                        <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU SIÊU ÂM</div>
-                                    </div>
+                            <div class="text-center mb-3">
+                                <div style="margin-bottom:6px;">
+                                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                </div>
+                                <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU SIÊU ÂM</div>
+                            </div>
 
                                     <div class="row g-3">
                                         <div class="col-md-4">
@@ -114,7 +117,7 @@
                                                 id="ultrasound_phone" value="0777871608" readonly>
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label fw-bold">Quận/Huyện</label>
+                                            <label class="form-label fw-bold">Quận</label>
                                             <input type="text" class="form-control" name="ultrasound_quan"
                                                 id="ultrasound_quan" value="Gò Vấp" readonly>
                                         </div>
@@ -156,6 +159,13 @@
                                             <input type="text" class="form-control" name="ultrasound_insurance_number"
                                                 id="ultrasound_insurance_number" readonly>
                                         </div>
+                                    </div>
+
+                                    <!-- Giờ chỉ định -->
+                                    <div class="mt-3">
+                                        <label class="form-label fw-bold">Giờ chỉ định:</label>
+                                        <input type="text" class="form-control" name="ultrasound_gio_chi_dinh" id="ultrasound_gio_chi_dinh"
+                                            placeholder="Giờ:phút:giây" readonly>
                                     </div>
 
                                     <!-- Chẩn đoán -->
@@ -571,6 +581,9 @@
                                     <input type="hidden" name="id_phieu_kham_benh" id="lab_examination_id">
 
                                     <div class="text-center mb-3">
+                                        <div style="margin-bottom:6px;">
+                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                        </div>
                                         <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU XÉT NGHIỆM</div>
                                     </div>
 
@@ -586,7 +599,7 @@
                                                 value="0777871608" readonly>
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label fw-bold">Quận/Huyện</label>
+                                            <label class="form-label fw-bold">Quận</label>
                                             <input type="text" class="form-control" name="lab_quan" id="lab_quan"
                                                 value="Gò Vấp" readonly>
                                         </div>
@@ -628,6 +641,12 @@
                                             <input type="text" class="form-control" name="lab_insurance_number"
                                                 id="lab_insurance_number" readonly>
                                         </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <label class="form-label fw-bold">Giờ chỉ định:</label>
+                                        <input type="text" class="form-control" name="lab_gio_chi_dinh" id="lab_gio_chi_dinh"
+                                            placeholder="Giờ:phút:giây" readonly>
                                     </div>
 
                                     <div class="mt-3">
@@ -1061,6 +1080,9 @@
 
                                     <!-- Header phòng khám -->
                                     <div class="mb-3 text-center">
+                                        <div style="margin-bottom:6px;">
+                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                        </div>
                                         <div class="fw-bold" style="font-size:18px" id="xray_clinic_name_display">PHIẾU
                                             CHỤP X – QUANG</div>
                                     </div>
@@ -1076,7 +1098,7 @@
                                                 value="0777871608" readonly>
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="form-label fw-bold">Quận/Huyện</label>
+                                            <label class="form-label fw-bold">Quận</label>
                                             <input type="text" class="form-control" name="xray_quan" id="xray_quan"
                                                 value="Gò Vấp" readonly>
                                         </div>
@@ -1119,6 +1141,13 @@
                                             <input type="text" class="form-control" name="xray_insurance_number"
                                                 id="xray_insurance_number" readonly>
                                         </div>
+                                    </div>
+
+                                    <!-- Giờ chỉ định -->
+                                    <div class="mt-3">
+                                        <label class="form-label fw-bold">Giờ chỉ định:</label>
+                                        <input type="text" class="form-control" name="xray_gio_chi_dinh" id="xray_gio_chi_dinh"
+                                            placeholder="Giờ:phút:giây" readonly>
                                     </div>
 
                                     <!-- Chuẩn đoán -->
@@ -1396,6 +1425,10 @@
                                     <h6 class="mb-0"><i class="fas fa-pills me-2"></i>Kê đơn thuốc</h6>
                                 </div>
                                 <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                    </div>
+
                                     <!-- Header Information -->
                                     <div class="row mb-4">
                                         <div class="col-12">
@@ -1733,6 +1766,9 @@
                                 <div class="receipt-container">
                                     <!-- Header -->
                                     <div class="receipt-header">
+                                        <div class="text-center mb-2">
+                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                        </div>
                                         <div class="receipt-title">
                                             <h1 class="receipt-clinic-name">PHÒNG KHÁM ĐA KHOA THINHVIET</h1>
                                             <h2 class="receipt-main-title">BIÊN LAI VIỆN PHÍ</h2>

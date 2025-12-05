@@ -698,6 +698,12 @@ function showXrayNoResultMessage() {
 
 // Prefill X-Ray form with patient and defaults
 function prefillXRaySection() {
+  // Reset Giờ chỉ định khi mở modal mới (chỉ hiển thị sau khi lưu)
+  var xrayGioChiDinh = document.getElementById("xray_gio_chi_dinh");
+  if (xrayGioChiDinh) {
+    xrayGioChiDinh.value = "";
+  }
+
   var pName = document.getElementById("patientName")
     ? document.getElementById("patientName").value
     : "";
@@ -823,6 +829,12 @@ function prefillUltrasoundSection() {
   var pCode = document.getElementById("exam_ma_benh_nhan")
     ? document.getElementById("exam_ma_benh_nhan").value
     : "";
+
+  // Reset Giờ chỉ định khi mở modal mới (chỉ hiển thị sau khi lưu)
+  var ultrasoundGioChiDinh = document.getElementById("ultrasound_gio_chi_dinh");
+  if (ultrasoundGioChiDinh) {
+    ultrasoundGioChiDinh.value = "";
+  }
 
   // Map patient info
   var uCode = document.getElementById("ultrasound_patient_code");
@@ -1485,6 +1497,24 @@ function displayXrayFormData(data) {
     }
   }
 
+  // Hiển thị Giờ chỉ định từ ngay_cap_nhat (format: H:i:s)
+  var gioChiDinhEl = document.getElementById("xray_gio_chi_dinh");
+  if (gioChiDinhEl) {
+    if (data.ngay_cap_nhat) {
+      var date = new Date(data.ngay_cap_nhat);
+      if (!isNaN(date.getTime())) {
+        var hours = String(date.getHours()).padStart(2, '0');
+        var minutes = String(date.getMinutes()).padStart(2, '0');
+        var seconds = String(date.getSeconds()).padStart(2, '0');
+        gioChiDinhEl.value = hours + ":" + minutes + ":" + seconds;
+      } else {
+        gioChiDinhEl.value = "";
+      }
+    } else {
+      gioChiDinhEl.value = "";
+    }
+  }
+
   // Fill diagnosis field
   if (data.chan_doan_vao_vien) {
     var diagnosisField = document.getElementById("xray_diagnosis");
@@ -2133,6 +2163,24 @@ function displayUltrasoundFormData(data) {
     }
   }
 
+  // Hiển thị Giờ chỉ định từ ngay_cap_nhat (format: H:i:s)
+  var gioChiDinhEl = document.getElementById("ultrasound_gio_chi_dinh");
+  if (gioChiDinhEl) {
+    if (data.ngay_cap_nhat) {
+      var date = new Date(data.ngay_cap_nhat);
+      if (!isNaN(date.getTime())) {
+        var hours = String(date.getHours()).padStart(2, '0');
+        var minutes = String(date.getMinutes()).padStart(2, '0');
+        var seconds = String(date.getSeconds()).padStart(2, '0');
+        gioChiDinhEl.value = hours + ":" + minutes + ":" + seconds;
+      } else {
+        gioChiDinhEl.value = "";
+      }
+    } else {
+      gioChiDinhEl.value = "";
+    }
+  }
+
   // Fill diagnosis field
   if (data.chan_doan) {
     var diagnosisField = document.getElementById("ultrasound_diagnosis");
@@ -2272,6 +2320,12 @@ function prefillLabSection() {
   if (labDoctor && doctorName) {
     labDoctor.value = doctorName;
     if (labDoctorDisplay) labDoctorDisplay.textContent = doctorName;
+  }
+
+  // Reset Giờ chỉ định khi mở modal mới (chỉ hiển thị sau khi lưu)
+  var labGioChiDinh = document.getElementById("lab_gio_chi_dinh");
+  if (labGioChiDinh) {
+    labGioChiDinh.value = "";
   }
 
   // Prefill Lab diagnosis from Examination diagnosis (chan_doan_vao_vien)
@@ -2647,6 +2701,25 @@ function displayLabFormData(data) {
   if (data.ngay) document.getElementById("lab_ngay").value = data.ngay;
   if (data.thang) document.getElementById("lab_thang").value = data.thang;
   if (data.nam) document.getElementById("lab_nam").value = data.nam;
+
+  // Hiển thị Giờ chỉ định từ ngay_cap_nhat (format: H:i:s)
+  var gioChiDinhEl = document.getElementById("lab_gio_chi_dinh");
+  if (gioChiDinhEl) {
+    if (data.ngay_cap_nhat) {
+      // Parse timestamp và format thành H:i:s
+      var date = new Date(data.ngay_cap_nhat);
+      if (!isNaN(date.getTime())) {
+        var hours = String(date.getHours()).padStart(2, '0');
+        var minutes = String(date.getMinutes()).padStart(2, '0');
+        var seconds = String(date.getSeconds()).padStart(2, '0');
+        gioChiDinhEl.value = hours + ":" + minutes + ":" + seconds;
+      } else {
+        gioChiDinhEl.value = "";
+      }
+    } else {
+      gioChiDinhEl.value = "";
+    }
+  }
 
   // Update doctor display
   var doctorDisplay = document.getElementById("lab_doctor_display");

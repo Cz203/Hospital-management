@@ -24,7 +24,7 @@
                         <input type="text" class="form-control" value="<?php echo escapeHtml($xrayRequest['so_dien_thoai'] ?? '0777871608'); ?>" readonly>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label fw-bold">Quận/Huyện</label>
+                        <label class="form-label fw-bold">Quận</label>
                         <input type="text" class="form-control" value="<?php echo escapeHtml($xrayRequest['quan'] ?? 'Gò Vấp'); ?>" readonly>
                     </div>
                 </div>

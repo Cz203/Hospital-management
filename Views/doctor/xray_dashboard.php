@@ -159,7 +159,7 @@ $content .= '
             <input type="text" class="form-control" id="vx_phone" readonly>
           </div>
           <div class="col-md-2">
-            <label class="form-label fw-bold">Quận/Huyện</label>
+            <label class="form-label fw-bold">Quận</label>
             <input type="text" class="form-control" id="vx_quan" readonly>
           </div>
         </div>
@@ -193,6 +193,11 @@ $content .= '
             <label class="form-label fw-bold">Số thẻ BHYT</label>
             <input type="text" class="form-control" id="vx_insurance_number" readonly>
           </div>
+        </div>
+
+        <div class="mt-3">
+          <label class="form-label fw-bold">Giờ chỉ định:</label>
+          <input type="text" class="form-control" id="vx_order_time" readonly>
         </div>
 
         <div class="mt-3">
@@ -832,6 +837,17 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById('vx_insurance_number').value = data.so_the_bhyt || '';
     document.getElementById('vx_diagnosis').value = data.chan_doan_vao_vien || '';
     document.getElementById('vx_request').value = data.yeu_cau_chup || '';
+    // Giờ chỉ định
+    var timeStr = '';
+    var tsRaw = data.ngay_cap_nhat || data.ngay_tao || '';
+    if (tsRaw) {
+      var dTime = new Date(String(tsRaw).replace(' ', 'T'));
+      if (!isNaN(dTime.getTime())) {
+        timeStr = dTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+    }
+    var vxOrderTime = document.getElementById('vx_order_time');
+    if (vxOrderTime) vxOrderTime.value = timeStr;
     var p = parseDateParts(data.ngay_tao);
     document.getElementById('vx_ngay').value = p.day;
     document.getElementById('vx_thang').value = p.month;

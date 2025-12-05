@@ -106,29 +106,6 @@ $scheduleOpen = (strpos($current_uri, 'doctor_today_appointments') !== false
                     <span>Hồ sơ bệnh án</span>
                 </a>
             </li>
-
-            <!-- Điều trị & theo dõi -->
-            <li class="nav-item mt-3 mb-1 px-3">
-                <div class="sidebar-section-label">Điều trị & theo dõi</div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link d-flex align-items-center" href="#">
-                    <i class="fas fa-prescription me-3"></i>
-                    <span>Kê đơn thuốc</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link d-flex align-items-center" href="#">
-                    <i class="fas fa-procedures me-3"></i>
-                    <span>Chỉ định xét nghiệm</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link d-flex align-items-center" href="#">
-                    <i class="fas fa-chart-line me-3"></i>
-                    <span>Theo dõi bệnh nhân</span>
-                </a>
-            </li>
         </ul>
     </div>
 </div>

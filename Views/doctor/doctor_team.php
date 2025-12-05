@@ -4,6 +4,16 @@ require_once 'Models/Specialty.php';
 $doctorModel = new Doctor();
 $doctors = $doctorModel->getAll();
 
+// Lọc bỏ các bác sĩ có chuyen_khoa_id là 16 (X-Quang), 17 (Xét nghiệm), 18 (Siêu âm)
+$doctors = array_filter($doctors, function($doc) {
+    $chuyenKhoaId = isset($doc['chuyen_khoa_id']) ? (int)$doc['chuyen_khoa_id'] : null;
+    // Chỉ hiển thị các bác sĩ không thuộc chuyên khoa 16, 17, 18
+    return !in_array($chuyenKhoaId, [16, 17, 18], true);
+});
+
+// Đánh lại chỉ số mảng sau khi lọc
+$doctors = array_values($doctors);
+
 // Lấy chuyên khoa từ bảng chuyen_khoa thay vì từ bac_si
 $spModel = new Specialty();
 $specialtyRows = $spModel->all();

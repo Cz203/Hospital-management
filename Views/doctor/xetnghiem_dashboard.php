@@ -155,7 +155,7 @@ $content = '
             <input type="text" class="form-control" id="xn_phone" readonly>
           </div>
           <div class="col-md-2">
-            <label class="form-label fw-bold">Quận/Huyện</label>
+            <label class="form-label fw-bold">Quận</label>
             <input type="text" class="form-control" id="xn_quan" readonly>
           </div>
         </div>
@@ -185,6 +185,11 @@ $content = '
             <label class="form-label fw-bold">Số thẻ BHYT</label>
             <input type="text" class="form-control" id="xn_insurance_number" readonly>
           </div>
+        </div>
+
+        <div class="mt-3">
+          <label class="form-label fw-bold">Giờ chỉ định:</label>
+          <input type="text" class="form-control" id="xn_order_time" readonly>
         </div>
 
         <div class="mt-3">
