@@ -48,6 +48,7 @@
                             <th>Chuyên khoa</th>
                             <th>Kinh nghiệm</th>
                             <th>Số điện thoại</th>
+                            <th>Trạng thái truy cập</th>
                             <th>Ngày tạo</th>
                             <th style="width: 140px;">Thao tác</th>
                         </tr>
@@ -88,6 +89,45 @@
                                     <td><?php echo htmlspecialchars($doc['so_dien_thoai'] ?? ''); ?></td>
                                     <td>
                                         <?php
+                                        $status = $doc['trang_thai_truy_cap'] ?? 'active';
+                                        $statusClass = '';
+                                        $statusText = '';
+                                        $statusIcon = '';
+
+                                        switch ($status) {
+                                            case 'active':
+                                                $statusClass = 'success';
+                                                $statusText = 'Hoạt động';
+                                                $statusIcon = 'fa-check-circle';
+                                                break;
+                                            case 'inactive':
+                                                $statusClass = 'secondary';
+                                                $statusText = 'Không hoạt động';
+                                                $statusIcon = 'fa-pause-circle';
+                                                break;
+                                            case 'blocked':
+                                                $statusClass = 'danger';
+                                                $statusText = 'Bị chặn';
+                                                $statusIcon = 'fa-ban';
+                                                break;
+                                            case 'suspended':
+                                                $statusClass = 'warning';
+                                                $statusText = 'Tạm khóa';
+                                                $statusIcon = 'fa-lock';
+                                                break;
+                                            default:
+                                                $statusClass = 'success';
+                                                $statusText = 'Hoạt động';
+                                                $statusIcon = 'fa-check-circle';
+                                        }
+                                        ?>
+                                        <span class="badge bg-<?php echo $statusClass; ?>">
+                                            <i class="fas <?php echo $statusIcon; ?> me-1"></i>
+                                            <?php echo $statusText; ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php
                                         $ts = isset($doc['ngay_tao']) ? strtotime($doc['ngay_tao']) : null;
                                         echo $ts ? date('d-m-Y', $ts) : '';
                                         ?>
@@ -118,7 +158,7 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">Chưa có dữ liệu bác sĩ.</td>
+                                <td colspan="8" class="text-center text-muted py-4">Chưa có dữ liệu bác sĩ.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>

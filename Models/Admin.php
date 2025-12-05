@@ -271,6 +271,26 @@ class Admin extends User
     }
 
     /**
+     * Lấy số biên lai đã thanh toán
+     */
+    public function getPaidReceipts()
+    {
+        $stmt = $this->getConnection()->query("SELECT COUNT(*) as total FROM bien_lai_vien_phi WHERE trang_thai IN ('Đã thanh toán tiền mặt', 'Đã thanh toán chuyển khoản')");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($result['total'] ?? 0);
+    }
+
+    /**
+     * Lấy tổng số lần bốc số (từ bảng phieu_boc_so)
+     */
+    public function getTotalTickets()
+    {
+        $stmt = $this->getConnection()->query("SELECT COUNT(*) as total FROM phieu_boc_so");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)($result['total'] ?? 0);
+    }
+
+    /**
      * Lấy tỷ lệ BHYT tháng này
      */
     public function getBhytRatio($currentMonth)
@@ -349,6 +369,39 @@ class Admin extends User
         $stmt->execute([':day_name' => $dayName]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)($result['total'] ?? 0);
+    }
+
+    /**
+     * Lấy số bác sĩ đang trực theo ca (sáng/chiều)
+     */
+    public function getOnDutyDoctorsByShift($dayName)
+    {
+        $stmt = $this->getConnection()->prepare("
+            SELECT 
+                llv.loai_ca,
+                COUNT(DISTINCT bs.id) as total
+            FROM bac_si bs
+            INNER JOIN lich_lam_viec llv ON bs.id = llv.bac_si_id
+            WHERE llv.trang_thai = 'active'
+            AND llv.thu_trong_tuan = :day_name
+            AND llv.loai_ca IN ('Ca sáng', 'Ca chiều')
+            GROUP BY llv.loai_ca
+        ");
+        $stmt->execute([':day_name' => $dayName]);
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $shifts = [
+            'Ca sáng' => 0,
+            'Ca chiều' => 0
+        ];
+
+        foreach ($results as $row) {
+            if (isset($shifts[$row['loai_ca']])) {
+                $shifts[$row['loai_ca']] = (int)$row['total'];
+            }
+        }
+
+        return $shifts;
     }
 
     /**

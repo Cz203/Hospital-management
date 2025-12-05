@@ -216,6 +216,14 @@ class Attendance
 
     /**
      * Chấm công check-in
+     * Áp dụng cho cả bác sĩ (doctor) và lễ tân (reception)
+     * 
+     * @param int $userId ID của user
+     * @param string $userType Loại user: 'doctor' hoặc 'reception'
+     * @param string $faceEncoding Face encoding JSON
+     * @param string|null $imagePath Đường dẫn ảnh check-in
+     * @param string|null $location Vị trí GPS
+     * @return array Kết quả check-in
      */
     public function checkIn($userId, $userType, $faceEncoding, $imagePath = null, $location = null)
     {
@@ -238,18 +246,58 @@ class Attendance
                 ];
             }
 
+            // Tính trễ dựa trên ca làm việc (áp dụng cho cả bác sĩ và lễ tân)
+            // Ca 1: 7h - 11h30 (check-in sau 7h10 = trễ)
+            // Ca 2: 13h - 21h (check-in sau 13h10 = trễ)
+            $checkInTime = date('H:i:s');
+            $checkInHour = (int)date('H');
+            $checkInMinute = (int)date('i');
+            $isLate = 0; // 0 = không trễ, 1 = trễ
+            $shiftName = '';
+            $lateMessage = '';
+
+            // Xác định ca và tính trễ (áp dụng cho cả doctor và reception)
+            if ($checkInHour >= 7 && $checkInHour < 13) {
+                // Ca 1: 7h - 11h30
+                $shiftName = 'Ca 1 (7h - 11h30)';
+                // Trễ nếu sau 7h10
+                if ($checkInHour > 7 || ($checkInHour == 7 && $checkInMinute > 10)) {
+                    $isLate = 1;
+                    $minutesLate = ($checkInHour - 7) * 60 + ($checkInMinute - 10);
+                    $lateMessage = "Bạn đã check-in trễ {$minutesLate} phút so với giờ quy định (7h10).";
+                } else {
+                    $lateMessage = "Bạn đã check-in đúng giờ hoặc sớm.";
+                }
+            } elseif ($checkInHour >= 13 && $checkInHour < 21) {
+                // Ca 2: 13h - 21h
+                $shiftName = 'Ca 2 (13h - 21h)';
+                // Trễ nếu sau 13h10
+                if ($checkInHour > 13 || ($checkInHour == 13 && $checkInMinute > 10)) {
+                    $isLate = 1;
+                    $minutesLate = ($checkInHour - 13) * 60 + ($checkInMinute - 10);
+                    $lateMessage = "Bạn đã check-in trễ {$minutesLate} phút so với giờ quy định (13h10).";
+                } else {
+                    $lateMessage = "Bạn đã check-in đúng giờ hoặc sớm.";
+                }
+            } else {
+                // Ngoài ca
+                $shiftName = 'Ngoài ca làm việc';
+                $lateMessage = "Bạn check-in ngoài giờ ca làm việc.";
+            }
+
             // Lưu vào bảng attendance
             $sql = "INSERT INTO attendance (user_id, user_type, check_in_time, check_in_image, status, location, ngay_tao) 
                     VALUES (?, ?, ?, ?, 'checked_in', ?, NOW())";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$userId, $userType, $now, $imagePath, $location]);
 
-            // Lưu vào bảng cham_cong
-            $chamCongSql = "INSERT INTO cham_cong (user_id, user_type, ngay_cham, gio_vao, trang_thai, face_id_data, dia_diem, ngay_tao) 
-                           VALUES (?, ?, ?, ?, 'check_in', ?, ?, NOW())
+            // Lưu vào bảng cham_cong (bao gồm trạng thái trễ)
+            $chamCongSql = "INSERT INTO cham_cong (user_id, user_type, ngay_cham, gio_vao, trang_thai, tre, face_id_data, dia_diem, ngay_tao) 
+                           VALUES (?, ?, ?, ?, 'check_in', ?, ?, ?, NOW())
                            ON DUPLICATE KEY UPDATE 
                            gio_vao = VALUES(gio_vao), 
                            trang_thai = 'check_in',
+                           tre = VALUES(tre),
                            face_id_data = VALUES(face_id_data),
                            dia_diem = VALUES(dia_diem),
                            ngay_cap_nhat = NOW()";
@@ -259,12 +307,27 @@ class Attendance
                 'recognized_at' => $now
             ]);
             $chamCongStmt = $this->db->prepare($chamCongSql);
-            $chamCongStmt->execute([$userId, $userType, $today, date('H:i:s'), $faceIdData, $location]);
+            $chamCongStmt->execute([$userId, $userType, $today, $checkInTime, $isLate, $faceIdData, $location]);
+
+            // Tạo thông báo chi tiết
+            $message = 'Check-in thành công!';
+            if ($isLate) {
+                $message .= ' ⚠️ ' . $lateMessage;
+            } else {
+                $message .= ' ✅ ' . $lateMessage;
+            }
+            if (!empty($shiftName)) {
+                $message .= ' [' . $shiftName . ']';
+            }
 
             return [
                 'success' => true,
-                'message' => 'Check-in thành công!',
-                'check_in_time' => $now
+                'message' => $message,
+                'check_in_time' => $now,
+                'check_in_time_formatted' => $checkInTime,
+                'is_late' => $isLate,
+                'shift' => $shiftName,
+                'late_message' => $lateMessage
             ];
         } catch (Exception $e) {
             error_log("Error checking in: " . $e->getMessage());
@@ -351,21 +414,177 @@ class Attendance
     }
 
     /**
-     * Lấy trạng thái chấm công hôm nay
+     * Lấy trạng thái chấm công hôm nay (bao gồm thông tin trễ)
      */
     public function getTodayStatus($userId, $userType)
     {
         try {
             $today = date('Y-m-d');
-            $sql = "SELECT * FROM attendance 
-                    WHERE user_id = ? AND user_type = ? AND DATE(check_in_time) = ? 
-                    ORDER BY check_in_time DESC LIMIT 1";
+            $sql = "SELECT a.*, cc.tre as is_late, cc.gio_vao, cc.gio_ra
+                    FROM attendance a
+                    LEFT JOIN cham_cong cc ON a.user_id = cc.user_id 
+                        AND a.user_type = cc.user_type 
+                        AND DATE(a.check_in_time) = cc.ngay_cham
+                    WHERE a.user_id = ? AND a.user_type = ? AND DATE(a.check_in_time) = ? 
+                    ORDER BY a.check_in_time DESC LIMIT 1";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$userId, $userType, $today]);
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result) {
+                // Tính số phút trễ
+                $minutesLate = 0;
+                if ($result['check_in_time']) {
+                    $checkInTime = new DateTime($result['check_in_time']);
+                    $checkInHour = (int)$checkInTime->format('H');
+                    $checkInMinute = (int)$checkInTime->format('i');
+                    
+                    // Xác định giờ quy định dựa trên ca
+                    $requiredHour = 7;
+                    $requiredMinute = 10;
+                    
+                    if ($checkInHour >= 13 && $checkInHour < 21) {
+                        // Ca 2: 13h - 21h
+                        $requiredHour = 13;
+                        $requiredMinute = 10;
+                    } elseif ($checkInHour >= 7 && $checkInHour < 13) {
+                        // Ca 1: 7h - 11h30
+                        $requiredHour = 7;
+                        $requiredMinute = 10;
+                    }
+                    
+                    // Tính số phút trễ
+                    $checkInTotalMinutes = $checkInHour * 60 + $checkInMinute;
+                    $requiredTotalMinutes = $requiredHour * 60 + $requiredMinute;
+                    
+                    if ($checkInTotalMinutes > $requiredTotalMinutes) {
+                        $minutesLate = $checkInTotalMinutes - $requiredTotalMinutes;
+                    }
+                }
+                
+                // Tính số phút làm việc
+                $minutesWorked = 0;
+                if ($result['check_in_time']) {
+                    $checkInTime = new DateTime($result['check_in_time']);
+                    $checkOutTime = null;
+                    
+                    if ($result['check_out_time']) {
+                        $checkOutTime = new DateTime($result['check_out_time']);
+                    } else {
+                        // Nếu chưa check-out, tính đến hiện tại
+                        $checkOutTime = new DateTime();
+                    }
+                    
+                    $diff = $checkInTime->diff($checkOutTime);
+                    $minutesWorked = $diff->h * 60 + $diff->i;
+                }
+                
+                $result['minutes_late'] = $minutesLate;
+                $result['minutes_worked'] = $minutesWorked;
+            }
+            
+            return $result;
         } catch (Exception $e) {
             error_log("Error getting today status: " . $e->getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Lấy danh sách người đã đăng ký khuôn mặt
+     */
+    public function getRegisteredFaces($userType = null)
+    {
+        try {
+            $sql = "SELECT fe.id, fe.user_id, fe.user_type, fe.sample_image_path, 
+                           fe.ngay_tao, fe.ngay_cap_nhat,
+                           CASE 
+                               WHEN fe.user_type = 'doctor' THEN bs.ten
+                               WHEN fe.user_type = 'reception' THEN lt.ten
+                               WHEN fe.user_type = 'admin' THEN qt.ten
+                               ELSE ''
+                           END as ten,
+                           CASE 
+                               WHEN fe.user_type = 'doctor' THEN bs.email
+                               WHEN fe.user_type = 'reception' THEN lt.email
+                               WHEN fe.user_type = 'admin' THEN qt.email
+                               ELSE ''
+                           END as email
+                    FROM face_encodings fe
+                    LEFT JOIN bac_si bs ON fe.user_type = 'doctor' AND fe.user_id = bs.id
+                    LEFT JOIN le_tan lt ON fe.user_type = 'reception' AND fe.user_id = lt.id
+                    LEFT JOIN quan_tri_vien qt ON fe.user_type = 'admin' AND fe.user_id = qt.id
+                    WHERE fe.is_active = 1";
+
+            $params = [];
+            if ($userType) {
+                $sql .= " AND fe.user_type = ?";
+                $params[] = $userType;
+            }
+
+            $sql .= " ORDER BY fe.ngay_cap_nhat DESC";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getting registered faces: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Xóa face encoding (sau khi verify bằng face recognition)
+     */
+    public function deleteFaceEncoding($userId, $userType, $faceEncoding)
+    {
+        try {
+            // Verify face trước khi xóa
+            $verifyResult = $this->compareFaceWithUser($faceEncoding, $userId, $userType);
+
+            if (!$verifyResult['match']) {
+                return [
+                    'success' => false,
+                    'message' => 'Khuôn mặt không khớp! Vui lòng nhận diện lại khuôn mặt đã đăng ký.'
+                ];
+            }
+
+            // Xóa face encoding (set is_active = 0)
+            $sql = "UPDATE face_encodings 
+                    SET is_active = 0, ngay_cap_nhat = NOW() 
+                    WHERE user_id = ? AND user_type = ? AND is_active = 1";
+            $stmt = $this->db->prepare($sql);
+            $result = $stmt->execute([$userId, $userType]);
+
+            if (!$result) {
+                return [
+                    'success' => false,
+                    'message' => 'Lỗi khi xóa face encoding!'
+                ];
+            }
+
+            // Xóa face encoding trong bảng tương ứng
+            if ($userType === 'doctor') {
+                $updateSql = "UPDATE bac_si SET face_encoding = NULL, face_encoding_updated = NULL WHERE id = ?";
+            } elseif ($userType === 'reception') {
+                $updateSql = "UPDATE le_tan SET face_encoding = NULL, face_encoding_updated = NULL WHERE id = ?";
+            } else {
+                $updateSql = "UPDATE quan_tri_vien SET face_encoding = NULL, face_encoding_updated = NULL WHERE id = ?";
+            }
+
+            $updateStmt = $this->db->prepare($updateSql);
+            $updateStmt->execute([$userId]);
+
+            return [
+                'success' => true,
+                'message' => 'Xóa khuôn mặt thành công!'
+            ];
+        } catch (Exception $e) {
+            error_log("Error deleting face encoding: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Lỗi khi xóa: ' . $e->getMessage()
+            ];
         }
     }
 }
