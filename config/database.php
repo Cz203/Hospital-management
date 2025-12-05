@@ -1,4 +1,7 @@
 <?php
+// Set timezone Việt Nam cho toàn bộ ứng dụng
+date_default_timezone_set('Asia/Ho_Chi_Minh');
+
 class Database
 {
     private $host;

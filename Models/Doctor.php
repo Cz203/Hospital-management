@@ -149,8 +149,15 @@ class Doctor extends User
 
     public function getAll(): array
     {
+        // Kiểm tra xem trường trang_thai_truy_cap có tồn tại không
+        $checkColumn = $this->conn->query("SHOW COLUMNS FROM " . $this->table_name . " LIKE 'trang_thai_truy_cap'");
+        $hasAccessStatus = $checkColumn->rowCount() > 0;
+
+        $accessStatusField = $hasAccessStatus ? "COALESCE(bs.trang_thai_truy_cap, 'active') AS trang_thai_truy_cap" : "'active' AS trang_thai_truy_cap";
+
         $query = "SELECT bs.id, bs.ten, bs.email, bs.so_dien_thoai, 
-                         ck.ten AS chuyen_khoa, bs.chuyen_khoa_id, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.ngay_tao, bs.hinh_anh
+                         ck.ten AS chuyen_khoa, bs.chuyen_khoa_id, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.ngay_tao, bs.hinh_anh,
+                         {$accessStatusField}
                   FROM " . $this->table_name . " bs
                   LEFT JOIN chuyen_khoa ck ON ck.id = bs.chuyen_khoa_id";
         $stmt = $this->conn->prepare($query);
@@ -167,8 +174,15 @@ class Doctor extends User
 
     public function getPaginated(int $offset, int $limit): array
     {
+        // Kiểm tra xem trường trang_thai_truy_cap có tồn tại không
+        $checkColumn = $this->conn->query("SHOW COLUMNS FROM " . $this->table_name . " LIKE 'trang_thai_truy_cap'");
+        $hasAccessStatus = $checkColumn->rowCount() > 0;
+
+        $accessStatusField = $hasAccessStatus ? "COALESCE(bs.trang_thai_truy_cap, 'active') AS trang_thai_truy_cap" : "'active' AS trang_thai_truy_cap";
+
         $query = "SELECT bs.id, bs.ten, bs.email, bs.so_dien_thoai,
-                         ck.ten AS chuyen_khoa, bs.chuyen_khoa_id, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.ngay_tao, bs.hinh_anh
+                         ck.ten AS chuyen_khoa, bs.chuyen_khoa_id, bs.so_giay_phep, bs.so_nam_kinh_nghiem, bs.ngay_tao, bs.hinh_anh,
+                         {$accessStatusField}
                   FROM " . $this->table_name . " bs
                   LEFT JOIN chuyen_khoa ck ON ck.id = bs.chuyen_khoa_id
                   ORDER BY bs.ngay_tao DESC

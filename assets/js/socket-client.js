@@ -261,6 +261,11 @@ class SocketManager {
       this.handleAppointmentStatusChange(data);
     });
 
+    // Queue update for reception queue page
+    this.socket.on("queue_update", (data) => {
+      this.handleQueueUpdate(data);
+    });
+
     // Statistics
     this.socket.on("appointment_stats", (data) => {
       this.handleAppointmentStats(data);
@@ -468,6 +473,28 @@ class SocketManager {
     console.log("Appointment stats:", data);
     // Update stats display if available
     this.updateStatsDisplay(data);
+  }
+
+  // Handle queue update for reception queue page
+  handleQueueUpdate(data) {
+    console.log("Queue update:", data);
+
+    // Only handle if user is reception
+    if (this.userRole !== "letan") {
+      return;
+    }
+
+    // Check if we're on the queue page
+    if (!this.isOnReceptionQueue()) {
+      return;
+    }
+
+    // Trigger custom event that queue.php can listen to
+    // This allows the queue page to handle its own refresh logic
+    const queueUpdateEvent = new CustomEvent("queueUpdate", {
+      detail: data,
+    });
+    window.dispatchEvent(queueUpdateEvent);
   }
 
   // Show browser notification

@@ -19,7 +19,7 @@ require_once __DIR__ . '/../layouts/layout_helper.php';
 
     <!-- Summary cards - Hàng 1: Chỉ số chính -->
     <div class="row g-3 mb-3">
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl col-md-6 col-sm-12">
             <div class="card dashboard-card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center">
                     <div class="icon-circle bg-soft-primary me-3">
@@ -30,18 +30,81 @@ require_once __DIR__ . '/../layouts/layout_helper.php';
                         <div class="card-value">
                             <?php echo number_format($stats['total_doctors'] ?? 0); ?>
                         </div>
-                        <?php if (isset($stats['on_duty_doctors']) && $stats['on_duty_doctors'] > 0): ?>
-                        <small class="text-muted">
+                        <?php
+                        $onDutyShifts = $stats['on_duty_doctors_shifts'] ?? ['Ca sáng' => 0, 'Ca chiều' => 0];
+                        $totalOnDuty = ($onDutyShifts['Ca sáng'] ?? 0) + ($onDutyShifts['Ca chiều'] ?? 0);
+                        $morningCount = $onDutyShifts['Ca sáng'] ?? 0;
+                        $afternoonCount = $onDutyShifts['Ca chiều'] ?? 0;
+                        if ($totalOnDuty > 0):
+                            $tooltipContent = '';
+                            if ($morningCount > 0) {
+                                $tooltipContent .= '<span><i class="fas fa-sun text-warning me-1"></i>' . $morningCount . ' ca sáng</span>';
+                            }
+                            if ($afternoonCount > 0) {
+                                if ($morningCount > 0) $tooltipContent .= '<br>';
+                                $tooltipContent .= '<span><i class="fas fa-moon text-info me-1"></i>' . $afternoonCount . ' ca chiều</span>';
+                            }
+                        ?>
+                        <small class="text-muted d-block mt-1 on-duty-tooltip" data-bs-toggle="tooltip"
+                            data-bs-placement="top" data-bs-html="true"
+                            data-bs-title="<?php echo htmlspecialchars($tooltipContent, ENT_QUOTES); ?>"
+                            style="cursor: help;">
                             <i class="fas fa-circle text-success" style="font-size: 6px;"></i>
-                            <?php echo $stats['on_duty_doctors']; ?> đang trực
+                            <?php echo $totalOnDuty; ?> đang trực
                         </small>
                         <?php endif; ?>
+                        <?php
+                        // Đếm số bác sĩ theo trạng thái truy cập
+                        if (!empty($doctorsWithAccessStatus)) {
+                            $activeCount = 0;
+                            $inactiveCount = 0;
+                            $blockedCount = 0;
+                            $suspendedCount = 0;
+
+                            foreach ($doctorsWithAccessStatus as $doctor) {
+                                $status = $doctor['trang_thai_truy_cap'] ?? 'active';
+                                switch ($status) {
+                                    case 'active':
+                                        $activeCount++;
+                                        break;
+                                    case 'inactive':
+                                        $inactiveCount++;
+                                        break;
+                                    case 'blocked':
+                                        $blockedCount++;
+                                        break;
+                                    case 'suspended':
+                                        $suspendedCount++;
+                                        break;
+                                }
+                            }
+
+                            if ($activeCount > 0): ?>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-circle text-success" style="font-size: 6px;"></i>
+                            <?php echo $activeCount; ?> hoạt động
+                        </small>
+                        <?php endif;
+                            if ($blockedCount > 0): ?>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-circle text-danger" style="font-size: 6px;"></i>
+                            <?php echo $blockedCount; ?> bị chặn
+                        </small>
+                        <?php endif;
+                            if ($suspendedCount > 0): ?>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-circle text-warning" style="font-size: 6px;"></i>
+                            <?php echo $suspendedCount; ?> tạm khóa
+                        </small>
+                        <?php endif;
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl col-md-6 col-sm-12">
             <div class="card dashboard-card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center">
                     <div class="icon-circle bg-soft-success me-3">
@@ -58,12 +121,58 @@ require_once __DIR__ . '/../layouts/layout_helper.php';
                             +<?php echo $stats['new_patients_today']; ?> mới hôm nay
                         </small>
                         <?php endif; ?>
+                        <?php
+                        // Đếm số bệnh nhân theo trạng thái truy cập
+                        if (!empty($patientsWithAccessStatus)) {
+                            $activeCount = 0;
+                            $inactiveCount = 0;
+                            $blockedCount = 0;
+                            $suspendedCount = 0;
+
+                            foreach ($patientsWithAccessStatus as $patient) {
+                                $status = $patient['trang_thai_truy_cap'] ?? 'active';
+                                switch ($status) {
+                                    case 'active':
+                                        $activeCount++;
+                                        break;
+                                    case 'inactive':
+                                        $inactiveCount++;
+                                        break;
+                                    case 'blocked':
+                                        $blockedCount++;
+                                        break;
+                                    case 'suspended':
+                                        $suspendedCount++;
+                                        break;
+                                }
+                            }
+
+                            if ($activeCount > 0): ?>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-circle text-success" style="font-size: 6px;"></i>
+                            <?php echo $activeCount; ?> hoạt động
+                        </small>
+                        <?php endif;
+                            if ($blockedCount > 0): ?>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-circle text-danger" style="font-size: 6px;"></i>
+                            <?php echo $blockedCount; ?> bị chặn
+                        </small>
+                        <?php endif;
+                            if ($suspendedCount > 0): ?>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-circle text-warning" style="font-size: 6px;"></i>
+                            <?php echo $suspendedCount; ?> tạm khóa
+                        </small>
+                        <?php endif;
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl col-md-6 col-sm-12">
             <div class="card dashboard-card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center">
                     <div class="icon-circle bg-soft-info me-3">
@@ -74,29 +183,51 @@ require_once __DIR__ . '/../layouts/layout_helper.php';
                         <div class="card-value">
                             <?php echo number_format($stats['total_appointments'] ?? 0); ?>
                         </div>
-                        <small class="text-muted">
+                        <?php
+                        $appointmentsStatus = $stats['appointments_status'] ?? [];
+                        $pending = $appointmentsStatus['pending'] ?? 0;
+                        $confirmed = $appointmentsStatus['confirmed'] ?? 0;
+                        $examining = $appointmentsStatus['examining'] ?? 0;
+                        $completed = $appointmentsStatus['completed'] ?? 0;
+                        $cancelled = $appointmentsStatus['cancelled'] ?? 0;
+                        $totalToday = $stats['total_appointments_today'] ?? 0;
+
+                        // Tạo nội dung tooltip
+                        $tooltipContent = '';
+                        if ($pending > 0) {
+                            $tooltipContent .= '<span><i class="fas fa-clock text-info me-1"></i>' . $pending . ' chờ xác nhận</span>';
+                        }
+                        if ($confirmed > 0) {
+                            if ($tooltipContent) $tooltipContent .= '<br>';
+                            $tooltipContent .= '<span><i class="fas fa-check-circle text-success me-1"></i>' . $confirmed . ' đã xác nhận</span>';
+                        }
+                        if ($examining > 0) {
+                            if ($tooltipContent) $tooltipContent .= '<br>';
+                            $tooltipContent .= '<span><i class="fas fa-user-md text-warning me-1"></i>' . $examining . ' đang khám</span>';
+                        }
+                        if ($completed > 0) {
+                            if ($tooltipContent) $tooltipContent .= '<br>';
+                            $tooltipContent .= '<span><i class="fas fa-check-double text-primary me-1"></i>' . $completed . ' hoàn thành</span>';
+                        }
+                        if ($cancelled > 0) {
+                            if ($tooltipContent) $tooltipContent .= '<br>';
+                            $tooltipContent .= '<span><i class="fas fa-times-circle text-danger me-1"></i>' . $cancelled . ' đã hủy</span>';
+                        }
+                        ?>
+                        <small class="text-muted appointment-tooltip" data-bs-toggle="tooltip" data-bs-placement="top"
+                            data-bs-html="true"
+                            data-bs-title="<?php echo htmlspecialchars($tooltipContent, ENT_QUOTES); ?>"
+                            style="cursor: help;">
                             <i class="fas fa-calendar-day me-1"></i>
                             Hôm nay:
-                            <strong><?php echo number_format($stats['total_appointments_today'] ?? 0); ?></strong>
+                            <strong><?php echo number_format($totalToday); ?></strong>
                         </small>
-                        <?php
-                        $examining = $stats['examining_patients'] ?? 0;
-                        $pending = $stats['pending_appointments'] ?? 0;
-                        if ($examining > 0 || $pending > 0):
-                        ?>
-                        <small class="text-muted d-block mt-1">
-                            <span class="text-warning"><?php echo $examining; ?> đang khám</span>
-                            <?php if ($pending > 0): ?>
-                            | <span class="text-info"><?php echo $pending; ?> chờ xác nhận</span>
-                            <?php endif; ?>
-                        </small>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-3 col-md-6">
+        <div class="col-xl col-md-6 col-sm-12">
             <div class="card dashboard-card border-0 shadow-sm h-100">
                 <div class="card-body d-flex align-items-center">
                     <div class="icon-circle bg-soft-warning me-3">
@@ -112,6 +243,75 @@ require_once __DIR__ . '/../layouts/layout_helper.php';
                             Hôm nay: <?php echo number_format($stats['revenue_today']); ?> VNĐ
                         </small>
                         <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl col-md-6 col-sm-12">
+            <div class="card dashboard-card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="icon-circle bg-soft-secondary me-3">
+                        <i class="fas fa-user-nurse"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="card-label">Tổng lễ tân</div>
+                        <div class="card-value">
+                            <?php echo number_format($stats['total_receptions'] ?? 0); ?>
+                        </div>
+                        <?php if (isset($stats['on_duty_receptions']) && $stats['on_duty_receptions'] > 0): ?>
+                        <small class="text-muted ">
+                            <i class="fas fa-circle text-success" style="font-size: 6px;"></i>
+                            <?php echo $stats['on_duty_receptions']; ?> đang trực
+                        </small>
+                        <?php endif; ?>
+                        <?php
+                        // Đếm số lễ tân theo trạng thái truy cập
+                        if (!empty($receptionsWithSchedule)) {
+                            $activeCount = 0;
+                            $inactiveCount = 0;
+                            $blockedCount = 0;
+                            $suspendedCount = 0;
+
+                            foreach ($receptionsWithSchedule as $item) {
+                                $reception = $item['reception'];
+                                $status = $reception['trang_thai_truy_cap'] ?? 'active';
+                                switch ($status) {
+                                    case 'active':
+                                        $activeCount++;
+                                        break;
+                                    case 'inactive':
+                                        $inactiveCount++;
+                                        break;
+                                    case 'blocked':
+                                        $blockedCount++;
+                                        break;
+                                    case 'suspended':
+                                        $suspendedCount++;
+                                        break;
+                                }
+                            }
+
+                            if ($activeCount > 0): ?>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-circle text-success" style="font-size: 6px;"></i>
+                            <?php echo $activeCount; ?> hoạt động
+                        </small>
+                        <?php endif;
+                            if ($blockedCount > 0): ?>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-circle text-danger" style="font-size: 6px;"></i>
+                            <?php echo $blockedCount; ?> bị chặn
+                        </small>
+                        <?php endif;
+                            if ($suspendedCount > 0): ?>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-circle text-warning" style="font-size: 6px;"></i>
+                            <?php echo $suspendedCount; ?> tạm khóa
+                        </small>
+                        <?php endif;
+                        }
+                        ?>
                     </div>
                 </div>
             </div>
@@ -175,12 +375,18 @@ require_once __DIR__ . '/../layouts/layout_helper.php';
         <div class="col-xl-2 col-md-4 col-sm-6">
             <div class="card dashboard-card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
-                    <div class="icon-circle bg-soft-warning mx-auto mb-2">
+                    <div class="icon-circle bg-soft-success mx-auto mb-2">
                         <i class="fas fa-file-invoice-dollar"></i>
                     </div>
-                    <div class="card-label">Chưa thanh toán</div>
-                    <div class="card-value"><?php echo number_format($stats['unpaid_receipts'] ?? 0); ?></div>
+                    <div class="card-label">Đã thanh toán</div>
+                    <div class="card-value"><?php echo number_format($stats['paid_receipts'] ?? 0); ?></div>
                     <small class="text-muted">Biên lai</small>
+                    <?php if (isset($stats['unpaid_receipts']) && $stats['unpaid_receipts'] > 0): ?>
+                    <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                        <i class="fas fa-circle text-warning" style="font-size: 4px;"></i>
+                        <?php echo number_format($stats['unpaid_receipts']); ?> chưa thanh toán
+                    </small>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -188,20 +394,16 @@ require_once __DIR__ . '/../layouts/layout_helper.php';
         <div class="col-xl-2 col-md-4 col-sm-6">
             <div class="card dashboard-card border-0 shadow-sm h-100">
                 <div class="card-body text-center">
-                    <div class="icon-circle bg-soft-secondary mx-auto mb-2">
-                        <i class="fas fa-user-nurse"></i>
+                    <div class="icon-circle bg-soft-info mx-auto mb-2">
+                        <i class="fas fa-ticket-alt"></i>
                     </div>
-                    <div class="card-label">Tổng lễ tân</div>
-                    <div class="card-value"><?php echo number_format($stats['total_receptions'] ?? 0); ?></div>
-                    <?php if (isset($stats['on_duty_receptions']) && $stats['on_duty_receptions'] > 0): ?>
-                    <small class="text-muted">
-                        <i class="fas fa-circle text-success" style="font-size: 6px;"></i>
-                        <?php echo $stats['on_duty_receptions']; ?> đang trực
-                    </small>
-                    <?php endif; ?>
+                    <div class="card-label">Bốc số</div>
+                    <div class="card-value"><?php echo number_format($stats['total_tickets'] ?? 0); ?></div>
+                    <small class="text-muted">Tổng số lần</small>
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- Charts & quick actions -->
@@ -1221,6 +1423,58 @@ require_once __DIR__ . '/../layouts/layout_helper.php';
     // Load biểu đồ tròn ban đầu (không có filter)
     loadAppointmentStatusChart();
     loadSpecialtyChart();
+
+    // Khởi tạo tooltip cho "đang trực" và "lịch hẹn"
+    function initTooltips() {
+        const tooltipElements = document.querySelectorAll('.on-duty-tooltip, .appointment-tooltip');
+        if (tooltipElements.length === 0) {
+            return;
+        }
+
+        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            tooltipElements.forEach(function(element) {
+                // Xóa tooltip cũ nếu có
+                const existingTooltip = bootstrap.Tooltip.getInstance(element);
+                if (existingTooltip) {
+                    existingTooltip.dispose();
+                }
+                // Lấy title từ data-bs-title
+                const title = element.getAttribute('data-bs-title') || element.getAttribute('title');
+                if (!title) {
+                    return;
+                }
+                // Tạo tooltip mới
+                try {
+                    new bootstrap.Tooltip(element, {
+                        html: true,
+                        placement: 'top',
+                        trigger: 'hover focus',
+                        title: title
+                    });
+                } catch (e) {
+                    // Silent fail
+                }
+            });
+        } else {
+            // Nếu Bootstrap chưa sẵn sàng, thử lại sau 200ms
+            setTimeout(initTooltips, 200);
+        }
+    }
+
+    // Đảm bảo khởi tạo sau khi mọi thứ đã load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initTooltips, 500);
+        });
+    } else {
+        // DOM đã sẵn sàng
+        setTimeout(initTooltips, 500);
+    }
+
+    // Cũng thử khởi tạo khi window load xong
+    window.addEventListener('load', function() {
+        setTimeout(initTooltips, 200);
+    });
 })
 ();
 </script>
