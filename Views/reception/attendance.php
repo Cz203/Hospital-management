@@ -495,12 +495,31 @@ function loadTodayStatus() {
                 html +=
                     `<p><strong>Trạng thái:</strong> <span class="badge bg-${status.status === 'checked_out' ? 'success' : 'warning'}">${status.status === 'checked_out' ? 'Đã check-out' : 'Đã check-in'}</span></p>`;
 
-                // Hiển thị trạng thái trễ
+                // Hiển thị trạng thái chấm công với số phút trễ và số phút làm việc
+                let statusHtml = '<p><strong>Trạng thái chấm công:</strong> ';
+                
                 if (status.is_late !== undefined && status.is_late !== null) {
                     const isLate = parseInt(status.is_late) === 1;
-                    html +=
-                        `<p><strong>Trạng thái chấm công:</strong> <span class="badge bg-${isLate ? 'danger' : 'success'}">${isLate ? 'Trễ làm' : 'Không trễ'}</span></p>`;
+                    const minutesLate = status.minutes_late || 0;
+                    const minutesWorked = status.minutes_worked || 0;
+                    
+                    if (isLate && minutesLate > 0) {
+                        statusHtml += `<span class="badge bg-danger">Trễ ${minutesLate} phút</span>`;
+                    } else {
+                        statusHtml += `<span class="badge bg-success">Không trễ</span>`;
+                    }
+                    
+                    // Hiển thị số giờ làm việc (chuyển từ phút sang giờ)
+                    if (minutesWorked > 0) {
+                        const hoursWorked = (minutesWorked / 60).toFixed(1);
+                        statusHtml += ` <span class="badge bg-info ms-2">Làm ${hoursWorked} giờ</span>`;
+                    } else if (status.status === 'checked_in') {
+                        statusHtml += ` <span class="badge bg-warning ms-2">Đang làm việc</span>`;
+                    }
                 }
+                
+                statusHtml += '</p>';
+                html += statusHtml;
 
                 html += '</div>';
 

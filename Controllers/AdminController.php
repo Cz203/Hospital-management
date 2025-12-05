@@ -2402,6 +2402,68 @@ class AdminController
     }
 
     /**
+     * API: Lấy danh sách người đã đăng ký khuôn mặt
+     */
+    public function getRegisteredFaces()
+    {
+        $this->auth->requireAuth('admin');
+        header('Content-Type: application/json; charset=utf-8');
+
+        $userType = $_GET['type'] ?? null; // 'doctor' hoặc 'reception' hoặc null (tất cả)
+
+        require_once 'Models/Attendance.php';
+        $attendanceModel = new Attendance();
+
+        $faces = $attendanceModel->getRegisteredFaces($userType);
+
+        echo json_encode([
+            'success' => true,
+            'faces' => $faces
+        ]);
+        exit();
+    }
+
+    /**
+     * API: Xóa face encoding (sau khi verify bằng face recognition)
+     */
+    public function deleteFaceEncoding()
+    {
+        $this->auth->requireAuth('admin');
+        header('Content-Type: application/json; charset=utf-8');
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        $userId = (int)($input['user_id'] ?? 0);
+        $userType = trim($input['user_type'] ?? '');
+        $faceEncoding = $input['face_encoding'] ?? null;
+
+        if ($userId <= 0 || empty($userType) || empty($faceEncoding)) {
+            echo json_encode(['success' => false, 'message' => 'Thiếu thông tin bắt buộc!']);
+            exit();
+        }
+
+        if (!in_array($userType, ['doctor', 'reception', 'admin'])) {
+            echo json_encode(['success' => false, 'message' => 'Loại người dùng không hợp lệ!']);
+            exit();
+        }
+
+        require_once 'Models/Attendance.php';
+        $attendanceModel = new Attendance();
+
+        $faceEncodingJson = is_string($faceEncoding) ? $faceEncoding : json_encode($faceEncoding);
+
+        $result = $attendanceModel->deleteFaceEncoding($userId, $userType, $faceEncodingJson);
+
+        echo json_encode($result);
+        exit();
+    }
+
+    /**
      * Lưu ảnh mẫu face registration
      */
     private function saveSampleImage($imageData, $userId, $userType)

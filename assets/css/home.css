@@ -391,7 +391,7 @@ a:focus {
 }
 
 .gray-bg {
-  background: #f4f9fc;
+  background: #fff;
 }
 
 @media (max-width: 480px) {
