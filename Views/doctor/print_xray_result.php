@@ -102,6 +102,9 @@
 </head>
 <body>
     <div class="header">
+        <div style="margin-bottom:10px;">
+            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+        </div>
         <div class="title">PHÒNG KHÁM ĐA KHOA THINHVIET<br>KHOA CHUẨN ĐOÁN HÌNH ẢNH</div>
         <div class="subtitle">Địa chỉ: Gò Vấp - Điện thoại: 0777871608</div>
         <div class="hr"></div>
@@ -141,6 +144,20 @@
             <div class="label" style="min-width:120px">Giờ chỉ định</div>
             <div class="dots">:</div>
             <div class="value"><?php echo isset($data['ngay_cap_nhat']) ? date('H:i', strtotime($data['ngay_cap_nhat'])) : ''; ?></div>
+        </div>
+        <div class="row-line">
+            <div class="label">Giờ nhận kết quả</div>
+            <div class="dots">:</div>
+            <div class="value">
+                <?php 
+                $returnTime = '-';
+                // Ưu tiên ngay_doc từ ket_qua_xquang (thời gian lưu kết quả)
+                if (!empty($data['ngay_doc'])) {
+                    $returnTime = date('H:i:s', strtotime($data['ngay_doc']));
+                }
+                echo $returnTime;
+                ?>
+            </div>
         </div>
         <div class="hr"></div>
         <div class="row-line">

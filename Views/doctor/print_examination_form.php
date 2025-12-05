@@ -48,15 +48,21 @@
     ?>
 </head>
 <body onload="window.print()">
+    <div style="text-align:center; margin-bottom:10px;">
+        <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+    </div>
     <div class="topline small">
         <div>Sở y tế: <span class="fill" style="min-width:180px; display:inline-block;"><?= $safe($record['so_y_te'] ?? '') ?></span></div>
         <div>MS: <strong><?= (int)$record['id'] ?></strong></div>
     </div>
     <div class="topline small">
         <div>Bệnh viện: <span class="fill" style="min-width:220px; display:inline-block;"><?= $safe($record['benh_vien'] ?? '') ?></span></div>
-        <div>Số vào viện: <span class="fill" style="min-width:160px; display:inline-block;"></span></div>
+        <div>Mã bệnh nhân: <span class="fill" style="min-width:160px; display:inline-block;"><?= $safe($record['ma_benh_nhan'] ?? '') ?></span></div>
     </div>
-    <div class="sub small">BUỒNG KHÁM BỆNH: <span class="fill" style="min-width:200px; display:inline-block;"><?= $safe($record['buong_kham'] ?? '') ?></span></div>
+    <div class="topline small">
+        <div></div>
+        <div>BUỒNG KHÁM BỆNH: <span class="fill" style="min-width:200px; display:inline-block;"><?= $safe($record['buong_kham'] ?? '') ?></span></div>
+    </div>
     <div class="title">PHIẾU KHÁM BỆNH VÀO VIỆN</div>
     <div class="hr"></div>
 
@@ -74,8 +80,8 @@
         <span class="num" style="min-width:60px;">
             <?= $safe($record['nam_sinh'] ?? '') ?>
         </span>
-        <span class="gap" style="width:16px"></span>Giới: 1. Nam <span class="box <?= $yes(($record['gioi_tinh'] ?? '')==='Nam') ?>"></span>
-        <span class="gap"></span>2. Nữ <span class="box <?= $yes(($record['gioi_tinh'] ?? '')==='Nu' || ($record['gioi_tinh'] ?? '')==='Nữ') ?>"></span>
+        <span class="gap" style="width:16px"></span>Giới: 1. Nam <span class="box <?= $yes(trim($record['gioi_tinh'] ?? '')==='Nam') ?>"></span>
+        <span class="gap"></span>2. Nữ <span class="box <?= $yes(trim($record['gioi_tinh'] ?? '')==='Nữ' || trim($record['gioi_tinh'] ?? '')==='Nu') ?>"></span>
     </div>
     <div class="line"><span class="idx">3.</span><span class="lbl">Nghề nghiệp:</span><span class="fill"><?= $safe($record['nghe_nghiep'] ?? '') ?></span></div>
     <div class="line"><span class="idx">4.</span><span class="lbl">Dân tộc:</span><span class="fill"><?= $safe($record['dan_toc'] ?? '') ?></span>

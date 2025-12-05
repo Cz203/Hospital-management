@@ -390,6 +390,36 @@ switch ($action) {
     case 'render_patient_medical_record_detail':
         $medicalRecordController->renderPatientDetail(); // Render view chi tiết hồ sơ bệnh án (PHP template)
         break;
+    case 'view_patient_lab_request':
+        $medicalRecordController->viewPatientLabRequest(); // View phiếu chỉ định xét nghiệm cho patient (PDF-like)
+        break;
+    case 'view_patient_lab_result':
+        $medicalRecordController->viewPatientLabResult(); // View kết quả xét nghiệm cho patient (PDF-like)
+        break;
+    case 'view_patient_ultrasound_request':
+        $medicalRecordController->viewPatientUltrasoundRequest(); // View phiếu chỉ định siêu âm cho patient (PDF-like)
+        break;
+    case 'view_patient_ultrasound_result':
+        $medicalRecordController->viewPatientUltrasoundResult(); // View kết quả siêu âm cho patient (PDF-like)
+        break;
+    case 'view_patient_xray_request':
+        $medicalRecordController->viewPatientXrayRequest(); // View phiếu chỉ định X-Quang cho patient (PDF-like)
+        break;
+    case 'view_patient_xray_result':
+        $medicalRecordController->viewPatientXrayResult(); // View kết quả X-Quang cho patient (PDF-like)
+        break;
+    case 'view_patient_examination_form':
+        $medicalRecordController->viewPatientExaminationForm(); // View phiếu khám bệnh cho patient (PDF-like)
+        break;
+    case 'view_patient_prescription_form':
+        $medicalRecordController->viewPatientPrescriptionForm(); // View đơn thuốc cho patient (PDF-like)
+        break;
+    case 'view_patient_xray_images':
+        $medicalRecordController->viewPatientXrayImages(); // View hình ảnh X-Quang cho patient
+        break;
+    case 'view_patient_ultrasound_images':
+        $medicalRecordController->viewPatientUltrasoundImages(); // View hình ảnh Siêu âm cho patient
+        break;
 
     case 'home_visit_booking':
         $auth->requireAuth('patient');
@@ -952,6 +982,45 @@ switch ($action) {
 
     case 'contact':
         include 'Views/contact.php'; // Trang liên hệ
+        break;
+
+    case 'lookup_medical_record':
+        $medicalRecordController->lookupMedicalRecord(); // Tra cứu hồ sơ (không cần đăng nhập)
+        break;
+
+    case 'lookup_medical_record_detail':
+        $medicalRecordController->lookupMedicalRecordDetail(); // Xem chi tiết hồ sơ từ tra cứu
+        break;
+
+    case 'lookup_patient_lab_request':
+        $medicalRecordController->lookupPatientLabRequest(); // Tra cứu phiếu chỉ định xét nghiệm
+        break;
+    case 'lookup_patient_lab_result':
+        $medicalRecordController->lookupPatientLabResult(); // Tra cứu kết quả xét nghiệm
+        break;
+    case 'lookup_patient_ultrasound_request':
+        $medicalRecordController->lookupPatientUltrasoundRequest(); // Tra cứu phiếu chỉ định siêu âm
+        break;
+    case 'lookup_patient_ultrasound_result':
+        $medicalRecordController->lookupPatientUltrasoundResult(); // Tra cứu kết quả siêu âm
+        break;
+    case 'lookup_patient_xray_request':
+        $medicalRecordController->lookupPatientXrayRequest(); // Tra cứu phiếu chỉ định X-Quang
+        break;
+    case 'lookup_patient_xray_result':
+        $medicalRecordController->lookupPatientXrayResult(); // Tra cứu kết quả X-Quang
+        break;
+    case 'lookup_patient_examination_form':
+        $medicalRecordController->lookupPatientExaminationForm(); // Tra cứu phiếu khám bệnh
+        break;
+    case 'lookup_patient_prescription_form':
+        $medicalRecordController->lookupPatientPrescriptionForm(); // Tra cứu đơn thuốc
+        break;
+    case 'lookup_patient_xray_images':
+        $medicalRecordController->lookupPatientXrayImages(); // Tra cứu hình ảnh X-Quang
+        break;
+    case 'lookup_patient_ultrasound_images':
+        $medicalRecordController->lookupPatientUltrasoundImages(); // Tra cứu hình ảnh Siêu âm
         break;
 
     // ===== DEFAULT ROUTE =====

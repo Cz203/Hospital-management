@@ -205,7 +205,7 @@ function refreshRecords() {
 }
 
 /**
- * View detail
+ * View detail - Open in new tab instead of navigating
  */
 function viewDetail(lichHenId) {
     if (!lichHenId) {
@@ -213,41 +213,8 @@ function viewDetail(lichHenId) {
         return;
     }
 
-    const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-    const modalBody = document.getElementById('detailModalBody');
-    
-    // Show loading
-    modalBody.innerHTML = `
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Đang tải...</span>
-            </div>
-            <p class="mt-2 text-muted">Đang tải chi tiết hồ sơ bệnh án...</p>
-        </div>
-    `;
-    
-    modal.show();
-
-    // Load detail via PHP template
-    fetch(`./?action=render_patient_medical_record_detail&exam_id=${lichHenId}&lich_hen_id=${lichHenId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('HTTP error! status: ' + response.status);
-            }
-            return response.text();
-        })
-        .then(html => {
-            modalBody.innerHTML = html;
-        })
-        .catch(error => {
-            console.error('Error loading detail:', error);
-            modalBody.innerHTML = `
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Lỗi khi tải chi tiết hồ sơ bệnh án: ${error.message}
-                </div>
-            `;
-        });
+    // Open detail page in new tab
+    window.open(`./?action=render_patient_medical_record_detail&exam_id=${lichHenId}&lich_hen_id=${lichHenId}`, '_blank');
 }
 
 /**

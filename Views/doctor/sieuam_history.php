@@ -84,6 +84,7 @@ $content = '<div class="container-fluid">
         
         <div class="report">
           <div class="text-center mb-3">
+            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
             <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
             <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA CHẨN ĐOÁN HÌNH ẢNH</div>
           </div>
@@ -137,6 +138,12 @@ $content = '<div class="container-fluid">
             <div class="label">Phiếu chỉ định:</div>
             <div class="dots">:</div>
             <div class="value" id="sv_phieu_chi_dinh">-</div>
+          </div>
+          
+          <div class="row-line">
+            <div class="label">Giờ nhận kết quả:</div>
+            <div class="dots">:</div>
+            <div class="value" id="sv_return_time">-</div>
           </div>
           
           <div class="hr"></div>
@@ -303,6 +310,22 @@ function fillSieuamResultModal(result) {
     // Set doctor name from database
     window.currentSieuamDoctorName = result.bac_si_sieu_am || "Dr. Ultrasound";
     document.getElementById("sv_signature_doctor").textContent = window.currentSieuamDoctorName;
+    
+    // Hiển thị Giờ nhận kết quả từ ngay_cap_nhat (format: H:i:s)
+    var returnTimeEl = document.getElementById("sv_return_time");
+    if (returnTimeEl && result.ngay_cap_nhat) {
+        var returnDate = new Date(result.ngay_cap_nhat);
+        if (!isNaN(returnDate.getTime())) {
+            var hours = String(returnDate.getHours()).padStart(2, "0");
+            var minutes = String(returnDate.getMinutes()).padStart(2, "0");
+            var seconds = String(returnDate.getSeconds()).padStart(2, "0");
+            returnTimeEl.textContent = hours + ":" + minutes + ":" + seconds;
+        } else {
+            returnTimeEl.textContent = "-";
+        }
+    } else if (returnTimeEl) {
+        returnTimeEl.textContent = "-";
+    }
     
     // Load images
     loadSieuamResultImages(result.id);

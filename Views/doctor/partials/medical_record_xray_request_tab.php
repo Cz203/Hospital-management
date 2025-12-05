@@ -12,6 +12,7 @@
             <?php if ($xrayRequest): ?>
                 <!-- Header phòng khám -->
                 <div class="mb-3 text-center">
+                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
                     <div class="fw-bold" style="font-size:18px">PHIẾU CHỤP X – QUANG</div>
                 </div>
                 <div class="row mb-2">
@@ -69,6 +70,30 @@
                         <label class="form-label fw-bold">Số thẻ BHYT</label>
                         <input type="text" class="form-control" value="<?php echo escapeHtml($exam['so_the_bhyt'] ?? '-'); ?>" readonly>
                     </div>
+                </div>
+
+                <!-- Giờ chỉ định -->
+                <div class="mt-3">
+                    <label class="form-label fw-bold">Giờ chỉ định:</label>
+                    <input type="text" class="form-control" value="<?php 
+                        $gioChiDinh = '-';
+                        if (!empty($xrayRequest['ngay_cap_nhat'])) {
+                            try {
+                                $date = new DateTime($xrayRequest['ngay_cap_nhat']);
+                                $gioChiDinh = $date->format('H:i:s');
+                            } catch (Exception $e) {
+                                $gioChiDinh = '-';
+                            }
+                        } elseif (!empty($xrayRequest['ngay_tao'])) {
+                            try {
+                                $date = new DateTime($xrayRequest['ngay_tao']);
+                                $gioChiDinh = $date->format('H:i:s');
+                            } catch (Exception $e) {
+                                $gioChiDinh = '-';
+                            }
+                        }
+                        echo escapeHtml($gioChiDinh);
+                    ?>" readonly>
                 </div>
 
                 <!-- Chuẩn đoán -->

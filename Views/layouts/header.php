@@ -99,6 +99,52 @@
     #navbar {
         position: relative !important;
     }
+
+    /* Đảm bảo menu hiển thị đầy đủ trên một hàng */
+    #navbarmain .navbar-nav {
+        flex-wrap: nowrap !important;
+        white-space: nowrap;
+    }
+
+    #navbarmain .nav-link {
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+        white-space: nowrap;
+    }
+
+    #navbarmain .nav-link.btn {
+        padding: 8px 15px !important;
+        font-size: 13px !important;
+    }
+
+    /* Giảm khoảng cách giữa các items */
+    #navbarmain .nav-item {
+        margin-right: 2px;
+    }
+
+    #navbarmain .nav-item.ml-2 {
+        margin-left: 8px !important;
+    }
+
+    /* Responsive: chỉ áp dụng trên màn hình lớn */
+    @media (min-width: 1200px) {
+        #navbarmain .nav-link {
+            font-size: 15px !important;
+            padding: 10px 14px !important;
+        }
+    }
+
+    @media (max-width: 1199px) {
+        #navbarmain .nav-link {
+            font-size: 13px !important;
+            padding: 8px 10px !important;
+        }
+
+        #navbarmain .nav-link.btn {
+            padding: 7px 12px !important;
+            font-size: 12px !important;
+        }
+    }
     </style>
 </head>
 
@@ -174,9 +220,17 @@
                             <a class="nav-link" href="./contact">Liên hệ</a>
                         </li>
 
-                        <?php $ctx = getCurrentUserContext(); ?>
-                        <?php if (!$ctx['id']) : ?>
+                        <?php 
+                        $ctx = getCurrentUserContext();
+                        $isLoggedIn = !empty($ctx['id']) || !empty($_SESSION['user_id']);
+                        ?>
+                        <?php if (!$isLoggedIn) : ?>
                         <!-- Not logged in -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="./lookup_medical_record">
+                                <i class="icofont-search-1 mr-1"></i>Tra cứu hồ sơ
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link btn btn-main btn-sm" href="./login"
                                 style="color: #fff; padding: 8px 20px; border-radius: 5px;">

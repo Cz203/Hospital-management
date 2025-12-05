@@ -11,6 +11,7 @@
         <div class="card-body">
             <?php if ($labRequest): ?>
                 <div class="text-center mb-3">
+                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
                     <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU XÉT NGHIỆM</div>
                 </div>
 
@@ -58,6 +59,29 @@
                         <label class="form-label fw-bold">Số thẻ BHYT</label>
                         <input type="text" class="form-control" value="<?php echo escapeHtml($labRequest['so_the_bhyt'] ?? $exam['so_the_bhyt'] ?? '-'); ?>" readonly>
                     </div>
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label fw-bold">Giờ chỉ định:</label>
+                    <input type="text" class="form-control" value="<?php 
+                        $gioChiDinh = '-';
+                        if (!empty($labRequest['ngay_cap_nhat'])) {
+                            try {
+                                $date = new DateTime($labRequest['ngay_cap_nhat']);
+                                $gioChiDinh = $date->format('H:i:s');
+                            } catch (Exception $e) {
+                                $gioChiDinh = '-';
+                            }
+                        } elseif (!empty($labRequest['ngay_tao'])) {
+                            try {
+                                $date = new DateTime($labRequest['ngay_tao']);
+                                $gioChiDinh = $date->format('H:i:s');
+                            } catch (Exception $e) {
+                                $gioChiDinh = '-';
+                            }
+                        }
+                        echo escapeHtml($gioChiDinh);
+                    ?>" readonly>
                 </div>
 
                 <div class="mt-3">

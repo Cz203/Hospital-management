@@ -220,6 +220,10 @@
                                     </h6>
                                 </div>
                                 <div class="card-body">
+                                    <!-- Logo -->
+                                    <div class="text-center mb-3">
+                                        <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                    </div>
                                     <!-- Header form -->
                                     <div class="row mb-3">
                                         <div class="col-md-6">
@@ -702,6 +706,9 @@
                                     <div id="labResultReadonly" style="display:none">
                                         <!-- Header -->
                                         <div class="text-center mb-4">
+                                            <div style="text-align:center; margin-bottom:10px;">
+                                                <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                            </div>
                                             <div class="fw-bold" style="font-size: 18px; color: #000;">PHÒNG KHÁM ĐA
                                                 KHOA THINHVIET</div>
                                             <div class="fw-bold" style="font-size: 14px;">KHOA XÉT NGHIỆM</div>
@@ -775,6 +782,12 @@
                                                     <div class="col-8"><span
                                                             style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
                                                             id="lab_ro_bac_si">-</span></div>
+                                                </div>
+                                                <div class="row mb-3">
+                                                    <div class="col-4"><strong style="font-size: 14px;">Giờ nhận kết quả:</strong></div>
+                                                    <div class="col-8"><span
+                                                            style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
+                                                            id="lab_ro_return_time">-</span></div>
                                                 </div>
                                                 <div class="row mb-3">
                                                     <div class="col-4"><strong style="font-size: 14px;">Chất lượng
@@ -946,6 +959,7 @@
                                             <div id="ultrasoundResultReadonly" class="report" style="display:none"
                                                 data-pxid="">
                                                 <div class="text-center mb-3">
+                                                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
                                                     <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG
                                                         KHÁM ĐA KHOA THINHVIET</div>
                                                     <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA CHẨN
@@ -1007,6 +1021,12 @@
                                                     <div class="label">Phiếu chỉ định:</div>
                                                     <div class="dots">:</div>
                                                     <div class="value" id="us_ro_phieu_chi_dinh">-</div>
+                                                </div>
+
+                                                <div class="row-line">
+                                                    <div class="label">Giờ nhận kết quả:</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="us_ro_return_time">-</div>
                                                 </div>
 
                                                 <div class="hr"></div>
@@ -1225,44 +1245,182 @@
                                     </ul>
                                     <div class="tab-content">
                                         <div class="tab-pane fade show active" id="xr_tabpane_info" role="tabpanel">
-                                            <div id="xrayResultReadonly" class="border border-dark p-2"
-                                                style="display:none" data-pxid="">
-                                                <div class="text-center">
-                                                    <div class="fw-bold">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
-                                                    <div class="fw-bold">KHOA CHUẨN ĐOÁN HÌNH ẢNH</div>
-                                                    <div class="text-muted">Địa chỉ: Gò Vấp - Điện thoại: 0777871608
-                                                    </div>
+                                            <style>
+                                            .xray-report {
+                                                font-family: "Times New Roman", serif;
+                                                padding: 18px;
+                                            }
+
+                                            .xray-report .title {
+                                                font-weight: bold;
+                                                text-transform: uppercase;
+                                                text-align: center;
+                                                letter-spacing: .5px;
+                                                font-size: 18px;
+                                                margin-bottom: 6px;
+                                                color: red;
+                                            }
+
+                                            .xray-report .hr {
+                                                border-top: 2px solid #000;
+                                                margin: 10px 0;
+                                            }
+
+                                            .xray-report .row-line {
+                                                display: flex;
+                                                gap: 8px;
+                                                margin-bottom: 6px;
+                                                font-size: 15px;
+                                            }
+
+                                            .xray-report .label {
+                                                min-width: 150px;
+                                                font-weight: bold;
+                                            }
+
+                                            .xray-report .dots {
+                                                flex: 0 0 auto;
+                                            }
+
+                                            .xray-report .value {
+                                                flex: 1;
+                                                border-bottom: 1px dotted #333;
+                                                min-height: 20px;
+                                            }
+
+                                            .xray-report .section {
+                                                margin-top: 10px;
+                                                margin-bottom: 6px;
+                                                font-weight: bold;
+                                                text-transform: uppercase;
+                                                color: blue;
+                                            }
+
+                                            .xray-report .result-content {
+                                                border: 1px solid #333;
+                                                padding: 10px;
+                                                min-height: 100px;
+                                                white-space: pre-wrap;
+                                            }
+
+                                            .xray-report .conclusion-content {
+                                                border: 1px solid #333;
+                                                padding: 10px;
+                                                min-height: 60px;
+                                                white-space: pre-wrap;
+                                            }
+                                            </style>
+
+                                            <div id="xrayResultReadonly" class="xray-report" style="display:none"
+                                                data-pxid="">
+                                                <div class="text-center mb-3">
+                                                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
+                                                    <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG
+                                                        KHÁM ĐA KHOA THINHVIET</div>
+                                                    <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA CHUẨN
+                                                        ĐOÁN HÌNH ẢNH</div>
                                                 </div>
-                                                <hr>
-                                                <div class="row g-2">
-                                                    <div class="col-md-6">Họ và tên: <strong id="xr_ro_name"></strong>
-                                                    </div>
-                                                    <div class="col-md-6">Giới tính: <strong id="xr_ro_gender"></strong>
-                                                    </div>
-                                                    <div class="col-md-6">Năm sinh: <strong id="xr_ro_yob"></strong>
-                                                    </div>
-                                                    <div class="col-md-6">Số phiếu chỉ định: <strong
-                                                            id="xr_ro_id"></strong></div>
-                                                    <div class="col-md-12">Địa chỉ: <strong id="xr_ro_address"></strong>
-                                                    </div>
-                                                    <div class="col-md-6">Ngày chỉ định: <strong
-                                                            id="xr_ro_date"></strong></div>
-                                                    <div class="col-md-6">Giờ chỉ định: <strong
-                                                            id="xr_ro_time"></strong></div>
+                                                <div class="title">KẾT QUẢ X-QUANG</div>
+
+                                                <div class="text-center mb-2">
+                                                    <div class="fw-bold">Địa chỉ: Gò Vấp - Điện thoại: 0777871608</div>
                                                 </div>
-                                                <hr>
-                                                <div>Chẩn đoán: <strong id="xr_ro_chandoan"></strong></div>
-                                                <div>Bác sĩ chỉ định: <strong id="xr_ro_bschidinh"></strong></div>
-                                                <div class="mt-2">Nội dung: <strong id="xr_ro_noidung"></strong></div>
-                                                <div class="mt-3 fw-bold">KẾT QUẢ</div>
-                                                <div class="border p-2" id="xr_ro_ketqua" style="min-height:80px"></div>
-                                                <div class="mt-3 fw-bold">KẾT LUẬN</div>
-                                                <div class="border p-2" id="xr_ro_ketluan" style="min-height:80px">
+
+                                                <div class="row-line">
+                                                    <div class="label">Họ và tên</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_name">-</div>
                                                 </div>
-                                                <div class="text-end mt-3">
-                                                    <em id="xr_ro_today"></em><br>
-                                                    <strong>Bác sĩ X Quang</strong>
-                                                    <div id="xr_ro_bsxq" style="min-height:40px"></div>
+
+                                                <div class="row-line">
+                                                    <div class="label">Năm sinh</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_yob">-</div>
+                                                    <div class="label" style="min-width:90px; margin-left: 20px;">Giới tính</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_gender">-</div>
+                                                </div>
+
+                                                <div class="row-line">
+                                                    <div class="label">Địa chỉ</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_address">-</div>
+                                                </div>
+
+                                                <div class="row-line">
+                                                    <div class="label">Khoa chỉ định</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value">KHOA CHUẨN ĐOÁN HÌNH ẢNH</div>
+                                                    <div class="label" style="min-width:120px; margin-left: 20px;">Số phiếu chỉ định</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_id">-</div>
+                                                </div>
+
+                                                <div class="row-line">
+                                                    <div class="label">Ngày chỉ định</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_date">-</div>
+                                                    <div class="label" style="min-width:120px; margin-left: 20px;">Giờ chỉ định</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_time">-</div>
+                                                </div>
+
+                                                <div class="row-line">
+                                                    <div class="label">Giờ nhận kết quả</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_return_time">-</div>
+                                                </div>
+
+                                                <div class="hr"></div>
+
+                                                <div class="row-line">
+                                                    <div class="label">Chẩn đoán</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_chandoan">-</div>
+                                                </div>
+
+                                                <div class="row-line">
+                                                    <div class="label">Bác sĩ chỉ định</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_bschidinh">-</div>
+                                                </div>
+
+                                                <div class="row-line">
+                                                    <div class="label">Nội dung</div>
+                                                    <div class="dots">:</div>
+                                                    <div class="value" id="xr_ro_noidung">-</div>
+                                                </div>
+
+                                                <div class="hr"></div>
+
+                                                <div class="section">KẾT QUẢ:</div>
+                                                <div class="result-content" id="xr_ro_ketqua">-</div>
+
+                                                <div class="section">KẾT LUẬN:</div>
+                                                <div class="conclusion-content" id="xr_ro_ketluan">-</div>
+
+                                                <div class="hr"></div>
+
+                                                <div style="margin-top: 30px; text-align: right;">
+                                                    <div class="mb-3">
+                                                        <span>Ngày</span>
+                                                        <input type="text" class="form-control d-inline-block"
+                                                            id="xr_ro_signature_date" style="width:60px; margin: 0 5px;"
+                                                            readonly>
+                                                        <span>tháng</span>
+                                                        <input type="text" class="form-control d-inline-block"
+                                                            id="xr_ro_signature_month"
+                                                            style="width:60px; margin: 0 5px;" readonly>
+                                                        <span>năm</span>
+                                                        <input type="text" class="form-control d-inline-block"
+                                                            id="xr_ro_signature_year" style="width:80px; margin: 0 5px;"
+                                                            readonly>
+                                                    </div>
+                                                    <div style="margin-right: 20px;">
+                                                        <div class="fw-bold">BÁC SĨ X QUANG</div>
+                                                        <div class="mt-2" id="xr_ro_bsxq"
+                                                            style="margin-left: -20px;"></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div id="xrayResultEmpty" class="text-muted">Chưa có kết quả X-Quang</div>

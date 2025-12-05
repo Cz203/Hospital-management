@@ -186,6 +186,26 @@ var savedXrayFormId = null;
             showLabResultEmpty();
           }
         }
+
+        // Khi chuyển sang tab Kết quả siêu âm, load dữ liệu kết quả
+        if (id === "#sec-ultrasound-result") {
+          var examId = getCurrentExaminationId();
+          if (examId) {
+            loadUltrasoundResultData(examId);
+          } else {
+            showUltrasoundResultEmpty();
+          }
+        }
+
+        // Khi chuyển sang tab Kết quả X-Quang, load dữ liệu kết quả
+        if (id === "#sec-xray-result") {
+          var examId = getCurrentExaminationId();
+          if (examId) {
+            loadXrayResultData(examId);
+          } else {
+            showXrayResultEmpty();
+          }
+        }
       });
     });
   }
@@ -2823,6 +2843,24 @@ function showLabResultData(result, testDetails) {
   var bacSiEl = document.getElementById("lab_ro_bac_si");
   if (bacSiEl) bacSiEl.textContent = result.bac_si_yeu_cau || "-";
 
+  // Giờ nhận kết quả từ ngay_cap_nhat (format: H:i:s)
+  var returnTimeEl = document.getElementById("lab_ro_return_time");
+  if (returnTimeEl) {
+    if (result.ngay_cap_nhat) {
+      var returnDate = new Date(result.ngay_cap_nhat);
+      if (!isNaN(returnDate.getTime())) {
+        var hours = String(returnDate.getHours()).padStart(2, "0");
+        var minutes = String(returnDate.getMinutes()).padStart(2, "0");
+        var seconds = String(returnDate.getSeconds()).padStart(2, "0");
+        returnTimeEl.textContent = hours + ":" + minutes + ":" + seconds;
+      } else {
+        returnTimeEl.textContent = "-";
+      }
+    } else {
+      returnTimeEl.textContent = "-";
+    }
+  }
+
   var tinhTrangMauEl = document.getElementById("lab_ro_tinh_trang_mau");
   if (tinhTrangMauEl) tinhTrangMauEl.textContent = result.tinh_trang_mau || "-";
 
@@ -3001,6 +3039,348 @@ function showLabResultEmpty() {
 
   // Show empty message
   var emptyDiv = document.getElementById("labResultEmpty");
+  if (emptyDiv) emptyDiv.style.display = "block";
+}
+
+/**
+ * Load dữ liệu kết quả siêu âm
+ */
+function loadUltrasoundResultData(examId) {
+  fetch("./?action=get_ultrasound_result_by_exam&exam_id=" + examId)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success && data.result) {
+        showUltrasoundResultData(data.result);
+      } else {
+        showUltrasoundResultEmpty();
+      }
+    })
+    .catch((error) => {
+      console.error("Error loading ultrasound result data:", error);
+      showUltrasoundResultEmpty();
+    });
+}
+
+/**
+ * Hiển thị dữ liệu kết quả siêu âm
+ */
+function showUltrasoundResultData(result) {
+  // Hide empty message
+  var emptyDiv = document.getElementById("ultrasoundResultEmpty");
+  if (emptyDiv) emptyDiv.style.display = "none";
+
+  // Show result div
+  var resultDiv = document.getElementById("ultrasoundResultReadonly");
+  if (resultDiv) resultDiv.style.display = "block";
+
+  // Fill patient info
+  var idEl = document.getElementById("us_ro_id");
+  if (idEl) idEl.textContent = "*" + (result.ma_benh_nhan || "0000000") + "*";
+
+  var hoTenEl = document.getElementById("us_ro_ho_ten");
+  if (hoTenEl) hoTenEl.textContent = result.ho_ten || "-";
+
+  var tuoiEl = document.getElementById("us_ro_tuoi");
+  if (tuoiEl) tuoiEl.textContent = result.tuoi || "-";
+
+  var gioiTinhEl = document.getElementById("us_ro_gioi_tinh");
+  if (gioiTinhEl) gioiTinhEl.textContent = result.gioi_tinh || "-";
+
+  var diaChiEl = document.getElementById("us_ro_dia_chi");
+  if (diaChiEl) diaChiEl.textContent = result.dia_chi || "-";
+
+  var chanDoanEl = document.getElementById("us_ro_chan_doan");
+  if (chanDoanEl) chanDoanEl.textContent = result.chan_doan || "-";
+
+  var bacSiEl = document.getElementById("us_ro_bac_si");
+  if (bacSiEl) bacSiEl.textContent = result.ten_bac_si || "-";
+
+  var phieuChiDinhEl = document.getElementById("us_ro_phieu_chi_dinh");
+  if (phieuChiDinhEl) phieuChiDinhEl.textContent = result.phieu_id || "-";
+
+  // Giờ nhận kết quả từ ngay_cap_nhat (format: H:i:s)
+  var returnTimeEl = document.getElementById("us_ro_return_time");
+  if (returnTimeEl) {
+    if (result.ngay_cap_nhat) {
+      var returnDate = new Date(result.ngay_cap_nhat);
+      if (!isNaN(returnDate.getTime())) {
+        var hours = String(returnDate.getHours()).padStart(2, "0");
+        var minutes = String(returnDate.getMinutes()).padStart(2, "0");
+        var seconds = String(returnDate.getSeconds()).padStart(2, "0");
+        returnTimeEl.textContent = hours + ":" + minutes + ":" + seconds;
+      } else {
+        returnTimeEl.textContent = "-";
+      }
+    } else {
+      returnTimeEl.textContent = "-";
+    }
+  }
+
+  // Date and time
+  if (result.ngay_tao) {
+    var date = new Date(result.ngay_tao);
+    var day = String(date.getDate()).padStart(2, "0");
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    var year = date.getFullYear();
+    var hours = String(date.getHours()).padStart(2, "0");
+    var minutes = String(date.getMinutes()).padStart(2, "0");
+
+    var dateEl = document.getElementById("us_ro_date");
+    if (dateEl) dateEl.textContent = day + "/" + month + "/" + year;
+
+    var timeEl = document.getElementById("us_ro_time");
+    if (timeEl) timeEl.textContent = hours + ":" + minutes;
+  }
+
+  // Vùng khảo sát
+  var vungKhaoSatEl = document.getElementById("us_ro_vung_khao_sat");
+  if (vungKhaoSatEl) vungKhaoSatEl.textContent = result.yeu_cau_sieu_am || "SIÊU ÂM BỤNG TỔNG QUÁT MÀU";
+
+  // Kết quả khảo sát
+  var ketQuaKhaoSatEl = document.getElementById("us_ro_ket_qua_khao_sat");
+  if (ketQuaKhaoSatEl) ketQuaKhaoSatEl.textContent = result.ket_qua_khao_sat || "-";
+
+  // Kết luận
+  var ketLuanEl = document.getElementById("us_ro_ket_luan");
+  if (ketLuanEl) ketLuanEl.textContent = result.ket_luan || "-";
+
+  // Signature date
+  if (result.ngay_tao) {
+    var date = new Date(result.ngay_tao);
+    var signatureDateEl = document.getElementById("us_ro_signature_date");
+    if (signatureDateEl) signatureDateEl.value = date.getDate();
+
+    var signatureMonthEl = document.getElementById("us_ro_signature_month");
+    if (signatureMonthEl) signatureMonthEl.value = date.getMonth() + 1;
+
+    var signatureYearEl = document.getElementById("us_ro_signature_year");
+    if (signatureYearEl) signatureYearEl.value = date.getFullYear();
+  }
+
+  // Doctor signature
+  var signatureDoctorEl = document.getElementById("us_ro_signature_doctor");
+  if (signatureDoctorEl) signatureDoctorEl.textContent = result.bac_si_sieu_am || "-";
+
+  // Load images
+  if (result.id) {
+    loadUltrasoundResultImages(result.id);
+  }
+}
+
+/**
+ * Load hình ảnh siêu âm
+ */
+function loadUltrasoundResultImages(resultId) {
+  fetch("./?action=get_sieu_am_images&result_id=" + resultId)
+    .then((response) => response.json())
+    .then((data) => {
+      var imagesContainer = document.getElementById("us_ro_images_in_info");
+      if (imagesContainer) {
+        if (data.success && data.images && data.images.length > 0) {
+          imagesContainer.innerHTML = "";
+          data.images.forEach(function(img) {
+            var colDiv = document.createElement("div");
+            colDiv.className = "col-md-4 mb-3";
+            var imgEl = document.createElement("img");
+            imgEl.src = img.duong_dan;
+            imgEl.className = "img-fluid";
+            imgEl.style.cursor = "pointer";
+            imgEl.style.maxHeight = "200px";
+            imgEl.style.objectFit = "cover";
+            imgEl.onclick = function() {
+              zoomImage(img.duong_dan);
+            };
+            colDiv.appendChild(imgEl);
+            imagesContainer.appendChild(colDiv);
+          });
+        } else {
+          imagesContainer.innerHTML = '<div class="col-12 text-muted">Chưa có hình ảnh</div>';
+        }
+      }
+    })
+    .catch((error) => {
+      console.error("Error loading ultrasound images:", error);
+    });
+}
+
+/**
+ * Hiển thị thông báo chưa có kết quả siêu âm
+ */
+function showUltrasoundResultEmpty() {
+  // Hide result div
+  var resultDiv = document.getElementById("ultrasoundResultReadonly");
+  if (resultDiv) resultDiv.style.display = "none";
+
+  // Show empty message
+  var emptyDiv = document.getElementById("ultrasoundResultEmpty");
+  if (emptyDiv) emptyDiv.style.display = "block";
+}
+
+/**
+ * Load dữ liệu kết quả X-Quang
+ */
+function loadXrayResultData(examId) {
+  fetch("./?action=get_xray_result_by_exam&exam_id=" + examId)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success && data.data) {
+        showXrayResultData(data.data);
+      } else {
+        showXrayResultEmpty();
+      }
+    })
+    .catch((error) => {
+      console.error("Error loading xray result data:", error);
+      showXrayResultEmpty();
+    });
+}
+
+/**
+ * Hiển thị dữ liệu kết quả X-Quang
+ */
+function showXrayResultData(result) {
+  // Hide empty message
+  var emptyDiv = document.getElementById("xrayResultEmpty");
+  if (emptyDiv) emptyDiv.style.display = "none";
+
+  // Show result div
+  var resultDiv = document.getElementById("xrayResultReadonly");
+  if (resultDiv) resultDiv.style.display = "block";
+
+  // Fill patient info
+  var nameEl = document.getElementById("xr_ro_name");
+  if (nameEl) nameEl.textContent = result.ho_ten || "-";
+
+  var genderEl = document.getElementById("xr_ro_gender");
+  if (genderEl) genderEl.textContent = result.gioi_tinh || "-";
+
+  var yobEl = document.getElementById("xr_ro_yob");
+  if (yobEl) yobEl.textContent = result.nam_sinh || "-";
+
+  var idEl = document.getElementById("xr_ro_id");
+  if (idEl) idEl.textContent = result.id || "-";
+
+  var addressEl = document.getElementById("xr_ro_address");
+  if (addressEl) addressEl.textContent = result.dia_chi || "-";
+
+  // Date and time
+  if (result.ngay_cap_nhat || result.ngay_tao) {
+    var date = new Date(result.ngay_cap_nhat || result.ngay_tao);
+    var day = String(date.getDate()).padStart(2, "0");
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    var year = date.getFullYear();
+    var hours = String(date.getHours()).padStart(2, "0");
+    var minutes = String(date.getMinutes()).padStart(2, "0");
+
+    var dateEl = document.getElementById("xr_ro_date");
+    if (dateEl) dateEl.textContent = day + "/" + month + "/" + year;
+
+    var timeEl = document.getElementById("xr_ro_time");
+    if (timeEl) timeEl.textContent = hours + ":" + minutes;
+  }
+
+  // Giờ nhận kết quả từ ngay_doc (format: H:i:s)
+  var returnTimeEl = document.getElementById("xr_ro_return_time");
+  if (returnTimeEl) {
+    if (result.ngay_doc) {
+      var returnDate = new Date(result.ngay_doc);
+      if (!isNaN(returnDate.getTime())) {
+        var hours = String(returnDate.getHours()).padStart(2, "0");
+        var minutes = String(returnDate.getMinutes()).padStart(2, "0");
+        var seconds = String(returnDate.getSeconds()).padStart(2, "0");
+        returnTimeEl.textContent = hours + ":" + minutes + ":" + seconds;
+      } else {
+        returnTimeEl.textContent = "-";
+      }
+    } else {
+      returnTimeEl.textContent = "-";
+    }
+  }
+
+  var chandoanEl = document.getElementById("xr_ro_chandoan");
+  if (chandoanEl) chandoanEl.textContent = result.chan_doan_vao_vien || "-";
+
+  var bsChiDinhEl = document.getElementById("xr_ro_bschidinh");
+  if (bsChiDinhEl) bsChiDinhEl.textContent = result.bac_si_chi_dinh || "-";
+
+  var noidungEl = document.getElementById("xr_ro_noidung");
+  if (noidungEl) noidungEl.textContent = result.yeu_cau_chup ? ("Chụp X-Quang " + result.yeu_cau_chup) : "-";
+
+  var ketquaEl = document.getElementById("xr_ro_ketqua");
+  if (ketquaEl) ketquaEl.textContent = result.noi_dung || "-";
+
+  var ketluanEl = document.getElementById("xr_ro_ketluan");
+  if (ketluanEl) ketluanEl.textContent = result.ket_luan || "-";
+
+  // Signature date
+  var signatureDate = result.ngay_doc ? new Date(result.ngay_doc) : new Date();
+  var signatureDateEl = document.getElementById("xr_ro_signature_date");
+  if (signatureDateEl) signatureDateEl.value = signatureDate.getDate();
+
+  var signatureMonthEl = document.getElementById("xr_ro_signature_month");
+  if (signatureMonthEl) signatureMonthEl.value = signatureDate.getMonth() + 1;
+
+  var signatureYearEl = document.getElementById("xr_ro_signature_year");
+  if (signatureYearEl) signatureYearEl.value = signatureDate.getFullYear();
+
+  var bsXqEl = document.getElementById("xr_ro_bsxq");
+  if (bsXqEl) bsXqEl.textContent = result.bac_si_xquang || "-";
+
+  // Load images asynchronously after displaying main data (lazy load)
+  if (result.id) {
+    // Use setTimeout to defer image loading, allowing main content to render first
+    setTimeout(function() {
+      loadXrayResultImages(result.id);
+    }, 100);
+  }
+}
+
+/**
+ * Load hình ảnh X-Quang
+ */
+function loadXrayResultImages(xrayId) {
+  fetch("./?action=get_saved_xray_images&id=" + xrayId)
+    .then((response) => response.json())
+    .then((data) => {
+      var galleryContainer = document.getElementById("xr_ro_gallery");
+      if (galleryContainer) {
+        if (data.success && data.data && data.data.length > 0) {
+          galleryContainer.innerHTML = "";
+          data.data.forEach(function(img) {
+            var colDiv = document.createElement("div");
+            colDiv.className = "col-md-4 mb-3";
+            var imgEl = document.createElement("img");
+            imgEl.src = img.file_path;
+            imgEl.className = "img-fluid";
+            imgEl.style.cursor = "pointer";
+            imgEl.style.maxHeight = "200px";
+            imgEl.style.objectFit = "cover";
+            imgEl.onclick = function() {
+              zoomImage(img.file_path);
+            };
+            colDiv.appendChild(imgEl);
+            galleryContainer.appendChild(colDiv);
+          });
+        } else {
+          galleryContainer.innerHTML = '<div class="col-12 text-muted">Chưa có hình ảnh</div>';
+        }
+      }
+    })
+    .catch((error) => {
+      console.error("Error loading xray images:", error);
+    });
+}
+
+/**
+ * Hiển thị thông báo chưa có kết quả X-Quang
+ */
+function showXrayResultEmpty() {
+  // Hide result div
+  var resultDiv = document.getElementById("xrayResultReadonly");
+  if (resultDiv) resultDiv.style.display = "none";
+
+  // Show empty message
+  var emptyDiv = document.getElementById("xrayResultEmpty");
   if (emptyDiv) emptyDiv.style.display = "block";
 }
 

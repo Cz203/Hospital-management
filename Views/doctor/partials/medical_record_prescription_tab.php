@@ -173,6 +173,9 @@
                 <div class="prescription-container">
                     <!-- Header -->
                     <div class="prescription-header">
+                        <div class="text-center mb-3">
+                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
+                        </div>
                         <div class="prescription-hospital-name">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
                         <div class="prescription-address">Địa chỉ: Gò vấp</div>
                         <div class="prescription-title">ĐƠN THUỐC</div>

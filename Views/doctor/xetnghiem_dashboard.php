@@ -142,6 +142,7 @@ $content = '
       </div>
       <div class="modal-body">
         <div class="mb-3 text-center">
+          <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
           <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU XÉT NGHIỆM</div>
         </div>
 
@@ -233,6 +234,7 @@ $content = '
       <div class="modal-body">
         <!-- Header -->
         <div class="text-center mb-4">
+          <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
           <div class="fw-bold" style="font-size: 20px; color: #dc3545;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
           <div class="fw-bold" style="font-size: 16px;">KHOA XÉT NGHIỆM</div>
           <div class="fw-bold" style="font-size: 18px; color: #dc3545;">KẾT QUẢ XÉT NGHIỆM</div>
@@ -287,6 +289,10 @@ $content = '
             <div class="row mb-2">
               <div class="col-4"><strong>BS yêu cầu:</strong></div>
               <div class="col-8"><input type="text" class="form-control form-control-sm" id="result_requesting_doctor" readonly></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-4"><strong>Giờ nhận kết quả:</strong></div>
+              <div class="col-8"><input type="text" class="form-control form-control-sm" id="result_return_time" readonly placeholder="Giờ:phút:giây"></div>
             </div>
           </div>
         </div>
