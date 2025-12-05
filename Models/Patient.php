@@ -215,12 +215,64 @@ class Patient extends User
         return $stmt->execute();
     }
 
-    public function getByPhone($phone)
+    public function getByPhone($phone1, $phone2 = null)
     {
-        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE so_dien_thoai = :phone LIMIT 1";
+        if ($phone2 === null) {
+            $phone2 = $phone1;
+        }
+        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao, ma_benh_nhan FROM " . $this->table_name . " WHERE so_dien_thoai = :phone1 OR so_dien_thoai = :phone2 LIMIT 1";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":phone", $phone);
+        $stmt->bindParam(":phone1", $phone1);
+        $stmt->bindParam(":phone2", $phone2);
         $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getByMaBenhNhan($maBenhNhan)
+    {
+        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao, ma_benh_nhan FROM " . $this->table_name . " WHERE ma_benh_nhan = :ma_benh_nhan LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":ma_benh_nhan", $maBenhNhan);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Tìm bệnh nhân theo Họ tên, Số điện thoại và CCCD (dùng cho tra cứu hồ sơ)
+     * Tất cả 3 trường phải khớp mới trả về kết quả
+     * 
+     * @param string $hoTen Họ tên bệnh nhân
+     * @param string $soDienThoai Số điện thoại
+     * @param string $cccd Số căn cước công dân
+     * @return array|null Thông tin bệnh nhân hoặc null nếu không tìm thấy
+     */
+    public function findByLookupInfo($hoTen, $soDienThoai, $cccd)
+    {
+        // Xử lý số điện thoại: chấp nhận cả 84 và 0
+        $phone1 = trim($soDienThoai);
+        $phone2 = $phone1;
+        if (str_starts_with($phone1, '84')) {
+            $phone2 = '0' . substr($phone1, 2);
+        } else if (str_starts_with($phone1, '0')) {
+            $phone2 = '84' . substr($phone1, 1);
+        }
+
+        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao, ma_benh_nhan 
+                  FROM " . $this->table_name . " 
+                  WHERE (LOWER(TRIM(ten)) = LOWER(TRIM(:ho_ten)))
+                  AND (so_dien_thoai = :phone1 OR so_dien_thoai = :phone2)
+                  AND (cccd = :cccd OR cccd = TRIM(:cccd))
+                  LIMIT 1";
+        
+        $stmt = $this->conn->prepare($query);
+        $hoTenTrimmed = trim($hoTen);
+        $cccdTrimmed = trim($cccd);
+        $stmt->bindParam(":ho_ten", $hoTenTrimmed);
+        $stmt->bindParam(":phone1", $phone1);
+        $stmt->bindParam(":phone2", $phone2);
+        $stmt->bindParam(":cccd", $cccdTrimmed);
+        $stmt->execute();
+        
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 

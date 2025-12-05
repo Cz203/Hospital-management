@@ -154,6 +154,9 @@ function viewHistoryDetail(id) {
                 <div class="modal-body" style="font-family: \'Times New Roman\', serif; font-size: 12px;">
                   <!-- Header -->
                   <div class="text-center mb-4">
+                    <div style="text-align:center; margin-bottom:10px;">
+                      <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                    </div>
                     <div class="fw-bold" style="font-size: 18px; color: #000;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
                     <div class="fw-bold" style="font-size: 14px;">KHOA XÉT NGHIỆM</div>
                     <div class="fw-bold" style="font-size: 16px; color: #dc3545;">KẾT QUẢ XÉT NGHIỆM</div>
@@ -201,6 +204,10 @@ function viewHistoryDetail(id) {
                       <div class="row mb-3">
                         <div class="col-4"><strong style="font-size: 14px;">BS yêu cầu:</strong></div>
                         <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;">${detail.bac_si_yeu_cau || ""}</span></div>
+                      </div>
+                      <div class="row mb-3">
+                        <div class="col-4"><strong style="font-size: 14px;">Giờ nhận kết quả:</strong></div>
+                        <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;">${formatTimeWithSeconds(detail.ngay_cap_nhat) || ""}</span></div>
                       </div>
                       <div class="row mb-3">
                         <div class="col-4"><strong style="font-size: 14px;">Chất lượng mẫu:</strong></div>
@@ -385,6 +392,15 @@ function formatTime(dateString) {
   if (!dateString) return "";
   const date = new Date(dateString);
   return date.toLocaleTimeString("vi-VN", {hour: "2-digit", minute: "2-digit"});
+}
+
+function formatTimeWithSeconds(dateString) {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const hours = String(date.getHours()).padStart(2, \'0\');
+  const minutes = String(date.getMinutes()).padStart(2, \'0\');
+  const seconds = String(date.getSeconds()).padStart(2, \'0\');
+  return hours + ":" + minutes + ":" + seconds;
 }
 
 // Function to check if result is out of range

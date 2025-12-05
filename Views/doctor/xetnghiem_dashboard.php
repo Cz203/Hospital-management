@@ -142,6 +142,7 @@ $content = '
       </div>
       <div class="modal-body">
         <div class="mb-3 text-center">
+          <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
           <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU XÉT NGHIỆM</div>
         </div>
 
@@ -155,7 +156,7 @@ $content = '
             <input type="text" class="form-control" id="xn_phone" readonly>
           </div>
           <div class="col-md-2">
-            <label class="form-label fw-bold">Quận/Huyện</label>
+            <label class="form-label fw-bold">Quận</label>
             <input type="text" class="form-control" id="xn_quan" readonly>
           </div>
         </div>
@@ -185,6 +186,11 @@ $content = '
             <label class="form-label fw-bold">Số thẻ BHYT</label>
             <input type="text" class="form-control" id="xn_insurance_number" readonly>
           </div>
+        </div>
+
+        <div class="mt-3">
+          <label class="form-label fw-bold">Giờ chỉ định:</label>
+          <input type="text" class="form-control" id="xn_order_time" readonly>
         </div>
 
         <div class="mt-3">
@@ -228,6 +234,7 @@ $content = '
       <div class="modal-body">
         <!-- Header -->
         <div class="text-center mb-4">
+          <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
           <div class="fw-bold" style="font-size: 20px; color: #dc3545;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
           <div class="fw-bold" style="font-size: 16px;">KHOA XÉT NGHIỆM</div>
           <div class="fw-bold" style="font-size: 18px; color: #dc3545;">KẾT QUẢ XÉT NGHIỆM</div>
@@ -282,6 +289,10 @@ $content = '
             <div class="row mb-2">
               <div class="col-4"><strong>BS yêu cầu:</strong></div>
               <div class="col-8"><input type="text" class="form-control form-control-sm" id="result_requesting_doctor" readonly></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-4"><strong>Giờ nhận kết quả:</strong></div>
+              <div class="col-8"><input type="text" class="form-control form-control-sm" id="result_return_time" readonly placeholder="Giờ:phút:giây"></div>
             </div>
           </div>
         </div>

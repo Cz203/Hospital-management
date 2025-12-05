@@ -200,10 +200,12 @@ class LabTest
         try {
             $stmt = $this->db->prepare("
                 SELECT pxn.*, pk.ho_ten, pk.tuoi, COALESCE(bn.gioi_tinh, pk.gioi_tinh) as gioi_tinh, 
-                       pxn.chan_doan, bn.ma_benh_nhan, bn.dia_chi, pk.benh_nhan_id
+                       pxn.chan_doan, bn.ma_benh_nhan, bn.dia_chi, pk.benh_nhan_id,
+                       bs.ten as ten_bac_si_xet_nghiem
                 FROM {$this->table_name} pxn
                 JOIN phieu_kham_benh pk ON pxn.id_phieu_kham_benh = pk.id
                 JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                LEFT JOIN bac_si bs ON pxn.bac_si_xet_nghiem_id = bs.id
                 WHERE pxn.id = ?
             ");
             $stmt->execute([$id]);

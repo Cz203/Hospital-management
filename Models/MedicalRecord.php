@@ -60,7 +60,8 @@ class MedicalRecord
                     JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
                     LEFT JOIN phieu_kham_benh pk ON lh.id = pk.id_lich_hen
                     WHERE lh.bac_si_id = :doctor_id 
-                    AND lh.trang_thai = 'Hoàn thành'";
+                    AND lh.trang_thai = 'Hoàn thành'
+                    AND (lh.loai_lich = 'Trực tiếp' OR lh.loai_lich = 'Tại viện')";
 
             $params = [':doctor_id' => $doctorId];
 
@@ -97,7 +98,8 @@ class MedicalRecord
                     JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
                     LEFT JOIN phieu_kham_benh pk ON lh.id = pk.id_lich_hen
                     WHERE lh.bac_si_id = :doctor_id 
-                    AND lh.trang_thai = 'Hoàn thành'";
+                    AND lh.trang_thai = 'Hoàn thành'
+                    AND (lh.loai_lich = 'Trực tiếp' OR lh.loai_lich = 'Tại viện')";
             
             $countParams = [':doctor_id' => $doctorId];
             
@@ -210,6 +212,74 @@ class MedicalRecord
     }
 
     /**
+     * Lấy danh sách hồ sơ bệnh án của bệnh nhân theo ID (hỗ trợ filter theo ngày)
+     * Dùng cho tra cứu hồ sơ khi chưa đăng nhập
+     * 
+     * @param int $patientId ID của bệnh nhân
+     * @param string|null $selectedDate Ngày cần lọc (format: YYYY-MM-DD), null để lấy tất cả
+     * @return array Danh sách các lịch hẹn đã hoàn thành
+     */
+    public function getRecordsByPatientId($patientId, $selectedDate = null)
+    {
+        try {
+            $sql = "SELECT DISTINCT
+                        lh.id as lich_hen_id,
+                        lh.ngay_hen,
+                        lh.gio_hen,
+                        lh.trang_thai as trang_thai_lich_hen,
+                        lh.ly_do,
+                        pk.id as exam_id,
+                        pk.ngay_kham, pk.thang_kham, pk.nam_kham,
+                        pk.gio_kham, pk.phut_kham,
+                        pk.ho_ten as ten_benh_nhan,
+                        pk.tuoi,
+                        pk.gioi_tinh,
+                        pk.dia_chi,
+                        pk.chan_doan_vao_vien,
+                        pk.ten_bac_si,
+                        bn.id as benh_nhan_id,
+                        bn.ma_benh_nhan,
+                        bn.so_dien_thoai,
+                        bs.ten as ten_bac_si_full
+                    FROM lich_hen lh
+                    JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
+                    LEFT JOIN phieu_kham_benh pk ON lh.id = pk.id_lich_hen
+                    LEFT JOIN bac_si bs ON lh.bac_si_id = bs.id
+                    WHERE lh.benh_nhan_id = :patient_id 
+                    AND lh.trang_thai = 'Hoàn thành'
+                    AND (lh.loai_lich = 'Trực tiếp' OR lh.loai_lich = 'Tại viện')";
+
+            $params = [':patient_id' => $patientId];
+
+            // Filter theo ngày - ưu tiên ngày khám từ phiếu khám, nếu không có thì dùng ngày hẹn
+            if (!empty($selectedDate)) {
+                $sql .= " AND (
+                    (pk.id IS NOT NULL AND DATE(CONCAT(pk.nam_kham, '-', LPAD(pk.thang_kham, 2, '0'), '-', LPAD(pk.ngay_kham, 2, '0'))) = :selected_date)
+                    OR (pk.id IS NULL AND lh.ngay_hen = :selected_date)
+                )";
+                $params[':selected_date'] = $selectedDate;
+            }
+
+            $sql .= " ORDER BY 
+                        COALESCE(pk.nam_kham, YEAR(lh.ngay_hen)) DESC,
+                        COALESCE(pk.thang_kham, MONTH(lh.ngay_hen)) DESC,
+                        COALESCE(pk.ngay_kham, DAY(lh.ngay_hen)) DESC,
+                        COALESCE(pk.gio_kham, HOUR(lh.gio_hen)) DESC,
+                        COALESCE(pk.phut_kham, MINUTE(lh.gio_hen)) DESC";
+
+            $stmt = $this->conn->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+            }
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("MedicalRecord getRecordsByPatientId error: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
      * Lấy danh sách hồ sơ bệnh án của bệnh nhân (từ lịch hẹn có trạng thái "Hoàn thành")
      * 
      * @param int $patientId ID của bệnh nhân
@@ -255,7 +325,8 @@ class MedicalRecord
                     LEFT JOIN phieu_kham_benh pk ON lh.id = pk.id_lich_hen
                     LEFT JOIN bac_si bs ON lh.bac_si_id = bs.id
                     WHERE lh.benh_nhan_id = :patient_id 
-                    AND lh.trang_thai = 'Hoàn thành'";
+                    AND lh.trang_thai = 'Hoàn thành'
+                    AND (lh.loai_lich = 'Trực tiếp' OR lh.loai_lich = 'Tại viện')";
 
             $params = [':patient_id' => $patientId];
 
@@ -274,7 +345,8 @@ class MedicalRecord
                     JOIN benh_nhan bn ON lh.benh_nhan_id = bn.id
                     LEFT JOIN phieu_kham_benh pk ON lh.id = pk.id_lich_hen
                     WHERE lh.benh_nhan_id = :patient_id 
-                    AND lh.trang_thai = 'Hoàn thành'";
+                    AND lh.trang_thai = 'Hoàn thành'
+                    AND (lh.loai_lich = 'Trực tiếp' OR lh.loai_lich = 'Tại viện')";
             
             $countParams = [':patient_id' => $patientId];
             
@@ -401,6 +473,12 @@ class MedicalRecord
             $exam = $examStmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$exam) {
+                // Log security event: Attempt to access record that doesn't belong to patient
+                error_log(sprintf(
+                    "Security: Patient ID %d attempted to access lich_hen_id %d but record not found or doesn't belong to patient",
+                    $patientId,
+                    $lichHenId
+                ));
                 return null;
             }
 
@@ -437,8 +515,12 @@ class MedicalRecord
             $prescriptionDetails = [];
             if ($actualExamId) {
                 $prescriptionSql = "SELECT dt.*, 
+                                    pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.chan_doan_vao_vien, pk.ten_bac_si, pk.so_the_bhyt,
+                                    bn.ma_benh_nhan, bn.ngay_sinh, bn.so_dien_thoai,
                                     (SELECT COUNT(*) FROM chi_tiet_don_thuoc WHERE MaDonThuoc = dt.MaDonThuoc) as so_loai_thuoc
                                     FROM don_thuoc dt
+                                    JOIN phieu_kham_benh pk ON dt.id_phieu_kham_benh = pk.id
+                                    JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
                                     WHERE dt.id_phieu_kham_benh = :exam_id
                                     ORDER BY dt.NgayKe DESC LIMIT 1";
                 $prescriptionStmt = $this->conn->prepare($prescriptionSql);
@@ -457,7 +539,10 @@ class MedicalRecord
             // Lấy phiếu yêu cầu xét nghiệm - dùng exam_id từ phiếu khám bệnh
             $labRequest = null;
             if ($actualExamId) {
-                $labRequestSql = "SELECT * FROM phieu_yeu_cau_xet_nghiem WHERE id_phieu_kham_benh = :exam_id";
+                $labRequestSql = "SELECT pxn.*, bs.ten as ten_bac_si_xet_nghiem
+                                FROM phieu_yeu_cau_xet_nghiem pxn
+                                LEFT JOIN bac_si bs ON pxn.bac_si_xet_nghiem_id = bs.id
+                                WHERE pxn.id_phieu_kham_benh = :exam_id";
                 $labRequestStmt = $this->conn->prepare($labRequestSql);
                 $labRequestStmt->execute([':exam_id' => $actualExamId]);
                 $labRequest = $labRequestStmt->fetch(PDO::FETCH_ASSOC);
@@ -466,9 +551,12 @@ class MedicalRecord
             // Lấy kết quả xét nghiệm
             $labResult = null;
             if ($labRequest) {
-                $labResultSql = "SELECT kq.*, 
+                $labResultSql = "SELECT kq.*, pxn.chan_doan, pxn.yeu_cau, pxn.ngay_tao as ngay_dang_ky, pxn.bac_si_xet_nghiem_id,
+                                bs.ten as ten_bac_si_xet_nghiem,
                                 (SELECT COUNT(*) FROM chi_tiet_ket_qua_xet_nghiem WHERE id_phieu_tra_ket_qua = kq.id) as so_chi_so
                                 FROM phieu_tra_ket_qua_xet_nghiem kq
+                                LEFT JOIN phieu_yeu_cau_xet_nghiem pxn ON kq.id_phieu_yeu_cau = pxn.id
+                                LEFT JOIN bac_si bs ON pxn.bac_si_xet_nghiem_id = bs.id
                                 WHERE kq.id_phieu_yeu_cau = :request_id
                                 ORDER BY kq.ngay_tao DESC LIMIT 1";
                 $labResultStmt = $this->conn->prepare($labResultSql);
@@ -481,13 +569,22 @@ class MedicalRecord
                     $labTestDetailStmt = $this->conn->prepare($labTestDetailSql);
                     $labTestDetailStmt->execute([':result_id' => $labResult['id']]);
                     $labResult['chi_tiet'] = $labTestDetailStmt->fetchAll(PDO::FETCH_ASSOC);
+                    // Ưu tiên chan_doan_so_bo từ kết quả, nếu không có thì dùng chan_doan từ request
+                    if (empty($labResult['chan_doan_so_bo']) && !empty($labResult['chan_doan'])) {
+                        $labResult['chan_doan'] = $labResult['chan_doan'];
+                    } elseif (!empty($labResult['chan_doan_so_bo'])) {
+                        $labResult['chan_doan'] = $labResult['chan_doan_so_bo'];
+                    }
                 }
             }
 
             // Lấy phiếu yêu cầu siêu âm - dùng exam_id từ phiếu khám bệnh
             $ultrasoundRequest = null;
             if ($actualExamId) {
-                $ultrasoundSql = "SELECT * FROM phieu_yeu_cau_sieu_am WHERE id_phieu_kham_benh = :exam_id";
+                $ultrasoundSql = "SELECT pysa.*, pk.ten_bac_si
+                                FROM phieu_yeu_cau_sieu_am pysa
+                                LEFT JOIN phieu_kham_benh pk ON pysa.id_phieu_kham_benh = pk.id
+                                WHERE pysa.id_phieu_kham_benh = :exam_id";
                 $ultrasoundStmt = $this->conn->prepare($ultrasoundSql);
                 $ultrasoundStmt->execute([':exam_id' => $actualExamId]);
                 $ultrasoundRequest = $ultrasoundStmt->fetch(PDO::FETCH_ASSOC);
@@ -497,7 +594,15 @@ class MedicalRecord
             $ultrasoundResult = null;
             $ultrasoundImages = [];
             if ($ultrasoundRequest) {
-                $ultrasoundResultSql = "SELECT * FROM ket_qua_sieu_am WHERE id_phieu_yeu_cau_sieu_am = :request_id ORDER BY ngay_cap_nhat DESC LIMIT 1";
+                $ultrasoundResultSql = "SELECT kq.*, pysa.id as phieu_id, pysa.yeu_cau as yeu_cau_sieu_am, pysa.chan_doan, pysa.ngay_tao,
+                                       pk.ho_ten, pk.tuoi, pk.gioi_tinh, pk.dia_chi, pk.ten_bac_si,
+                                       bn.ma_benh_nhan
+                                FROM ket_qua_sieu_am kq
+                                JOIN phieu_yeu_cau_sieu_am pysa ON kq.id_phieu_yeu_cau_sieu_am = pysa.id
+                                JOIN phieu_kham_benh pk ON pysa.id_phieu_kham_benh = pk.id
+                                JOIN benh_nhan bn ON pk.benh_nhan_id = bn.id
+                                WHERE kq.id_phieu_yeu_cau_sieu_am = :request_id 
+                                ORDER BY kq.ngay_cap_nhat DESC LIMIT 1";
                 $ultrasoundResultStmt = $this->conn->prepare($ultrasoundResultSql);
                 $ultrasoundResultStmt->execute([':request_id' => $ultrasoundRequest['id']]);
                 $ultrasoundResult = $ultrasoundResultStmt->fetch(PDO::FETCH_ASSOC);

@@ -126,6 +126,11 @@ function viewXetnghiemDetail(id) {
                 
                 // Set date
                 const date = new Date(result.ngay_cap_nhat || result.ngay_tao || Date.now());
+                const timeStr = date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                const timeInput = document.getElementById("xn_order_time");
+                if (timeInput) {
+                    timeInput.value = timeStr;
+                }
                 document.getElementById("xn_day").value = date.getDate().toString().padStart(2, "0");
                 document.getElementById("xn_month").value = (date.getMonth() + 1).toString().padStart(2, "0");
                 document.getElementById("xn_year").value = date.getFullYear();
@@ -143,6 +148,12 @@ function viewXetnghiemDetail(id) {
 }
 
 function returnXetnghiemResult(id) {
+    // Reset Giờ nhận kết quả khi mở modal mới (chỉ hiển thị sau khi lưu)
+    var resultReturnTimeEl = document.getElementById("result_return_time");
+    if (resultReturnTimeEl) {
+        resultReturnTimeEl.value = "";
+    }
+    
     // Load patient data and show return result modal
     fetch("./?action=get_xetnghiem_result&id=" + id)
         .then(response => response.json())
@@ -158,6 +169,33 @@ function returnXetnghiemResult(id) {
                 document.getElementById("result_patient_age").value = result.tuoi || "";
                 document.getElementById("result_patient_gender").value = result.gioi_tinh || "";
                 document.getElementById("result_requesting_doctor").value = result.bac_si_yeu_cau || result.bac_si_kham || "";
+                
+                // Set examining doctor name (BÁC SĨ XÉT NGHIỆM) from API response
+                const examiningDoctorField = document.getElementById("result_examining_doctor");
+                if (examiningDoctorField) {
+                    // Use ten_bac_si_xet_nghiem from joined bac_si table if available
+                    // Otherwise fall back to bac_si_xet_nghiem from saved result, or session user name
+                    examiningDoctorField.value = result.ten_bac_si_xet_nghiem || result.bac_si_xet_nghiem || examiningDoctorField.value || "";
+                }
+                
+                // Hiển thị Giờ nhận kết quả từ ngay_cap_nhat của phieu_tra_ket_qua_xet_nghiem (format: H:i:s)
+                var resultReturnTimeEl = document.getElementById("result_return_time");
+                if (resultReturnTimeEl) {
+                    if (result.ngay_cap_nhat && data.is_saved) {
+                        // ngay_cap_nhat từ phieu_tra_ket_qua_xet_nghiem
+                        var returnDate = new Date(result.ngay_cap_nhat);
+                        if (!isNaN(returnDate.getTime())) {
+                            var hours = String(returnDate.getHours()).padStart(2, '0');
+                            var minutes = String(returnDate.getMinutes()).padStart(2, '0');
+                            var seconds = String(returnDate.getSeconds()).padStart(2, '0');
+                            resultReturnTimeEl.value = hours + ":" + minutes + ":" + seconds;
+                        } else {
+                            resultReturnTimeEl.value = "";
+                        }
+                    } else {
+                        resultReturnTimeEl.value = "";
+                    }
+                }
                 
                 // Set registration date and time
                 const date = new Date(result.ngay_cap_nhat || result.ngay_tao || Date.now());

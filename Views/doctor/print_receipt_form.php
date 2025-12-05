@@ -255,6 +255,9 @@ $receiptDetails = $bienLaiModel->getDetails($receiptData['id']);
     <div class="receipt-container">
         <!-- Header -->
         <div class="receipt-header">
+            <div style="margin-bottom:10px;">
+                <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:70px;object-fit:contain;">
+            </div>
             <div class="receipt-title">
                 <h1 class="receipt-clinic-name">PHÒNG KHÁM ĐA KHOA THINHVIET</h1>
                 <h2 class="receipt-main-title">BIÊN LAI VIỆN PHÍ</h2>

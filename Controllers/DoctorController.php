@@ -1582,11 +1582,24 @@ class DoctorController
             exit();
         }
         require_once 'Models/PhieuKhamBenh.php';
+        require_once 'config/database.php';
         $model = new PhieuKhamBenh();
         $record = $model->getById((int)$id);
         if (!$record) {
             echo 'Không tìm thấy phiếu khám bệnh';
             exit();
+        }
+
+        // Lấy mã bệnh nhân từ bảng benh_nhan
+        if (!empty($record['benh_nhan_id'])) {
+            $database = new Database();
+            $db = $database->getConnection();
+            $stmt = $db->prepare("SELECT ma_benh_nhan FROM benh_nhan WHERE id = ?");
+            $stmt->execute([$record['benh_nhan_id']]);
+            $patient = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($patient) {
+                $record['ma_benh_nhan'] = $patient['ma_benh_nhan'];
+            }
         }
 
         // Include the beautiful print view
@@ -2451,7 +2464,7 @@ class DoctorController
                            pk.ho_ten, pk.nam_sinh, pk.gioi_tinh, pk.dia_chi,
                            COALESCE(px.chan_doan_vao_vien, pk.chan_doan_vao_vien) as chan_doan_vao_vien, 
                            pk.ten_bac_si AS bac_si_chi_dinh,
-                           kq.noi_dung, kq.ket_luan, kq.bac_si_xquang
+                           kq.noi_dung, kq.ket_luan, kq.bac_si_xquang, kq.ngay_doc
                     FROM phieu_chup_xquang px
                     JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
                     LEFT JOIN ket_qua_xquang kq ON kq.id_phieu_chup_xquang = px.id
@@ -2490,20 +2503,23 @@ class DoctorController
         try {
             $database = new Database();
             $db = $database->getConnection();
-            $sql = "SELECT px.id, px.ngay_tao, px.ngay_cap_nhat, px.trang_thai,
+            
+            // Tối ưu: Lấy phiếu chụp X-Quang mới nhất trước
+            $sql = "SELECT px.id, px.ngay_tao, px.ngay_cap_nhat, px.trang_thai, px.yeu_cau_chup,
                            pk.ho_ten, pk.nam_sinh, pk.gioi_tinh, pk.dia_chi,
                            COALESCE(px.chan_doan_vao_vien, pk.chan_doan_vao_vien) as chan_doan_vao_vien, 
                            pk.ten_bac_si AS bac_si_chi_dinh,
-                           kq.noi_dung, kq.ket_luan, kq.bac_si_xquang
+                           kq.noi_dung, kq.ket_luan, kq.bac_si_xquang, kq.ngay_doc
                     FROM phieu_chup_xquang px
                     JOIN phieu_kham_benh pk ON px.id_phieu_kham_benh = pk.id
                     LEFT JOIN ket_qua_xquang kq ON kq.id_phieu_chup_xquang = px.id
                     WHERE px.id_phieu_kham_benh = ?
-                    ORDER BY px.id DESC LIMIT 1";
+                    ORDER BY px.id DESC, kq.id DESC
+                    LIMIT 1";
             $st = $db->prepare($sql);
             $st->execute([$examId]);
             $row = $st->fetch(PDO::FETCH_ASSOC);
-            if (!$row) {
+            if (!$row || !$row['id']) {
                 echo json_encode(['success' => false, 'message' => 'Chưa có kết quả X-Quang']);
                 return;
             }
@@ -3656,7 +3672,7 @@ class DoctorController
             }
 
             $stmt = $this->db->prepare("
-                SELECT pxn.*, pt.ngay_tra_ket_qua, pt.trang_thai, pt.bac_si_xet_nghiem, pt.tinh_trang_mau, pt.vi_tri_lay_mau, pt.bac_si_yeu_cau, pt.ma_benh_nhan, pt.dia_chi
+                SELECT pxn.*, pt.ngay_tra_ket_qua, pt.trang_thai, pt.bac_si_xet_nghiem, pt.tinh_trang_mau, pt.vi_tri_lay_mau, pt.bac_si_yeu_cau, pt.ma_benh_nhan, pt.dia_chi, pt.ngay_cap_nhat
                 FROM phieu_yeu_cau_xet_nghiem pxn
                 LEFT JOIN phieu_tra_ket_qua_xet_nghiem pt ON pxn.id = pt.id_phieu_yeu_cau
                 WHERE pxn.id_phieu_kham_benh = ?
@@ -3825,10 +3841,11 @@ class DoctorController
             $pdo = $database->getConnection();
 
             $stmt = $pdo->prepare("
-                SELECT pt.*, ct.*, pxn.chan_doan, pxn.yeu_cau
+                SELECT pt.*, ct.*, pxn.chan_doan, pxn.yeu_cau, bs.ten as ten_bac_si_xet_nghiem
                 FROM phieu_tra_ket_qua_xet_nghiem pt
                 LEFT JOIN chi_tiet_ket_qua_xet_nghiem ct ON pt.id = ct.id_phieu_tra_ket_qua
                 LEFT JOIN phieu_yeu_cau_xet_nghiem pxn ON pt.id_phieu_yeu_cau = pxn.id
+                LEFT JOIN bac_si bs ON pxn.bac_si_xet_nghiem_id = bs.id
                 WHERE pt.id_phieu_yeu_cau = ?
                 ORDER BY ct.stt ASC
             ");
@@ -4138,10 +4155,11 @@ class DoctorController
             $pdo = $database->getConnection();
 
             $stmt = $pdo->prepare("
-                SELECT pt.*, ct.*, pxn.yeu_cau
+                SELECT pt.*, ct.*, pxn.yeu_cau, bs.ten as ten_bac_si_xet_nghiem
                 FROM phieu_tra_ket_qua_xet_nghiem pt
                 LEFT JOIN chi_tiet_ket_qua_xet_nghiem ct ON pt.id = ct.id_phieu_tra_ket_qua
                 LEFT JOIN phieu_yeu_cau_xet_nghiem pxn ON pt.id_phieu_yeu_cau = pxn.id
+                LEFT JOIN bac_si bs ON pxn.bac_si_xet_nghiem_id = bs.id
                 WHERE pt.id_phieu_yeu_cau = ?
                 ORDER BY ct.stt ASC
             ");
@@ -4346,7 +4364,7 @@ class DoctorController
             $stmt = $pdo->prepare("
                 SELECT pxn.id, pxn.so_ho_so as ma_benh_nhan, pxn.ho_ten, pxn.gioi_tinh, pxn.chan_doan, pxn.yeu_cau, pxn.ngay_tao,
                        pt.tuoi, pt.dia_chi, pt.ngay_tra_ket_qua, pt.trang_thai as ket_qua_trang_thai, pt.bac_si_xet_nghiem,
-                       pt.tinh_trang_mau, pt.vi_tri_lay_mau, pt.bac_si_yeu_cau
+                       pt.tinh_trang_mau, pt.vi_tri_lay_mau, pt.bac_si_yeu_cau, pt.ngay_cap_nhat
                 FROM phieu_yeu_cau_xet_nghiem pxn
                 LEFT JOIN phieu_tra_ket_qua_xet_nghiem pt ON pxn.id = pt.id_phieu_yeu_cau
                 WHERE pxn.id = ?

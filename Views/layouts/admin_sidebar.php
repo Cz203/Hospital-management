@@ -132,30 +132,6 @@ $appointmentsOpen = (strpos($current_uri, 'admin_appointments') !== false
                     <i class="fas fa-file-medical me-3"></i>
                     <span>Hồ sơ bệnh án</span>
                 </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link d-flex align-items-center" href="./medications">
-                    <i class="fas fa-pills me-3"></i>
-                    <span>Quản lý thuốc</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link d-flex align-items-center" href="./rooms">
-                    <i class="fas fa-bed me-3"></i>
-                    <span>Quản lý phòng bệnh</span>
-                </a>
-            </li>
-
-            <!-- Reports & settings -->
-            <li class="nav-item mt-3 mb-1 px-3">
-                <div class="sidebar-section-label">Báo cáo & hệ thống</div>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link d-flex align-items-center" href="#">
-                    <i class="fas fa-chart-bar me-3"></i>
-                    <span>Báo cáo thống kê</span>
-                </a>
-            </li>
             <li class="nav-item">
                 <a class="nav-link d-flex align-items-center <?php echo isActiveUrl('admin_face_registration'); ?>"
                     href="./admin_face_registration">

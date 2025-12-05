@@ -200,6 +200,9 @@
                 <div class="receipt-container">
                     <!-- Header -->
                     <div class="receipt-header">
+                        <div class="text-center mb-3">
+                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
+                        </div>
                         <div class="receipt-clinic-name">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
                         <div class="receipt-main-title">BIÊN LAI VIỆN PHÍ</div>
                         <div class="receipt-subtitle">Viện phí</div>

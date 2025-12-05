@@ -89,6 +89,7 @@ if (!function_exists('lab_is_out_of_range')) {
                 <div style="font-family: 'Times New Roman', serif; font-size: 12px;">
                     <!-- Header -->
                     <div class="text-center mb-4">
+                        <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
                         <div class="fw-bold" style="font-size: 18px; color: #000;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
                         <div class="fw-bold" style="font-size: 14px;">KHOA XÉT NGHIỆM</div>
                         <div class="fw-bold" style="font-size: 16px; color: #dc3545;">KẾT QUẢ XÉT NGHIỆM</div>
@@ -132,6 +133,21 @@ if (!function_exists('lab_is_out_of_range')) {
                             <div class="row mb-3">
                                 <div class="col-4"><strong style="font-size: 14px;">BS yêu cầu:</strong></div>
                                 <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"><?php echo escapeHtml($labResult['bac_si_yeu_cau'] ?? $labResult['bac_si_kham'] ?? $exam['ten_bac_si'] ?? '-'); ?></span></div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4"><strong style="font-size: 14px;">Giờ nhận kết quả:</strong></div>
+                                <div class="col-8"><span style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"><?php 
+                                    $gioNhanKetQua = '-';
+                                    if (!empty($labResult['ngay_cap_nhat'])) {
+                                        try {
+                                            $date = new DateTime($labResult['ngay_cap_nhat']);
+                                            $gioNhanKetQua = $date->format('H:i:s');
+                                        } catch (Exception $e) {
+                                            $gioNhanKetQua = '-';
+                                        }
+                                    }
+                                    echo escapeHtml($gioNhanKetQua);
+                                ?></span></div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col-4"><strong style="font-size: 14px;">Chất lượng mẫu:</strong></div>
