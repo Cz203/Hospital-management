@@ -121,33 +121,8 @@ function showStep(step) {
   }
 }
 
-// Step 1 Next button
-document.getElementById("step1NextBtn").addEventListener("click", function () {
-  if (currentStep === 1) {
-    currentStep = 2;
-    showStep(currentStep);
-  }
-});
-
-// Step 2 Previous button
-document.getElementById("step2PrevBtn").addEventListener("click", function () {
-  currentStep = 1;
-  showStep(currentStep);
-});
-
-// Step 2 Next button
-document.getElementById("step2NextBtn").addEventListener("click", function () {
-  if (currentStep === 2) {
-    currentStep = 3;
-    showStep(currentStep);
-  }
-});
-
-// Step 3 Previous button
-document.getElementById("step3PrevBtn").addEventListener("click", function () {
-  currentStep = 2;
-  showStep(currentStep);
-});
+// Step navigation buttons - will be initialized in DOMContentLoaded
+let step1NextBtn, step2PrevBtn, step2NextBtn, step3PrevBtn;
 
 // Enable step 1 next button when OTP is verified
 // Auto-advance to step 2 when OTP is verified
@@ -388,10 +363,8 @@ document.addEventListener("DOMContentLoaded", function () {
       // Nếu hợp lệ, hiển thị thông báo success
       showPhoneValidationMessage("Số điện thoại hợp lệ", "success");
 
-      // Đợi 500ms sau khi user ngừng gõ mới check database
-      phoneCheckTimeout = setTimeout(() => {
-        checkPhoneForRegistration(phone);
-      }, 500);
+      // Note: Kiểm tra số điện thoại đã tồn tại sẽ được thực hiện khi gửi OTP
+      // (với flag check_database: true trong send_otp API)
     });
   }
 
@@ -631,7 +604,11 @@ function restoreOtpStatus() {
 document.addEventListener("DOMContentLoaded", function () {
   const sendOtpBtn = document.getElementById("sendOtpBtn");
   if (sendOtpBtn) {
-    sendOtpBtn.addEventListener("click", function () {
+    sendOtpBtn.addEventListener("click", function (e) {
+      // Ngăn form submit nếu có
+      e.preventDefault();
+      e.stopPropagation();
+
       // Dừng timer cũ nếu có
       if (otpTimer) {
         clearInterval(otpTimer);
@@ -643,6 +620,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (!phone) {
         ValidationUtils.showAlert("Vui lòng nhập số điện thoại", "warning");
+        // Scroll đến input số điện thoại
+        document.getElementById("so_dien_thoai").focus();
+        document.getElementById("so_dien_thoai").scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
         return;
       }
 
@@ -653,6 +636,7 @@ document.addEventListener("DOMContentLoaded", function () {
           "Số điện thoại phải có 9-11 chữ số",
           "warning"
         );
+        document.getElementById("so_dien_thoai").focus();
         return;
       }
 
@@ -697,7 +681,8 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((data) => {
           if (data.success) {
             // Hiển thị OTP section
-            document.getElementById("otpSection").classList.add("show");
+            const otpSection = document.getElementById("otpSection");
+            otpSection.classList.add("show");
             document.getElementById("otpStatus").style.display = "none";
 
             // Cập nhật hiển thị số điện thoại đích (số thực tế gửi SMS)
@@ -706,7 +691,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Reset button
             this.innerHTML =
-              '<i class="fas fa-paper-plane me-1"></i>Gửi lại OTP';
+              '<i class="icofont-paper-plane me-1"></i>Gửi lại OTP';
             this.disabled = false;
 
             // Bắt đầu timer cho OTP (5 phút = 300 giây)
@@ -729,17 +714,41 @@ document.addEventListener("DOMContentLoaded", function () {
                   ". Vui lòng sử dụng mã này để xác thực.",
                 "success"
               );
+            } else {
+              // Hiển thị thông báo thành công
+              ValidationUtils.showAlert(
+                "Mã OTP đã được gửi đến số điện thoại của bạn. Vui lòng kiểm tra tin nhắn.",
+                "success"
+              );
             }
+
+            // Scroll mượt đến phần OTP section sau khi hiển thị
+            setTimeout(() => {
+              otpSection.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
+              // Focus vào ô nhập OTP
+              const otpInput = document.getElementById("otp_code");
+              if (otpInput) {
+                setTimeout(() => {
+                  otpInput.focus();
+                }, 500);
+              }
+            }, 300);
           } else {
             ValidationUtils.showAlert("Lỗi: " + data.message, "error");
-            this.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Gửi OTP';
+            this.innerHTML = '<i class="icofont-paper-plane me-1"></i>Gửi OTP';
             this.disabled = false;
           }
         })
         .catch((error) => {
           console.error("Error:", error);
-          ValidationUtils.showAlert("Có lỗi xảy ra khi gửi OTP", "error");
-          this.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Gửi OTP';
+          ValidationUtils.showAlert(
+            "Có lỗi xảy ra khi gửi OTP. Vui lòng thử lại.",
+            "error"
+          );
+          this.innerHTML = '<i class="icofont-paper-plane me-1"></i>Gửi OTP';
           this.disabled = false;
         });
     });
@@ -1233,6 +1242,43 @@ function validateEmail() {
 
 // Initialize additional validations when DOM is loaded
 document.addEventListener("DOMContentLoaded", function () {
+  // Initialize step navigation buttons
+  step1NextBtn = document.getElementById("step1NextBtn");
+  if (step1NextBtn) {
+    step1NextBtn.addEventListener("click", function () {
+      if (currentStep === 1) {
+        currentStep = 2;
+        showStep(currentStep);
+      }
+    });
+  }
+
+  step2PrevBtn = document.getElementById("step2PrevBtn");
+  if (step2PrevBtn) {
+    step2PrevBtn.addEventListener("click", function () {
+      currentStep = 1;
+      showStep(currentStep);
+    });
+  }
+
+  step2NextBtn = document.getElementById("step2NextBtn");
+  if (step2NextBtn) {
+    step2NextBtn.addEventListener("click", function () {
+      if (currentStep === 2) {
+        currentStep = 3;
+        showStep(currentStep);
+      }
+    });
+  }
+
+  step3PrevBtn = document.getElementById("step3PrevBtn");
+  if (step3PrevBtn) {
+    step3PrevBtn.addEventListener("click", function () {
+      currentStep = 2;
+      showStep(currentStep);
+    });
+  }
+
   // Load saved step and OTP status from sessionStorage
   loadSavedStep();
   restoreOtpStatus();
@@ -1491,16 +1537,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 addressInput.classList.add("cccd-locked");
               }
             }
+          } // End if (result.cccd_data)
 
-            // Show success message with filled info
-            showCCCDResult(
-              "success",
-              '<i class="fas fa-check-circle"></i> Xác thực thành công!'
-            );
-            }
-          }
-
-          // Fill thông tin bảo hiểm y tế nếu có
+          // Fill thông tin bảo hiểm y tế nếu có (nằm trong if result.success && result.verified)
           const bhytBox = document.getElementById("bhyt-info-box");
           const bhytIdInput = document.getElementById("bao_hiem_y_te_id");
           const bhytCodeInput = document.getElementById("bao_hiem_y_te");
@@ -1515,7 +1554,8 @@ document.addEventListener("DOMContentLoaded", function () {
               bhytIdInput.value = bh.id || "";
               bhytCodeInput.value = bh.ma_bao_hiem || "";
 
-              if (bhytMaSpan) bhytMaSpan.textContent = bh.ma_bao_hiem || "Không có";
+              if (bhytMaSpan)
+                bhytMaSpan.textContent = bh.ma_bao_hiem || "Không có";
 
               if (bhytTrangThaiSpan) {
                 const statusText =

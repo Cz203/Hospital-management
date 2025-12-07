@@ -309,9 +309,6 @@ class SMSController
         }
     }
 
-    // Gửi SMS qua Vonage SDK
-
-
     // Xác thực OTP
     public function verifyOTP($phone_number, $otp_code)
     {

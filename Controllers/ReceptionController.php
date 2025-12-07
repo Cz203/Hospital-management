@@ -399,11 +399,95 @@ class ReceptionController
         $email = trim($_POST['email'] ?? '');
         $phone = trim($_POST['so_dien_thoai'] ?? '');
         $dob = trim($_POST['ngay_sinh'] ?? '');
-        $gender = trim($_POST['gioi_tinh'] ?? '');
+        $genderRaw = trim($_POST['gioi_tinh'] ?? '');
         $address = trim($_POST['dia_chi'] ?? '');
         $cccd = trim($_POST['cccd'] ?? '');
         $baoHiemId = isset($_POST['bao_hiem_y_te_id']) ? (int)$_POST['bao_hiem_y_te_id'] : null;
         $baoHiemCode = trim($_POST['bao_hiem_y_te'] ?? '');
+
+        // Debug: Log tất cả giá trị nhận được từ form
+        error_log('ReceptionController::patientStore - Gender RAW from POST: ' . var_export($genderRaw, true));
+        error_log('ReceptionController::patientStore - CCCD RAW from POST: ' . var_export($cccd, true));
+        error_log('ReceptionController::patientStore - All POST data: ' . json_encode($_POST));
+
+        // Validate và đảm bảo CCCD hợp lệ
+        if ($cccd !== '') {
+            // Kiểm tra format CCCD (12 số)
+            if (!preg_match('/^\d{12}$/', $cccd)) {
+                $_SESSION['error'] = 'CCCD phải có đúng 12 số.';
+                header('Location: ./reception_patient_create');
+                exit();
+            }
+
+            // Verify lại CCCD để đảm bảo tính nhất quán
+            require_once 'Services/CCCDService.php';
+            require_once 'config/database.php';
+            $database = new Database();
+            $db = $database->getConnection();
+            $cccdService = new CCCDService($db);
+
+            $verifyResult = $cccdService->verifyCCCD($cccd, $name, $dob !== '' ? $dob : null);
+
+            // Nếu CCCD đã được đăng ký, không cho phép tạo mới
+            if (isset($verifyResult['already_registered']) && $verifyResult['already_registered']) {
+                $_SESSION['error'] = 'CCCD này đã được đăng ký trong hệ thống.';
+                header('Location: ./reception_patient_create');
+                exit();
+            }
+
+            // Nếu verify không thành công nhưng có dữ liệu, cảnh báo
+            if (!$verifyResult['success'] && isset($verifyResult['cccd_data'])) {
+                error_log('ReceptionController::patientStore - CCCD verification failed but has data: ' . json_encode($verifyResult));
+            }
+
+            error_log('ReceptionController::patientStore - CCCD verification result: ' . json_encode([
+                'cccd_input' => $cccd,
+                'verified' => $verifyResult['verified'] ?? false,
+                'success' => $verifyResult['success'] ?? false,
+                'cccd_from_db' => isset($verifyResult['cccd_data']['cccd']) ? $verifyResult['cccd_data']['cccd'] : null,
+                'ten_from_db' => isset($verifyResult['cccd_data']['ten']) ? $verifyResult['cccd_data']['ten'] : null
+            ]));
+
+            // QUAN TRỌNG: Đảm bảo số CCCD được lưu đúng với số CCCD đã verify từ database
+            // Nếu có dữ liệu từ database và số CCCD khác với input, sử dụng số từ database
+            if (isset($verifyResult['cccd_data']['cccd']) && $verifyResult['cccd_data']['cccd'] !== $cccd) {
+                error_log('ReceptionController::patientStore - WARNING: CCCD mismatch! Input: ' . $cccd . ', From DB: ' . $verifyResult['cccd_data']['cccd']);
+                error_log('ReceptionController::patientStore - Using verified CCCD from database: ' . $verifyResult['cccd_data']['cccd']);
+                // Sử dụng số CCCD từ database (đã verify) để đảm bảo tính nhất quán
+                $cccd = $verifyResult['cccd_data']['cccd'];
+            }
+        }
+
+        // Normalize gender value to match ENUM('Nam','Nữ','Khác')
+        // Database ENUM chỉ chấp nhận: 'Nam', 'Nữ', 'Khác'
+        $gender = null;
+        if ($genderRaw !== '') {
+            // Chỉ chấp nhận giá trị khớp chính xác với ENUM
+            $validGenders = ['Nam', 'Nữ', 'Khác'];
+            // So sánh strict để đảm bảo khớp chính xác
+            if (in_array($genderRaw, $validGenders, true)) {
+                $gender = $genderRaw;
+                error_log('ReceptionController::patientStore - Gender matched: ' . $gender);
+            } else {
+                // Nếu giá trị không khớp, map về giá trị hợp lệ
+                $genderLower = mb_strtolower($genderRaw, 'UTF-8');
+                if (in_array($genderLower, ['nam', 'male', 'm'])) {
+                    $gender = 'Nam';
+                } elseif (in_array($genderLower, ['nữ', 'nu', 'n', 'female', 'f'])) {
+                    $gender = 'Nữ';
+                } elseif (in_array($genderLower, ['khác', 'khac', 'other', 'o'])) {
+                    $gender = 'Khác';
+                }
+                if ($gender) {
+                    error_log('ReceptionController::patientStore - Gender mapped: ' . $genderRaw . ' -> ' . $gender);
+                } else {
+                    error_log('ReceptionController::patientStore - Gender NOT mapped, will be NULL. Raw value: ' . $genderRaw);
+                }
+                // Nếu không khớp, để null (không gây lỗi SQL)
+            }
+        } else {
+            error_log('ReceptionController::patientStore - Gender RAW is empty, will be NULL');
+        }
 
         // Mật khẩu mặc định cho bệnh nhân do lễ tân tạo
         $defaultPassword = '1111';
@@ -451,10 +535,10 @@ class ReceptionController
                 'mat_khau' => $defaultPassword,
                 'so_dien_thoai' => $phoneNorm,
                 'phone_verified' => 1,
-                'ngay_sinh' => $dob,
-                'gioi_tinh' => $gender,
-                'dia_chi' => $address,
-                'cccd' => $cccd,
+                'ngay_sinh' => $dob !== '' ? $dob : null,
+                'gioi_tinh' => $gender, // Đã được normalize ở trên, có thể là 'Nam', 'Nữ', 'Khác' hoặc null
+                'dia_chi' => $address !== '' ? $address : null,
+                'cccd' => $cccd !== '' ? $cccd : null,
             ];
 
             // Nếu có thông tin BHYT từ CCCD, lưu vào bảng benh_nhan

@@ -154,7 +154,7 @@ class CCCDService
             ];
         }
 
-        // Bước 4: Tìm thông tin bảo hiểm y tế (nếu có) dựa trên tên + ngày sinh
+        // Bước 4: Tìm thông tin bảo hiểm y tế (nếu có) dựa trên số CCCD (ma_bao_hiem = cccd)
         $baoHiemInfo = $this->getBaoHiemForCCCDData($cccdData);
 
         // Tính trạng thái còn hạn / hết hạn cho BHYT (nếu tìm thấy)
@@ -293,8 +293,8 @@ class CCCDService
     }
 
     /**
-     * Lấy thông tin bảo hiểm y tế cho một người dựa trên dữ liệu CCCD (tên + ngày sinh).
-     * Không map trực tiếp trong bảng cccd_data, mà truy vấn sang bảng bao_hiem_y_te.
+     * Lấy thông tin bảo hiểm y tế cho một người dựa trên số CCCD.
+     * Match theo: ma_bao_hiem = cccd (số CCCD từ cccd_data).
      */
     private function getBaoHiemForCCCDData(array $cccdData)
     {
@@ -302,25 +302,30 @@ class CCCDService
             return null;
         }
 
+        // Kiểm tra có số CCCD không
+        if (empty($cccdData['cccd'])) {
+            return null;
+        }
+
         try {
-            // Ưu tiên match theo: tên + ngày sinh.
-            // (Có thể mở rộng thêm điều kiện khác nếu cần.)
+            // Match theo ma_bao_hiem = cccd (số CCCD)
             $sql = "SELECT id, ma_bao_hiem, loai_the, ten_chu_the, ngay_sinh, gioi_tinh, 
                            ngay_bat_dau, ngay_het_han, noi_cap, trang_thai, huong_muc
                     FROM bao_hiem_y_te
-                    WHERE ten_chu_the = :ten_chu_the
-                      AND ngay_sinh = :ngay_sinh
+                    WHERE ma_bao_hiem = :cccd
                     LIMIT 1";
 
             $stmt = $this->conn->prepare($sql);
-            $stmt->bindParam(':ten_chu_the', $cccdData['ten'], PDO::PARAM_STR);
-            $stmt->bindParam(':ngay_sinh', $cccdData['ngay_sinh'], PDO::PARAM_STR);
+            $stmt->bindParam(':cccd', $cccdData['cccd'], PDO::PARAM_STR);
             $stmt->execute();
 
             if ($stmt->rowCount() > 0) {
-                return $stmt->fetch(PDO::FETCH_ASSOC);
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                error_log('CCCDService::getBaoHiemForCCCDData - Found BHYT: ma_bao_hiem=' . $result['ma_bao_hiem'] . ' for CCCD=' . $cccdData['cccd']);
+                return $result;
             }
 
+            error_log('CCCDService::getBaoHiemForCCCDData - No BHYT found for CCCD=' . $cccdData['cccd']);
             return null;
         } catch (PDOException $e) {
             error_log('Error getting bao_hiem_y_te for CCCD: ' . $e->getMessage());
