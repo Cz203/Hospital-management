@@ -66,9 +66,26 @@ class Patient extends User
 
         $hashedPassword = $this->hashPassword($data['mat_khau']);
         $phone_verified = $data['phone_verified'] ?? 0;
-        $cccd = $data['cccd'] ?? null;
-        $baoHiemCode = $data['bao_hiem_y_te'] ?? null;
-        $baoHiemId = isset($data['bao_hiem_y_te_id']) ? (int)$data['bao_hiem_y_te_id'] : null;
+        $cccd = !empty($data['cccd']) ? $data['cccd'] : null;
+        $baoHiemCode = !empty($data['bao_hiem_y_te']) ? $data['bao_hiem_y_te'] : null;
+        $baoHiemId = isset($data['bao_hiem_y_te_id']) && $data['bao_hiem_y_te_id'] > 0 ? (int)$data['bao_hiem_y_te_id'] : null;
+
+        // Xử lý gioi_tinh - Controller đã normalize và validate rồi
+        // ENUM chỉ chấp nhận: 'Nam', 'Nữ', 'Khác' hoặc NULL
+        // Giữ nguyên giá trị từ Controller (đã được normalize)
+        $gioiTinh = null;
+        if (isset($data['gioi_tinh']) && $data['gioi_tinh'] !== null && $data['gioi_tinh'] !== '') {
+            $genderValue = trim((string)$data['gioi_tinh']);
+            // Chỉ chấp nhận giá trị ENUM hợp lệ
+            $validGenders = ['Nam', 'Nữ', 'Khác'];
+            if (in_array($genderValue, $validGenders, true)) {
+                $gioiTinh = $genderValue;
+            }
+            // Nếu không hợp lệ, để null để tránh lỗi SQL
+        }
+
+        $ngaySinh = !empty($data['ngay_sinh']) ? $data['ngay_sinh'] : null;
+        $diaChi = !empty($data['dia_chi']) ? $data['dia_chi'] : null;
 
         $stmt->bindParam(":ma_benh_nhan", $ma_benh_nhan);
         $stmt->bindParam(":ten", $data['ten']);
@@ -76,9 +93,9 @@ class Patient extends User
         $stmt->bindParam(":mat_khau", $hashedPassword);
         $stmt->bindParam(":so_dien_thoai", $data['so_dien_thoai']);
         $stmt->bindParam(":phone_verified", $phone_verified);
-        $stmt->bindParam(":ngay_sinh", $data['ngay_sinh']);
-        $stmt->bindParam(":gioi_tinh", $data['gioi_tinh']);
-        $stmt->bindParam(":dia_chi", $data['dia_chi']);
+        $stmt->bindParam(":ngay_sinh", $ngaySinh);
+        $stmt->bindParam(":gioi_tinh", $gioiTinh);
+        $stmt->bindParam(":dia_chi", $diaChi);
         $stmt->bindParam(":cccd", $cccd);
         $stmt->bindParam(":bao_hiem_y_te", $baoHiemCode);
         $stmt->bindParam(":bao_hiem_y_te_id", $baoHiemId, PDO::PARAM_INT);
@@ -215,12 +232,64 @@ class Patient extends User
         return $stmt->execute();
     }
 
-    public function getByPhone($phone)
+    public function getByPhone($phone1, $phone2 = null)
     {
-        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao FROM " . $this->table_name . " WHERE so_dien_thoai = :phone LIMIT 1";
+        if ($phone2 === null) {
+            $phone2 = $phone1;
+        }
+        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao, ma_benh_nhan FROM " . $this->table_name . " WHERE so_dien_thoai = :phone1 OR so_dien_thoai = :phone2 LIMIT 1";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":phone", $phone);
+        $stmt->bindParam(":phone1", $phone1);
+        $stmt->bindParam(":phone2", $phone2);
         $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getByMaBenhNhan($maBenhNhan)
+    {
+        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao, ma_benh_nhan FROM " . $this->table_name . " WHERE ma_benh_nhan = :ma_benh_nhan LIMIT 1";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":ma_benh_nhan", $maBenhNhan);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Tìm bệnh nhân theo Họ tên, Số điện thoại và CCCD (dùng cho tra cứu hồ sơ)
+     * Tất cả 3 trường phải khớp mới trả về kết quả
+     * 
+     * @param string $hoTen Họ tên bệnh nhân
+     * @param string $soDienThoai Số điện thoại
+     * @param string $cccd Số căn cước công dân
+     * @return array|null Thông tin bệnh nhân hoặc null nếu không tìm thấy
+     */
+    public function findByLookupInfo($hoTen, $soDienThoai, $cccd)
+    {
+        // Xử lý số điện thoại: chấp nhận cả 84 và 0
+        $phone1 = trim($soDienThoai);
+        $phone2 = $phone1;
+        if (str_starts_with($phone1, '84')) {
+            $phone2 = '0' . substr($phone1, 2);
+        } else if (str_starts_with($phone1, '0')) {
+            $phone2 = '84' . substr($phone1, 1);
+        }
+
+        $query = "SELECT id, bao_hiem_y_te, ten, email, so_dien_thoai, ngay_sinh, gioi_tinh, dia_chi, cccd, mat_khau, ngay_tao, ma_benh_nhan 
+                  FROM " . $this->table_name . " 
+                  WHERE (LOWER(TRIM(ten)) = LOWER(TRIM(:ho_ten)))
+                  AND (so_dien_thoai = :phone1 OR so_dien_thoai = :phone2)
+                  AND (cccd = :cccd OR cccd = TRIM(:cccd))
+                  LIMIT 1";
+
+        $stmt = $this->conn->prepare($query);
+        $hoTenTrimmed = trim($hoTen);
+        $cccdTrimmed = trim($cccd);
+        $stmt->bindParam(":ho_ten", $hoTenTrimmed);
+        $stmt->bindParam(":phone1", $phone1);
+        $stmt->bindParam(":phone2", $phone2);
+        $stmt->bindParam(":cccd", $cccdTrimmed);
+        $stmt->execute();
+
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 

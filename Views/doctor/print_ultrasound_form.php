@@ -131,6 +131,9 @@
     </button>
 
     <div class="header">
+        <div style="margin-bottom:10px;">
+            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:70px;object-fit:contain;">
+        </div>
         <div class="hospital-name">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
         <div style="font-size: 12px;">Địa chỉ: Gò Vấp, TP.HCM &nbsp;|&nbsp; ĐT: 0777871608</div>
     </div>
@@ -171,6 +174,20 @@
     <!-- Thông tin siêu âm -->
     <div class="form-section">
         <div class="section-title">II. THÔNG TIN SIÊU ÂM</div>
+        
+        <div class="form-row">
+            <div class="form-label">Giờ chỉ định:</div>
+            <div class="form-value underline">
+                <?php 
+                if (!empty($formData['ngay_cap_nhat'])) {
+                    $date = new DateTime($formData['ngay_cap_nhat']);
+                    echo $date->format('H:i:s');
+                } else {
+                    echo '';
+                }
+                ?>
+            </div>
+        </div>
         
         <div class="form-row">
             <div class="form-label">Chẩn đoán:</div>

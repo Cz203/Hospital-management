@@ -97,13 +97,63 @@ document.addEventListener("DOMContentLoaded", function () {
             // Fill Giới tính
             if (result.cccd_data.gioi_tinh) {
               const genderInput = document.getElementById("gioi_tinh");
-              if (genderInput && !genderInput.value) {
-                genderInput.value = result.cccd_data.gioi_tinh;
-              }
-              // Lock field (disabled for select)
               if (genderInput) {
-                genderInput.disabled = true;
+                // Set giá trị giới tính từ CCCD data
+                // CCCD service trả về 'Nam' hoặc 'Nữ' (khớp với option trong select)
+                const genderValue = String(result.cccd_data.gioi_tinh).trim();
+
+                console.log("CCCD Gender Value:", genderValue); // Debug log
+                console.log(
+                  "Current gender input value before set:",
+                  genderInput.value
+                ); // Debug log
+
+                // LUÔN set giá trị từ CCCD (không check điều kiện)
+                // Đảm bảo giá trị khớp với option trong select
+                // Form có: 'Nam', 'Nữ', 'Khác'
+                let setValue = null;
+                if (
+                  genderValue === "Nam" ||
+                  genderValue === "Nữ" ||
+                  genderValue === "Khác"
+                ) {
+                  setValue = genderValue;
+                } else {
+                  // Nếu giá trị không khớp, thử tìm option tương ứng
+                  // (fallback cho trường hợp có giá trị khác)
+                  for (let option of genderInput.options) {
+                    if (
+                      option.text.trim() === genderValue ||
+                      option.value === genderValue
+                    ) {
+                      setValue = option.value;
+                      console.log("Matched gender option:", setValue); // Debug log
+                      break;
+                    }
+                  }
+                }
+
+                // Set giá trị nếu tìm thấy
+                if (setValue) {
+                  genderInput.value = setValue;
+                  console.log(
+                    "Set gender to:",
+                    setValue,
+                    "Current value after set:",
+                    genderInput.value
+                  ); // Debug log
+                } else {
+                  console.warn(
+                    "No matching gender option found for:",
+                    genderValue
+                  ); // Debug log
+                }
+
+                // KHÔNG disable field để giá trị được gửi đi khi submit
+                // Chỉ thêm class để style (visual indicator)
                 genderInput.classList.add("cccd-locked");
+                // Thêm attribute để đánh dấu là field từ CCCD
+                genderInput.setAttribute("data-cccd-filled", "true");
               }
             }
 
@@ -136,13 +186,16 @@ document.addEventListener("DOMContentLoaded", function () {
           const bhytHanSpan = document.getElementById("bhyt_han");
           const bhytHuongMucSpan = document.getElementById("bhyt_huong_muc");
 
+          // Xử lý BHYT - luôn clear trước khi set lại
           if (bhytBox && bhytIdInput && bhytCodeInput) {
             if (result.bao_hiem_y_te) {
               const bh = result.bao_hiem_y_te;
+              // Set giá trị BHYT
               bhytIdInput.value = bh.id || "";
               bhytCodeInput.value = bh.ma_bao_hiem || "";
 
-              if (bhytMaSpan) bhytMaSpan.textContent = bh.ma_bao_hiem || "Không có";
+              if (bhytMaSpan)
+                bhytMaSpan.textContent = bh.ma_bao_hiem || "Không có";
 
               if (bhytTrangThaiSpan) {
                 const statusText =
@@ -169,19 +222,20 @@ document.addEventListener("DOMContentLoaded", function () {
               }
 
               bhytBox.classList.remove("d-none");
+              console.log("BHYT found and set:", {
+                id: bhytIdInput.value,
+                code: bhytCodeInput.value,
+              });
             } else {
               // Không có BHYT -> clear & ẩn box
-              bhytIdInput.value = "";
-              bhytCodeInput.value = "";
-              if (bhytMaSpan) bhytMaSpan.textContent = "";
-              if (bhytTrangThaiSpan) bhytTrangThaiSpan.textContent = "";
-              if (bhytHanSpan) bhytHanSpan.textContent = "";
-              if (bhytHuongMucSpan) bhytHuongMucSpan.textContent = "";
-              bhytBox.classList.add("d-none");
+              clearBHYTFields();
             }
           }
         } else {
           cccdVerified = false;
+          // Clear BHYT fields khi verify thất bại
+          clearBHYTFields();
+
           let errorMsg = result.message || "CCCD không hợp lệ";
           if (result.suggestion) {
             errorMsg += "<br><small>" + result.suggestion + "</small>";
@@ -193,6 +247,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       } catch (error) {
         console.error("Error verifying CCCD:", error);
+        // Clear BHYT fields khi có lỗi
+        clearBHYTFields();
         showCCCDResult(
           "danger",
           '<i class="fas fa-times-circle"></i> Lỗi khi xác thực CCCD. Vui lòng thử lại.'
@@ -216,6 +272,42 @@ document.addEventListener("DOMContentLoaded", function () {
         cccdInput.focus();
         return false;
       }
+
+      // Debug: Log giá trị giới tính trước khi submit
+      const genderInput = document.getElementById("gioi_tinh");
+      if (genderInput) {
+        console.log(
+          "Before submit - Gender value:",
+          genderInput.value,
+          "Disabled:",
+          genderInput.disabled
+        ); // Debug log
+
+        // QUAN TRỌNG: Enable lại các field bị disabled để giá trị được gửi đi
+        // Các field disabled sẽ không được gửi trong form submission
+        if (genderInput.disabled) {
+          genderInput.disabled = false;
+          console.log("Enabled gender input before submit"); // Debug log
+        }
+      }
+
+      // Đảm bảo BHYT fields được xử lý đúng khi submit
+      const bhytIdInput = document.getElementById("bao_hiem_y_te_id");
+      const bhytCodeInput = document.getElementById("bao_hiem_y_te");
+
+      // Nếu không có BHYT (box ẩn), đảm bảo các hidden input là rỗng
+      const bhytBox = document.getElementById("bhyt-info-box");
+      if (bhytBox && bhytBox.classList.contains("d-none")) {
+        if (bhytIdInput) bhytIdInput.value = "";
+        if (bhytCodeInput) bhytCodeInput.value = "";
+        console.log("BHYT box hidden - cleared BHYT fields before submit");
+      }
+
+      // Log giá trị BHYT trước khi submit để debug
+      console.log("Before submit - BHYT values:", {
+        id: bhytIdInput ? bhytIdInput.value : "N/A",
+        code: bhytCodeInput ? bhytCodeInput.value : "N/A",
+      });
     });
   }
 
@@ -236,6 +328,29 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /**
+   * Clear BHYT fields
+   */
+  function clearBHYTFields() {
+    const bhytBox = document.getElementById("bhyt-info-box");
+    const bhytIdInput = document.getElementById("bao_hiem_y_te_id");
+    const bhytCodeInput = document.getElementById("bao_hiem_y_te");
+    const bhytMaSpan = document.getElementById("bhyt_ma");
+    const bhytTrangThaiSpan = document.getElementById("bhyt_trang_thai");
+    const bhytHanSpan = document.getElementById("bhyt_han");
+    const bhytHuongMucSpan = document.getElementById("bhyt_huong_muc");
+
+    if (bhytIdInput) bhytIdInput.value = "";
+    if (bhytCodeInput) bhytCodeInput.value = "";
+    if (bhytMaSpan) bhytMaSpan.textContent = "";
+    if (bhytTrangThaiSpan) bhytTrangThaiSpan.textContent = "";
+    if (bhytHanSpan) bhytHanSpan.textContent = "";
+    if (bhytHuongMucSpan) bhytHuongMucSpan.textContent = "";
+    if (bhytBox) bhytBox.classList.add("d-none");
+
+    console.log("BHYT fields cleared");
+  }
+
+  /**
    * Unlock CCCD-filled fields
    */
   function unlockCCCDFields() {
@@ -253,12 +368,16 @@ document.addEventListener("DOMContentLoaded", function () {
       dobInput.classList.remove("cccd-locked");
     }
     if (genderInput) {
-      genderInput.disabled = false;
+      // Không cần enable vì không disable nữa
       genderInput.classList.remove("cccd-locked");
+      genderInput.removeAttribute("data-cccd-filled");
     }
     if (addressInput) {
       addressInput.readOnly = false;
       addressInput.classList.remove("cccd-locked");
     }
+
+    // Clear BHYT fields khi unlock (người dùng thay đổi CCCD)
+    clearBHYTFields();
   }
 });

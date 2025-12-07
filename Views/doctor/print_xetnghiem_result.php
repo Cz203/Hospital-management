@@ -276,6 +276,9 @@ $formType = determineFormType($mainResult['yeu_cau'] ?? '');
 <body>
     <!-- Header -->
     <div class="header">
+        <div style="text-align:center; margin-bottom:10px;">
+            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+        </div>
         <div class="clinic-name">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
         <div class="department">KHOA XÉT NGHIỆM</div>
         <div class="report-title">KẾT QUẢ XÉT NGHIỆM</div>
@@ -312,7 +315,21 @@ $formType = determineFormType($mainResult['yeu_cau'] ?? '');
         <div class="info-row">
             <div class="info-label">Chẩn đoán sơ bộ:</div>
             <div class="info-value"><?php echo htmlspecialchars($mainResult['chan_doan_so_bo'] ?? $mainResult['chan_doan'] ?? ''); ?></div>
-            <div class="info-label" style="margin-left: 50px;">Chất lượng mẫu:</div>
+            <div class="info-label" style="margin-left: 50px;">Giờ nhận kết quả:</div>
+            <div class="info-value">
+                <?php 
+                if (!empty($mainResult['ngay_cap_nhat'])) {
+                    $date = new DateTime($mainResult['ngay_cap_nhat']);
+                    echo $date->format('H:i:s');
+                } else {
+                    echo '';
+                }
+                ?>
+            </div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">Chất lượng mẫu:</div>
             <div class="info-value"><?php echo htmlspecialchars($mainResult['tinh_trang_mau'] ?? ''); ?></div>
         </div>
         
@@ -428,7 +445,7 @@ $formType = determineFormType($mainResult['yeu_cau'] ?? '');
                 <input type="text" class="date-input" value="<?php echo date('Y'); ?>" readonly>
             </div>
             <div class="doctor-title">BÁC SĨ XÉT NGHIỆM</div>
-            <div class="doctor-name"><?php echo htmlspecialchars($mainResult['bac_si_xet_nghiem'] ?? ''); ?></div>
+            <div class="doctor-name"><?php echo htmlspecialchars($mainResult['ten_bac_si_xet_nghiem'] ?? $mainResult['bac_si_xet_nghiem'] ?? ''); ?></div>
         </div>
     </div>
 

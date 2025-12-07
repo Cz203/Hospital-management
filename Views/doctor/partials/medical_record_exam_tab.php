@@ -11,6 +11,9 @@
         </div>
         <div class="card-body">
             <!-- Header form -->
+            <div class="text-center mb-3">
+                <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
+            </div>
             <div class="row mb-3">
                 <div class="col-md-6">
                     <div class="mb-2">
@@ -96,20 +99,36 @@
                 <!-- Đối tượng -->
                 <div class="mt-3">
                     <label class="form-label fw-bold">9. Đối tượng:</label>
+                    <?php
+                    // Helper function để kiểm tra giá trị đối tượng
+                    // PDO có thể trả về string "1", "0", integer 1, 0, hoặc boolean true/false
+                    function isDoiTuongChecked($value) {
+                        if ($value === null || $value === '') return false;
+                        // Convert sang string để so sánh
+                        $strVal = trim((string)$value);
+                        // Kiểm tra nếu là "1", 1, hoặc true
+                        return ($strVal === '1' || $strVal === 'true' || $value === true || $value === 1);
+                    }
+                    
+                    $checkedBhyt = isDoiTuongChecked($exam['doi_tuong_bhyt'] ?? null);
+                    $checkedThuPhi = isDoiTuongChecked($exam['doi_tuong_thu_phi'] ?? null);
+                    $checkedMien = isDoiTuongChecked($exam['doi_tuong_mien'] ?? null);
+                    $checkedKhac = isDoiTuongChecked($exam['doi_tuong_khac'] ?? null);
+                    ?>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" <?php echo !empty($exam['doi_tuong_bhyt']) && $exam['doi_tuong_bhyt'] == 1 ? 'checked' : ''; ?> disabled>
+                        <input class="form-check-input" type="checkbox" <?php echo $checkedBhyt ? 'checked' : ''; ?> disabled>
                         <label class="form-check-label">1. BHYT</label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" <?php echo !empty($exam['doi_tuong_thu_phi']) && $exam['doi_tuong_thu_phi'] == 1 ? 'checked' : ''; ?> disabled>
+                        <input class="form-check-input" type="checkbox" <?php echo $checkedThuPhi ? 'checked' : ''; ?> disabled>
                         <label class="form-check-label">2. Thu phí</label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" <?php echo !empty($exam['doi_tuong_mien']) && $exam['doi_tuong_mien'] == 1 ? 'checked' : ''; ?> disabled>
+                        <input class="form-check-input" type="checkbox" <?php echo $checkedMien ? 'checked' : ''; ?> disabled>
                         <label class="form-check-label">3. Miễn</label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" <?php echo !empty($exam['doi_tuong_khac']) && $exam['doi_tuong_khac'] == 1 ? 'checked' : ''; ?> disabled>
+                        <input class="form-check-input" type="checkbox" <?php echo $checkedKhac ? 'checked' : ''; ?> disabled>
                         <label class="form-check-label">4. Khác</label>
                     </div>
                 </div>

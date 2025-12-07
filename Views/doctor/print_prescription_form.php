@@ -236,6 +236,9 @@
     </button>
 
     <div class="header">
+        <div style="margin-bottom:10px;">
+            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:70px;object-fit:contain;">
+        </div>
         <div class="hospital-name">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
         <div style="font-size: 12px;">Địa chỉ: Gò vấp</div>
         <div class="form-title">ĐƠN THUỐC</div>

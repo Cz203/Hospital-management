@@ -1,6 +1,6 @@
 <?php
 
-$page_title = 'Đăng ký - ThinhViet Hospital';
+$page_title = 'Đăng ký';
 
 // Lấy dữ liệu form đã lưu (nếu có)
 $formData = $_SESSION['form_data'] ?? [];
@@ -281,11 +281,11 @@ $formData = $_SESSION['form_data'] ?? [];
                                                 <i class="icofont-id-card me-2"></i>
                                                 <div>
                                                     <div><strong>Mã BHYT:</strong> <span id="bhyt_ma"></span></div>
-                                                    <div><strong>Trạng thái:</strong> <span
-                                                            id="bhyt_trang_thai"></span></div>
+                                                    <div><strong>Trạng thái:</strong> <span id="bhyt_trang_thai"></span>
+                                                    </div>
                                                     <div><strong>Hạn sử dụng:</strong> <span id="bhyt_han"></span></div>
-                                                    <div><strong>Mức hưởng:</strong> <span
-                                                            id="bhyt_huong_muc"></span></div>
+                                                    <div><strong>Mức hưởng:</strong> <span id="bhyt_huong_muc"></span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

@@ -146,7 +146,8 @@ $content .= '
       </div>
       <div class="modal-body">
         <div class="mb-3 text-center">
-          <div class="fw-bold" style="font-size:18px">PHIẾU CHỤP X – QUANG</div>
+          <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
+          <div class="fw-bold text-center" style="font-size:22px;text-align:center;">PHIẾU CHỤP X – QUANG</div>
         </div>
 
         <div class="row mb-2">
@@ -159,7 +160,7 @@ $content .= '
             <input type="text" class="form-control" id="vx_phone" readonly>
           </div>
           <div class="col-md-2">
-            <label class="form-label fw-bold">Quận/Huyện</label>
+            <label class="form-label fw-bold">Quận</label>
             <input type="text" class="form-control" id="vx_quan" readonly>
           </div>
         </div>
@@ -193,6 +194,11 @@ $content .= '
             <label class="form-label fw-bold">Số thẻ BHYT</label>
             <input type="text" class="form-control" id="vx_insurance_number" readonly>
           </div>
+        </div>
+
+        <div class="mt-3">
+          <label class="form-label fw-bold">Giờ chỉ định:</label>
+          <input type="text" class="form-control" id="vx_order_time" readonly>
         </div>
 
         <div class="mt-3">
@@ -253,9 +259,12 @@ $content .= '
             <button class="nav-link" id="tab-images-tab" data-bs-toggle="tab" data-bs-target="#tab-images" type="button" role="tab">Hình Ảnh X-Quang</button>
           </li>
         </ul>
-        <div class="tab-content border border-top-0 p-2">
+          <div class="tab-content border border-top-0 p-2">
           <div class="tab-pane fade show active" id="tab-info" role="tabpanel">
             <div class="report border border-dark">
+          <div class="text-center mb-3">
+            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
+          </div>
           <div class="title">PHÒNG KHÁM ĐA KHOA THINHVIET<br>KHOA CHUẨN ĐOÁN HÌNH ẢNH</div>
           <div class="text-center" style="font-size:14px">Địa chỉ: Gò Vấp - Điện thoại: 0777871608</div>
           <div class="hr"></div>
@@ -272,6 +281,9 @@ $content .= '
           <div class="row-line">
             <div class="label">Ngày chỉ định</div><div class="dots">:</div><div class="value" id="rx_date"></div>
             <div class="label" style="min-width:120px">Giờ chỉ định</div><div class="dots">:</div><div class="value" id="rx_time"></div>
+          </div>
+          <div class="row-line">
+            <div class="label">Giờ nhận kết quả</div><div class="dots">:</div><div class="value" id="rx_return_time">-</div>
           </div>
           <div class="hr"></div>
           <div class="row-line"><div class="label">Chẩn đoán</div><div class="dots">:</div><div class="value" id="rx_chuan_doan"></div></div>
@@ -653,6 +665,30 @@ document.addEventListener("DOMContentLoaded", function() {
           // Fill the form with saved data
           document.getElementById('rx_suggestion_input').value = json.data.noi_dung || '';
           document.getElementById('rx_ket_luan_input').value = json.data.ket_luan || '';
+          
+          // Hiển thị Giờ nhận kết quả từ ngay_cap_nhat hoặc ngay_doc (format: H:i:s)
+          var returnTimeEl = document.getElementById('rx_return_time');
+          if(returnTimeEl){
+            var timeStr = '-';
+            if(json.data.ngay_cap_nhat){
+              var date = new Date(json.data.ngay_cap_nhat);
+              if(!isNaN(date.getTime())){
+                var hours = String(date.getHours()).padStart(2, '0');
+                var minutes = String(date.getMinutes()).padStart(2, '0');
+                var seconds = String(date.getSeconds()).padStart(2, '0');
+                timeStr = hours + ':' + minutes + ':' + seconds;
+              }
+            } else if(json.data.ngay_doc){
+              var date = new Date(json.data.ngay_doc);
+              if(!isNaN(date.getTime())){
+                var hours = String(date.getHours()).padStart(2, '0');
+                var minutes = String(date.getMinutes()).padStart(2, '0');
+                var seconds = String(date.getSeconds()).padStart(2, '0');
+                timeStr = hours + ':' + minutes + ':' + seconds;
+              }
+            }
+            returnTimeEl.textContent = timeStr;
+          }
         }
       })
       .catch(function(err){ console.log('No saved result data:', err); });
@@ -707,6 +743,8 @@ document.addEventListener("DOMContentLoaded", function() {
         .then(function(json){
           if(!json.success){ alert(json.message || 'Lưu thất bại'); return; }
           alert('Đã lưu kết quả X-Quang');
+          // Reload dữ liệu kết quả để hiển thị Giờ nhận kết quả
+          loadSavedXrayResult(xrayId);
         })
         .catch(function(){ alert('Lỗi kết nối'); });
     }
@@ -804,6 +842,11 @@ document.addEventListener("DOMContentLoaded", function() {
       .then(function(json){
         if(!json.success){ alert(json.message || 'Cập nhật thất bại'); return; }
         alert('Đã hoàn thành kết quả X-Quang');
+        // Đóng modal
+        var modal = bootstrap.Modal.getInstance(document.getElementById('xrayReturnModal'));
+        if(modal) {
+          modal.hide();
+        }
         // Reload the requested list to update status
         loadRequested();
       })
@@ -832,6 +875,17 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById('vx_insurance_number').value = data.so_the_bhyt || '';
     document.getElementById('vx_diagnosis').value = data.chan_doan_vao_vien || '';
     document.getElementById('vx_request').value = data.yeu_cau_chup || '';
+    // Giờ chỉ định
+    var timeStr = '';
+    var tsRaw = data.ngay_cap_nhat || data.ngay_tao || '';
+    if (tsRaw) {
+      var dTime = new Date(String(tsRaw).replace(' ', 'T'));
+      if (!isNaN(dTime.getTime())) {
+        timeStr = dTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+    }
+    var vxOrderTime = document.getElementById('vx_order_time');
+    if (vxOrderTime) vxOrderTime.value = timeStr;
     var p = parseDateParts(data.ngay_tao);
     document.getElementById('vx_ngay').value = p.day;
     document.getElementById('vx_thang').value = p.month;
@@ -876,6 +930,8 @@ document.addEventListener("DOMContentLoaded", function() {
     setText('rx_noi_dung', ndVal);
     setValue('rx_suggestion_input', '');
     setValue('rx_ket_luan_input', '');
+    // Reset Giờ nhận kết quả khi mở modal mới
+    setText('rx_return_time', '-');
     var xrayDoctorName = (typeof XRAY_DOCTOR_NAME !== 'undefined' && XRAY_DOCTOR_NAME) ? XRAY_DOCTOR_NAME : (data.bac_si_xquang || '');
     setText('rx_doctor', xrayDoctorName);
   }

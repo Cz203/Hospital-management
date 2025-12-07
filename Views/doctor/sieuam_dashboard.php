@@ -146,6 +146,7 @@ $content .= '
       </div>
       <div class="modal-body">
         <div class="mb-3 text-center">
+          <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
           <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU SIÊU ÂM</div>
         </div>
 
@@ -159,7 +160,7 @@ $content .= '
             <input type="text" class="form-control" id="vs_phone" readonly>
           </div>
           <div class="col-md-2">
-            <label class="form-label fw-bold">Quận/Huyện</label>
+            <label class="form-label fw-bold">Quận</label>
             <input type="text" class="form-control" id="vs_quan" readonly>
           </div>
         </div>
@@ -189,6 +190,11 @@ $content .= '
             <label class="form-label fw-bold">Số thẻ BHYT</label>
             <input type="text" class="form-control" id="vs_insurance_number" readonly>
           </div>
+        </div>
+
+        <div class="mt-3">
+          <label class="form-label fw-bold">Giờ chỉ định:</label>
+          <input type="text" class="form-control" id="vs_order_time" readonly>
         </div>
 
         <div class="mt-3">
@@ -247,6 +253,7 @@ $content .= '
         
         <div class="report">
           <div class="text-center mb-3">
+            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
             <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
             <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA SẢN</div>
           </div>
@@ -300,6 +307,12 @@ $content .= '
             <div class="label">Phiếu chỉ định:</div>
             <div class="dots">:</div>
             <div class="value" id="ur_phieu_chi_dinh"></div>
+          </div>
+          
+          <div class="row-line">
+            <div class="label">Giờ nhận kết quả:</div>
+            <div class="dots">:</div>
+            <div class="value" id="ur_return_time"></div>
           </div>
           
           <div class="hr"></div>
@@ -464,6 +477,9 @@ renderLayout($content, 'Siêu âm Dashboard - Hệ thống Quản lý Bệnh vi�
 
                     // Set date
                     const date = new Date(result.ngay_cap_nhat || result.ngay_tao || Date.now());
+                    const timeStr = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    const vsOrderTime = document.getElementById('vs_order_time');
+                    if (vsOrderTime) vsOrderTime.value = timeStr;
                     document.getElementById('vs_day').value = date.getDate().toString().padStart(2, '0');
                     document.getElementById('vs_month').value = (date.getMonth() + 1).toString().padStart(2, '0');
                     document.getElementById('vs_year').value = date.getFullYear();
@@ -519,6 +535,9 @@ renderLayout($content, 'Siêu âm Dashboard - Hệ thống Quản lý Bệnh vi�
                     document.getElementById('ur_day').value = today.getDate().toString().padStart(2, '0');
                     document.getElementById('ur_month').value = (today.getMonth() + 1).toString().padStart(2, '0');
                     document.getElementById('ur_year').value = today.getFullYear();
+                    
+                    // Reset Giờ nhận kết quả khi mở modal mới (chỉ hiển thị sau khi lưu)
+                    document.getElementById('ur_return_time').textContent = '';
 
                     // Don't clear data here - let loadSavedUltrasoundResult handle it
 
@@ -580,6 +599,8 @@ renderLayout($content, 'Siêu âm Dashboard - Hệ thống Quản lý Bệnh vi�
                     alert(data.message);
                     // Lưu ket_qua_id để upload ảnh
                     window.currentKetQuaId = data.ket_qua_id;
+                    // Load lại dữ liệu để hiển thị Giờ nhận kết quả:
+                    loadSavedUltrasoundResult(currentUltrasoundId);
                     // Không đóng modal để có thể upload ảnh hoặc tiếp tục chỉnh sửa
                     loadUltrasoundRequests();
                     loadStats();
@@ -787,6 +808,25 @@ renderLayout($content, 'Siêu âm Dashboard - Hệ thống Quản lý Bệnh vi�
                     .position-relative { position: relative; }
                     /* Ensure images are visible in print */
                     img { display: block !important; max-width: 100%; height: auto; }
+                    /* Ensure logo is visible in print with proper size and centered */
+                    img[src*="logophieu"] { 
+                        display: block !important; 
+                        visibility: visible !important; 
+                        opacity: 1 !important;
+                        height: 60px !important;
+                        width: auto !important;
+                        max-width: 100% !important;
+                        object-fit: contain !important;
+                        margin: 0 auto !important;
+                    }
+                    /* Center logo container - use class selector for better compatibility */
+                    .text-center img[src*="logophieu"],
+                    div.text-center:has(img[src*="logophieu"]) {
+                        text-align: center !important;
+                    }
+                    div.text-center {
+                        text-align: center !important;
+                    }
                     .ultrasound-image { display: block !important; }
                     .position-absolute { display: none !important; }
                     /* Hide all buttons, badges, and UI elements in print - but NOT images and important labels */
@@ -1098,6 +1138,22 @@ renderLayout($content, 'Siêu âm Dashboard - Hệ thống Quản lý Bệnh vi�
                     // Set doctor name from database
                     if (data.result.bac_si_sieu_am) {
                         document.getElementById('ur_bac_si_doc').textContent = data.result.bac_si_sieu_am;
+                    }
+                    
+                    // Hiển thị Giờ nhận kết quả từ ngay_cap_nhat (format: H:i:s)
+                    var returnTimeEl = document.getElementById('ur_return_time');
+                    if (returnTimeEl && data.result.ngay_cap_nhat) {
+                        var returnDate = new Date(data.result.ngay_cap_nhat);
+                        if (!isNaN(returnDate.getTime())) {
+                            var hours = String(returnDate.getHours()).padStart(2, '0');
+                            var minutes = String(returnDate.getMinutes()).padStart(2, '0');
+                            var seconds = String(returnDate.getSeconds()).padStart(2, '0');
+                            returnTimeEl.textContent = hours + ':' + minutes + ':' + seconds;
+                        } else {
+                            returnTimeEl.textContent = '';
+                        }
+                    } else if (returnTimeEl) {
+                        returnTimeEl.textContent = '';
                     }
 
                     // Set ket_qua_id for future uploads

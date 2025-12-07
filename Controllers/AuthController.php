@@ -797,8 +797,8 @@ class AuthController
         $role = $_SESSION['user_role'] ?? '';
         $userId = $_SESSION['user_id'] ?? null;
 
-        // Cập nhật trạng thái truy cập thành 'inactive' khi logout (chỉ cho bác sĩ)
-        if ($userId && in_array($role, ['doctor', 'xray_doctor', 'sieuam_doctor', 'xetnghiem_doctor'])) {
+        // Cập nhật trạng thái truy cập thành 'inactive' khi logout (cho bác sĩ, lễ tân và bệnh nhân)
+        if ($userId && in_array($role, ['doctor', 'xray_doctor', 'sieuam_doctor', 'xetnghiem_doctor', 'letan', 'patient'])) {
             $this->updateUserAccessStatus($userId, $role, 'inactive');
         }
 

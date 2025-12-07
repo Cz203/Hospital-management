@@ -158,6 +158,7 @@
             </div>
 
             <?php
+            require_once __DIR__ . '/../layouts/pagination_helper.php';
             $total = $total ?? 0;
             $page = $page ?? 1;
             $perPage = $perPage ?? 10;

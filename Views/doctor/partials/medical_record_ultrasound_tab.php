@@ -68,6 +68,7 @@
                 </style>
                 <div class="report">
                     <div class="text-center mb-3">
+                        <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
                         <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG KHÁM ĐA KHOA THINHVIET</div>
                         <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA CHẨN ĐOÁN HÌNH ẢNH</div>
                     </div>
@@ -121,6 +122,23 @@
                         <div class="label">Bác sĩ chỉ định:</div>
                         <div class="dots">:</div>
                         <div class="value"><?php echo escapeHtml($exam['ten_bac_si'] ?? '-'); ?></div>
+                    </div>
+
+                    <div class="row-line">
+                        <div class="label">Giờ nhận kết quả:</div>
+                        <div class="dots">:</div>
+                        <div class="value"><?php 
+                            $gioNhanKetQua = '-';
+                            if (!empty($ultrasoundResult['ngay_cap_nhat'])) {
+                                try {
+                                    $date = new DateTime($ultrasoundResult['ngay_cap_nhat']);
+                                    $gioNhanKetQua = $date->format('H:i:s');
+                                } catch (Exception $e) {
+                                    $gioNhanKetQua = '-';
+                                }
+                            }
+                            echo escapeHtml($gioNhanKetQua);
+                        ?></div>
                     </div>
 
                     <div class="hr"></div>
