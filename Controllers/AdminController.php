@@ -32,16 +32,16 @@ class AdminController
     {
         $this->auth->requireAuth('admin');
 
-        // Lấy thống kê tổng quan
+        //lấ thống kê tổng quan
         $stats = $this->getDashboardStats();
 
-        // Lấy danh sách lễ tân với lịch trực hôm nay
+        //lấy danh sách lễ tân với lịch trực hôm nay
         $receptionsWithSchedule = $this->getReceptionsWithTodaySchedule();
 
-        // Lấy danh sách bác sĩ với trạng thái truy cập
+        //lấy danh sác bác sĩ với trạng thái truy cập
         $doctorsWithAccessStatus = $this->getDoctorsWithAccessStatus();
 
-        // Lấy danh sách bệnh nhân với trạng thái truy cập
+        //lấy danh sách bệnh nhân với trạng thái truy cập
         $patientsWithAccessStatus = $this->getPatientsWithAccessStatus();
 
         $page_title = 'Dashboard Admin';
