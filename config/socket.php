@@ -19,16 +19,12 @@
             continue;
         }
         $_ENV[$key] = $value;
-        // Ensure available via getenv()
         @putenv("$key=$value");
     }
 })();
 
 return [
-    // mode: 'auto' | 'prod' | 'dev'
     'mode' => ($_ENV['SOCKET_MODE'] ?? getenv('SOCKET_MODE')) ?: 'auto',
-    // URL Render (production)
     'server_url' => ($_ENV['SOCKET_SERVER_URL'] ?? getenv('SOCKET_SERVER_URL')) ?: 'https://your-socket-service.onrender.com',
-    // URL local dev
     'dev_url' => ($_ENV['SOCKET_DEV_URL'] ?? getenv('SOCKET_DEV_URL')) ?: 'http://localhost:3001',
 ];
