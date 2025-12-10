@@ -297,6 +297,35 @@ class Appointment extends User
     }
 
     /**
+     * Kiểm tra xung đột lịch hẹn của bệnh nhân
+     * Kiểm tra xem bệnh nhân đã có lịch hẹn vào ngày/giờ đó chưa (bất kể bác sĩ nào)
+     */
+    public function checkPatientConflict($patientId, $ngayHen, $gioHen)
+    {
+        try {
+            $sql = "SELECT COUNT(*) as count 
+                    FROM {$this->table} 
+                    WHERE benh_nhan_id = :patient_id 
+                    AND ngay_hen = :ngay_hen 
+                    AND gio_hen = :gio_hen 
+                    AND trang_thai IN ('Chờ xác nhận', 'Đã xác nhận', 'Đang khám')";
+
+            $stmt = $this->getConnection()->prepare($sql);
+            $stmt->execute([
+                ':patient_id' => $patientId,
+                ':ngay_hen' => $ngayHen,
+                ':gio_hen' => $gioHen
+            ]);
+
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['count'] > 0;
+        } catch (PDOException $e) {
+            error_log("Appointment checkPatientConflict error: " . $e->getMessage());
+            return true; // Trả về true để an toàn
+        }
+    }
+
+    /**
      * Lấy khung giờ khám có sẵn của bác sĩ trong ngày
      * Mỗi khung giờ 10 phút
      */

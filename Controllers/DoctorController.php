@@ -146,17 +146,37 @@ class DoctorController
         );
 
         // Booking window for patients: từ mốc 23
+        /*
+         * Chính sách cửa sổ đặt lịch (booking window) theo mốc ngày 23 mỗi tháng:
+         *
+         *  - Định nghĩa mốc ($anchor): 23/MM/YYYY của THÁNG HIỆN TẠI.
+         *  - Nếu hôm nay ($todayDt) NẰM TRƯỚC ngày 23:
+         *      + $bookingStart = 23 của THÁNG TRƯỚC
+         *      + $bookingEnd   = ngày CUỐI của THÁNG HIỆN TẠI
+         *    => Bệnh nhân xem/điều hướng được từ 23 tháng trước → hết tháng này.
+         *
+         *  - Nếu hôm nay TỪ ngày 23 trở đi:
+         *      + $bookingStart = 23 của THÁNG HIỆN TẠI
+         *      + $bookingEnd   = ngày CUỐI của THÁNG KẾ TIẾP
+         *    => Bệnh nhân xem/điều hướng được từ 23 tháng này → hết tháng sau.
+         *
+         * Lưu ý kỹ thuật:
+         *  - Dùng (clone $anchor) trước khi modify() để không thay đổi $anchor gốc.
+         *  - "last day of this month" đưa con trỏ tới NGÀY CUỐI THÁNG hiện hành.
+         *  - Kết hợp "+1 month" rồi "last day of this month" để lấy NGÀY CUỐI của THÁNG KẾ TIẾP.
+         */
         $openDay = 23;
         $anchor = new DateTime(date('Y-m-01'));
         $anchor->setDate((int)$anchor->format('Y'), (int)$anchor->format('m'), $openDay);
         if ($todayDt < $anchor) {
-            // Trước ngày 23: hiển thị từ 23 tháng trước → hết tháng hiện tại
-            $bookingStart = (clone $anchor)->modify('-1 month');
-            $bookingEnd = (clone $anchor)->modify('last day of this month');
+            // Trước ngày 23: [23 tháng trước → hết tháng hiện tại]
+            $bookingStart = (clone $anchor)->modify('-1 month');              // 23 của THÁNG TRƯỚC
+            $bookingEnd   = (clone $anchor)->modify('last day of this month'); // ngày CUỐI của THÁNG NÀY
         } else {
-            // Từ ngày 23 trở đi: hiển thị 23 tháng này → hết tháng kế tiếp
-            $bookingStart = clone $anchor;
-            $bookingEnd = (clone $anchor)->modify('+1 month')->modify('last day of this month');
+            // Từ ngày 23 trở đi: [23 tháng này → hết tháng kế tiếp]
+            $bookingStart = clone $anchor;                                     // 23 của THÁNG NÀY
+            $bookingEnd   = (clone $anchor)->modify('+1 month')                // sang THÁNG SAU
+                                              ->modify('last day of this month'); // ngày CUỐI của THÁNG SAU
         }
 
         // Gán cửa sổ hiển thị cho view (để ẩn/hiện card ngày)

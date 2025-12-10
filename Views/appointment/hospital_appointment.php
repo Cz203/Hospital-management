@@ -23,7 +23,7 @@ include 'Views/layouts/header.php';
                         Đặt lịch khám tại bệnh viện
                     </h2>
                     <div class="divider mx-auto my-4" style="background: rgba(255,255,255,0.3);"></div>
-                    <p class="text-white-50">Chọn bác sĩ và thời gian phù hợp để đặt lịch khám</p>
+                    <p class="text-white-50">Chọn thời gian phù hợp để đặt lịch khám</p>
                 </div>
             </div>
         </div>

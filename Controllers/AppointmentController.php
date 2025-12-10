@@ -173,6 +173,22 @@ class AppointmentController
         // Trả về kèm trạng thái disabled để UI hiển thị slot đã được đặt
         $timeSlots = $this->appointmentModel->getAvailableTimeSlots($doctorId, $date, true);
 
+        // Kiểm tra và disable các slot mà bệnh nhân đã đặt (nếu đã đăng nhập)
+        if ($this->auth->isLoggedIn() && isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'patient') {
+            $patientId = $_SESSION['user_id'] ?? null;
+            if ($patientId) {
+                foreach ($timeSlots as &$slot) {
+                    // Nếu slot chưa bị disabled (do bác sĩ bận), kiểm tra xem bệnh nhân đã đặt chưa
+                    if (!isset($slot['disabled']) || !$slot['disabled']) {
+                        if ($this->appointmentModel->checkPatientConflict($patientId, $date, $slot['time'])) {
+                            $slot['disabled'] = true;
+                        }
+                    }
+                }
+                unset($slot);
+            }
+        }
+
         // Xác định cửa sổ tháng dựa trên mốc ngày 23:
         // - Trước ngày 23: 23/tháng trước → hết tháng hiện tại
         // - Từ ngày 23: 23/tháng này → hết tháng kế tiếp
@@ -382,6 +398,14 @@ class AppointmentController
                 header("Location: ./hospital_appointment?doctor_id=" . $doctorId);
                 exit();
             }
+        }
+
+        // Kiểm tra xung đột lịch hẹn của bệnh nhân (bệnh nhân không thể đặt nhiều lịch cùng ngày/giờ)
+        if ($this->appointmentModel->checkPatientConflict($patientId, $date, $time)) {
+            $date_vn = date('d-m-Y', strtotime($date));
+            $_SESSION['error'] = "Bạn đã có lịch hẹn vào khung giờ $time ngày $date_vn. Vui lòng chọn thời gian khác!";
+            header("Location: ./hospital_appointment?doctor_id=" . $doctorId);
+            exit();
         }
 
         // Kiểm tra xung đột lịch hẹn (chỉ chặn khi cùng ngày + cùng giờ + cùng bác sĩ,
