@@ -328,11 +328,13 @@ ob_start();
             return;
         }
 
-        // Lưu dữ liệu vào bộ nhớ
+        // Lưu dữ liệu vào bộ nhớ và gắn số thứ tự hiển thị (reset 1..n theo danh sách hiện tại)
         try {
             if (!window.__queueRows) window.__queueRows = {};
-            rows.forEach(function(x) {
+            rows.forEach(function(x, idx) {
                 if (x && x.id) {
+                    // Số thứ tự hiển thị theo từng chuyên khoa/danh sách hiện tại: 1..n
+                    x.__display_index = idx + 1;
                     window.__queueRows[String(x.id)] = x;
                 }
             });
@@ -369,7 +371,9 @@ ob_start();
             html += '<div class="queue-card">';
             html += '<div class="d-flex justify-content-between align-items-start mb-2">';
             html += '<div>';
-            html += '<div class="queue-number">#' + (r.so_thu_tu || '') + '</div>';
+            // Hiển thị STT theo danh sách hiện tại thay vì số thứ tự toàn hệ thống
+            var displayNum = (typeof r.__display_index === 'number' ? r.__display_index : '')
+            html += '<div class="queue-number">#' + displayNum + '</div>';
             html += '<div class="text-muted small">' + (r.ten_benh_nhan || 'BN #' + r.benh_nhan_id) + '</div>';
             html += '</div>';
             html += '<span class="badge ' + statusClass + ' status-badge">' + statusText + '</span>';
@@ -512,7 +516,8 @@ ob_start();
             var tenBs = data.ten_bac_si || ('BS #' + (data.bac_si_id || ''));
             var quay = data.quay || '';
             var duKien = data.thoi_gian_du_kien || '';
-            var so = data.so_thu_tu || '';
+            // In số thứ tự hiển thị (1..n theo danh sách)
+            var so = (typeof data.__display_index === 'number' ? data.__display_index : '');
 
             var w = window.open('', 'PRINT', 'height=600,width=420');
             if (!w) {

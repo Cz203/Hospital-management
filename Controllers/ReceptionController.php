@@ -605,6 +605,7 @@ class ReceptionController
     public function issueQueueTicket()
     {
         $this->auth->requireAuth('letan');
+        $__t0 = microtime(true);
         header('Content-Type: application/json');
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
@@ -624,29 +625,59 @@ class ReceptionController
 
         // Chọn bác sĩ đang on-duty ít bận nhất hôm nay
         $today = date('Y-m-d');
+        $__t1 = microtime(true);
         $availableDoctors = $this->getOnDutyDoctorsBySpecialty($specialtyId, $today);
+        $__t2 = microtime(true);
         if (empty($availableDoctors)) {
             http_response_code(409);
             echo json_encode(['success' => false, 'message' => 'Không có bác sĩ đang trực trong chuyên khoa này hôm nay']);
             exit();
         }
         $doctorId = $this->pickLeastLoadedDoctor($availableDoctors, $today);
+        $__t3 = microtime(true);
 
         // Chọn slot 20' gần nhất còn trống sau thời điểm hiện tại
         require_once 'Models/Appointment.php';
         $apptModel = new Appointment();
         $slots = $apptModel->getAvailableTimeSlots($doctorId, $today, false);
+        $__t4 = microtime(true);
         $now = date('H:i');
         $chosen = null;
+
+        // Giữ ca làm hiện tại: nếu đang buổi sáng (< 12:00) thì chỉ lấy slot trước 12:00;
+        // nếu qua trưa (>= 12:00) thì chỉ lấy slot từ 13:00 trở đi.
+        // Lý do: lễ tân phát số theo ca, tránh việc bệnh nhân bốc số sáng lại nhảy sang ca chiều.
+        $isMorning = (date('H') < 12);
+        $morningCutoff = '12:00';
+        $afternoonStart = '13:00';
+
         foreach ($slots as $s) {
-            if (isset($s['time']) && $s['time'] > $now) {
-                $chosen = $s;
-                break;
+            if (!isset($s['time'])) {
+                continue;
             }
+            $t = $s['time'];
+            // Chỉ xét slot sau thời điểm hiện tại
+            if ($t <= $now) {
+                continue;
+            }
+            // Ràng buộc theo ca
+            if ($isMorning) {
+                // Buổi sáng: chỉ nhận slot trước 12:00
+                if ($t >= $morningCutoff) {
+                    continue;
+                }
+            } else {
+                // Buổi chiều: chỉ nhận slot từ 13:00 trở đi
+                if ($t < $afternoonStart) {
+                    continue;
+                }
+            }
+            $chosen = $s;
+            break;
         }
         if (!$chosen) {
             http_response_code(409);
-            echo json_encode(['success' => false, 'message' => 'Ngoài khung giờ làm việc hôm nay']);
+            echo json_encode(['success' => false, 'message' => 'Ngoài khung giờ làm việc hôm nay hoặc không còn slot phù hợp với ca hiện tại']);
             exit();
         }
 
@@ -662,6 +693,7 @@ class ReceptionController
             'trang_thai' => 'Đã xác nhận',
             'ghi_chu' => 'Lễ tân phát số walk-in'
         ]);
+        $__t5 = microtime(true);
         if (!$appointmentId) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'Không thể tạo lịch hẹn']);
@@ -672,6 +704,18 @@ class ReceptionController
         require_once 'Models/QueueTicket.php';
         $qt = new QueueTicket();
         $ticket = $qt->issueTicket($patientId, $doctorId, (int)$appointmentId, $priority, $counter);
+        $__t6 = microtime(true);
+
+        // Basic performance log for diagnosis (writes to PHP error_log)
+        error_log(sprintf(
+            '[issueQueueTicket] total=%.1fms findOnDuty=%.1fms pickDoctor=%.1fms slots=%.1fms createAppt=%.1fms issueTicket=%.1fms',
+            ($__t6 - $__t0) * 1000,
+            ($__t2 - $__t1) * 1000,
+            ($__t3 - $__t2) * 1000,
+            ($__t4 - $__t3) * 1000,
+            ($__t5 - $__t4) * 1000,
+            ($__t6 - $__t5) * 1000
+        ));
 
         // Emit realtime for doctor appointment list and queue update
         try {

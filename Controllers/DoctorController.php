@@ -159,11 +159,6 @@ class DoctorController
          *      + $bookingStart = 23 của THÁNG HIỆN TẠI
          *      + $bookingEnd   = ngày CUỐI của THÁNG KẾ TIẾP
          *    => Bệnh nhân xem/điều hướng được từ 23 tháng này → hết tháng sau.
-         *
-         * Lưu ý kỹ thuật:
-         *  - Dùng (clone $anchor) trước khi modify() để không thay đổi $anchor gốc.
-         *  - "last day of this month" đưa con trỏ tới NGÀY CUỐI THÁNG hiện hành.
-         *  - Kết hợp "+1 month" rồi "last day of this month" để lấy NGÀY CUỐI của THÁNG KẾ TIẾP.
          */
         $openDay = 23;
         $anchor = new DateTime(date('Y-m-01'));
@@ -176,7 +171,7 @@ class DoctorController
             // Từ ngày 23 trở đi: [23 tháng này → hết tháng kế tiếp]
             $bookingStart = clone $anchor;                                     // 23 của THÁNG NÀY
             $bookingEnd   = (clone $anchor)->modify('+1 month')                // sang THÁNG SAU
-                                              ->modify('last day of this month'); // ngày CUỐI của THÁNG SAU
+                ->modify('last day of this month'); // ngày CUỐI của THÁNG SAU
         }
 
         // Gán cửa sổ hiển thị cho view (để ẩn/hiện card ngày)
@@ -2523,7 +2518,7 @@ class DoctorController
         try {
             $database = new Database();
             $db = $database->getConnection();
-            
+
             // Tối ưu: Lấy phiếu chụp X-Quang mới nhất trước
             $sql = "SELECT px.id, px.ngay_tao, px.ngay_cap_nhat, px.trang_thai, px.yeu_cau_chup,
                            pk.ho_ten, pk.nam_sinh, pk.gioi_tinh, pk.dia_chi,
