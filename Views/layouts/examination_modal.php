@@ -37,7 +37,8 @@
                             <a href="#sec-xray" class="list-group-item list-group-item-action exam-nav">
                                 <i class="fas fa-x-ray me-2"></i>X-Quang
                             </a>
-                            <a href="#sec-xray-result" class="list-group-item list-group-item-action exam-nav" id="xray-result-tab">
+                            <a href="#sec-xray-result" class="list-group-item list-group-item-action exam-nav"
+                                id="xray-result-tab">
                                 <i class="fas fa-file-medical-alt me-2"></i>Kết quả X-Quang
                             </a>
                             <a href="#sec-prescription" class="list-group-item list-group-item-action exam-nav">
@@ -98,12 +99,13 @@
                                 <div class="card-body">
                                     <input type="hidden" name="id_phieu_kham_benh" id="ultrasound_examination_id">
 
-                            <div class="text-center mb-3">
-                                <div style="margin-bottom:6px;">
-                                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
-                                </div>
-                                <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU SIÊU ÂM</div>
-                            </div>
+                                    <div class="text-center mb-3">
+                                        <div style="margin-bottom:6px;">
+                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo"
+                                                style="height:60px;object-fit:contain;">
+                                        </div>
+                                        <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU SIÊU ÂM</div>
+                                    </div>
 
                                     <div class="row g-3">
                                         <div class="col-md-4">
@@ -164,8 +166,8 @@
                                     <!-- Giờ chỉ định -->
                                     <div class="mt-3">
                                         <label class="form-label fw-bold">Giờ chỉ định:</label>
-                                        <input type="text" class="form-control" name="ultrasound_gio_chi_dinh" id="ultrasound_gio_chi_dinh"
-                                            placeholder="Giờ:phút:giây" readonly>
+                                        <input type="text" class="form-control" name="ultrasound_gio_chi_dinh"
+                                            id="ultrasound_gio_chi_dinh" placeholder="Giờ:phút:giây" readonly>
                                     </div>
 
                                     <!-- Chẩn đoán -->
@@ -222,7 +224,8 @@
                                 <div class="card-body">
                                     <!-- Logo -->
                                     <div class="text-center mb-3">
-                                        <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                        <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo"
+                                            style="height:60px;object-fit:contain;">
                                     </div>
                                     <!-- Header form -->
                                     <div class="row mb-3">
@@ -536,9 +539,9 @@
                                         </div>
                                         <div class="row g-3 mt-3">
                                             <div class="col-md-6">
-                                                <label class="form-label fw-bold">6. Cho vào điều trị tại khoa:</label>
+                                                <label class="form-label fw-bold">6. Hướng xử trí:</label>
                                                 <input type="text" class="form-control" name="khoa_dieu_tri"
-                                                    placeholder="Tên khoa điều trị">
+                                                    placeholder="Hướng xử trí">
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label fw-bold">7. Chú ý:</label>
@@ -586,7 +589,8 @@
 
                                     <div class="text-center mb-3">
                                         <div style="margin-bottom:6px;">
-                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo"
+                                                style="height:60px;object-fit:contain;">
                                         </div>
                                         <div class="fw-bold" style="font-size:18px">PHIẾU YÊU CẦU XÉT NGHIỆM</div>
                                     </div>
@@ -649,8 +653,8 @@
 
                                     <div class="mt-3">
                                         <label class="form-label fw-bold">Giờ chỉ định:</label>
-                                        <input type="text" class="form-control" name="lab_gio_chi_dinh" id="lab_gio_chi_dinh"
-                                            placeholder="Giờ:phút:giây" readonly>
+                                        <input type="text" class="form-control" name="lab_gio_chi_dinh"
+                                            id="lab_gio_chi_dinh" placeholder="Giờ:phút:giây" readonly>
                                     </div>
 
                                     <div class="mt-3">
@@ -707,7 +711,8 @@
                                         <!-- Header -->
                                         <div class="text-center mb-4">
                                             <div style="text-align:center; margin-bottom:10px;">
-                                                <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                                <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo"
+                                                    style="height:60px;object-fit:contain;">
                                             </div>
                                             <div class="fw-bold" style="font-size: 18px; color: #000;">PHÒNG KHÁM ĐA
                                                 KHOA THINHVIET</div>
@@ -726,7 +731,8 @@
                                         <div class="row mb-4">
                                             <div class="col-md-6">
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">Mã bệnh nhân:</strong>
+                                                    <div class="col-4"><strong style="font-size: 14px;">Mã bệnh
+                                                            nhân:</strong>
                                                     </div>
                                                     <div class="col-8"><span
                                                             style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
@@ -784,7 +790,8 @@
                                                             id="lab_ro_bac_si">-</span></div>
                                                 </div>
                                                 <div class="row mb-3">
-                                                    <div class="col-4"><strong style="font-size: 14px;">Giờ nhận kết quả:</strong></div>
+                                                    <div class="col-4"><strong style="font-size: 14px;">Giờ nhận kết
+                                                            quả:</strong></div>
                                                     <div class="col-8"><span
                                                             style="border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 14px; min-height: 20px; display: inline-block; width: 100%;"
                                                             id="lab_ro_return_time">-</span></div>
@@ -959,7 +966,8 @@
                                             <div id="ultrasoundResultReadonly" class="report" style="display:none"
                                                 data-pxid="">
                                                 <div class="text-center mb-3">
-                                                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
+                                                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo"
+                                                        style="height:60px;object-fit:contain;margin-bottom:10px;">
                                                     <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG
                                                         KHÁM ĐA KHOA THINHVIET</div>
                                                     <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA CHẨN
@@ -1101,7 +1109,8 @@
                                     <!-- Header phòng khám -->
                                     <div class="mb-3 text-center">
                                         <div style="margin-bottom:6px;">
-                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo"
+                                                style="height:60px;object-fit:contain;">
                                         </div>
                                         <div class="fw-bold" style="font-size:18px" id="xray_clinic_name_display">PHIẾU
                                             CHỤP X – QUANG</div>
@@ -1166,8 +1175,8 @@
                                     <!-- Giờ chỉ định -->
                                     <div class="mt-3">
                                         <label class="form-label fw-bold">Giờ chỉ định:</label>
-                                        <input type="text" class="form-control" name="xray_gio_chi_dinh" id="xray_gio_chi_dinh"
-                                            placeholder="Giờ:phút:giây" readonly>
+                                        <input type="text" class="form-control" name="xray_gio_chi_dinh"
+                                            id="xray_gio_chi_dinh" placeholder="Giờ:phút:giây" readonly>
                                     </div>
 
                                     <!-- Chuẩn đoán -->
@@ -1314,10 +1323,12 @@
                                             <div id="xrayResultReadonly" class="xray-report" style="display:none"
                                                 data-pxid="">
                                                 <div class="text-center mb-3">
-                                                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;margin-bottom:10px;">
+                                                    <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo"
+                                                        style="height:60px;object-fit:contain;margin-bottom:10px;">
                                                     <div class="fw-bold" style="font-size: 18px; color: #333;">PHÒNG
                                                         KHÁM ĐA KHOA THINHVIET</div>
-                                                    <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA CHUẨN
+                                                    <div class="fw-bold" style="font-size: 16px; color: #666;">KHOA
+                                                        CHUẨN
                                                         ĐOÁN HÌNH ẢNH</div>
                                                 </div>
                                                 <div class="title">KẾT QUẢ X-QUANG</div>
@@ -1336,7 +1347,8 @@
                                                     <div class="label">Năm sinh</div>
                                                     <div class="dots">:</div>
                                                     <div class="value" id="xr_ro_yob">-</div>
-                                                    <div class="label" style="min-width:90px; margin-left: 20px;">Giới tính</div>
+                                                    <div class="label" style="min-width:90px; margin-left: 20px;">Giới
+                                                        tính</div>
                                                     <div class="dots">:</div>
                                                     <div class="value" id="xr_ro_gender">-</div>
                                                 </div>
@@ -1351,7 +1363,8 @@
                                                     <div class="label">Khoa chỉ định</div>
                                                     <div class="dots">:</div>
                                                     <div class="value">KHOA CHUẨN ĐOÁN HÌNH ẢNH</div>
-                                                    <div class="label" style="min-width:120px; margin-left: 20px;">Số phiếu chỉ định</div>
+                                                    <div class="label" style="min-width:120px; margin-left: 20px;">Số
+                                                        phiếu chỉ định</div>
                                                     <div class="dots">:</div>
                                                     <div class="value" id="xr_ro_id">-</div>
                                                 </div>
@@ -1360,7 +1373,8 @@
                                                     <div class="label">Ngày chỉ định</div>
                                                     <div class="dots">:</div>
                                                     <div class="value" id="xr_ro_date">-</div>
-                                                    <div class="label" style="min-width:120px; margin-left: 20px;">Giờ chỉ định</div>
+                                                    <div class="label" style="min-width:120px; margin-left: 20px;">Giờ
+                                                        chỉ định</div>
                                                     <div class="dots">:</div>
                                                     <div class="value" id="xr_ro_time">-</div>
                                                 </div>
@@ -1418,8 +1432,8 @@
                                                     </div>
                                                     <div style="margin-right: 20px;">
                                                         <div class="fw-bold">BÁC SĨ X QUANG</div>
-                                                        <div class="mt-2" id="xr_ro_bsxq"
-                                                            style="margin-left: -20px;"></div>
+                                                        <div class="mt-2" id="xr_ro_bsxq" style="margin-left: -20px;">
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1584,7 +1598,8 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="text-center mb-3">
-                                        <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                        <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo"
+                                            style="height:60px;object-fit:contain;">
                                     </div>
 
                                     <!-- Header Information -->
@@ -1699,7 +1714,8 @@
                                             <div class="d-flex justify-content-end mb-2">
                                                 <div class="input-group input-group-sm" style="max-width: 240px;">
                                                     <span class="input-group-text fw-semibold">Số ngày dùng thuốc</span>
-                                                    <input type="number" class="form-control" id="prescription_total_days" min="1" value="1" />
+                                                    <input type="number" class="form-control"
+                                                        id="prescription_total_days" min="1" value="1" />
                                                 </div>
                                             </div>
 
@@ -1746,45 +1762,106 @@
                                                             </td>
                                                             <td class="text-center">
                                                                 <!-- Cách dùng theo từng buổi (UI only) -->
-                                                                <div class="d-flex flex-column gap-2 align-items-center" style="min-width:260px;">
-                                                                    <div class="d-flex align-items-center justify-content-between w-100">
-                                                                        <span class="fw-semibold small me-2" style="width:48px;">Sáng</span>
-                                                                        <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
-                                                                        <div class="btn-group btn-group-sm" role="group" aria-label="sang_meal">
-                                                                            <input type="radio" class="btn-check" name="sang_meal_default" id="sang_before_default" autocomplete="off">
-                                                                            <label class="btn btn-outline-secondary" for="sang_before_default">Trước ăn</label>
-                                                                            <input type="radio" class="btn-check" name="sang_meal_default" id="sang_after_default" autocomplete="off">
-                                                                            <label class="btn btn-outline-secondary" for="sang_after_default">Sau ăn</label>
+                                                                <div class="d-flex flex-column gap-2 align-items-center"
+                                                                    style="min-width:260px;">
+                                                                    <div
+                                                                        class="d-flex align-items-center justify-content-between w-100">
+                                                                        <span class="fw-semibold small me-2"
+                                                                            style="width:48px;">Sáng</span>
+                                                                        <input type="number"
+                                                                            class="form-control form-control-sm me-2"
+                                                                            placeholder="Viên" min="0" step="0.5"
+                                                                            style="width:80px;">
+                                                                        <div class="btn-group btn-group-sm" role="group"
+                                                                            aria-label="sang_meal">
+                                                                            <input type="radio" class="btn-check"
+                                                                                name="sang_meal_default"
+                                                                                id="sang_before_default"
+                                                                                autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary"
+                                                                                for="sang_before_default">Trước
+                                                                                ăn</label>
+                                                                            <input type="radio" class="btn-check"
+                                                                                name="sang_meal_default"
+                                                                                id="sang_after_default"
+                                                                                autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary"
+                                                                                for="sang_after_default">Sau ăn</label>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="d-flex align-items-center justify-content-between w-100">
-                                                                        <span class="fw-semibold small me-2" style="width:48px;">Trưa</span>
-                                                                        <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
-                                                                        <div class="btn-group btn-group-sm" role="group" aria-label="trua_meal">
-                                                                            <input type="radio" class="btn-check" name="trua_meal_default" id="trua_before_default" autocomplete="off">
-                                                                            <label class="btn btn-outline-secondary" for="trua_before_default">Trước ăn</label>
-                                                                            <input type="radio" class="btn-check" name="trua_meal_default" id="trua_after_default" autocomplete="off">
-                                                                            <label class="btn btn-outline-secondary" for="trua_after_default">Sau ăn</label>
+                                                                    <div
+                                                                        class="d-flex align-items-center justify-content-between w-100">
+                                                                        <span class="fw-semibold small me-2"
+                                                                            style="width:48px;">Trưa</span>
+                                                                        <input type="number"
+                                                                            class="form-control form-control-sm me-2"
+                                                                            placeholder="Viên" min="0" step="0.5"
+                                                                            style="width:80px;">
+                                                                        <div class="btn-group btn-group-sm" role="group"
+                                                                            aria-label="trua_meal">
+                                                                            <input type="radio" class="btn-check"
+                                                                                name="trua_meal_default"
+                                                                                id="trua_before_default"
+                                                                                autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary"
+                                                                                for="trua_before_default">Trước
+                                                                                ăn</label>
+                                                                            <input type="radio" class="btn-check"
+                                                                                name="trua_meal_default"
+                                                                                id="trua_after_default"
+                                                                                autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary"
+                                                                                for="trua_after_default">Sau ăn</label>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="d-flex align-items-center justify-content-between w-100">
-                                                                        <span class="fw-semibold small me-2" style="width:48px;">Chiều</span>
-                                                                        <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
-                                                                        <div class="btn-group btn-group-sm" role="group" aria-label="chieu_meal">
-                                                                            <input type="radio" class="btn-check" name="chieu_meal_default" id="chieu_before_default" autocomplete="off">
-                                                                            <label class="btn btn-outline-secondary" for="chieu_before_default">Trước ăn</label>
-                                                                            <input type="radio" class="btn-check" name="chieu_meal_default" id="chieu_after_default" autocomplete="off">
-                                                                            <label class="btn btn-outline-secondary" for="chieu_after_default">Sau ăn</label>
+                                                                    <div
+                                                                        class="d-flex align-items-center justify-content-between w-100">
+                                                                        <span class="fw-semibold small me-2"
+                                                                            style="width:48px;">Chiều</span>
+                                                                        <input type="number"
+                                                                            class="form-control form-control-sm me-2"
+                                                                            placeholder="Viên" min="0" step="0.5"
+                                                                            style="width:80px;">
+                                                                        <div class="btn-group btn-group-sm" role="group"
+                                                                            aria-label="chieu_meal">
+                                                                            <input type="radio" class="btn-check"
+                                                                                name="chieu_meal_default"
+                                                                                id="chieu_before_default"
+                                                                                autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary"
+                                                                                for="chieu_before_default">Trước
+                                                                                ăn</label>
+                                                                            <input type="radio" class="btn-check"
+                                                                                name="chieu_meal_default"
+                                                                                id="chieu_after_default"
+                                                                                autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary"
+                                                                                for="chieu_after_default">Sau ăn</label>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="d-flex align-items-center justify-content-between w-100">
-                                                                        <span class="fw-semibold small me-2" style="width:48px;">Tối</span>
-                                                                        <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
-                                                                        <div class="btn-group btn-group-sm" role="group" aria-label="toi_meal">
-                                                                            <input type="radio" class="btn-check" name="toi_meal_default" id="toi_before_default" autocomplete="off">
-                                                                            <label class="btn btn-outline-secondary" for="toi_before_default">Trước ăn</label>
-                                                                            <input type="radio" class="btn-check" name="toi_meal_default" id="toi_after_default" autocomplete="off">
-                                                                            <label class="btn btn-outline-secondary" for="toi_after_default">Sau ăn</label>
+                                                                    <div
+                                                                        class="d-flex align-items-center justify-content-between w-100">
+                                                                        <span class="fw-semibold small me-2"
+                                                                            style="width:48px;">Tối</span>
+                                                                        <input type="number"
+                                                                            class="form-control form-control-sm me-2"
+                                                                            placeholder="Viên" min="0" step="0.5"
+                                                                            style="width:80px;">
+                                                                        <div class="btn-group btn-group-sm" role="group"
+                                                                            aria-label="toi_meal">
+                                                                            <input type="radio" class="btn-check"
+                                                                                name="toi_meal_default"
+                                                                                id="toi_before_default"
+                                                                                autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary"
+                                                                                for="toi_before_default">Trước
+                                                                                ăn</label>
+                                                                            <input type="radio" class="btn-check"
+                                                                                name="toi_meal_default"
+                                                                                id="toi_after_default"
+                                                                                autocomplete="off">
+                                                                            <label class="btn btn-outline-secondary"
+                                                                                for="toi_after_default">Sau ăn</label>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1861,45 +1938,67 @@
                                     </td>
                                     <td class="text-center">
                                         <!-- Cách dùng theo từng buổi (UI only) -->
-                                        <div class="d-flex flex-column gap-2 align-items-center" style="min-width:260px;">
+                                        <div class="d-flex flex-column gap-2 align-items-center"
+                                            style="min-width:260px;">
                                             <div class="d-flex align-items-center justify-content-between w-100">
                                                 <span class="fw-semibold small me-2" style="width:48px;">Sáng</span>
-                                                <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                <input type="number" class="form-control form-control-sm me-2"
+                                                    placeholder="Viên" min="0" step="0.5" style="width:80px;">
                                                 <div class="btn-group btn-group-sm" role="group" aria-label="sang_meal">
-                                                    <input type="radio" class="btn-check" name="sang_meal_tpl" id="sang_before_tpl" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="sang_before_tpl">Trước ăn</label>
-                                                    <input type="radio" class="btn-check" name="sang_meal_tpl" id="sang_after_tpl" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="sang_after_tpl">Sau ăn</label>
+                                                    <input type="radio" class="btn-check" name="sang_meal_tpl"
+                                                        id="sang_before_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="sang_before_tpl">Trước
+                                                        ăn</label>
+                                                    <input type="radio" class="btn-check" name="sang_meal_tpl"
+                                                        id="sang_after_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="sang_after_tpl">Sau
+                                                        ăn</label>
                                                 </div>
                                             </div>
                                             <div class="d-flex align-items-center justify-content-between w-100">
                                                 <span class="fw-semibold small me-2" style="width:48px;">Trưa</span>
-                                                <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                <input type="number" class="form-control form-control-sm me-2"
+                                                    placeholder="Viên" min="0" step="0.5" style="width:80px;">
                                                 <div class="btn-group btn-group-sm" role="group" aria-label="trua_meal">
-                                                    <input type="radio" class="btn-check" name="trua_meal_tpl" id="trua_before_tpl" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="trua_before_tpl">Trước ăn</label>
-                                                    <input type="radio" class="btn-check" name="trua_meal_tpl" id="trua_after_tpl" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="trua_after_tpl">Sau ăn</label>
+                                                    <input type="radio" class="btn-check" name="trua_meal_tpl"
+                                                        id="trua_before_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="trua_before_tpl">Trước
+                                                        ăn</label>
+                                                    <input type="radio" class="btn-check" name="trua_meal_tpl"
+                                                        id="trua_after_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="trua_after_tpl">Sau
+                                                        ăn</label>
                                                 </div>
                                             </div>
                                             <div class="d-flex align-items-center justify-content-between w-100">
                                                 <span class="fw-semibold small me-2" style="width:48px;">Chiều</span>
-                                                <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
-                                                <div class="btn-group btn-group-sm" role="group" aria-label="chieu_meal">
-                                                    <input type="radio" class="btn-check" name="chieu_meal_tpl" id="chieu_before_tpl" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="chieu_before_tpl">Trước ăn</label>
-                                                    <input type="radio" class="btn-check" name="chieu_meal_tpl" id="chieu_after_tpl" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="chieu_after_tpl">Sau ăn</label>
+                                                <input type="number" class="form-control form-control-sm me-2"
+                                                    placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                <div class="btn-group btn-group-sm" role="group"
+                                                    aria-label="chieu_meal">
+                                                    <input type="radio" class="btn-check" name="chieu_meal_tpl"
+                                                        id="chieu_before_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary"
+                                                        for="chieu_before_tpl">Trước ăn</label>
+                                                    <input type="radio" class="btn-check" name="chieu_meal_tpl"
+                                                        id="chieu_after_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="chieu_after_tpl">Sau
+                                                        ăn</label>
                                                 </div>
                                             </div>
                                             <div class="d-flex align-items-center justify-content-between w-100">
                                                 <span class="fw-semibold small me-2" style="width:48px;">Tối</span>
-                                                <input type="number" class="form-control form-control-sm me-2" placeholder="Viên" min="0" step="0.5" style="width:80px;">
+                                                <input type="number" class="form-control form-control-sm me-2"
+                                                    placeholder="Viên" min="0" step="0.5" style="width:80px;">
                                                 <div class="btn-group btn-group-sm" role="group" aria-label="toi_meal">
-                                                    <input type="radio" class="btn-check" name="toi_meal_tpl" id="toi_before_tpl" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="toi_before_tpl">Trước ăn</label>
-                                                    <input type="radio" class="btn-check" name="toi_meal_tpl" id="toi_after_tpl" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="toi_after_tpl">Sau ăn</label>
+                                                    <input type="radio" class="btn-check" name="toi_meal_tpl"
+                                                        id="toi_before_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="toi_before_tpl">Trước
+                                                        ăn</label>
+                                                    <input type="radio" class="btn-check" name="toi_meal_tpl"
+                                                        id="toi_after_tpl" autocomplete="off">
+                                                    <label class="btn btn-outline-secondary" for="toi_after_tpl">Sau
+                                                        ăn</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1918,28 +2017,29 @@
                         <div class="card mb-3 exam-section" id="sec-result">
                             <div class="card-header bg-warning text-dark">
                                 <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Kê biên lai</h6>
-                    </div>
+                            </div>
                             <div class="card-body">
                                 <!-- Biên lai viện phí -->
                                 <div class="receipt-container">
                                     <!-- Header -->
                                     <div class="receipt-header">
                                         <div class="text-center mb-2">
-                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo" style="height:60px;object-fit:contain;">
+                                            <img src="assets/img/logophieu/gen-n-logophieu.jpg" alt="Logo"
+                                                style="height:60px;object-fit:contain;">
                                         </div>
                                         <div class="receipt-title">
                                             <h1 class="receipt-clinic-name">PHÒNG KHÁM ĐA KHOA THINHVIET</h1>
                                             <h2 class="receipt-main-title">BIÊN LAI VIỆN PHÍ</h2>
                                             <p class="receipt-subtitle">Viện phí</p>
                                         </div>
-                        <div class="receipt-stt">
-                            <span class="stt-label">Mã BN:</span>
-                            <span class="stt-number" id="receipt_patient_code"></span>
-                        </div>
-                        <div class="receipt-stt">
-                            <span class="stt-label">Số HD:</span>
-                            <span class="stt-number" id="receipt_so_hd">-</span>
-                        </div>
+                                        <div class="receipt-stt">
+                                            <span class="stt-label">Mã BN:</span>
+                                            <span class="stt-number" id="receipt_patient_code"></span>
+                                        </div>
+                                        <div class="receipt-stt">
+                                            <span class="stt-label">Số HD:</span>
+                                            <span class="stt-number" id="receipt_so_hd">-</span>
+                                        </div>
                                     </div>
 
                                     <!-- Thông tin bệnh nhân -->
@@ -1961,7 +2061,8 @@
                                         <div class="info-row">
                                             <div class="info-item">
                                                 <span class="label">Địa chỉ:</span>
-                                                <span class="value" id="receipt_patient_address">phong thạnh a, Thị xã Giá Rai, Bạc Liêu</span>
+                                                <span class="value" id="receipt_patient_address">phong thạnh a, Thị xã
+                                                    Giá Rai, Bạc Liêu</span>
                                             </div>
                                             <div class="info-item">
                                                 <span class="label">Mã số BHYT (nếu có):</span>
@@ -1980,15 +2081,15 @@
                                     <div class="services-table">
                                         <table class="table table-bordered">
                                             <thead>
-                                <tr>
-                                    <th width="5%">STT</th>
-                                    <th width="30%">Nội dung</th>
-                                    <th width="12%">Số lượng</th>
-                                    <th width="12%">Đơn giá (đồng)</th>
-                                    <th width="12%">Thành tiền (đồng)</th>
-                                    <th width="14%">Quỹ BHYT (đồng)</th>
-                                    <th width="15%">Người Bệnh (đồng)</th>
-                                </tr>
+                                                <tr>
+                                                    <th width="5%">STT</th>
+                                                    <th width="30%">Nội dung</th>
+                                                    <th width="12%">Số lượng</th>
+                                                    <th width="12%">Đơn giá (đồng)</th>
+                                                    <th width="12%">Thành tiền (đồng)</th>
+                                                    <th width="14%">Quỹ BHYT (đồng)</th>
+                                                    <th width="15%">Người Bệnh (đồng)</th>
+                                                </tr>
                                             </thead>
                                             <tbody id="receipt_services">
                                                 <tr>
@@ -1997,10 +2098,10 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                        <td>1</td>
-                                        <td>
-                                            <div>Khám bệnh</div>
-                                        </td>
+                                                    <td>1</td>
+                                                    <td>
+                                                        <div>Khám bệnh</div>
+                                                    </td>
                                                     <td>1</td>
                                                     <td class="text-end" id="receipt_basic_price">100,000</td>
                                                     <td class="text-end" id="receipt_basic_total">100,000</td>
@@ -2033,14 +2134,17 @@
                                         </div>
                                         <div class="payment-row">
                                             <span class="payment-label">Bằng chữ:</span>
-                                            <span class="payment-words" id="receipt_total_words">Hai mươi ngàn đồng</span>
+                                            <span class="payment-words" id="receipt_total_words">Hai mươi ngàn
+                                                đồng</span>
                                         </div>
                                     </div>
 
                                     <!-- Footer -->
                                     <div class="receipt-footer">
-                                        <div class="signature-section" style="text-align: right; margin-left: auto; width: fit-content;">
-                                            <div id="receipt_signature_date" style="margin-bottom: 10px;">Ngày 23 tháng 10 năm 2025</div>
+                                        <div class="signature-section"
+                                            style="text-align: right; margin-left: auto; width: fit-content;">
+                                            <div id="receipt_signature_date" style="margin-bottom: 10px;">Ngày 23 tháng
+                                                10 năm 2025</div>
                                             <div class="signature-label">Người Lập Bảng Kê</div>
                                             <div class="signature-line">(Ký, ghi rõ họ tên)</div>
                                             <div class="signature-name" id="receipt_doctor_name">Lê Kim Hảo</div>
@@ -2063,9 +2167,10 @@
                                     </div>
                                     <h5 class="mb-3">Xác nhận hoàn thành khám bệnh</h5>
                                     <p class="text-muted mb-4">
-                                        Nhấn nút bên dưới để kiểm tra và hoàn thành quá trình khám bệnh cho bệnh nhân này.
+                                        Nhấn nút bên dưới để kiểm tra và hoàn thành quá trình khám bệnh cho bệnh nhân
+                                        này.
                                         Trạng thái lịch hẹn sẽ được cập nhật thành "Hoàn thành".
-                                    </p>       
+                                    </p>
                                     <button type="button" class="btn btn-success btn-lg" id="complete-examination-btn">
                                         <i class="fas fa-check-circle me-2"></i>Hoàn Thành Khám Bệnh
                                     </button>
@@ -2553,7 +2658,6 @@ function savePrescription() {
             alert('Lỗi khi lưu đơn thuốc');
         });
 }
-
 </script>
 
 <!-- prescription.js is already loaded at the page level; avoid duplicate includes to prevent redeclaration errors -->

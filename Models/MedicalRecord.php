@@ -100,9 +100,9 @@ class MedicalRecord
                     WHERE lh.bac_si_id = :doctor_id 
                     AND lh.trang_thai = 'Hoàn thành'
                     AND (lh.loai_lich = 'Trực tiếp' OR lh.loai_lich = 'Tại viện')";
-            
+
             $countParams = [':doctor_id' => $doctorId];
-            
+
             // Filter theo search
             if (!empty($search) && !empty($searchType)) {
                 switch ($searchType) {
@@ -120,7 +120,7 @@ class MedicalRecord
                         break;
                 }
             }
-            
+
             // Filter theo ngày
             if (!empty($selectedDate)) {
                 $countSql .= " AND (
@@ -129,7 +129,7 @@ class MedicalRecord
                 )";
                 $countParams[':selected_date'] = $selectedDate;
             }
-            
+
             $countStmt = $this->conn->prepare($countSql);
             $countStmt->execute($countParams);
             $total = (int)$countStmt->fetch(PDO::FETCH_ASSOC)['total'];
@@ -152,7 +152,7 @@ class MedicalRecord
             $stmt->execute();
 
             $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             error_log("MedicalRecord getRecordsByDoctor - SQL: " . $sql);
             error_log("MedicalRecord getRecordsByDoctor - Records found: " . count($records));
 
@@ -347,9 +347,9 @@ class MedicalRecord
                     WHERE lh.benh_nhan_id = :patient_id 
                     AND lh.trang_thai = 'Hoàn thành'
                     AND (lh.loai_lich = 'Trực tiếp' OR lh.loai_lich = 'Tại viện')";
-            
+
             $countParams = [':patient_id' => $patientId];
-            
+
             // Filter theo ngày
             if (!empty($selectedDate)) {
                 $countSql .= " AND (
@@ -358,7 +358,7 @@ class MedicalRecord
                 )";
                 $countParams[':selected_date'] = $selectedDate;
             }
-            
+
             $countStmt = $this->conn->prepare($countSql);
             $countStmt->execute($countParams);
             $total = (int)$countStmt->fetch(PDO::FETCH_ASSOC)['total'];
@@ -422,7 +422,7 @@ class MedicalRecord
                         $record['gio_kham_formatted'] = '-';
                     }
                 }
-                
+
                 // Dùng tên bác sĩ từ join nếu có
                 if (empty($record['ten_bac_si']) && !empty($record['ten_bac_si_full'])) {
                     $record['ten_bac_si'] = $record['ten_bac_si_full'];
@@ -491,7 +491,7 @@ class MedicalRecord
                 $patientStmt = $this->conn->prepare($patientSql);
                 $patientStmt->execute([':lich_hen_id' => $lichHenId]);
                 $patient = $patientStmt->fetch(PDO::FETCH_ASSOC);
-                
+
                 if ($patient) {
                     // Tạo exam data từ lịch hẹn
                     $exam = array_merge($exam, [
@@ -736,7 +736,7 @@ class MedicalRecord
                 $patientStmt = $this->conn->prepare($patientSql);
                 $patientStmt->execute([':lich_hen_id' => $lichHenId]);
                 $patient = $patientStmt->fetch(PDO::FETCH_ASSOC);
-                
+
                 if ($patient) {
                     // Tạo exam data từ lịch hẹn
                     $exam['ho_ten'] = $patient['ten'] ?? '';
@@ -917,4 +917,3 @@ class MedicalRecord
         }
     }
 }
-

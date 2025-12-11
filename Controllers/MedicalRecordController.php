@@ -520,13 +520,13 @@ class MedicalRecordController
                         require_once 'config/database.php';
                         $database = new Database();
                         $db = $database->getConnection();
-                        
+
                         // Lấy kết quả X-Quang mới nhất
                         $xrayResultSql = "SELECT * FROM ket_qua_xquang WHERE id_phieu_chup_xquang = :xray_id ORDER BY ngay_cap_nhat DESC LIMIT 1";
                         $xrayResultStmt = $db->prepare($xrayResultSql);
                         $xrayResultStmt->execute([':xray_id' => $xrayRequest['id']]);
                         $xrayResult = $xrayResultStmt->fetch(PDO::FETCH_ASSOC);
-                        
+
                         if ($xrayResult) {
                             // Lấy hình ảnh
                             $xrayImageSql = "SELECT * FROM ket_qua_xquang_hinh_anh WHERE ket_qua_id = :ket_qua_id ORDER BY id";
@@ -615,7 +615,7 @@ class MedicalRecordController
                 $_SESSION['lookup_so_dien_thoai'] = trim($_POST['so_dien_thoai']);
                 $_SESSION['lookup_cccd'] = trim($_POST['cccd']);
                 $_SESSION['lookup_from_post'] = true; // Flag để biết đây là request từ POST redirect
-                
+
                 // Redirect về trang kết quả (không có thông tin nhạy cảm trong URL)
                 header('Location: ./lookup_medical_record');
                 exit();
@@ -636,7 +636,7 @@ class MedicalRecordController
             $soDienThoai = isset($_SESSION['lookup_so_dien_thoai']) ? trim($_SESSION['lookup_so_dien_thoai']) : '';
             $cccd = isset($_SESSION['lookup_cccd']) ? trim($_SESSION['lookup_cccd']) : '';
             $selectedDate = trim($_GET['selected_date'] ?? ''); // Filter ngày vẫn dùng GET vì không nhạy cảm
-            
+
             $patient = null;
             $records = [];
 
@@ -652,7 +652,7 @@ class MedicalRecordController
                 if ($patient) {
                     // Lấy danh sách lịch hẹn đã hoàn thành của bệnh nhân này (có filter theo ngày nếu có)
                     $records = $this->medicalRecordModel->getRecordsByPatientId($patient['id'], $selectedDate ?: null);
-                    
+
                     // Set thông báo thành công
                     if (!empty($records)) {
                         $_SESSION['lookup_success'] = 'Tra cứu thành công! Tìm thấy ' . count($records) . ' hồ sơ khám bệnh.';
@@ -691,12 +691,12 @@ class MedicalRecordController
             require_once 'config/database.php';
             $database = new Database();
             $db = $database->getConnection();
-            
+
             $checkStmt = $db->prepare("SELECT id FROM lich_hen WHERE id = :lich_hen_id AND benh_nhan_id = :patient_id AND trang_thai = 'Hoàn thành'");
             $checkStmt->bindParam(':lich_hen_id', $lichHenId, PDO::PARAM_INT);
             $checkStmt->bindParam(':patient_id', $patientId, PDO::PARAM_INT);
             $checkStmt->execute();
-            
+
             if ($checkStmt->rowCount() === 0) {
                 echo '<div class="alert alert-danger">Không tìm thấy hồ sơ hoặc bạn không có quyền xem hồ sơ này</div>';
                 exit();
@@ -728,12 +728,12 @@ class MedicalRecordController
         require_once 'config/database.php';
         $database = new Database();
         $db = $database->getConnection();
-        
+
         $checkStmt = $db->prepare("SELECT id FROM lich_hen WHERE id = :lich_hen_id AND benh_nhan_id = :patient_id AND trang_thai = 'Hoàn thành'");
         $checkStmt->bindParam(':lich_hen_id', $lichHenId, PDO::PARAM_INT);
         $checkStmt->bindParam(':patient_id', $patientId, PDO::PARAM_INT);
         $checkStmt->execute();
-        
+
         return $checkStmt->rowCount() > 0;
     }
 
